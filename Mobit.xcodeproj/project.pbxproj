@@ -16,6 +16,14 @@
 		3133E23F2C3E2357000D4B1A /* MobitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E23E2C3E2357000D4B1A /* MobitTests.swift */; };
 		3133E2492C3E2357000D4B1A /* MobitUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2482C3E2357000D4B1A /* MobitUITests.swift */; };
 		3133E24B2C3E2357000D4B1A /* MobitUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E24A2C3E2357000D4B1A /* MobitUITestsLaunchTests.swift */; };
+		3133E2622C3F6A2C000D4B1A /* DefaultAppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2612C3F6A2C000D4B1A /* DefaultAppCoordinator.swift */; };
+		3133E2642C3F6A3B000D4B1A /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2632C3F6A3B000D4B1A /* AppCoordinator.swift */; };
+		3133E2662C3F6A44000D4B1A /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2652C3F6A44000D4B1A /* Coordinator.swift */; };
+		3133E2682C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2672C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift */; };
+		3133E26E2C3F7072000D4B1A /* DefaultHomeUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E26D2C3F7072000D4B1A /* DefaultHomeUseCase.swift */; };
+		3133E2702C3F7098000D4B1A /* HomeUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E26F2C3F7098000D4B1A /* HomeUseCase.swift */; };
+		3133E2742C3F7135000D4B1A /* PinLayout in Frameworks */ = {isa = PBXBuildFile; productRef = 3133E2732C3F7135000D4B1A /* PinLayout */; };
+		3133E2772C3F7192000D4B1A /* FlexLayout in Frameworks */ = {isa = PBXBuildFile; productRef = 3133E2762C3F7192000D4B1A /* FlexLayout */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +57,12 @@
 		3133E2442C3E2357000D4B1A /* MobitUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MobitUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3133E2482C3E2357000D4B1A /* MobitUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitUITests.swift; sourceTree = "<group>"; };
 		3133E24A2C3E2357000D4B1A /* MobitUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		3133E2612C3F6A2C000D4B1A /* DefaultAppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultAppCoordinator.swift; sourceTree = "<group>"; };
+		3133E2632C3F6A3B000D4B1A /* AppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
+		3133E2652C3F6A44000D4B1A /* Coordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Coordinator.swift; sourceTree = "<group>"; };
+		3133E2672C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoordinatorFinishDelegate.swift; sourceTree = "<group>"; };
+		3133E26D2C3F7072000D4B1A /* DefaultHomeUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultHomeUseCase.swift; sourceTree = "<group>"; };
+		3133E26F2C3F7098000D4B1A /* HomeUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeUseCase.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +70,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3133E2742C3F7135000D4B1A /* PinLayout in Frameworks */,
+				3133E2772C3F7192000D4B1A /* FlexLayout in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -99,11 +115,14 @@
 		3133E2262C3E2355000D4B1A /* Mobit */ = {
 			isa = PBXGroup;
 			children = (
-				3133E2272C3E2355000D4B1A /* AppDelegate.swift */,
-				3133E2292C3E2355000D4B1A /* SceneDelegate.swift */,
+				3133E25C2C3F6979000D4B1A /* Common */,
+				3133E25B2C3F6977000D4B1A /* Application */,
+				3133E25A2C3F6971000D4B1A /* Domain */,
+				3133E2592C3F696F000D4B1A /* Presentation */,
+				3133E2582C3F696D000D4B1A /* Data */,
+				3133E2572C3F696A000D4B1A /* Resource */,
 				3133E22B2C3E2355000D4B1A /* ViewController.swift */,
 				3133E22D2C3E2355000D4B1A /* Main.storyboard */,
-				3133E2302C3E2357000D4B1A /* Assets.xcassets */,
 				3133E2322C3E2357000D4B1A /* LaunchScreen.storyboard */,
 				3133E2352C3E2357000D4B1A /* Info.plist */,
 			);
@@ -127,6 +146,121 @@
 			path = MobitUITests;
 			sourceTree = "<group>";
 		};
+		3133E2572C3F696A000D4B1A /* Resource */ = {
+			isa = PBXGroup;
+			children = (
+				3133E2302C3E2357000D4B1A /* Assets.xcassets */,
+			);
+			path = Resource;
+			sourceTree = "<group>";
+		};
+		3133E2582C3F696D000D4B1A /* Data */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		3133E2592C3F696F000D4B1A /* Presentation */ = {
+			isa = PBXGroup;
+			children = (
+				3133E25D2C3F69FB000D4B1A /* Common */,
+			);
+			path = Presentation;
+			sourceTree = "<group>";
+		};
+		3133E25A2C3F6971000D4B1A /* Domain */ = {
+			isa = PBXGroup;
+			children = (
+				3133E26A2C3F6C4E000D4B1A /* Model */,
+				3133E2692C3F6C49000D4B1A /* UseCase */,
+			);
+			path = Domain;
+			sourceTree = "<group>";
+		};
+		3133E25B2C3F6977000D4B1A /* Application */ = {
+			isa = PBXGroup;
+			children = (
+				3133E2272C3E2355000D4B1A /* AppDelegate.swift */,
+				3133E2292C3E2355000D4B1A /* SceneDelegate.swift */,
+			);
+			path = Application;
+			sourceTree = "<group>";
+		};
+		3133E25C2C3F6979000D4B1A /* Common */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Common;
+			sourceTree = "<group>";
+		};
+		3133E25D2C3F69FB000D4B1A /* Common */ = {
+			isa = PBXGroup;
+			children = (
+				3133E25E2C3F6A04000D4B1A /* Coordinator */,
+				3133E25F2C3F6A09000D4B1A /* Protocol */,
+				3133E2602C3F6A12000D4B1A /* Delegate */,
+			);
+			path = Common;
+			sourceTree = "<group>";
+		};
+		3133E25E2C3F6A04000D4B1A /* Coordinator */ = {
+			isa = PBXGroup;
+			children = (
+				3133E2612C3F6A2C000D4B1A /* DefaultAppCoordinator.swift */,
+			);
+			path = Coordinator;
+			sourceTree = "<group>";
+		};
+		3133E25F2C3F6A09000D4B1A /* Protocol */ = {
+			isa = PBXGroup;
+			children = (
+				3133E2632C3F6A3B000D4B1A /* AppCoordinator.swift */,
+				3133E2652C3F6A44000D4B1A /* Coordinator.swift */,
+			);
+			path = Protocol;
+			sourceTree = "<group>";
+		};
+		3133E2602C3F6A12000D4B1A /* Delegate */ = {
+			isa = PBXGroup;
+			children = (
+				3133E2672C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift */,
+			);
+			path = Delegate;
+			sourceTree = "<group>";
+		};
+		3133E2692C3F6C49000D4B1A /* UseCase */ = {
+			isa = PBXGroup;
+			children = (
+				3133E26B2C3F705B000D4B1A /* Home */,
+				3133E26D2C3F7072000D4B1A /* DefaultHomeUseCase.swift */,
+			);
+			path = UseCase;
+			sourceTree = "<group>";
+		};
+		3133E26A2C3F6C4E000D4B1A /* Model */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		3133E26B2C3F705B000D4B1A /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				3133E26C2C3F7062000D4B1A /* Protocol */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		3133E26C2C3F7062000D4B1A /* Protocol */ = {
+			isa = PBXGroup;
+			children = (
+				3133E26F2C3F7098000D4B1A /* HomeUseCase.swift */,
+			);
+			path = Protocol;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -143,6 +277,10 @@
 			dependencies = (
 			);
 			name = Mobit;
+			packageProductDependencies = (
+				3133E2732C3F7135000D4B1A /* PinLayout */,
+				3133E2762C3F7192000D4B1A /* FlexLayout */,
+			);
 			productName = Mobit;
 			productReference = 3133E2242C3E2355000D4B1A /* Mobit.app */;
 			productType = "com.apple.product-type.application";
@@ -215,6 +353,11 @@
 				Base,
 			);
 			mainGroup = 3133E21B2C3E2355000D4B1A;
+			packageReferences = (
+				3133E2712C3F70DE000D4B1A /* XCRemoteSwiftPackageReference "RxSwift" */,
+				3133E2722C3F7135000D4B1A /* XCRemoteSwiftPackageReference "PinLayout" */,
+				3133E2752C3F7192000D4B1A /* XCRemoteSwiftPackageReference "FlexLayout" */,
+			);
 			productRefGroup = 3133E2252C3E2355000D4B1A /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -258,7 +401,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3133E2702C3F7098000D4B1A /* HomeUseCase.swift in Sources */,
+				3133E2622C3F6A2C000D4B1A /* DefaultAppCoordinator.swift in Sources */,
 				3133E22C2C3E2355000D4B1A /* ViewController.swift in Sources */,
+				3133E26E2C3F7072000D4B1A /* DefaultHomeUseCase.swift in Sources */,
+				3133E2662C3F6A44000D4B1A /* Coordinator.swift in Sources */,
+				3133E2642C3F6A3B000D4B1A /* AppCoordinator.swift in Sources */,
+				3133E2682C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift in Sources */,
 				3133E2282C3E2355000D4B1A /* AppDelegate.swift in Sources */,
 				3133E22A2C3E2355000D4B1A /* SceneDelegate.swift in Sources */,
 			);
@@ -607,6 +756,46 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		3133E2712C3F70DE000D4B1A /* XCRemoteSwiftPackageReference "RxSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ReactiveX/RxSwift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.7.1;
+			};
+		};
+		3133E2722C3F7135000D4B1A /* XCRemoteSwiftPackageReference "PinLayout" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/layoutBox/PinLayout.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.10.5;
+			};
+		};
+		3133E2752C3F7192000D4B1A /* XCRemoteSwiftPackageReference "FlexLayout" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/layoutBox/FlexLayout.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.10;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3133E2732C3F7135000D4B1A /* PinLayout */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3133E2722C3F7135000D4B1A /* XCRemoteSwiftPackageReference "PinLayout" */;
+			productName = PinLayout;
+		};
+		3133E2762C3F7192000D4B1A /* FlexLayout */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3133E2752C3F7192000D4B1A /* XCRemoteSwiftPackageReference "FlexLayout" */;
+			productName = FlexLayout;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 3133E21C2C3E2355000D4B1A /* Project object */;
 }
