@@ -16,7 +16,7 @@ class MoreViewController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    self.view.backgroundColor = .white
+    self.view.backgroundColor = .gray
   }
   
   override func viewDidLayoutSubviews() {

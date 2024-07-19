@@ -13,10 +13,12 @@ class MainCoordinator: BaseCoordinator {
   
   init(navigationController: UINavigationController) {
     self.navigationController = navigationController
+    self.navigationController.isNavigationBarHidden = true
   }
   
   func start() {
-    let mainVC = MainViewController()
+    let reactor = MainReactor(mainUseCase: MainUseCase(mainRepository: MainRepository()))
+    let mainVC = MainViewController(reactor: reactor)
     mainVC.coordinator = self
     self.navigationController.viewControllers = [mainVC]
   }

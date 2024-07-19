@@ -8,26 +8,107 @@
 import FlexLayout
 import RxCocoa
 import RxSwift
+import ReactorKit
 import PinLayout
 import Then
 import UIKit
 
 class MainViewController: UIViewController {
   // coordinator <-> viewcontroller 강한 참조 사이클 방지
-  var coordinator: MainCoordinator?
-  let rootContainer: UIView = UIView()
+  weak var coordinator: MainCoordinator?
+  var dataSource: UITableViewDiffableDataSource<Int, CryptoList>?
+  let viewWillAppearTrigger = PublishSubject<Void>()
+  var disposeBag = DisposeBag()
+  var reactor: MainReactor
   
-  let label = UILabel().then {
-    $0.textColor = .black
-    $0.text = "mainviewcontroller Hello"
+  init(reactor: MainReactor) {
+    self.reactor = reactor
+    super.init(nibName: nil, bundle: nil)
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
+  // MARK: UI Component
+  let rootContainer: UIView = UIView()
+  let searchBar = UISearchBar().then {
+    $0.backgroundColor = .white
+    $0.backgroundImage = UIImage()
+    $0.translatesAutoresizingMaskIntoConstraints = true
+  }
+  // 원화 버튼
+  let krwButton: UIButton = UIButton().then {
+    $0.setTitle("KRW", for: .normal)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
+    $0.setTitleColor(.black, for: .normal)
+    $0.setTitleColor(.blue, for: .selected)
+    $0.isSelected = true  // default
+    $0.tag = 0
+  }
+  // BTC 버튼
+  let btcButton: UIButton = UIButton().then {
+    $0.setTitle("BTC", for: .normal)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
+    $0.setTitleColor(.black, for: .normal)
+    $0.setTitleColor(.blue, for: .selected)
+    $0.tag = 1
+  }
+  // 관심 버튼
+  let favoriteButton: UIButton = UIButton().then {
+    $0.setTitle("관심", for: .normal)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
+    $0.setTitleColor(.black, for: .normal)
+    $0.setTitleColor(.blue, for: .selected)
+    $0.tag = 2
+  }
+  
+  // 현재가 기준 정렬 버튼
+  let currentPriceButton: UIButton = UIButton().then {
+    $0.setTitle("현재가↓↑", for: .normal)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: 10, weight: .light)
+    $0.setTitleColor(.gray, for: .normal)
+    $0.tag = 0
+  }
+  
+  // 전일대비
+  let previousDayButton: UIButton = UIButton().then {
+    $0.setTitle("전일대비↓↑", for: .normal)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: 10, weight: .light)
+    $0.setTitleColor(.gray, for: .normal)
+    $0.tag = 1
+  }
+  
+  // 거래량
+  let tradingVolumeButton: UIButton = UIButton().then {
+    $0.setTitle("거래량↓↑", for: .normal)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: 10, weight: .light)
+    $0.setTitleColor(.gray, for: .normal)
+    $0.tag = 2
+  }
+  
+  let tableView: UITableView = UITableView().then {
+    $0.separatorStyle = .singleLine
+    $0.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+  }
+  
+  // MARK: Life Cycle
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    self.reactor.action.onNext(.loadCrypto)
   }
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    print("mainviewcontroller")
     self.view.backgroundColor = .white
+    
     self.addViews()
+    self.setSearchBar()
+    self.setTableView()
+    self.setTabButton()
     self.setUpFlexItems()
+    
+    self.bind(reactor: self.reactor)
   }
   
   override func viewDidLayoutSubviews() {
@@ -39,11 +120,102 @@ class MainViewController: UIViewController {
   
   func addViews() {
     self.view.addSubview(self.rootContainer)
+    self.rootContainer.addSubview(self.searchBar)
+    self.rootContainer.addSubview(self.krwButton)
+    self.rootContainer.addSubview(self.btcButton)
+    self.rootContainer.addSubview(self.favoriteButton)
+    self.rootContainer.addSubview(self.currentPriceButton)
+    self.rootContainer.addSubview(self.previousDayButton)
+    self.rootContainer.addSubview(self.tradingVolumeButton)
+    self.rootContainer.addSubview(self.tableView)
   }
   
-  func setUpFlexItems() {
-    rootContainer.flex.define { flex in
-      flex.addItem(self.label).alignItems(.center)
+  func setTableView() {
+    self.tableView.register(CoinTableViewCell.self, forCellReuseIdentifier: "cryptoCell")
+    
+    self.dataSource = UITableViewDiffableDataSource<Int, CryptoList>(tableView: self.tableView, cellProvider: { tableView, indexPath, cryptoList in
+      
+      guard let cell = self.tableView.dequeueReusableCell(withIdentifier: "cryptoCell", for: indexPath) as? CoinTableViewCell else { return UITableViewCell() }
+      if cryptoList.count > 0 {
+        cell.configure(crypto: cryptoList[indexPath.row])
+        cell.selectionStyle = .none
+      } else {
+        return UITableViewCell()
+      }
+      
+      return cell
+    })
+    
+    self.tableView.dataSource = self.dataSource
+  }
+  
+  func applySnapshot(cryptoList: CryptoList) {
+    // tableview에 들어가는 section, item 초기화
+    var snapshot = NSDiffableDataSourceSnapshot<Int, CryptoList>()
+    snapshot.appendSections([0])
+    snapshot.appendItems([cryptoList])
+    self.dataSource?.apply(snapshot)
+  }
+  
+  func setTabButton() {
+    self.krwButton.addTarget(self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside)
+    self.btcButton.addTarget(self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside)
+    self.favoriteButton.addTarget(self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside)
+  }
+  
+  @objc private func tapOnTabButton(_ sender: UIButton) {
+    // 모든 버튼의 선택 상태를 해제
+    self.krwButton.isSelected = false
+    self.btcButton.isSelected = false
+    self.favoriteButton.isSelected = false
+    
+    sender.isSelected = true
+  }
+  
+  /// UISearchBar 설정
+  func setSearchBar() {
+    if let searchTextField = self.searchBar.value(forKey: "searchField") as? UISearchTextField {
+      searchTextField.do {
+        $0.backgroundColor = .clear
+        $0.textColor = .black
+        $0.attributedPlaceholder = NSAttributedString(string: "코인명/심볼 검색",
+                                                      attributes: [NSAttributedString.Key.foregroundColor: UIColor.lightGray])
+      }
     }
+  }
+  
+  /// FlexItem 설정
+  func setUpFlexItems() {
+    rootContainer.flex
+      .justifyContent(.start)
+      .direction(.column).define { flex in
+        flex.addItem(self.searchBar).height(45).width(100%)
+        // KRW, BTC, 관심
+        flex.addItem().direction(.row).define { flex in
+          flex.addItem(self.krwButton).width(25%)
+          flex.addItem(self.btcButton).width(25%)
+          flex.addItem(self.favoriteButton).width(25%)
+        }.height(40)
+        flex.addItem(DividerLineView()).height(1)
+        flex.addItem().direction(.row).justifyContent(.end).define { flex in
+          flex.addItem(self.currentPriceButton).width(25%)
+          flex.addItem(self.previousDayButton).width(25%)
+          flex.addItem(self.tradingVolumeButton).width(25%)
+        }
+        flex.addItem(DividerLineView()).height(1)
+        flex.addItem(self.tableView)
+    }
+  }
+}
+
+
+extension MainViewController: View {
+  func bind(reactor: MainReactor) {
+    reactor.state.map { $0.cryptoList }
+      .distinctUntilChanged()
+      .subscribe(onNext: { [weak self] cryptoList in
+        self?.applySnapshot(cryptoList: cryptoList)
+      })
+      .disposed(by: disposeBag)
   }
 }

@@ -16,7 +16,7 @@ class InvestmentViewController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    self.view.backgroundColor = .white
+    self.view.backgroundColor = .yellow
   }
   
   override func viewDidLayoutSubviews() {

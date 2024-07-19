@@ -18,6 +18,8 @@ class AppTabBarCoordinator: BaseCoordinator {
   func start() {
     let tabBarController = UITabBarController()
     
+    setTabBarAppearance(tabBarController: tabBarController)
+    
     // 메인화면
     let mainNavigation = UINavigationController()
     let mainCoordinator = MainCoordinator(navigationController: mainNavigation)
@@ -26,8 +28,8 @@ class AppTabBarCoordinator: BaseCoordinator {
     
     let mainTabBarItem = UITabBarItem(
       title: "홈",
-      image: UIImage(systemName: "folder.circle"),
-      selectedImage: UIImage(systemName: "folder.circle.fill")
+      image: UIImage(systemName: "house"),
+      selectedImage: UIImage(systemName: "house.fill")
     )
     mainNavigation.tabBarItem = mainTabBarItem
     
@@ -66,5 +68,16 @@ class AppTabBarCoordinator: BaseCoordinator {
     
     self.navigationController.viewControllers = [tabBarController]
     self.navigationController.isNavigationBarHidden = true
+  }
+  
+  func setTabBarAppearance(tabBarController: UITabBarController) {
+    let appearance = UITabBarAppearance()
+    appearance.configureWithOpaqueBackground()
+    appearance.backgroundColor = .white
+    
+    tabBarController.tabBar.standardAppearance = appearance
+    tabBarController.tabBar.scrollEdgeAppearance = tabBarController.tabBar.standardAppearance
+    tabBarController.tabBar.barTintColor = .white
+    tabBarController.tabBar.isTranslucent = false
   }
 }
