@@ -13,11 +13,14 @@ import PinLayout
 import Then
 import UIKit
 
+enum TableViewSection: CaseIterable {
+  case main
+}
+
 class MainViewController: UIViewController {
   // coordinator <-> viewcontroller 강한 참조 사이클 방지
   weak var coordinator: MainCoordinator?
-  var dataSource: UITableViewDiffableDataSource<Int, CryptoList>?
-  let viewWillAppearTrigger = PublishSubject<Void>()
+  var dataSource: UITableViewDiffableDataSource<TableViewSection, CryptoMarket>?
   var disposeBag = DisposeBag()
   var reactor: MainReactor
   
@@ -95,7 +98,6 @@ class MainViewController: UIViewController {
   // MARK: Life Cycle
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    self.reactor.action.onNext(.loadCrypto)
   }
   
   override func viewDidLoad() {
@@ -103,9 +105,11 @@ class MainViewController: UIViewController {
     self.view.backgroundColor = .white
     
     self.addViews()
+    
     self.setSearchBar()
     self.setTableView()
     self.setTabButton()
+    
     self.setUpFlexItems()
     
     self.bind(reactor: self.reactor)
@@ -118,6 +122,7 @@ class MainViewController: UIViewController {
     rootContainer.flex.layout()
   }
   
+  // MARK: Sub Methods
   func addViews() {
     self.view.addSubview(self.rootContainer)
     self.rootContainer.addSubview(self.searchBar)
@@ -133,27 +138,29 @@ class MainViewController: UIViewController {
   func setTableView() {
     self.tableView.register(CoinTableViewCell.self, forCellReuseIdentifier: "cryptoCell")
     
-    self.dataSource = UITableViewDiffableDataSource<Int, CryptoList>(tableView: self.tableView, cellProvider: { tableView, indexPath, cryptoList in
+    self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoMarket>(tableView: self.tableView) { (tableView: UITableView, indexPath: IndexPath, crypto: CryptoMarket) -> UITableViewCell? in
       
       guard let cell = self.tableView.dequeueReusableCell(withIdentifier: "cryptoCell", for: indexPath) as? CoinTableViewCell else { return UITableViewCell() }
-      if cryptoList.count > 0 {
-        cell.configure(crypto: cryptoList[indexPath.row])
-        cell.selectionStyle = .none
-      } else {
-        return UITableViewCell()
-      }
       
+      cell.configure(crypto: crypto)
+      cell.selectionStyle = .none
       return cell
-    })
+    }
     
+    self.dataSource?.defaultRowAnimation = .fade
     self.tableView.dataSource = self.dataSource
   }
   
-  func applySnapshot(cryptoList: CryptoList) {
+  func applySnapshot(cryptoList: [CryptoMarket]?) {
     // tableview에 들어가는 section, item 초기화
-    var snapshot = NSDiffableDataSourceSnapshot<Int, CryptoList>()
-    snapshot.appendSections([0])
-    snapshot.appendItems([cryptoList])
+    var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, CryptoMarket>()
+    snapshot.appendSections([.main])
+    if let cryptoList = cryptoList, !cryptoList.isEmpty {
+      snapshot.appendItems(cryptoList, toSection: .main)
+    } else {
+      snapshot.appendItems([])
+    }
+    
     self.dataSource?.apply(snapshot)
   }
   
@@ -170,6 +177,17 @@ class MainViewController: UIViewController {
     self.favoriteButton.isSelected = false
     
     sender.isSelected = true
+    
+    switch sender.tag {
+    case 0:
+      self.applySnapshot(cryptoList: reactor.currentState.krwCryptoList)
+    case 1:
+      self.applySnapshot(cryptoList: reactor.currentState.btcCryptoList)
+    case 2:
+      self.applySnapshot(cryptoList: [])
+    default:
+      break
+    }
   }
   
   /// UISearchBar 설정
@@ -203,19 +221,28 @@ class MainViewController: UIViewController {
           flex.addItem(self.tradingVolumeButton).width(25%)
         }
         flex.addItem(DividerLineView()).height(1)
-        flex.addItem(self.tableView)
+        flex.addItem(self.tableView).grow(1)
     }
   }
 }
 
-
+// MARK: Reactor - View
 extension MainViewController: View {
   func bind(reactor: MainReactor) {
-    reactor.state.map { $0.cryptoList }
+    
+    reactor.state.map { $0.krwCryptoList }
       .distinctUntilChanged()
-      .subscribe(onNext: { [weak self] cryptoList in
-        self?.applySnapshot(cryptoList: cryptoList)
-      })
+      .subscribe { event in
+        switch event {
+        case .next(let krwCryptoList):
+          self.applySnapshot(cryptoList: krwCryptoList)
+        case .completed:
+          break
+        case .error(let error):
+          print("krwCrypto error occured : \(error.localizedDescription)")
+        }
+      }
       .disposed(by: disposeBag)
+      
   }
 }

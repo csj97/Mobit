@@ -10,11 +10,20 @@ import Foundation
 typealias CryptoList = [CryptoMarket]
 
 struct CryptoMarket: Hashable {
+  let identifier = UUID()
   let market: String  // KRW-BTC 형태
   let koreanName: String
   let englishName: String
   let marketWarning: String
   let marketEvent: MarketEvent
+  
+  func hash(into hasher: inout Hasher) {
+    hasher.combine(identifier)
+  }
+  
+  static func == (lhs: CryptoMarket, rhs: CryptoMarket) -> Bool {
+    return lhs.identifier == rhs.identifier
+  }
 }
 
 struct MarketEvent: Hashable {

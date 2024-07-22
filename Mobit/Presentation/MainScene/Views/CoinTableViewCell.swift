@@ -10,23 +10,26 @@ import FlexLayout
 import PinLayout
 import Then
 
+enum MarketWarning: String {
+  case noneValue = "NONE"
+  case caution = "CAUTION"
+}
+
 class CoinTableViewCell: UITableViewCell {
-  // 모델 데이터를 받아와서 여기서 setting 해주는 방법으로 할거임
-  
   let rootFlexContainer = UIView()
   var coinName = UILabel().then {
     $0.text = "-"
     $0.textColor = .black
     $0.font = UIFont.systemFont(ofSize: 12)
-    $0.numberOfLines = 1
-    $0.textAlignment = .center
+    $0.numberOfLines = 2
+    $0.textAlignment = .left
   }
   var coinSymbol = UILabel().then {
     $0.text = "-/KRW"
     $0.textColor = .lightGray
     $0.font = UIFont.systemFont(ofSize: 10)
     $0.numberOfLines = 1
-    $0.textAlignment = .center
+    $0.textAlignment = .left
   }
   var price = UILabel().then {
     $0.text = "0"
@@ -68,7 +71,7 @@ class CoinTableViewCell: UITableViewCell {
     super.layoutSubviews()
     
     self.rootFlexContainer.pin.all()
-    self.rootFlexContainer.flex.layout()
+    self.rootFlexContainer.flex.layout(mode: .adjustHeight)
   }
   
   override func setSelected(_ selected: Bool, animated: Bool) {
@@ -94,9 +97,9 @@ class CoinTableViewCell: UITableViewCell {
         .justifyContent(.center)
         .alignItems(.center)
         .define { flex in
-        flex.addItem(self.coinName)
-        flex.addItem(self.coinSymbol)
-      }.width(25%)
+          flex.addItem(self.coinName).width(80%)
+          flex.addItem(self.coinSymbol).width(80%)
+        }.width(25%)
       flex.addItem(self.price).width(25%)
       flex.addItem(self.volatility).width(25%)
       flex.addItem(self.tradingVolume).width(25%)
@@ -104,7 +107,11 @@ class CoinTableViewCell: UITableViewCell {
   }
   
   func configure(crypto: CryptoMarket) {
-    self.coinName.text = crypto.koreanName
+    if crypto.marketEvent.warning {
+      self.coinName.text = "[유]\(crypto.koreanName)"
+    } else {
+      self.coinName.text = crypto.koreanName
+    }
     self.coinSymbol.text = crypto.market
     self.price.text = "100"
     self.volatility.text = "0.0%"

@@ -16,7 +16,6 @@
 		3133E23F2C3E2357000D4B1A /* MobitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E23E2C3E2357000D4B1A /* MobitTests.swift */; };
 		3133E2492C3E2357000D4B1A /* MobitUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2482C3E2357000D4B1A /* MobitUITests.swift */; };
 		3133E24B2C3E2357000D4B1A /* MobitUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E24A2C3E2357000D4B1A /* MobitUITestsLaunchTests.swift */; };
-		3133E2622C3F6A2C000D4B1A /* DefaultAppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2612C3F6A2C000D4B1A /* DefaultAppCoordinator.swift */; };
 		3133E2642C3F6A3B000D4B1A /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2632C3F6A3B000D4B1A /* AppCoordinator.swift */; };
 		3133E2662C3F6A44000D4B1A /* BaseCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2652C3F6A44000D4B1A /* BaseCoordinator.swift */; };
 		3133E2682C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2672C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift */; };
@@ -120,7 +119,6 @@
 		3133E2442C3E2357000D4B1A /* MobitUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MobitUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3133E2482C3E2357000D4B1A /* MobitUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitUITests.swift; sourceTree = "<group>"; };
 		3133E24A2C3E2357000D4B1A /* MobitUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitUITestsLaunchTests.swift; sourceTree = "<group>"; };
-		3133E2612C3F6A2C000D4B1A /* DefaultAppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultAppCoordinator.swift; sourceTree = "<group>"; };
 		3133E2632C3F6A3B000D4B1A /* AppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
 		3133E2652C3F6A44000D4B1A /* BaseCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseCoordinator.swift; sourceTree = "<group>"; };
 		3133E2672C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoordinatorFinishDelegate.swift; sourceTree = "<group>"; };
@@ -307,7 +305,6 @@
 			isa = PBXGroup;
 			children = (
 				3133E2652C3F6A44000D4B1A /* BaseCoordinator.swift */,
-				3133E2612C3F6A2C000D4B1A /* DefaultAppCoordinator.swift */,
 				3133E2632C3F6A3B000D4B1A /* AppCoordinator.swift */,
 				31E208032C4677CB000BFEBC /* AppTabBarCoordinator.swift */,
 			);
@@ -650,7 +647,6 @@
 				3133E2702C3F7098000D4B1A /* MainUseCase.swift in Sources */,
 				31E208072C4678B9000BFEBC /* MainCoordinator.swift in Sources */,
 				99C20A7B2C490B33009276E7 /* CryptoMarket.swift in Sources */,
-				3133E2622C3F6A2C000D4B1A /* DefaultAppCoordinator.swift in Sources */,
 				31E208102C46C2FE000BFEBC /* InvestmentCoordinator.swift in Sources */,
 				3133E2662C3F6A44000D4B1A /* BaseCoordinator.swift in Sources */,
 				31E208192C46C448000BFEBC /* MoreViewController.swift in Sources */,

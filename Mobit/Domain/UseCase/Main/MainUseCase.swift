@@ -25,6 +25,4 @@ class MainUseCase: MainUseCaseProtocol {
   func loadCryptoList() -> Observable<CryptoList> {
     return self.mainRepository.fetchCoinList()
   }
-  
-  
 }

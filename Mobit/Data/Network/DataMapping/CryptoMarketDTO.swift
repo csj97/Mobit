@@ -9,7 +9,7 @@ import Foundation
 
 typealias CryptoListDTO = [CryptoMarketDTO]
 
-struct CryptoMarketDTO: Codable {
+struct CryptoMarketDTO: Hashable, Codable {
   let market: String  // KRW-BTC 형태
   let koreanName: String
   let englishName: String
@@ -25,12 +25,12 @@ struct CryptoMarketDTO: Codable {
   }
 }
 
-struct MarketEventDTO: Codable {
+struct MarketEventDTO: Hashable, Codable {
   let warning: Bool   // 유의 종목 지정 여부
   let caution: CautionEventsDTO
 }
 
-struct CautionEventsDTO: Codable {
+struct CautionEventsDTO: Hashable, Codable {
   let priceFluctuations: Bool     // 가격 급등락 경보 발령 여부
   let tradingVolumeSoaring: Bool  // 거래량 급등 경보 발령 여부
   let depositAmountSoaring: Bool  // 입금량 급등 경보 발령 여부
