@@ -11,6 +11,18 @@ import RxSwift
 import ReactorKit
 
 class MainReactor: Reactor {
+  private let mainUseCase: MainUseCase
+  let initialState: MainReactorState = MainReactorState()
+  
+  init(mainUseCase: MainUseCase) {
+    self.mainUseCase = mainUseCase
+    self.action.onNext(.loadCrypto)
+  }
+  
+}
+
+// 기본 설정
+extension MainReactor {
   enum MainAction {
     case loadCrypto
     case classifyCrypto(list: CryptoList)
@@ -30,15 +42,6 @@ class MainReactor: Reactor {
     var btcCryptoList: CryptoList = []
     var favoriteCryptoList: CryptoList = []
   }
-  
-  let initialState: MainReactorState = MainReactorState()
-  private let mainUseCase: MainUseCase
-  
-  init(mainUseCase: MainUseCase) {
-    self.mainUseCase = mainUseCase
-    self.action.onNext(.loadCrypto)
-  }
-  
 }
 
 extension MainReactor {
@@ -71,8 +74,10 @@ extension MainReactor {
   
   func classifyCrypto(cryptoList: CryptoList) -> Observable<MainMutation> {
     let krwCrypto = cryptoList.filter { $0.market.contains("KRW-") }
+      .map { self.transformCrypto(crypto: $0) }
+    self.mainSocket(cryptoList: cryptoList.filter { $0.market.contains("KRW-") })
     let btcCrypto = cryptoList.filter { $0.market.contains("BTC-") }
-    
+      .map { self.transformCrypto(crypto: $0) }
     let krwObservable = Observable<MainMutation>.create { observer in
       observer.onNext(.addToKRWArray(crypto: krwCrypto))
       observer.onCompleted()
@@ -89,4 +94,31 @@ extension MainReactor {
     return Observable.concat([krwObservable, btcObservable])
   }
   
+  func transformCrypto(crypto: Crypto) -> Crypto {
+    var transformedCrypto = crypto
+    let components = crypto.market.split(separator: "-")
+    if components.count == 2 {
+      transformedCrypto.market = "\(components[1])/\(components[0])"
+    } else {
+      // 기본값 유지
+      transformedCrypto.market = crypto.market
+    }
+    return transformedCrypto
+  }
+  
+  func mainSocket(cryptoList: CryptoList) {
+    let mainSocket = MainWebSocket(cryptoList: cryptoList)
+    
+    mainSocket.currentPriceList
+      .subscribe { resultEvent in
+        switch resultEvent {
+        case .next(let curPriceList):
+          print("MainReactor curPriceList 수신 \(curPriceList.count)")
+        case .completed:
+          break
+        case .error(let error):
+          print("MainReactor mainSocket error : \(error.localizedDescription)")
+        }
+      }.dispose()
+  }
 }

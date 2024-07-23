@@ -14,7 +14,7 @@ protocol MainUseCaseProtocol {
 }
 
 class MainUseCase: MainUseCaseProtocol {
-  let cryptoList = PublishSubject<CryptoMarket>()
+  let cryptoList = PublishSubject<Crypto>()
   private var disposeBag: DisposeBag = DisposeBag()
   private let mainRepository: MainRepository
   

@@ -20,7 +20,7 @@ enum TableViewSection: CaseIterable {
 class MainViewController: UIViewController {
   // coordinator <-> viewcontroller 강한 참조 사이클 방지
   weak var coordinator: MainCoordinator?
-  var dataSource: UITableViewDiffableDataSource<TableViewSection, CryptoMarket>?
+  var dataSource: UITableViewDiffableDataSource<TableViewSection, Crypto>?
   var disposeBag = DisposeBag()
   var reactor: MainReactor
   
@@ -137,8 +137,9 @@ class MainViewController: UIViewController {
   
   func setTableView() {
     self.tableView.register(CoinTableViewCell.self, forCellReuseIdentifier: "cryptoCell")
+    self.tableView.rowHeight = 50
     
-    self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoMarket>(tableView: self.tableView) { (tableView: UITableView, indexPath: IndexPath, crypto: CryptoMarket) -> UITableViewCell? in
+    self.dataSource = UITableViewDiffableDataSource<TableViewSection, Crypto>(tableView: self.tableView) { (tableView: UITableView, indexPath: IndexPath, crypto: Crypto) -> UITableViewCell? in
       
       guard let cell = self.tableView.dequeueReusableCell(withIdentifier: "cryptoCell", for: indexPath) as? CoinTableViewCell else { return UITableViewCell() }
       
@@ -151,9 +152,9 @@ class MainViewController: UIViewController {
     self.tableView.dataSource = self.dataSource
   }
   
-  func applySnapshot(cryptoList: [CryptoMarket]?) {
+  func applySnapshot(cryptoList: [Crypto]?) {
     // tableview에 들어가는 section, item 초기화
-    var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, CryptoMarket>()
+    var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, Crypto>()
     snapshot.appendSections([.main])
     if let cryptoList = cryptoList, !cryptoList.isEmpty {
       snapshot.appendItems(cryptoList, toSection: .main)

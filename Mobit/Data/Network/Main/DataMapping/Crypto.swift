@@ -1,5 +1,5 @@
 //
-//  CryptoMarket.swift
+//  Crypto.swift
 //  Mobit
 //
 //  Created by openobject on 2024/07/18.
@@ -7,11 +7,11 @@
 
 import Foundation
 
-typealias CryptoList = [CryptoMarket]
+typealias CryptoList = [Crypto]
 
-struct CryptoMarket: Hashable {
+struct Crypto: Hashable {
   let identifier = UUID()
-  let market: String  // KRW-BTC 형태
+  var market: String  // KRW-BTC 형태
   let koreanName: String
   let englishName: String
   let marketWarning: String
@@ -21,7 +21,7 @@ struct CryptoMarket: Hashable {
     hasher.combine(identifier)
   }
   
-  static func == (lhs: CryptoMarket, rhs: CryptoMarket) -> Bool {
+  static func == (lhs: Crypto, rhs: Crypto) -> Bool {
     return lhs.identifier == rhs.identifier
   }
 }

@@ -1,5 +1,5 @@
 //
-//  CryptoMarketDTO.swift
+//  CryptoDTO.swift
 //  Mobit
 //
 //  Created by openobject on 2024/07/18.
@@ -7,9 +7,9 @@
 
 import Foundation
 
-typealias CryptoListDTO = [CryptoMarketDTO]
+typealias CryptoListDTO = [CryptoDTO]
 
-struct CryptoMarketDTO: Hashable, Codable {
+struct CryptoDTO: Hashable, Codable {
   let market: String  // KRW-BTC 형태
   let koreanName: String
   let englishName: String
@@ -46,8 +46,8 @@ struct CautionEventsDTO: Hashable, Codable {
   }
 }
 
-extension CryptoMarketDTO {
-  func toDomain() -> CryptoMarket {
+extension CryptoDTO {
+  func toDomain() -> Crypto {
     return .init(market: market,
                  koreanName: koreanName,
                  englishName: englishName,
@@ -73,8 +73,8 @@ extension CautionEventsDTO {
 }
 
 extension CryptoListDTO {
-  // CryptoMarket toDomain을 map을 사용해 배열로 return
-  func toDomain() -> [CryptoMarket] {
+  // Crypto toDomain을 map을 사용해 배열로 return
+  func toDomain() -> [Crypto] {
     return self.map { $0.toDomain() }
   }
 }

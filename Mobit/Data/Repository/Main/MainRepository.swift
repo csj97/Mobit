@@ -11,18 +11,19 @@ import RxMoya
 import RxSwift
 
 protocol MainRepositoryProtocol {
-  func fetchCoinList() -> Observable<[CryptoMarket]>
+  func fetchCoinList() -> Observable<[Crypto]>
+  func loadTicker()
 }
 
 class MainRepository: MainRepositoryProtocol {
-  let provider = MoyaProvider<NetworkService>()
+  let provider = MoyaProvider<MainNetworkService>()
   private var disposeBag = DisposeBag()
   
   func fetchCoinList() -> Observable<CryptoList> {
     let decodeTarget = CryptoListDTO.self
     
     return Observable.create { observer in
-      let disposable = self.provider.rx.request(.getCoinList)
+      let disposable = self.provider.rx.request(.getCryptoList)
         .subscribe { event in
           switch event {
           case .success(let response):
@@ -47,5 +48,9 @@ class MainRepository: MainRepositoryProtocol {
         disposable.disposed(by: self.disposeBag)
       }
     }
+  }
+  
+  func loadTicker() {
+    
   }
 }

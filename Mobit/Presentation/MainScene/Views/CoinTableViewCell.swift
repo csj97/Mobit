@@ -71,7 +71,7 @@ class CoinTableViewCell: UITableViewCell {
     super.layoutSubviews()
     
     self.rootFlexContainer.pin.all()
-    self.rootFlexContainer.flex.layout(mode: .adjustHeight)
+    self.rootFlexContainer.flex.layout()
   }
   
   override func setSelected(_ selected: Bool, animated: Bool) {
@@ -106,7 +106,7 @@ class CoinTableViewCell: UITableViewCell {
     }
   }
   
-  func configure(crypto: CryptoMarket) {
+  func configure(crypto: Crypto) {
     if crypto.marketEvent.warning {
       self.coinName.text = "[유]\(crypto.koreanName)"
     } else {

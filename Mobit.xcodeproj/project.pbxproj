@@ -29,35 +29,28 @@
 		31E208122C46C323000BFEBC /* InvestmentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208112C46C323000BFEBC /* InvestmentViewController.swift */; };
 		31E208172C46C441000BFEBC /* MoreCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208162C46C441000BFEBC /* MoreCoordinator.swift */; };
 		31E208192C46C448000BFEBC /* MoreViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208182C46C448000BFEBC /* MoreViewController.swift */; };
-		31E208202C46C6F6000BFEBC /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = 31E2081F2C46C6F6000BFEBC /* RxCocoa */; };
-		31E208242C46C6F6000BFEBC /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = 31E208232C46C6F6000BFEBC /* RxRelay */; };
-		31E208282C46C6F6000BFEBC /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 31E208272C46C6F6000BFEBC /* RxSwift */; };
 		31E208432C46CB47000BFEBC /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 31E208422C46CB47000BFEBC /* Then */; };
-		31E208482C46CD63000BFEBC /* RxCocoa-Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 31E208472C46CD63000BFEBC /* RxCocoa-Dynamic */; };
-		31E208492C46CD63000BFEBC /* RxCocoa-Dynamic in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 31E208472C46CD63000BFEBC /* RxCocoa-Dynamic */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		31E2084B2C46CD63000BFEBC /* RxRelay-Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 31E2084A2C46CD63000BFEBC /* RxRelay-Dynamic */; };
-		31E2084C2C46CD63000BFEBC /* RxRelay-Dynamic in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 31E2084A2C46CD63000BFEBC /* RxRelay-Dynamic */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		31E2084E2C46CD63000BFEBC /* RxSwift-Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 31E2084D2C46CD63000BFEBC /* RxSwift-Dynamic */; };
-		31E2084F2C46CD63000BFEBC /* RxSwift-Dynamic in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 31E2084D2C46CD63000BFEBC /* RxSwift-Dynamic */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		31E208572C46CE34000BFEBC /* RxBlocking in Frameworks */ = {isa = PBXBuildFile; productRef = 31E208562C46CE34000BFEBC /* RxBlocking */; };
-		31E208592C46CE34000BFEBC /* RxBlocking-Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 31E208582C46CE34000BFEBC /* RxBlocking-Dynamic */; };
-		31E2085B2C46CE34000BFEBC /* RxBlocking-Dynamic in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 31E208582C46CE34000BFEBC /* RxBlocking-Dynamic */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		31E2085D2C46CE34000BFEBC /* RxTest in Frameworks */ = {isa = PBXBuildFile; productRef = 31E2085C2C46CE34000BFEBC /* RxTest */; };
-		31E2085F2C46CE34000BFEBC /* RxTest-Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 31E2085E2C46CE34000BFEBC /* RxTest-Dynamic */; };
-		31E208602C46CE34000BFEBC /* RxTest-Dynamic in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 31E2085E2C46CE34000BFEBC /* RxTest-Dynamic */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		57816D1053F5155CA2A5128A /* Pods_MobitTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E96C766B98DE33162167FDB1 /* Pods_MobitTests.framework */; };
+		99A66D2609B0506BA76BA3F0 /* Pods_Mobit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A49BE82DB6B182EF7BADB398 /* Pods_Mobit.framework */; };
 		99C20A582C48D35C009276E7 /* DividerLineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A572C48D35C009276E7 /* DividerLineView.swift */; };
 		99C20A5B2C48DE40009276E7 /* SwiftJWT in Frameworks */ = {isa = PBXBuildFile; productRef = 99C20A5A2C48DE40009276E7 /* SwiftJWT */; };
 		99C20A5D2C48DF11009276E7 /* CoinTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A5C2C48DF11009276E7 /* CoinTableViewCell.swift */; };
-		99C20A692C490326009276E7 /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A682C490326009276E7 /* NetworkService.swift */; };
+		99C20A692C490326009276E7 /* MainNetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A682C490326009276E7 /* MainNetworkService.swift */; };
 		99C20A6C2C490615009276E7 /* CombineMoya in Frameworks */ = {isa = PBXBuildFile; productRef = 99C20A6B2C490615009276E7 /* CombineMoya */; };
 		99C20A6E2C490615009276E7 /* Moya in Frameworks */ = {isa = PBXBuildFile; productRef = 99C20A6D2C490615009276E7 /* Moya */; };
 		99C20A702C490615009276E7 /* ReactiveMoya in Frameworks */ = {isa = PBXBuildFile; productRef = 99C20A6F2C490615009276E7 /* ReactiveMoya */; };
 		99C20A722C490615009276E7 /* RxMoya in Frameworks */ = {isa = PBXBuildFile; productRef = 99C20A712C490615009276E7 /* RxMoya */; };
 		99C20A762C490A3C009276E7 /* MainRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A752C490A3C009276E7 /* MainRepository.swift */; };
-		99C20A792C490B08009276E7 /* CryptoMarketDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A782C490B08009276E7 /* CryptoMarketDTO.swift */; };
-		99C20A7B2C490B33009276E7 /* CryptoMarket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A7A2C490B33009276E7 /* CryptoMarket.swift */; };
+		99C20A792C490B08009276E7 /* CryptoDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A782C490B08009276E7 /* CryptoDTO.swift */; };
 		99C20A832C4A2787009276E7 /* MainReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A822C4A2787009276E7 /* MainReactor.swift */; };
 		99C20A862C4A27F1009276E7 /* ReactorKit in Frameworks */ = {isa = PBXBuildFile; productRef = 99C20A852C4A27F1009276E7 /* ReactorKit */; };
+		99C20AAC2C4F458C009276E7 /* CurrentPriceDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AAB2C4F458C009276E7 /* CurrentPriceDTO.swift */; };
+		99C20AAE2C4F63E4009276E7 /* WebSocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AAD2C4F63E4009276E7 /* WebSocketManager.swift */; };
+		99C20AB22C4F6A04009276E7 /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB12C4F6A04009276E7 /* Environment.swift */; };
+		99C20AB42C4F7177009276E7 /* CurrentPrice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB32C4F7177009276E7 /* CurrentPrice.swift */; };
+		99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB72C4F775B009276E7 /* Crypto.swift */; };
+		99C20ABA2C4F7850009276E7 /* MainWebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB92C4F7850009276E7 /* MainWebSocket.swift */; };
+		EBA074C24178AD39593A53AE /* Pods_Mobit_MobitUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 509E4C480B46CFA8BB64B38D /* Pods_Mobit_MobitUITests.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -84,9 +77,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				31E2084F2C46CD63000BFEBC /* RxSwift-Dynamic in Embed Frameworks */,
-				31E208492C46CD63000BFEBC /* RxCocoa-Dynamic in Embed Frameworks */,
-				31E2084C2C46CD63000BFEBC /* RxRelay-Dynamic in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -97,8 +87,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				31E208602C46CE34000BFEBC /* RxTest-Dynamic in Embed Frameworks */,
-				31E2085B2C46CE34000BFEBC /* RxBlocking-Dynamic in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -131,13 +119,28 @@
 		31E208162C46C441000BFEBC /* MoreCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreCoordinator.swift; sourceTree = "<group>"; };
 		31E208182C46C448000BFEBC /* MoreViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreViewController.swift; sourceTree = "<group>"; };
 		31E208532C46CD9F000BFEBC /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/iPhoneOS.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		3234A6BA9B2D56FE7C02C718 /* Pods-MobitTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MobitTests.debug.xcconfig"; path = "Target Support Files/Pods-MobitTests/Pods-MobitTests.debug.xcconfig"; sourceTree = "<group>"; };
+		4C1188937DE54087AA7B9367 /* Pods-MobitTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MobitTests.release.xcconfig"; path = "Target Support Files/Pods-MobitTests/Pods-MobitTests.release.xcconfig"; sourceTree = "<group>"; };
+		509E4C480B46CFA8BB64B38D /* Pods_Mobit_MobitUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Mobit_MobitUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		5BA5C062882A7F0510DE6BB6 /* Pods-Mobit-MobitUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Mobit-MobitUITests.debug.xcconfig"; path = "Target Support Files/Pods-Mobit-MobitUITests/Pods-Mobit-MobitUITests.debug.xcconfig"; sourceTree = "<group>"; };
 		99C20A572C48D35C009276E7 /* DividerLineView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DividerLineView.swift; sourceTree = "<group>"; };
 		99C20A5C2C48DF11009276E7 /* CoinTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinTableViewCell.swift; sourceTree = "<group>"; };
-		99C20A682C490326009276E7 /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
+		99C20A682C490326009276E7 /* MainNetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainNetworkService.swift; sourceTree = "<group>"; };
 		99C20A752C490A3C009276E7 /* MainRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainRepository.swift; sourceTree = "<group>"; };
-		99C20A782C490B08009276E7 /* CryptoMarketDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoMarketDTO.swift; sourceTree = "<group>"; };
-		99C20A7A2C490B33009276E7 /* CryptoMarket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CryptoMarket.swift; path = Mobit/Data/Network/DataMapping/CryptoMarket.swift; sourceTree = SOURCE_ROOT; };
+		99C20A782C490B08009276E7 /* CryptoDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDTO.swift; sourceTree = "<group>"; };
 		99C20A822C4A2787009276E7 /* MainReactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainReactor.swift; sourceTree = "<group>"; };
+		99C20AAB2C4F458C009276E7 /* CurrentPriceDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentPriceDTO.swift; sourceTree = "<group>"; };
+		99C20AAD2C4F63E4009276E7 /* WebSocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketManager.swift; sourceTree = "<group>"; };
+		99C20AAF2C4F66E1009276E7 /* UpbitKey.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = UpbitKey.xcconfig; sourceTree = "<group>"; };
+		99C20AB12C4F6A04009276E7 /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
+		99C20AB32C4F7177009276E7 /* CurrentPrice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CurrentPrice.swift; path = Mobit/Domain/Model/CurrentPrice.swift; sourceTree = SOURCE_ROOT; };
+		99C20AB72C4F775B009276E7 /* Crypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Crypto.swift; sourceTree = "<group>"; };
+		99C20AB92C4F7850009276E7 /* MainWebSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWebSocket.swift; sourceTree = "<group>"; };
+		A49BE82DB6B182EF7BADB398 /* Pods_Mobit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Mobit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CF46285EA71A6EDEABE1CEAE /* Pods-Mobit.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Mobit.debug.xcconfig"; path = "Target Support Files/Pods-Mobit/Pods-Mobit.debug.xcconfig"; sourceTree = "<group>"; };
+		DF7430F417DDEDE50B7742E7 /* Pods-Mobit.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Mobit.release.xcconfig"; path = "Target Support Files/Pods-Mobit/Pods-Mobit.release.xcconfig"; sourceTree = "<group>"; };
+		E96C766B98DE33162167FDB1 /* Pods_MobitTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MobitTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FE45C25585CA0EF200375089 /* Pods-Mobit-MobitUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Mobit-MobitUITests.release.xcconfig"; path = "Target Support Files/Pods-Mobit-MobitUITests/Pods-Mobit-MobitUITests.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -145,21 +148,16 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				31E208282C46C6F6000BFEBC /* RxSwift in Frameworks */,
 				3133E2742C3F7135000D4B1A /* PinLayout in Frameworks */,
 				99C20A6E2C490615009276E7 /* Moya in Frameworks */,
-				31E2084B2C46CD63000BFEBC /* RxRelay-Dynamic in Frameworks */,
 				99C20A722C490615009276E7 /* RxMoya in Frameworks */,
-				31E2084E2C46CD63000BFEBC /* RxSwift-Dynamic in Frameworks */,
 				31E208432C46CB47000BFEBC /* Then in Frameworks */,
 				99C20A6C2C490615009276E7 /* CombineMoya in Frameworks */,
-				31E208242C46C6F6000BFEBC /* RxRelay in Frameworks */,
-				31E208202C46C6F6000BFEBC /* RxCocoa in Frameworks */,
-				31E208482C46CD63000BFEBC /* RxCocoa-Dynamic in Frameworks */,
 				99C20A702C490615009276E7 /* ReactiveMoya in Frameworks */,
 				99C20A5B2C48DE40009276E7 /* SwiftJWT in Frameworks */,
 				99C20A862C4A27F1009276E7 /* ReactorKit in Frameworks */,
 				3133E2772C3F7192000D4B1A /* FlexLayout in Frameworks */,
+				99A66D2609B0506BA76BA3F0 /* Pods_Mobit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -167,10 +165,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				31E208572C46CE34000BFEBC /* RxBlocking in Frameworks */,
-				31E2085D2C46CE34000BFEBC /* RxTest in Frameworks */,
-				31E2085F2C46CE34000BFEBC /* RxTest-Dynamic in Frameworks */,
-				31E208592C46CE34000BFEBC /* RxBlocking-Dynamic in Frameworks */,
+				57816D1053F5155CA2A5128A /* Pods_MobitTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -178,6 +173,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EBA074C24178AD39593A53AE /* Pods_Mobit_MobitUITests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -192,6 +188,7 @@
 				3133E2472C3E2357000D4B1A /* MobitUITests */,
 				3133E2252C3E2355000D4B1A /* Products */,
 				31E208312C46C89C000BFEBC /* Frameworks */,
+				6980D2CD2E0E6148C9C5BA7D /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -241,6 +238,7 @@
 			children = (
 				3133E2302C3E2357000D4B1A /* Assets.xcassets */,
 				3133E2322C3E2357000D4B1A /* LaunchScreen.storyboard */,
+				99C20AAF2C4F66E1009276E7 /* UpbitKey.xcconfig */,
 			);
 			path = Resource;
 			sourceTree = "<group>";
@@ -268,7 +266,7 @@
 		3133E25A2C3F6971000D4B1A /* Domain */ = {
 			isa = PBXGroup;
 			children = (
-				3133E26A2C3F6C4E000D4B1A /* Model */,
+				99C20AB62C4F7746009276E7 /* Model */,
 				3133E2692C3F6C49000D4B1A /* UseCase */,
 			);
 			path = Domain;
@@ -287,6 +285,7 @@
 			isa = PBXGroup;
 			children = (
 				311E33F92C46068C0054C6BC /* ErrorType.swift */,
+				99C20AB12C4F6A04009276E7 /* Environment.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -325,14 +324,6 @@
 				3133E26B2C3F705B000D4B1A /* Main */,
 			);
 			path = UseCase;
-			sourceTree = "<group>";
-		};
-		3133E26A2C3F6C4E000D4B1A /* Model */ = {
-			isa = PBXGroup;
-			children = (
-				99C20A7A2C490B33009276E7 /* CryptoMarket.swift */,
-			);
-			path = Model;
 			sourceTree = "<group>";
 		};
 		3133E26B2C3F705B000D4B1A /* Main */ = {
@@ -425,6 +416,9 @@
 			isa = PBXGroup;
 			children = (
 				31E208532C46CD9F000BFEBC /* XCTest.framework */,
+				A49BE82DB6B182EF7BADB398 /* Pods_Mobit.framework */,
+				509E4C480B46CFA8BB64B38D /* Pods_Mobit_MobitUITests.framework */,
+				E96C766B98DE33162167FDB1 /* Pods_MobitTests.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -437,11 +431,24 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		6980D2CD2E0E6148C9C5BA7D /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				CF46285EA71A6EDEABE1CEAE /* Pods-Mobit.debug.xcconfig */,
+				DF7430F417DDEDE50B7742E7 /* Pods-Mobit.release.xcconfig */,
+				5BA5C062882A7F0510DE6BB6 /* Pods-Mobit-MobitUITests.debug.xcconfig */,
+				FE45C25585CA0EF200375089 /* Pods-Mobit-MobitUITests.release.xcconfig */,
+				3234A6BA9B2D56FE7C02C718 /* Pods-MobitTests.debug.xcconfig */,
+				4C1188937DE54087AA7B9367 /* Pods-MobitTests.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 		99C20A672C490317009276E7 /* Network */ = {
 			isa = PBXGroup;
 			children = (
-				99C20A772C490AF9009276E7 /* DataMapping */,
-				99C20A682C490326009276E7 /* NetworkService.swift */,
+				99C20AAD2C4F63E4009276E7 /* WebSocketManager.swift */,
+				99C20AB52C4F76B5009276E7 /* Main */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -465,7 +472,8 @@
 		99C20A772C490AF9009276E7 /* DataMapping */ = {
 			isa = PBXGroup;
 			children = (
-				99C20A782C490B08009276E7 /* CryptoMarketDTO.swift */,
+				99C20A782C490B08009276E7 /* CryptoDTO.swift */,
+				99C20AAB2C4F458C009276E7 /* CurrentPriceDTO.swift */,
 			);
 			path = DataMapping;
 			sourceTree = "<group>";
@@ -478,6 +486,25 @@
 			path = Reactors;
 			sourceTree = "<group>";
 		};
+		99C20AB52C4F76B5009276E7 /* Main */ = {
+			isa = PBXGroup;
+			children = (
+				99C20A682C490326009276E7 /* MainNetworkService.swift */,
+				99C20AB92C4F7850009276E7 /* MainWebSocket.swift */,
+				99C20A772C490AF9009276E7 /* DataMapping */,
+			);
+			path = Main;
+			sourceTree = "<group>";
+		};
+		99C20AB62C4F7746009276E7 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				99C20AB32C4F7177009276E7 /* CurrentPrice.swift */,
+				99C20AB72C4F775B009276E7 /* Crypto.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -485,10 +512,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3133E24E2C3E2357000D4B1A /* Build configuration list for PBXNativeTarget "Mobit" */;
 			buildPhases = (
+				DBA84CFBEE64A711ED444023 /* [CP] Check Pods Manifest.lock */,
 				3133E2202C3E2355000D4B1A /* Sources */,
 				3133E2212C3E2355000D4B1A /* Frameworks */,
 				3133E2222C3E2355000D4B1A /* Resources */,
 				31E208302C46C7A6000BFEBC /* Embed Frameworks */,
+				AFB1FFF469B6E94BE7600293 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -498,13 +527,7 @@
 			packageProductDependencies = (
 				3133E2732C3F7135000D4B1A /* PinLayout */,
 				3133E2762C3F7192000D4B1A /* FlexLayout */,
-				31E2081F2C46C6F6000BFEBC /* RxCocoa */,
-				31E208232C46C6F6000BFEBC /* RxRelay */,
-				31E208272C46C6F6000BFEBC /* RxSwift */,
 				31E208422C46CB47000BFEBC /* Then */,
-				31E208472C46CD63000BFEBC /* RxCocoa-Dynamic */,
-				31E2084A2C46CD63000BFEBC /* RxRelay-Dynamic */,
-				31E2084D2C46CD63000BFEBC /* RxSwift-Dynamic */,
 				99C20A5A2C48DE40009276E7 /* SwiftJWT */,
 				99C20A6B2C490615009276E7 /* CombineMoya */,
 				99C20A6D2C490615009276E7 /* Moya */,
@@ -520,6 +543,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3133E2512C3E2357000D4B1A /* Build configuration list for PBXNativeTarget "MobitTests" */;
 			buildPhases = (
+				875906CE0CBF30C7B422707D /* [CP] Check Pods Manifest.lock */,
 				3133E2362C3E2357000D4B1A /* Sources */,
 				3133E2372C3E2357000D4B1A /* Frameworks */,
 				3133E2382C3E2357000D4B1A /* Resources */,
@@ -531,12 +555,6 @@
 				3133E23C2C3E2357000D4B1A /* PBXTargetDependency */,
 			);
 			name = MobitTests;
-			packageProductDependencies = (
-				31E208562C46CE34000BFEBC /* RxBlocking */,
-				31E208582C46CE34000BFEBC /* RxBlocking-Dynamic */,
-				31E2085C2C46CE34000BFEBC /* RxTest */,
-				31E2085E2C46CE34000BFEBC /* RxTest-Dynamic */,
-			);
 			productName = MobitTests;
 			productReference = 3133E23A2C3E2357000D4B1A /* MobitTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -545,9 +563,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3133E2542C3E2357000D4B1A /* Build configuration list for PBXNativeTarget "MobitUITests" */;
 			buildPhases = (
+				0EE382DE2F03E6AF083B77F2 /* [CP] Check Pods Manifest.lock */,
 				3133E2402C3E2357000D4B1A /* Sources */,
 				3133E2412C3E2357000D4B1A /* Frameworks */,
 				3133E2422C3E2357000D4B1A /* Resources */,
+				4D156F7056F090C474CB3A92 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -594,7 +614,6 @@
 			packageReferences = (
 				3133E2722C3F7135000D4B1A /* XCRemoteSwiftPackageReference "PinLayout" */,
 				3133E2752C3F7192000D4B1A /* XCRemoteSwiftPackageReference "FlexLayout" */,
-				31E2081A2C46C6F6000BFEBC /* XCRemoteSwiftPackageReference "RxSwift" */,
 				31E208412C46CB47000BFEBC /* XCRemoteSwiftPackageReference "Then" */,
 				99C20A592C48DE40009276E7 /* XCRemoteSwiftPackageReference "Swift-JWT" */,
 				99C20A6A2C490615009276E7 /* XCRemoteSwiftPackageReference "Moya" */,
@@ -637,29 +656,141 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		0EE382DE2F03E6AF083B77F2 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Mobit-MobitUITests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		4D156F7056F090C474CB3A92 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Mobit-MobitUITests/Pods-Mobit-MobitUITests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Mobit-MobitUITests/Pods-Mobit-MobitUITests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Mobit-MobitUITests/Pods-Mobit-MobitUITests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		875906CE0CBF30C7B422707D /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-MobitTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		AFB1FFF469B6E94BE7600293 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Mobit/Pods-Mobit-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+				"$(SRCROOT)/newInputFile.xcfilelist",
+			);
+			inputPaths = (
+				"$(SRCROOT)/newInputFile",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Mobit/Pods-Mobit-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Mobit/Pods-Mobit-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		DBA84CFBEE64A711ED444023 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Mobit-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		3133E2202C3E2355000D4B1A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				99C20A792C490B08009276E7 /* CryptoMarketDTO.swift in Sources */,
+				99C20A792C490B08009276E7 /* CryptoDTO.swift in Sources */,
 				99C20A762C490A3C009276E7 /* MainRepository.swift in Sources */,
 				3133E2702C3F7098000D4B1A /* MainUseCase.swift in Sources */,
+				99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */,
 				31E208072C4678B9000BFEBC /* MainCoordinator.swift in Sources */,
-				99C20A7B2C490B33009276E7 /* CryptoMarket.swift in Sources */,
 				31E208102C46C2FE000BFEBC /* InvestmentCoordinator.swift in Sources */,
 				3133E2662C3F6A44000D4B1A /* BaseCoordinator.swift in Sources */,
 				31E208192C46C448000BFEBC /* MoreViewController.swift in Sources */,
 				31E208122C46C323000BFEBC /* InvestmentViewController.swift in Sources */,
 				31E208172C46C441000BFEBC /* MoreCoordinator.swift in Sources */,
 				3133E2642C3F6A3B000D4B1A /* AppCoordinator.swift in Sources */,
-				99C20A692C490326009276E7 /* NetworkService.swift in Sources */,
+				99C20AAE2C4F63E4009276E7 /* WebSocketManager.swift in Sources */,
+				99C20AAC2C4F458C009276E7 /* CurrentPriceDTO.swift in Sources */,
+				99C20A692C490326009276E7 /* MainNetworkService.swift in Sources */,
 				311E33FA2C46068C0054C6BC /* ErrorType.swift in Sources */,
 				31E208042C4677CB000BFEBC /* AppTabBarCoordinator.swift in Sources */,
 				99C20A582C48D35C009276E7 /* DividerLineView.swift in Sources */,
 				3133E2682C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift in Sources */,
 				3133E2282C3E2355000D4B1A /* AppDelegate.swift in Sources */,
+				99C20ABA2C4F7850009276E7 /* MainWebSocket.swift in Sources */,
+				99C20AB22C4F6A04009276E7 /* Environment.swift in Sources */,
 				3133E22A2C3E2355000D4B1A /* SceneDelegate.swift in Sources */,
+				99C20AB42C4F7177009276E7 /* CurrentPrice.swift in Sources */,
 				31E208092C46BF6B000BFEBC /* MainTabBarCoordinator.swift in Sources */,
 				311E33FC2C4608800054C6BC /* MainViewController.swift in Sources */,
 				99C20A832C4A2787009276E7 /* MainReactor.swift in Sources */,
@@ -763,7 +894,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -820,7 +951,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -832,6 +963,7 @@
 		};
 		3133E24F2C3E2357000D4B1A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 99C20AAF2C4F66E1009276E7 /* UpbitKey.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -861,6 +993,7 @@
 		};
 		3133E2502C3E2357000D4B1A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 99C20AAF2C4F66E1009276E7 /* UpbitKey.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -890,6 +1023,7 @@
 		};
 		3133E2522C3E2357000D4B1A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3234A6BA9B2D56FE7C02C718 /* Pods-MobitTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -897,7 +1031,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = L8AX56G69N;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kando.MobitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -910,6 +1044,7 @@
 		};
 		3133E2532C3E2357000D4B1A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4C1188937DE54087AA7B9367 /* Pods-MobitTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -917,7 +1052,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = L8AX56G69N;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kando.MobitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -930,6 +1065,7 @@
 		};
 		3133E2552C3E2357000D4B1A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5BA5C062882A7F0510DE6BB6 /* Pods-Mobit-MobitUITests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -948,6 +1084,7 @@
 		};
 		3133E2562C3E2357000D4B1A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = FE45C25585CA0EF200375089 /* Pods-Mobit-MobitUITests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -1022,14 +1159,6 @@
 				minimumVersion = 2.0.10;
 			};
 		};
-		31E2081A2C46C6F6000BFEBC /* XCRemoteSwiftPackageReference "RxSwift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/ReactiveX/RxSwift.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 6.7.1;
-			};
-		};
 		31E208412C46CB47000BFEBC /* XCRemoteSwiftPackageReference "Then" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/devxoul/Then.git";
@@ -1075,60 +1204,10 @@
 			package = 3133E2752C3F7192000D4B1A /* XCRemoteSwiftPackageReference "FlexLayout" */;
 			productName = FlexLayout;
 		};
-		31E2081F2C46C6F6000BFEBC /* RxCocoa */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 31E2081A2C46C6F6000BFEBC /* XCRemoteSwiftPackageReference "RxSwift" */;
-			productName = RxCocoa;
-		};
-		31E208232C46C6F6000BFEBC /* RxRelay */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 31E2081A2C46C6F6000BFEBC /* XCRemoteSwiftPackageReference "RxSwift" */;
-			productName = RxRelay;
-		};
-		31E208272C46C6F6000BFEBC /* RxSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 31E2081A2C46C6F6000BFEBC /* XCRemoteSwiftPackageReference "RxSwift" */;
-			productName = RxSwift;
-		};
 		31E208422C46CB47000BFEBC /* Then */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 31E208412C46CB47000BFEBC /* XCRemoteSwiftPackageReference "Then" */;
 			productName = Then;
-		};
-		31E208472C46CD63000BFEBC /* RxCocoa-Dynamic */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 31E2081A2C46C6F6000BFEBC /* XCRemoteSwiftPackageReference "RxSwift" */;
-			productName = "RxCocoa-Dynamic";
-		};
-		31E2084A2C46CD63000BFEBC /* RxRelay-Dynamic */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 31E2081A2C46C6F6000BFEBC /* XCRemoteSwiftPackageReference "RxSwift" */;
-			productName = "RxRelay-Dynamic";
-		};
-		31E2084D2C46CD63000BFEBC /* RxSwift-Dynamic */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 31E2081A2C46C6F6000BFEBC /* XCRemoteSwiftPackageReference "RxSwift" */;
-			productName = "RxSwift-Dynamic";
-		};
-		31E208562C46CE34000BFEBC /* RxBlocking */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 31E2081A2C46C6F6000BFEBC /* XCRemoteSwiftPackageReference "RxSwift" */;
-			productName = RxBlocking;
-		};
-		31E208582C46CE34000BFEBC /* RxBlocking-Dynamic */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 31E2081A2C46C6F6000BFEBC /* XCRemoteSwiftPackageReference "RxSwift" */;
-			productName = "RxBlocking-Dynamic";
-		};
-		31E2085C2C46CE34000BFEBC /* RxTest */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 31E2081A2C46C6F6000BFEBC /* XCRemoteSwiftPackageReference "RxSwift" */;
-			productName = RxTest;
-		};
-		31E2085E2C46CE34000BFEBC /* RxTest-Dynamic */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 31E2081A2C46C6F6000BFEBC /* XCRemoteSwiftPackageReference "RxSwift" */;
-			productName = "RxTest-Dynamic";
 		};
 		99C20A5A2C48DE40009276E7 /* SwiftJWT */ = {
 			isa = XCSwiftPackageProductDependency;
