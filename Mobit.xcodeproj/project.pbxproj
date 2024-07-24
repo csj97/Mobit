@@ -30,8 +30,11 @@
 		31E208172C46C441000BFEBC /* MoreCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208162C46C441000BFEBC /* MoreCoordinator.swift */; };
 		31E208192C46C448000BFEBC /* MoreViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208182C46C448000BFEBC /* MoreViewController.swift */; };
 		31E208432C46CB47000BFEBC /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 31E208422C46CB47000BFEBC /* Then */; };
-		57816D1053F5155CA2A5128A /* Pods_MobitTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E96C766B98DE33162167FDB1 /* Pods_MobitTests.framework */; };
-		99A66D2609B0506BA76BA3F0 /* Pods_Mobit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A49BE82DB6B182EF7BADB398 /* Pods_Mobit.framework */; };
+		998725022C50944700088C71 /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = 998725012C50944700088C71 /* RxCocoa */; };
+		998725062C50944700088C71 /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = 998725052C50944700088C71 /* RxRelay */; };
+		9987250A2C50944700088C71 /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 998725092C50944700088C71 /* RxSwift */; };
+		998725122C50949200088C71 /* RxBlocking in Frameworks */ = {isa = PBXBuildFile; productRef = 998725112C50949200088C71 /* RxBlocking */; };
+		998725172C50949200088C71 /* RxTest in Frameworks */ = {isa = PBXBuildFile; productRef = 998725162C50949200088C71 /* RxTest */; };
 		99C20A582C48D35C009276E7 /* DividerLineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A572C48D35C009276E7 /* DividerLineView.swift */; };
 		99C20A5B2C48DE40009276E7 /* SwiftJWT in Frameworks */ = {isa = PBXBuildFile; productRef = 99C20A5A2C48DE40009276E7 /* SwiftJWT */; };
 		99C20A5D2C48DF11009276E7 /* CoinTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A5C2C48DF11009276E7 /* CoinTableViewCell.swift */; };
@@ -50,7 +53,6 @@
 		99C20AB42C4F7177009276E7 /* CurrentPrice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB32C4F7177009276E7 /* CurrentPrice.swift */; };
 		99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB72C4F775B009276E7 /* Crypto.swift */; };
 		99C20ABA2C4F7850009276E7 /* MainWebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB92C4F7850009276E7 /* MainWebSocket.swift */; };
-		EBA074C24178AD39593A53AE /* Pods_Mobit_MobitUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 509E4C480B46CFA8BB64B38D /* Pods_Mobit_MobitUITests.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -119,10 +121,6 @@
 		31E208162C46C441000BFEBC /* MoreCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreCoordinator.swift; sourceTree = "<group>"; };
 		31E208182C46C448000BFEBC /* MoreViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreViewController.swift; sourceTree = "<group>"; };
 		31E208532C46CD9F000BFEBC /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/iPhoneOS.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
-		3234A6BA9B2D56FE7C02C718 /* Pods-MobitTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MobitTests.debug.xcconfig"; path = "Target Support Files/Pods-MobitTests/Pods-MobitTests.debug.xcconfig"; sourceTree = "<group>"; };
-		4C1188937DE54087AA7B9367 /* Pods-MobitTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MobitTests.release.xcconfig"; path = "Target Support Files/Pods-MobitTests/Pods-MobitTests.release.xcconfig"; sourceTree = "<group>"; };
-		509E4C480B46CFA8BB64B38D /* Pods_Mobit_MobitUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Mobit_MobitUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		5BA5C062882A7F0510DE6BB6 /* Pods-Mobit-MobitUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Mobit-MobitUITests.debug.xcconfig"; path = "Target Support Files/Pods-Mobit-MobitUITests/Pods-Mobit-MobitUITests.debug.xcconfig"; sourceTree = "<group>"; };
 		99C20A572C48D35C009276E7 /* DividerLineView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DividerLineView.swift; sourceTree = "<group>"; };
 		99C20A5C2C48DF11009276E7 /* CoinTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinTableViewCell.swift; sourceTree = "<group>"; };
 		99C20A682C490326009276E7 /* MainNetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainNetworkService.swift; sourceTree = "<group>"; };
@@ -136,11 +134,6 @@
 		99C20AB32C4F7177009276E7 /* CurrentPrice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CurrentPrice.swift; path = Mobit/Domain/Model/CurrentPrice.swift; sourceTree = SOURCE_ROOT; };
 		99C20AB72C4F775B009276E7 /* Crypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Crypto.swift; sourceTree = "<group>"; };
 		99C20AB92C4F7850009276E7 /* MainWebSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWebSocket.swift; sourceTree = "<group>"; };
-		A49BE82DB6B182EF7BADB398 /* Pods_Mobit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Mobit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		CF46285EA71A6EDEABE1CEAE /* Pods-Mobit.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Mobit.debug.xcconfig"; path = "Target Support Files/Pods-Mobit/Pods-Mobit.debug.xcconfig"; sourceTree = "<group>"; };
-		DF7430F417DDEDE50B7742E7 /* Pods-Mobit.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Mobit.release.xcconfig"; path = "Target Support Files/Pods-Mobit/Pods-Mobit.release.xcconfig"; sourceTree = "<group>"; };
-		E96C766B98DE33162167FDB1 /* Pods_MobitTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MobitTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		FE45C25585CA0EF200375089 /* Pods-Mobit-MobitUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Mobit-MobitUITests.release.xcconfig"; path = "Target Support Files/Pods-Mobit-MobitUITests/Pods-Mobit-MobitUITests.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -150,14 +143,16 @@
 			files = (
 				3133E2742C3F7135000D4B1A /* PinLayout in Frameworks */,
 				99C20A6E2C490615009276E7 /* Moya in Frameworks */,
+				998725062C50944700088C71 /* RxRelay in Frameworks */,
 				99C20A722C490615009276E7 /* RxMoya in Frameworks */,
 				31E208432C46CB47000BFEBC /* Then in Frameworks */,
 				99C20A6C2C490615009276E7 /* CombineMoya in Frameworks */,
 				99C20A702C490615009276E7 /* ReactiveMoya in Frameworks */,
+				998725022C50944700088C71 /* RxCocoa in Frameworks */,
 				99C20A5B2C48DE40009276E7 /* SwiftJWT in Frameworks */,
 				99C20A862C4A27F1009276E7 /* ReactorKit in Frameworks */,
 				3133E2772C3F7192000D4B1A /* FlexLayout in Frameworks */,
-				99A66D2609B0506BA76BA3F0 /* Pods_Mobit.framework in Frameworks */,
+				9987250A2C50944700088C71 /* RxSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -165,7 +160,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				57816D1053F5155CA2A5128A /* Pods_MobitTests.framework in Frameworks */,
+				998725122C50949200088C71 /* RxBlocking in Frameworks */,
+				998725172C50949200088C71 /* RxTest in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -173,7 +169,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EBA074C24178AD39593A53AE /* Pods_Mobit_MobitUITests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -188,7 +183,6 @@
 				3133E2472C3E2357000D4B1A /* MobitUITests */,
 				3133E2252C3E2355000D4B1A /* Products */,
 				31E208312C46C89C000BFEBC /* Frameworks */,
-				6980D2CD2E0E6148C9C5BA7D /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -416,9 +410,6 @@
 			isa = PBXGroup;
 			children = (
 				31E208532C46CD9F000BFEBC /* XCTest.framework */,
-				A49BE82DB6B182EF7BADB398 /* Pods_Mobit.framework */,
-				509E4C480B46CFA8BB64B38D /* Pods_Mobit_MobitUITests.framework */,
-				E96C766B98DE33162167FDB1 /* Pods_MobitTests.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -429,19 +420,6 @@
 				99C20A572C48D35C009276E7 /* DividerLineView.swift */,
 			);
 			path = Views;
-			sourceTree = "<group>";
-		};
-		6980D2CD2E0E6148C9C5BA7D /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				CF46285EA71A6EDEABE1CEAE /* Pods-Mobit.debug.xcconfig */,
-				DF7430F417DDEDE50B7742E7 /* Pods-Mobit.release.xcconfig */,
-				5BA5C062882A7F0510DE6BB6 /* Pods-Mobit-MobitUITests.debug.xcconfig */,
-				FE45C25585CA0EF200375089 /* Pods-Mobit-MobitUITests.release.xcconfig */,
-				3234A6BA9B2D56FE7C02C718 /* Pods-MobitTests.debug.xcconfig */,
-				4C1188937DE54087AA7B9367 /* Pods-MobitTests.release.xcconfig */,
-			);
-			path = Pods;
 			sourceTree = "<group>";
 		};
 		99C20A672C490317009276E7 /* Network */ = {
@@ -512,12 +490,10 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3133E24E2C3E2357000D4B1A /* Build configuration list for PBXNativeTarget "Mobit" */;
 			buildPhases = (
-				DBA84CFBEE64A711ED444023 /* [CP] Check Pods Manifest.lock */,
 				3133E2202C3E2355000D4B1A /* Sources */,
 				3133E2212C3E2355000D4B1A /* Frameworks */,
 				3133E2222C3E2355000D4B1A /* Resources */,
 				31E208302C46C7A6000BFEBC /* Embed Frameworks */,
-				AFB1FFF469B6E94BE7600293 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -534,6 +510,9 @@
 				99C20A6F2C490615009276E7 /* ReactiveMoya */,
 				99C20A712C490615009276E7 /* RxMoya */,
 				99C20A852C4A27F1009276E7 /* ReactorKit */,
+				998725012C50944700088C71 /* RxCocoa */,
+				998725052C50944700088C71 /* RxRelay */,
+				998725092C50944700088C71 /* RxSwift */,
 			);
 			productName = Mobit;
 			productReference = 3133E2242C3E2355000D4B1A /* Mobit.app */;
@@ -543,7 +522,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3133E2512C3E2357000D4B1A /* Build configuration list for PBXNativeTarget "MobitTests" */;
 			buildPhases = (
-				875906CE0CBF30C7B422707D /* [CP] Check Pods Manifest.lock */,
 				3133E2362C3E2357000D4B1A /* Sources */,
 				3133E2372C3E2357000D4B1A /* Frameworks */,
 				3133E2382C3E2357000D4B1A /* Resources */,
@@ -555,6 +533,10 @@
 				3133E23C2C3E2357000D4B1A /* PBXTargetDependency */,
 			);
 			name = MobitTests;
+			packageProductDependencies = (
+				998725112C50949200088C71 /* RxBlocking */,
+				998725162C50949200088C71 /* RxTest */,
+			);
 			productName = MobitTests;
 			productReference = 3133E23A2C3E2357000D4B1A /* MobitTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -563,11 +545,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3133E2542C3E2357000D4B1A /* Build configuration list for PBXNativeTarget "MobitUITests" */;
 			buildPhases = (
-				0EE382DE2F03E6AF083B77F2 /* [CP] Check Pods Manifest.lock */,
 				3133E2402C3E2357000D4B1A /* Sources */,
 				3133E2412C3E2357000D4B1A /* Frameworks */,
 				3133E2422C3E2357000D4B1A /* Resources */,
-				4D156F7056F090C474CB3A92 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -618,6 +598,7 @@
 				99C20A592C48DE40009276E7 /* XCRemoteSwiftPackageReference "Swift-JWT" */,
 				99C20A6A2C490615009276E7 /* XCRemoteSwiftPackageReference "Moya" */,
 				99C20A842C4A27F1009276E7 /* XCRemoteSwiftPackageReference "ReactorKit" */,
+				998724FC2C50944700088C71 /* XCRemoteSwiftPackageReference "RxSwift" */,
 			);
 			productRefGroup = 3133E2252C3E2355000D4B1A /* Products */;
 			projectDirPath = "";
@@ -655,113 +636,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		0EE382DE2F03E6AF083B77F2 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Mobit-MobitUITests-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		4D156F7056F090C474CB3A92 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Mobit-MobitUITests/Pods-Mobit-MobitUITests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Mobit-MobitUITests/Pods-Mobit-MobitUITests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Mobit-MobitUITests/Pods-Mobit-MobitUITests-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		875906CE0CBF30C7B422707D /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-MobitTests-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		AFB1FFF469B6E94BE7600293 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Mobit/Pods-Mobit-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-				"$(SRCROOT)/newInputFile.xcfilelist",
-			);
-			inputPaths = (
-				"$(SRCROOT)/newInputFile",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Mobit/Pods-Mobit-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Mobit/Pods-Mobit-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		DBA84CFBEE64A711ED444023 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Mobit-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		3133E2202C3E2355000D4B1A /* Sources */ = {
@@ -965,14 +839,18 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 99C20AAF2C4F66E1009276E7 /* UpbitKey.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = L8AX56G69N;
-				ENABLE_TESTING_SEARCH_PATHS = NO;
+				ENABLE_TESTING_SEARCH_PATHS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Mobit/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "모의비트";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -983,8 +861,10 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				NEW_SETTING = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.kando.Mobit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -995,14 +875,18 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 99C20AAF2C4F66E1009276E7 /* UpbitKey.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = L8AX56G69N;
-				ENABLE_TESTING_SEARCH_PATHS = NO;
+				ENABLE_TESTING_SEARCH_PATHS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Mobit/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "모의비트";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -1013,8 +897,10 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				NEW_SETTING = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.kando.Mobit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1023,7 +909,6 @@
 		};
 		3133E2522C3E2357000D4B1A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 3234A6BA9B2D56FE7C02C718 /* Pods-MobitTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -1044,7 +929,6 @@
 		};
 		3133E2532C3E2357000D4B1A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4C1188937DE54087AA7B9367 /* Pods-MobitTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -1065,7 +949,6 @@
 		};
 		3133E2552C3E2357000D4B1A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5BA5C062882A7F0510DE6BB6 /* Pods-Mobit-MobitUITests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -1084,7 +967,6 @@
 		};
 		3133E2562C3E2357000D4B1A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = FE45C25585CA0EF200375089 /* Pods-Mobit-MobitUITests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -1167,6 +1049,14 @@
 				minimumVersion = 3.0.0;
 			};
 		};
+		998724FC2C50944700088C71 /* XCRemoteSwiftPackageReference "RxSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ReactiveX/RxSwift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.7.1;
+			};
+		};
 		99C20A592C48DE40009276E7 /* XCRemoteSwiftPackageReference "Swift-JWT" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Kitura/Swift-JWT.git";
@@ -1208,6 +1098,31 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 31E208412C46CB47000BFEBC /* XCRemoteSwiftPackageReference "Then" */;
 			productName = Then;
+		};
+		998725012C50944700088C71 /* RxCocoa */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 998724FC2C50944700088C71 /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxCocoa;
+		};
+		998725052C50944700088C71 /* RxRelay */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 998724FC2C50944700088C71 /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxRelay;
+		};
+		998725092C50944700088C71 /* RxSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 998724FC2C50944700088C71 /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxSwift;
+		};
+		998725112C50949200088C71 /* RxBlocking */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 998724FC2C50944700088C71 /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxBlocking;
+		};
+		998725162C50949200088C71 /* RxTest */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 998724FC2C50944700088C71 /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxTest;
 		};
 		99C20A5A2C48DE40009276E7 /* SwiftJWT */ = {
 			isa = XCSwiftPackageProductDependency;
