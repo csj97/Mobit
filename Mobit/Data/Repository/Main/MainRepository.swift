@@ -12,7 +12,7 @@ import RxSwift
 
 protocol MainRepositoryProtocol {
   func fetchCoinList() -> Observable<[Crypto]>
-  func loadTicker()
+  func loadTicker(markets: [String]) -> Observable<CurrentPriceList>
 }
 
 class MainRepository: MainRepositoryProtocol {
@@ -50,7 +50,37 @@ class MainRepository: MainRepositoryProtocol {
     }
   }
   
-  func loadTicker() {
-    
+  func loadTicker(markets: [String]) -> Observable<CurrentPriceList> {
+    let decodeTarget = CurrentPriceListDTO.self
+
+    return Observable.create { observer in
+      let disposable = self.provider.rx.request(.getTicker(markets: markets))
+        .subscribe { event in
+          switch event {
+          case .success(let response):
+            switch response.statusCode {
+            case 200..<300:
+              guard let currentPriceList = try? JSONDecoder().decode(decodeTarget, from: response.data) else {
+                observer.onError(ErrorType.dataMappingError)
+                return
+              }
+              observer.onNext(currentPriceList.toDomain())
+              observer.onCompleted()
+            case 400..<500:
+              observer.onError(ErrorType.badRequest)
+            default:
+              observer.onError(ErrorType.unknownError)
+
+            }
+            
+          case .failure(let error):
+            print(error.localizedDescription)
+          }
+        }
+      
+      return Disposables.create {
+        disposable.disposed(by: self.disposeBag)
+      }
+    }
   }
 }

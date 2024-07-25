@@ -24,6 +24,8 @@ class MainViewController: UIViewController {
   var disposeBag = DisposeBag()
   var reactor: MainReactor
   
+  private let cellIndentifier = "CryptoCell"
+  
   init(reactor: MainReactor) {
     self.reactor = reactor
     super.init(nibName: nil, bundle: nil)
@@ -136,12 +138,12 @@ class MainViewController: UIViewController {
   }
   
   func setTableView() {
-    self.tableView.register(CoinTableViewCell.self, forCellReuseIdentifier: "cryptoCell")
+    self.tableView.register(CoinTableViewCell.self, forCellReuseIdentifier: self.cellIndentifier)
     self.tableView.rowHeight = 50
     
     self.dataSource = UITableViewDiffableDataSource<TableViewSection, Crypto>(tableView: self.tableView) { (tableView: UITableView, indexPath: IndexPath, crypto: Crypto) -> UITableViewCell? in
       
-      guard let cell = self.tableView.dequeueReusableCell(withIdentifier: "cryptoCell", for: indexPath) as? CoinTableViewCell else { return UITableViewCell() }
+      guard let cell = self.tableView.dequeueReusableCell(withIdentifier: self.cellIndentifier, for: indexPath) as? CoinTableViewCell else { return UITableViewCell() }
       
       cell.configure(crypto: crypto)
       cell.selectionStyle = .none
@@ -244,6 +246,19 @@ extension MainViewController: View {
         }
       }
       .disposed(by: disposeBag)
+    
+    reactor.state.map { $0.cryptoTricker }
+      .distinctUntilChanged()
+      .subscribe { event in
+        switch event {
+        case .next(let tricker):
+          print(tricker.first?.identifier)
+        case .completed:
+          break
+        case .error(let error):
+          print("Tricker Error : \(error.localizedDescription)")
+        }
+      }.disposed(by: self.disposeBag)
       
   }
 }

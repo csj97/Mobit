@@ -9,10 +9,14 @@ import Foundation
 import UIKit
 import RxSwift
 import ReactorKit
+import RxRelay
 
 class MainReactor: Reactor {
   private let mainUseCase: MainUseCase
+  private let disposeBag = DisposeBag()
   let initialState: MainReactorState = MainReactorState()
+  var currentPriceRelay = PublishRelay<CurrentPrice>() // 구독한 시점 이후부터 방출
+  lazy var cryptoTickerObservable: Observable<CurrentPrice> = currentPriceRelay.asObservable()
   
   init(mainUseCase: MainUseCase) {
     self.mainUseCase = mainUseCase
@@ -33,6 +37,7 @@ extension MainReactor {
     case loadCrypto(list: CryptoList)
     case addToKRWArray(crypto: CryptoList)
     case addToBTCArray(crypto: CryptoList)
+    case setCryptoTricket(CurrentPrice)
   }
   
   struct MainReactorState {
@@ -41,6 +46,7 @@ extension MainReactor {
     var krwCryptoList: CryptoList = []
     var btcCryptoList: CryptoList = []
     var favoriteCryptoList: CryptoList = []
+    var cryptoTricker: CurrentPriceList = []
   }
 }
 
@@ -51,7 +57,13 @@ extension MainReactor {
     case .loadCrypto:
       return self.mainUseCase.loadCryptoList()
         .flatMap({ cryptoList -> Observable<MainMutation> in
-          return self.classifyCrypto(cryptoList: cryptoList)
+          return Observable.concat([
+            self.classifyCrypto(cryptoList: cryptoList),
+            self.ticker(cryptoList: cryptoList.filter { $0.market.contains("KRW-") })
+              .map { cryptoTrickerList in
+                  .setCryptoTricket(cryptoTrickerList)
+              }
+          ])
         })
     case .classifyCrypto(let cryptoList):
       return self.classifyCrypto(cryptoList: cryptoList)
@@ -68,6 +80,8 @@ extension MainReactor {
       newState.krwCryptoList = krwList
     case .addToBTCArray(let btcList):
       newState.btcCryptoList = btcList
+    case .setCryptoTricket(let cryptoTricker):
+      newState.cryptoTricker = [cryptoTricker]
     }
     return newState
   }
@@ -75,9 +89,16 @@ extension MainReactor {
   func classifyCrypto(cryptoList: CryptoList) -> Observable<MainMutation> {
     let krwCrypto = cryptoList.filter { $0.market.contains("KRW-") }
       .map { self.transformCrypto(crypto: $0) }
-    self.mainSocket(cryptoList: cryptoList.filter { $0.market.contains("KRW-") })
+    
+//    self.ticker(cryptoList: cryptoList.filter { $0.market.contains("KRW-") })
+//      .observe(on: MainScheduler.instance)
+//      .subscribe(onNext: { curPrice in
+//        print(curPrice)
+//      }).disposed(by: self.disposeBag)
+    
     let btcCrypto = cryptoList.filter { $0.market.contains("BTC-") }
       .map { self.transformCrypto(crypto: $0) }
+    
     let krwObservable = Observable<MainMutation>.create { observer in
       observer.onNext(.addToKRWArray(crypto: krwCrypto))
       observer.onCompleted()
@@ -106,19 +127,23 @@ extension MainReactor {
     return transformedCrypto
   }
   
-  func mainSocket(cryptoList: CryptoList) {
-    let mainSocket = MainWebSocket(cryptoList: cryptoList)
-    
-    mainSocket.currentPriceList
-      .subscribe { resultEvent in
-        switch resultEvent {
-        case .next(let curPriceList):
-          print("MainReactor curPriceList 수신 \(curPriceList.count)")
-        case .completed:
-          break
-        case .error(let error):
-          print("MainReactor mainSocket error : \(error.localizedDescription)")
+  private func ticker(cryptoList: CryptoList) -> Observable<CurrentPrice> {
+    let cryptoJoined = cryptoList.map { $0.market }
+    WebSocketManager.shared.connect(codes: cryptoJoined)
+    WebSocketManager.shared.observeReceivedData()
+      .observe(on: MainScheduler.instance)
+      .subscribe { [weak self] data in
+        let decodeTarget = CurrentPriceDTO.self
+        
+        do {
+          let currentPriceDTO = try JSONDecoder().decode(decodeTarget, from: data)
+          self?.currentPriceRelay.accept(currentPriceDTO.toDomain())
+        } catch {
+          print("websocket receive decoding error : \(error.localizedDescription)")
         }
-      }.dispose()
+      }.disposed(by: self.disposeBag)
+    
+    return self.cryptoTickerObservable
   }
+
 }

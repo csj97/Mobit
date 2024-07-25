@@ -39,7 +39,8 @@ typealias CurrentPriceList = [CurrentPrice]
 
 import Foundation
 
-struct CurrentPrice: Codable {
+struct CurrentPrice: Hashable {
+  let identifier: UUID = UUID()
   let type: String // ticker : 현재가
   let code: String
   let openingPrice: Double

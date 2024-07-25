@@ -15,6 +15,7 @@ import RxRelay
 class WebSocketManager: NSObject {
   static let shared = WebSocketManager()
   
+  private let dataSubject = PublishSubject<Data>()
   private var webSocket: URLSessionWebSocketTask?
   private var timer: Timer? // 5초마다 ping
   private var session: URLSession!
@@ -64,7 +65,7 @@ class WebSocketManager: NSObject {
       case .success(let message):
         switch message {
         case .data(let data):
-          self?.handleReceivedData(data)
+          self?.dataSubject.onNext(data)
         case .string(let text):
           print("Received text: \(text)")
         @unknown default:
@@ -91,16 +92,9 @@ class WebSocketManager: NSObject {
     })
   }
   
-  private func handleReceivedData(_ data: Data) {
-    let decodeTarget = CurrentPriceDTO.self
-    
-    do {
-      let currentPriceDTO = try JSONDecoder().decode(decodeTarget, from: data)
-      self.currentPriceSubject.accept(currentPriceDTO.toDomain())
-//      print("심마니~~ : \(currentPriceDTO.toDomain())")
-    } catch {
-      print("websocket receive decoding error : \(error.localizedDescription)")
-    }
+  // 수신한 데이터 observable 반환
+  func observeReceivedData() -> Observable<Data> {
+    return dataSubject.asObservable()
   }
 }
 
