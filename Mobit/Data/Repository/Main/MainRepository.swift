@@ -11,8 +11,8 @@ import RxMoya
 import RxSwift
 
 protocol MainRepositoryProtocol {
-  func fetchCoinList() -> Observable<[Crypto]>
-  func loadTicker(markets: [String]) -> Observable<CurrentPriceList>
+  func fetchCoinList() -> Observable<CryptoList>
+  func loadTicker(markets: [String]) -> Observable<CryptoTickerList>
 }
 
 class MainRepository: MainRepositoryProtocol {
@@ -50,8 +50,8 @@ class MainRepository: MainRepositoryProtocol {
     }
   }
   
-  func loadTicker(markets: [String]) -> Observable<CurrentPriceList> {
-    let decodeTarget = CurrentPriceListDTO.self
+  func loadTicker(markets: [String]) -> Observable<CryptoTickerList> {
+    let decodeTarget = CryptoTickerListDTO.self
 
     return Observable.create { observer in
       let disposable = self.provider.rx.request(.getTicker(markets: markets))
@@ -60,11 +60,11 @@ class MainRepository: MainRepositoryProtocol {
           case .success(let response):
             switch response.statusCode {
             case 200..<300:
-              guard let currentPriceList = try? JSONDecoder().decode(decodeTarget, from: response.data) else {
+              guard let cryptoTickerList = try? JSONDecoder().decode(decodeTarget, from: response.data) else {
                 observer.onError(ErrorType.dataMappingError)
                 return
               }
-              observer.onNext(currentPriceList.toDomain())
+              observer.onNext(cryptoTickerList.toDomain())
               observer.onCompleted()
             case 400..<500:
               observer.onError(ErrorType.badRequest)

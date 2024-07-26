@@ -40,7 +40,7 @@ class CoinTableViewCell: UITableViewCell {
     $0.numberOfLines = 1
     $0.textAlignment = .center
   }
-  var volatility = UILabel().then {
+  var changeRate = UILabel().then {
     $0.text = "0.0%"
     $0.textColor = .black
     $0.font = UIFont.systemFont(ofSize: 10)
@@ -88,34 +88,49 @@ class CoinTableViewCell: UITableViewCell {
     self.rootFlexContainer.addSubview(coinName)
     self.rootFlexContainer.addSubview(coinSymbol)
     self.rootFlexContainer.addSubview(price)
-    self.rootFlexContainer.addSubview(volatility)
+    self.rootFlexContainer.addSubview(changeRate)
     self.rootFlexContainer.addSubview(tradingVolume)
     
     self.rootFlexContainer.flex.direction(.row).define { flex in
       flex.addItem()
         .direction(.column)
         .justifyContent(.center)
-        .alignItems(.center)
         .define { flex in
           flex.addItem(self.coinName).width(80%)
           flex.addItem(self.coinSymbol).width(80%)
-        }.width(25%)
+        }.width(25%).paddingLeft(10)
       flex.addItem(self.price).width(25%)
-      flex.addItem(self.volatility).width(25%)
+      flex.addItem(self.changeRate).width(25%)
       flex.addItem(self.tradingVolume).width(25%)
     }
   }
   
-  func configure(crypto: Crypto) {
-    if crypto.marketEvent.warning {
-      self.coinName.text = "[유]\(crypto.koreanName)"
+  func configure(crypto: CryptoCellInfo) {
+    if crypto.marketEvent?.warning == true {
+      self.coinName.text = "[유]\(crypto.cryptoName)"
     } else {
-      self.coinName.text = crypto.koreanName
+      self.coinName.text = crypto.cryptoName
     }
     self.coinSymbol.text = crypto.market
-    self.price.text = "100"
-    self.volatility.text = "0.0%"
-    self.tradingVolume.text = "100백만"
+    self.price.text = String(crypto.tradePrice ?? 0)
+    self.changeRate.text = String(format: "%.2f", crypto.signedChangeRate ?? 0)
+    self.tradingVolume.text = String(format: "%.f", crypto.accTradeVolume ?? 0)
+    
+    switch crypto.change {
+    case "RISE":
+      self.price.textColor = .blue
+      self.changeRate.textColor = .blue
+    case "FALL":
+      self.price.textColor = .red
+      self.changeRate.textColor = .red
+    case "EVEN":
+      self.price.textColor = .black
+      self.changeRate.textColor = .black
+    case .none:
+      break
+    case .some(_):
+      break
+    }
     
     setNeedsLayout()
   }

@@ -20,7 +20,7 @@ enum TableViewSection: CaseIterable {
 class MainViewController: UIViewController {
   // coordinator <-> viewcontroller 강한 참조 사이클 방지
   weak var coordinator: MainCoordinator?
-  var dataSource: UITableViewDiffableDataSource<TableViewSection, Crypto>?
+  var dataSource: UITableViewDiffableDataSource<TableViewSection, CryptoCellInfo>?
   var disposeBag = DisposeBag()
   var reactor: MainReactor
   
@@ -141,7 +141,7 @@ class MainViewController: UIViewController {
     self.tableView.register(CoinTableViewCell.self, forCellReuseIdentifier: self.cellIndentifier)
     self.tableView.rowHeight = 50
     
-    self.dataSource = UITableViewDiffableDataSource<TableViewSection, Crypto>(tableView: self.tableView) { (tableView: UITableView, indexPath: IndexPath, crypto: Crypto) -> UITableViewCell? in
+    self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoCellInfo>(tableView: self.tableView) { (tableView: UITableView, indexPath: IndexPath, crypto: CryptoCellInfo) -> UITableViewCell? in
       
       guard let cell = self.tableView.dequeueReusableCell(withIdentifier: self.cellIndentifier, for: indexPath) as? CoinTableViewCell else { return UITableViewCell() }
       
@@ -154,12 +154,12 @@ class MainViewController: UIViewController {
     self.tableView.dataSource = self.dataSource
   }
   
-  func applySnapshot(cryptoList: [Crypto]?) {
+  func applySnapshot(cellInfo: [CryptoCellInfo]?) {
     // tableview에 들어가는 section, item 초기화
-    var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, Crypto>()
+    var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, CryptoCellInfo>()
     snapshot.appendSections([.main])
-    if let cryptoList = cryptoList, !cryptoList.isEmpty {
-      snapshot.appendItems(cryptoList, toSection: .main)
+    if let cellInfo = cellInfo, !cellInfo.isEmpty {
+      snapshot.appendItems(cellInfo, toSection: .main)
     } else {
       snapshot.appendItems([])
     }
@@ -183,11 +183,11 @@ class MainViewController: UIViewController {
     
     switch sender.tag {
     case 0:
-      self.applySnapshot(cryptoList: reactor.currentState.krwCryptoList)
+      self.applySnapshot(cellInfo: reactor.currentState.krwCryptoCellInfo)
     case 1:
-      self.applySnapshot(cryptoList: reactor.currentState.btcCryptoList)
+      self.applySnapshot(cellInfo: reactor.currentState.btcCryptoCellInfo)
     case 2:
-      self.applySnapshot(cryptoList: [])
+      self.applySnapshot(cellInfo: [])
     default:
       break
     }
@@ -233,32 +233,46 @@ class MainViewController: UIViewController {
 extension MainViewController: View {
   func bind(reactor: MainReactor) {
     
-    reactor.state.map { $0.krwCryptoList }
+    reactor.state.map { $0.krwCryptoCellInfo }
       .distinctUntilChanged()
       .subscribe { event in
         switch event {
-        case .next(let krwCryptoList):
-          self.applySnapshot(cryptoList: krwCryptoList)
+        case .next(let cellInfos):
+          self.applySnapshot(cellInfo: cellInfos)
         case .completed:
           break
         case .error(let error):
-          print("krwCrypto error occured : \(error.localizedDescription)")
+          print("cell info error : \(error.localizedDescription)")
         }
       }
-      .disposed(by: disposeBag)
+      .disposed(by: self.disposeBag)
     
-    reactor.state.map { $0.cryptoTricker }
-      .distinctUntilChanged()
-      .subscribe { event in
-        switch event {
-        case .next(let tricker):
-          print(tricker.first?.identifier)
-        case .completed:
-          break
-        case .error(let error):
-          print("Tricker Error : \(error.localizedDescription)")
-        }
-      }.disposed(by: self.disposeBag)
+//    reactor.state.map { $0.krwCryptoList }
+//      .distinctUntilChanged()
+//      .subscribe { event in
+//        switch event {
+//        case .next(let krwCryptoList):
+//          self.applySnapshot(cryptoList: krwCryptoList)
+//        case .completed:
+//          break
+//        case .error(let error):
+//          print("krwCrypto error occured : \(error.localizedDescription)")
+//        }
+//      }
+//      .disposed(by: disposeBag)
+//    
+//    reactor.state.map { $0.cryptoTickerList }
+//      .distinctUntilChanged()
+//      .subscribe { event in
+//        switch event {
+//        case .next(let ticker):
+//          print(ticker.first?.identifier)
+//        case .completed:
+//          break
+//        case .error(let error):
+//          print("Ticker Error : \(error.localizedDescription)")
+//        }
+//      }.disposed(by: self.disposeBag)
       
   }
 }

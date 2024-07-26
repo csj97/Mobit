@@ -8,6 +8,7 @@
 import Foundation
 
 typealias CryptoList = [Crypto]
+
 struct Crypto: Hashable {
   let identifier: UUID = UUID()
   var market: String  // KRW-BTC 형태

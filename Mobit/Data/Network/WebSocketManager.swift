@@ -20,7 +20,7 @@ class WebSocketManager: NSObject {
   private var timer: Timer? // 5초마다 ping
   private var session: URLSession!
   
-  var currentPriceSubject = PublishRelay<CurrentPrice>() // 구독한 시점 이후부터 방출
+  var cryptoTickerSubject = PublishRelay<CryptoSocketTicker>() // 구독한 시점 이후부터 방출
   
   override init() {
     super.init()
