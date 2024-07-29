@@ -29,6 +29,7 @@ class MainReactor: Reactor {
 extension MainReactor {
   enum MainAction {
     case loadCrypto
+//    case updateSocketCellInfo(cellInfo: CryptoCellInfo, socketTicker: CryptoSocketTicker)
   }
   
   /// 상태 변경 단위, 작업 단위
@@ -38,7 +39,9 @@ extension MainReactor {
     case setCombinedKRWArray(cryptoCellInfo: [CryptoCellInfo])
     case setCombinedBTCArray(cryptoCellInfo: [CryptoCellInfo])
     
-    case setCryptoTicker(CryptoSocketTickerList)
+    case setCryptoSocketTicker(CryptoSocketTicker)
+    
+    case connectSocket(socketTicker: CryptoSocketTicker)
   }
   
   struct MainReactorState {
@@ -48,7 +51,41 @@ extension MainReactor {
     var btcCryptoList: CryptoList = []
     var favoriteCryptoList: CryptoList = []
     
-    var cryptoTickerList: CryptoSocketTickerList = []
+    var cryptoSocketTicker: CryptoSocketTicker = CryptoSocketTicker(type: "",
+                                                                    code: "",
+                                                                    openingPrice: 0.0,
+                                                                    highPrice: 0.0,
+                                                                    lowPrice: 0.0,
+                                                                    tradePrice: 0.0,
+                                                                    prevClosingPrice: 0.0,
+                                                                    change: "",
+                                                                    changePrice: 0.0,
+                                                                    signedChangePrice: 0.0,
+                                                                    changeRate: 0.0,
+                                                                    signedChangeRate: 0.0,
+                                                                    tradeVolume: 0.0,
+                                                                    accTradeVolume: 0.0,
+                                                                    accTradeVolume24H: 0.0,
+                                                                    accTradePrice: 0.0,
+                                                                    accTradePrice24H: 0.0,
+                                                                    tradeDate: "",
+                                                                    tradeTime: "",
+                                                                    tradeTimestamp: 0,
+                                                                    askBid: "",
+                                                                    accAskVolume: 0.0,
+                                                                    accBidVolume: 0.0,
+                                                                    highest52WeekPrice: 0.0,
+                                                                    highest52WeekDate: "",
+                                                                    lowest52WeekPrice: 0.0,
+                                                                    lowest52WeekDate: "",
+                                                                    tradeStatus: nil,
+                                                                    marketState: "",
+                                                                    marketStateForIOS: nil,
+                                                                    isTradingSuspended: false,
+                                                                    delistingDate: nil,
+                                                                    marketWarning: "",
+                                                                    timestamp: 0,
+                                                                    streamType: "")
     
     // Cell에 필요한 정보들을 모아 놓은 모델 변수
     var krwCryptoCellInfo: [CryptoCellInfo] = []
@@ -68,6 +105,8 @@ extension MainReactor {
 //            self.classifyCrypto(cryptoList: cryptoList),
 //          ])
 //        })
+//    case .updateSocketCellInfo(let cellInfo, let socketTicker):
+//      return self.updateSocketTicker(cellInfo: cellInfo, socketTicker: socketTicker)
     }
   }
   
@@ -77,16 +116,23 @@ extension MainReactor {
     switch mutation {
     case .loadCrypto(let cryptoList):
       newState.cryptoList = cryptoList
-    case .setCryptoTicker(let cryptoTickerList):
-      newState.cryptoTickerList = cryptoTickerList
+    case .setCryptoSocketTicker(let cryptoSocketTicker):
+      newState.cryptoSocketTicker = cryptoSocketTicker
     case .setCombinedKRWArray(let combinedResult):
       newState.krwCryptoCellInfo = combinedResult
     case .setCombinedBTCArray(let combinedResult):
       newState.btcCryptoCellInfo = combinedResult
+    case .connectSocket(let socketTicker):
+      newState.cryptoSocketTicker = socketTicker
     }
     return newState
   }
   
+  /// CryptoList & CryptoTickerList 모델을 합치는 과정
+  /// - Parameters:
+  ///   - cryptoList: name, market, event 정보를 갖고 있음
+  ///   - cryptoTickerList: tradePrice, signedChangeRate, change, accTradeVolume 정보를 갖고 있음
+  /// - Returns: Main TableView Cell에 노출될 Cell 정보를 반환
   func combineCrypto(cryptoList: CryptoList, cryptoTickerList: CryptoTickerList) -> [CryptoCellInfo] {
     let krwCrypto = cryptoList.filter { $0.market.contains("KRW-") }
 //      .map { self.transformCrypto(crypto: $0) }
@@ -96,7 +142,9 @@ extension MainReactor {
     }
     
     let krwCryptoCells: [CryptoCellInfo] = krwCellInfos.compactMap { cryptoCellInfo in
-      guard let matchedTicker = cryptoTickerList.first(where: { $0.market == cryptoCellInfo.market }) else { return CryptoCellInfo(cryptoName: "", market: "", marketEvent: nil) }
+      guard let matchedTicker = cryptoTickerList.first(where: { $0.market == cryptoCellInfo.market }) else {
+        return CryptoCellInfo(cryptoName: "", market: "", marketEvent: nil)
+      }
       var updatedCryptoCellInfo = cryptoCellInfo
       updatedCryptoCellInfo.market = self.transformMarketForm(market: cryptoCellInfo.market)
       updatedCryptoCellInfo.tradePrice = matchedTicker.tradePrice
@@ -110,6 +158,35 @@ extension MainReactor {
     return krwCryptoCells
   }
   
+  func combineTicker(cryptoList: CryptoList, socketTicker: CryptoSocketTicker) -> [CryptoCellInfo] {
+    let krwCrypto = cryptoList.filter { $0.market.contains("KRW-") }
+//      .map { self.transformCrypto(crypto: $0) }
+    
+    let krwCellInfos: [CryptoCellInfo] = krwCrypto.compactMap { crypto in
+      return CryptoCellInfo(cryptoName: crypto.koreanName, market: crypto.market, marketEvent: crypto.marketEvent)
+    }
+    
+    let krwCryptoCells: [CryptoCellInfo] = krwCellInfos.compactMap { cryptoCellInfo in
+      var updatedCryptoCellInfo = cryptoCellInfo
+      
+      if socketTicker.code == cryptoCellInfo.market {
+        updatedCryptoCellInfo.market = self.transformMarketForm(market: cryptoCellInfo.market)
+        updatedCryptoCellInfo.tradePrice = socketTicker.tradePrice
+        updatedCryptoCellInfo.signedChangeRate = socketTicker.signedChangeRate
+        updatedCryptoCellInfo.change = socketTicker.change
+        updatedCryptoCellInfo.accTradeVolume = socketTicker.accTradeVolume24H
+        
+        return updatedCryptoCellInfo
+      } else {
+        return CryptoCellInfo(cryptoName: "", market: "", marketEvent: nil)
+      }
+    }
+    
+    return krwCryptoCells
+  }
+  
+  /// CryptoList를 조회하고 이어서 바로 CryptoTicker를 조회한다. (SocketTicker와는 다름)
+  /// - Returns: CryptoList와 CryptoTicker 구조체를 합쳐서 observer에 담고, MainMutation에 대한 Observable을 반환
   func loadCrypto_Ticker() -> Observable<MainMutation> {
     let loadCryptoObservable = Observable<MainMutation>.create { observer in
       self.mainUseCase.loadCryptoList()
@@ -119,7 +196,19 @@ extension MainReactor {
             .subscribe { event in
               switch event {
               case .completed:
-                break
+                self.loadSocketTicker(cryptoList: cryptoList)
+                  .subscribe { event in
+                    switch event {
+                    case .completed:
+                      break
+                    case .error(let error):
+                      print(error.localizedDescription)
+                    case .next(let ticker):
+                      let combineResult = self.combineTicker(cryptoList: cryptoList, socketTicker: ticker)
+//                      observer.onNext(.connectSocket(socketTicker: ticker))
+                      observer.onNext(.setCombinedKRWArray(cryptoCellInfo: combineResult))
+                    }
+                  }.disposed(by: self.disposeBag)
               case .next(let cryptoTickerList):
                 let combineResult = self.combineCrypto(cryptoList: cryptoList, cryptoTickerList: cryptoTickerList)
                 observer.onNext(.setCombinedKRWArray(cryptoCellInfo: combineResult))
@@ -151,6 +240,10 @@ extension MainReactor {
     return transformedCrypto
   }
   
+  
+  /// 'KRW-BTC' 형태의 종목 구분 코드를 'BTC/KRW' 형태로 변환 시키는 메소드
+  /// - Parameter market: 변환 대상이 되는 종목 구분 코드
+  /// - Returns: 'BTC/KRW' 형태의 String
   func transformMarketForm(market: String) -> String {
     var transformMarket = market
     let components = transformMarket.split(separator: "-")
@@ -163,8 +256,20 @@ extension MainReactor {
     return transformMarket
   }
   
+  func transformMarketForm22(market: String) -> String {
+    var transformMarket = market
+    let components = transformMarket.split(separator: "/")
+    if components.count == 2 {
+      transformMarket = "\(components[1])-\(components[0])"
+    } else {
+      // 기본값 유지
+      transformMarket = market
+    }
+    return transformMarket
+  }
+  
   // WebSocket Ticker
-  private func ticker(cryptoList: CryptoList) -> Observable<CryptoSocketTicker> {
+  private func loadSocketTicker(cryptoList: CryptoList) -> Observable<CryptoSocketTicker> {
     let cryptoJoined = cryptoList.map { $0.market }
     WebSocketManager.shared.connect(codes: cryptoJoined)
     WebSocketManager.shared.observeReceivedData()
@@ -182,5 +287,4 @@ extension MainReactor {
     
     return self.cryptoTickerObservable
   }
-  
 }

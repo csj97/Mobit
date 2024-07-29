@@ -238,6 +238,7 @@ extension MainViewController: View {
       .subscribe { event in
         switch event {
         case .next(let cellInfos):
+          print("applySnapshot called")
           self.applySnapshot(cellInfo: cellInfos)
         case .completed:
           break
@@ -246,6 +247,19 @@ extension MainViewController: View {
         }
       }
       .disposed(by: self.disposeBag)
+    
+//    reactor.state.map { $0.cryptoSocketTicker }
+//      .distinctUntilChanged()
+//      .subscribe { event in
+//        switch event {
+//        case .next(let socketTicker):
+//          print(socketTicker)
+//        case .completed:
+//          break
+//        case .error(let error):
+//          print(error.localizedDescription)
+//        }
+//      }.disposed(by: self.disposeBag)
     
 //    reactor.state.map { $0.krwCryptoList }
 //      .distinctUntilChanged()
