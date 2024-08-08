@@ -29,12 +29,15 @@ class MainReactor: Reactor {
 extension MainReactor {
   enum MainAction {
     case loadCrypto
+    case loadSocketTicker(cryptoList: CryptoList)
+    case setIsFirstTableSet(isSet: Bool)
 //    case updateSocketCellInfo(cellInfo: CryptoCellInfo, socketTicker: CryptoSocketTicker)
   }
   
   /// 상태 변경 단위, 작업 단위
   enum MainMutation {
     case loadCrypto(list: CryptoList)
+    case setKrwCrypto(krwCrypto: CryptoList)
     
     case setCombinedKRWArray(cryptoCellInfo: [CryptoCellInfo])
     case setCombinedBTCArray(cryptoCellInfo: [CryptoCellInfo])
@@ -42,6 +45,8 @@ extension MainReactor {
     case setCryptoSocketTicker(CryptoSocketTicker)
     
     case connectSocket(socketTicker: CryptoSocketTicker)
+    
+    case setIsFirstTableSet(isSet: Bool)
   }
   
   struct MainReactorState {
@@ -50,6 +55,7 @@ extension MainReactor {
     var krwCryptoList: CryptoList = []
     var btcCryptoList: CryptoList = []
     var favoriteCryptoList: CryptoList = []
+    var isFirstTableSet: Bool = false
     
     var cryptoSocketTicker: CryptoSocketTicker = CryptoSocketTicker(type: "",
                                                                     code: "",
@@ -99,6 +105,12 @@ extension MainReactor {
     switch action {
     case .loadCrypto:
       return self.loadCrypto_Ticker()
+      
+    case .loadSocketTicker(let cryptoList):
+      return self.loadRealSocketTicker(cryptoList: cryptoList)
+      
+    case .setIsFirstTableSet(let isSet):
+      return self.setIsSet(isSet: isSet)
 //      return self.mainUseCase.loadCryptoList()
 //        .flatMap({ cryptoList -> Observable<MainMutation> in
 //          return Observable.concat([
@@ -110,12 +122,18 @@ extension MainReactor {
     }
   }
   
+  func setIsSet(isSet: Bool) -> Observable<MainMutation> {
+    return Observable.just(.setIsFirstTableSet(isSet: isSet))
+  }
+  
   // View 업데이트
   func reduce(state: MainReactorState, mutation: MainMutation) -> MainReactorState {
     var newState = state
     switch mutation {
     case .loadCrypto(let cryptoList):
       newState.cryptoList = cryptoList
+    case .setKrwCrypto(let krwCryptoList):
+      newState.krwCryptoList = krwCryptoList
     case .setCryptoSocketTicker(let cryptoSocketTicker):
       newState.cryptoSocketTicker = cryptoSocketTicker
     case .setCombinedKRWArray(let combinedResult):
@@ -124,6 +142,8 @@ extension MainReactor {
       newState.btcCryptoCellInfo = combinedResult
     case .connectSocket(let socketTicker):
       newState.cryptoSocketTicker = socketTicker
+    case .setIsFirstTableSet(let isSet):
+      newState.isFirstTableSet = isSet
     }
     return newState
   }
@@ -188,44 +208,44 @@ extension MainReactor {
   /// CryptoList를 조회하고 이어서 바로 CryptoTicker를 조회한다. (SocketTicker와는 다름)
   /// - Returns: CryptoList와 CryptoTicker 구조체를 합쳐서 observer에 담고, MainMutation에 대한 Observable을 반환
   func loadCrypto_Ticker() -> Observable<MainMutation> {
-    let loadCryptoObservable = Observable<MainMutation>.create { observer in
-      self.mainUseCase.loadCryptoList()
-        .subscribe { cryptoList in
-          let cryptoMarkets = cryptoList.map { $0.market }
-          self.mainUseCase.loadTickerList(markets: cryptoMarkets)
-            .subscribe { event in
-              switch event {
-              case .completed:
-                self.loadSocketTicker(cryptoList: cryptoList)
-                  .subscribe { event in
-                    switch event {
-                    case .completed:
-                      break
-                    case .error(let error):
-                      print(error.localizedDescription)
-                    case .next(let ticker):
-                      let combineResult = self.combineTicker(cryptoList: cryptoList, socketTicker: ticker)
-//                      observer.onNext(.connectSocket(socketTicker: ticker))
-                      observer.onNext(.setCombinedKRWArray(cryptoCellInfo: combineResult))
-                    }
-                  }.disposed(by: self.disposeBag)
-              case .next(let cryptoTickerList):
-                let combineResult = self.combineCrypto(cryptoList: cryptoList, cryptoTickerList: cryptoTickerList)
-                observer.onNext(.setCombinedKRWArray(cryptoCellInfo: combineResult))
-              
-              case .error(let error):
-                print("loadCrypto_Ticker() Error Occured : \(error.localizedDescription)")
-              }
-              
-            }
-            .disposed(by: self.disposeBag)
-        }
-        .disposed(by: self.disposeBag)
-      
-      return Disposables.create()
-    }
+    let loadCryptoObservable = self.mainUseCase.loadCryptoList()
+      .flatMap { cryptoList -> Observable<MainMutation> in
+        let krwCrypto = cryptoList.filter { $0.market.contains("KRW-") }
+        let btcCrypto = cryptoList.filter { $0.market.contains("BTC-") }
+        let krwMarkets = krwCrypto.map { $0.market }
+        let btcMarkets = btcCrypto.map { $0.market }
+        
+        let setKRWCryptoMutation = Observable.just(MainMutation.setKrwCrypto(krwCrypto: krwCrypto))
+        
+        let tickerObservable = self.mainUseCase.loadTickerList(markets: krwMarkets)
+          .flatMap { cryptoTickerList -> Observable<MainMutation> in
+            let combineResult = self.combineCrypto(cryptoList: cryptoList, cryptoTickerList: cryptoTickerList)
+            return Observable.just(MainMutation.setCombinedKRWArray(cryptoCellInfo: combineResult))
+          }
+        
+        return Observable.concat([setKRWCryptoMutation, tickerObservable])
+        
+      }
+      .concat(Observable.just(MainMutation.setIsFirstTableSet(isSet: true)))
+      .catch { error in
+        return Observable.error(error)
+      }
     
-    return Observable.concat([loadCryptoObservable])
+    loadCryptoObservable
+      .subscribe { mutation in
+        switch mutation {
+        case .completed:
+          // 여기서 MainMutation.setIsFirstTableSet을 해주고 싶어.
+          self.action.onNext(.setIsFirstTableSet(isSet: true))
+        case .next(let mutation):
+          break
+        case .error(let error):
+          print("error : \(error.localizedDescription)")
+        }
+      }
+      .disposed(by: self.disposeBag)
+    
+    return loadCryptoObservable
   }
   
   func transformCrypto(crypto: Crypto) -> Crypto {
@@ -266,6 +286,28 @@ extension MainReactor {
       transformMarket = market
     }
     return transformMarket
+  }
+  
+  private func loadRealSocketTicker(cryptoList: CryptoList) -> Observable<MainMutation> {
+    let socketObservable = Observable<MainMutation>.create { observer in
+      self.loadSocketTicker(cryptoList: cryptoList)
+        .subscribe { event in
+          switch event {
+          case .completed:
+            break
+          case .error(let error):
+            print(error.localizedDescription)
+          case .next(let ticker):
+            let combineResult = self.combineTicker(cryptoList: cryptoList, socketTicker: ticker)
+  //          observer.onNext(.connectSocket(socketTicker: ticker))
+            observer.onNext(.setCombinedKRWArray(cryptoCellInfo: combineResult))
+          }
+        }.disposed(by: self.disposeBag)
+      
+      return Disposables.create()
+    }
+    
+    return socketObservable
   }
   
   // WebSocket Ticker

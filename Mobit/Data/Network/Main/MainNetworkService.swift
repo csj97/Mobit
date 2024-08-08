@@ -34,7 +34,12 @@ extension MainNetworkService: TargetType {
   }
   
   var method: Moya.Method {
-    return .get
+    switch self {
+    case .getCryptoList:
+      return .get
+    case .getTicker:
+      return .get
+    }
   }
   
   var task: Moya.Task {
@@ -43,8 +48,9 @@ extension MainNetworkService: TargetType {
       let param = ["isDetails": true]
       return .requestParameters(parameters: param, encoding: URLEncoding.queryString)
     case .getTicker(let markets):
-      // CryptoList에서 markets들만 map해서 넘겨주기
-      let param = ["markets": markets.joined(separator: ",")]
+      // URL 길이 제한을 초과하면 400 Error가 발생할 수 있다.
+      let markets = markets.joined(separator: ",")
+      let param = ["markets": markets]
       return .requestParameters(parameters: param, encoding: URLEncoding.queryString)
     }
   }

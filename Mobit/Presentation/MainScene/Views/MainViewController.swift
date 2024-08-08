@@ -164,7 +164,7 @@ class MainViewController: UIViewController {
       snapshot.appendItems([])
     }
     
-    self.dataSource?.apply(snapshot)
+    self.dataSource?.apply(snapshot, animatingDifferences: false)
   }
   
   func setTabButton() {
@@ -235,58 +235,43 @@ extension MainViewController: View {
     
     reactor.state.map { $0.krwCryptoCellInfo }
       .distinctUntilChanged()
-      .subscribe { event in
-        switch event {
-        case .next(let cellInfos):
-          print("applySnapshot called")
-          self.applySnapshot(cellInfo: cellInfos)
-        case .completed:
-          break
-        case .error(let error):
-          print("cell info error : \(error.localizedDescription)")
-        }
-      }
+      .subscribe(onNext: { cellInfos in
+        print(cellInfos.count)
+        self.applySnapshot(cellInfo: cellInfos)
+      })
       .disposed(by: self.disposeBag)
     
-//    reactor.state.map { $0.cryptoSocketTicker }
-//      .distinctUntilChanged()
+    reactor.state.map { $0.isFirstTableSet }
+      .distinctUntilChanged()
+      .delay(.seconds(2), scheduler: MainScheduler.instance)
+      .subscribe(onNext: { isSet in
+        if isSet {
+          print("mobit first table setting is completed")
+          
+          guard let visibleCells = self.tableView.visibleCells as? [CoinTableViewCell] else { return }
+          let cryptoNames = visibleCells.compactMap { $0.coinName.text }
+          let matchedCrypto = reactor.currentState.krwCryptoList.filter { cryptoNames.contains($0.koreanName) }
+
+          reactor.action.onNext(.loadSocketTicker(cryptoList: matchedCrypto))
+          
+        } else {
+          print("mobit first table setting is not completed")
+        }
+      })
 //      .subscribe { event in
 //        switch event {
-//        case .next(let socketTicker):
-//          print(socketTicker)
+//        case .next(let isSet):
+//          if isSet {
+//            reactor.action.onNext(.loadSocketTicker(cryptoList: reactor.currentState.krwCryptoList))
+//          }
+//          
 //        case .completed:
 //          break
 //        case .error(let error):
-//          print(error.localizedDescription)
-//        }
-//      }.disposed(by: self.disposeBag)
-    
-//    reactor.state.map { $0.krwCryptoList }
-//      .distinctUntilChanged()
-//      .subscribe { event in
-//        switch event {
-//        case .next(let krwCryptoList):
-//          self.applySnapshot(cryptoList: krwCryptoList)
-//        case .completed:
-//          break
-//        case .error(let error):
-//          print("krwCrypto error occured : \(error.localizedDescription)")
+//          print("is Set error : \(error.localizedDescription)")
 //        }
 //      }
-//      .disposed(by: disposeBag)
-//    
-//    reactor.state.map { $0.cryptoTickerList }
-//      .distinctUntilChanged()
-//      .subscribe { event in
-//        switch event {
-//        case .next(let ticker):
-//          print(ticker.first?.identifier)
-//        case .completed:
-//          break
-//        case .error(let error):
-//          print("Ticker Error : \(error.localizedDescription)")
-//        }
-//      }.disposed(by: self.disposeBag)
-      
+      .disposed(by: self.disposeBag)
+    
   }
 }
