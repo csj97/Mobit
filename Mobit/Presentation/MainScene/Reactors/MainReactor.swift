@@ -11,6 +11,10 @@ import RxSwift
 import ReactorKit
 import RxRelay
 
+enum SelectedTab {
+  case krw, btc, favorite
+}
+
 class MainReactor: Reactor {
   private let mainUseCase: MainUseCase
   private let disposeBag = DisposeBag()
@@ -20,31 +24,29 @@ class MainReactor: Reactor {
   
   init(mainUseCase: MainUseCase) {
     self.mainUseCase = mainUseCase
-    self.action.onNext(.loadCrypto)
+    self.action.onNext(.loadCrypto(selectedTab: .krw))
   }
-  
 }
 
 // 기본 설정
 extension MainReactor {
   enum MainAction {
-    case loadCrypto
-    case loadSocketTicker(cryptoList: CryptoList)
+    case loadCrypto(selectedTab: SelectedTab)
+    case loadSocketTicker(selectedTab: SelectedTab, cryptoList: CryptoList)
     case setIsFirstTableSet(isSet: Bool)
-//    case updateSocketCellInfo(cellInfo: CryptoCellInfo, socketTicker: CryptoSocketTicker)
   }
   
   /// 상태 변경 단위, 작업 단위
   enum MainMutation {
     case loadCrypto(list: CryptoList)
+    
     case setKrwCrypto(krwCrypto: CryptoList)
+    case setBtcCrypto(btcCrypto: CryptoList)
     
     case setCombinedKRWArray(cryptoCellInfo: [CryptoCellInfo])
     case setCombinedBTCArray(cryptoCellInfo: [CryptoCellInfo])
     
     case setCryptoSocketTicker(CryptoSocketTicker)
-    
-    case connectSocket(socketTicker: CryptoSocketTicker)
     
     case setIsFirstTableSet(isSet: Bool)
   }
@@ -57,41 +59,7 @@ extension MainReactor {
     var favoriteCryptoList: CryptoList = []
     var isFirstTableSet: Bool = false
     
-    var cryptoSocketTicker: CryptoSocketTicker = CryptoSocketTicker(type: "",
-                                                                    code: "",
-                                                                    openingPrice: 0.0,
-                                                                    highPrice: 0.0,
-                                                                    lowPrice: 0.0,
-                                                                    tradePrice: 0.0,
-                                                                    prevClosingPrice: 0.0,
-                                                                    change: "",
-                                                                    changePrice: 0.0,
-                                                                    signedChangePrice: 0.0,
-                                                                    changeRate: 0.0,
-                                                                    signedChangeRate: 0.0,
-                                                                    tradeVolume: 0.0,
-                                                                    accTradeVolume: 0.0,
-                                                                    accTradeVolume24H: 0.0,
-                                                                    accTradePrice: 0.0,
-                                                                    accTradePrice24H: 0.0,
-                                                                    tradeDate: "",
-                                                                    tradeTime: "",
-                                                                    tradeTimestamp: 0,
-                                                                    askBid: "",
-                                                                    accAskVolume: 0.0,
-                                                                    accBidVolume: 0.0,
-                                                                    highest52WeekPrice: 0.0,
-                                                                    highest52WeekDate: "",
-                                                                    lowest52WeekPrice: 0.0,
-                                                                    lowest52WeekDate: "",
-                                                                    tradeStatus: nil,
-                                                                    marketState: "",
-                                                                    marketStateForIOS: nil,
-                                                                    isTradingSuspended: false,
-                                                                    delistingDate: nil,
-                                                                    marketWarning: "",
-                                                                    timestamp: 0,
-                                                                    streamType: "")
+    var cryptoSocketTicker: CryptoSocketTicker? = nil
     
     // Cell에 필요한 정보들을 모아 놓은 모델 변수
     var krwCryptoCellInfo: [CryptoCellInfo] = []
@@ -103,22 +71,14 @@ extension MainReactor {
   // Observable 방출
   func mutate(action: MainAction) -> Observable<MainMutation> {
     switch action {
-    case .loadCrypto:
-      return self.loadCrypto_Ticker()
+    case .loadCrypto(let selectedTab):
+      return self.loadCrypto_Ticker(selectedTab: selectedTab)
       
-    case .loadSocketTicker(let cryptoList):
-      return self.loadRealSocketTicker(cryptoList: cryptoList)
+    case .loadSocketTicker(let selectedTab, let cryptoList):
+      return self.loadRealSocketTicker(selectedTab: selectedTab, cryptoList: cryptoList)
       
     case .setIsFirstTableSet(let isSet):
       return self.setIsSet(isSet: isSet)
-//      return self.mainUseCase.loadCryptoList()
-//        .flatMap({ cryptoList -> Observable<MainMutation> in
-//          return Observable.concat([
-//            self.classifyCrypto(cryptoList: cryptoList),
-//          ])
-//        })
-//    case .updateSocketCellInfo(let cellInfo, let socketTicker):
-//      return self.updateSocketTicker(cellInfo: cellInfo, socketTicker: socketTicker)
     }
   }
   
@@ -132,36 +92,120 @@ extension MainReactor {
     switch mutation {
     case .loadCrypto(let cryptoList):
       newState.cryptoList = cryptoList
+      
     case .setKrwCrypto(let krwCryptoList):
       newState.krwCryptoList = krwCryptoList
+    case .setBtcCrypto(let btcCryptoList):
+      newState.btcCryptoList = btcCryptoList
+      
     case .setCryptoSocketTicker(let cryptoSocketTicker):
       newState.cryptoSocketTicker = cryptoSocketTicker
+      
     case .setCombinedKRWArray(let combinedResult):
       newState.krwCryptoCellInfo = combinedResult
     case .setCombinedBTCArray(let combinedResult):
       newState.btcCryptoCellInfo = combinedResult
-    case .connectSocket(let socketTicker):
-      newState.cryptoSocketTicker = socketTicker
+      
     case .setIsFirstTableSet(let isSet):
       newState.isFirstTableSet = isSet
     }
     return newState
   }
   
+  /// CryptoList를 조회하고 이어서 바로 CryptoTicker를 조회한다. (SocketTicker와는 다름)
+  /// - Returns: CryptoList와 CryptoTicker 구조체를 합쳐서 observer에 담고, MainMutation에 대한 Observable을 반환
+  func loadCrypto_Ticker(selectedTab: SelectedTab) -> Observable<MainMutation> {
+    let loadCryptoObservable = self.mainUseCase.loadCryptoList()
+      .flatMap { cryptoList -> Observable<MainMutation> in
+        
+        var observableConcat: [Observable<MainMutation>] = []
+        
+        switch selectedTab {
+        case .krw:
+          let krwCrypto = cryptoList.filter { $0.market.contains("KRW-") }
+          let krwMarkets = krwCrypto.map { $0.market }
+          
+          let setKRWCryptoMutation = Observable.just(MainMutation.setKrwCrypto(krwCrypto: krwCrypto))
+          let tickerObservable = self.loadTicker(selectedTab: selectedTab, cryptoList: cryptoList, markets: krwMarkets)
+          observableConcat = [setKRWCryptoMutation, tickerObservable]
+          
+        case .btc:
+          let btcCrypto = cryptoList.filter { $0.market.contains("BTC-") }
+          let btcMarkets = btcCrypto.map { $0.market }
+
+          let setBTCCryptoMutation = Observable.just(MainMutation.setBtcCrypto(btcCrypto: btcCrypto))
+          let tickerObservable = self.loadTicker(selectedTab: selectedTab, cryptoList: cryptoList, markets: btcMarkets)
+          observableConcat = [setBTCCryptoMutation, tickerObservable]
+          
+        case .favorite:
+          break
+        }
+        
+        return Observable.concat(observableConcat)
+      }
+      .catch { error in
+        return Observable.error(error)
+      }
+    
+    loadCryptoObservable
+      .subscribe { mutation in
+        switch mutation {
+        case .completed:
+          self.action.onNext(.setIsFirstTableSet(isSet: true))
+        case .next:
+          break
+        case .error(let error):
+          print("error : \(error.localizedDescription)")
+        }
+      }
+      .disposed(by: self.disposeBag)
+    
+    return loadCryptoObservable
+  }
+  
+  func loadTicker(selectedTab: SelectedTab, cryptoList: CryptoList, markets: [String]) -> Observable<MainMutation> {
+    self.mainUseCase.loadTickerList(markets: markets)
+      .flatMap { cryptoTickerList -> Observable<MainMutation> in
+        let combineResult = self.combineCrypto(selectedTab: selectedTab, cryptoList: cryptoList, cryptoTickerList: cryptoTickerList)
+        
+        if selectedTab == .krw {
+          return Observable.just(MainMutation.setCombinedKRWArray(cryptoCellInfo: combineResult))
+        } else if selectedTab == .btc {
+          return Observable.just(MainMutation.setCombinedBTCArray(cryptoCellInfo: combineResult))
+        } else {
+          return Observable.concat([])
+        }
+        
+      }
+  }
+  
+  
+  // MARK: - Combine Function
+  
   /// CryptoList & CryptoTickerList 모델을 합치는 과정
   /// - Parameters:
   ///   - cryptoList: name, market, event 정보를 갖고 있음
   ///   - cryptoTickerList: tradePrice, signedChangeRate, change, accTradeVolume 정보를 갖고 있음
   /// - Returns: Main TableView Cell에 노출될 Cell 정보를 반환
-  func combineCrypto(cryptoList: CryptoList, cryptoTickerList: CryptoTickerList) -> [CryptoCellInfo] {
-    let krwCrypto = cryptoList.filter { $0.market.contains("KRW-") }
-//      .map { self.transformCrypto(crypto: $0) }
+  func combineCrypto(selectedTab: SelectedTab, cryptoList: CryptoList, cryptoTickerList: CryptoTickerList) -> [CryptoCellInfo] {
+    var filteredCryptoList: CryptoList = []
     
-    let krwCellInfos: [CryptoCellInfo] = krwCrypto.compactMap { crypto in
+    switch selectedTab {
+    case .krw:
+      filteredCryptoList = cryptoList.filter { $0.market.contains("KRW-") }
+      
+    case .btc:
+      filteredCryptoList = cryptoList.filter { $0.market.contains("BTC-") }
+      
+    case .favorite:
+      break
+    }
+    
+    let cellInfos: [CryptoCellInfo] = filteredCryptoList.compactMap { crypto in
       return CryptoCellInfo(cryptoName: crypto.koreanName, market: crypto.market, marketEvent: crypto.marketEvent)
     }
     
-    let krwCryptoCells: [CryptoCellInfo] = krwCellInfos.compactMap { cryptoCellInfo in
+    let cryptoCells: [CryptoCellInfo] = cellInfos.compactMap { cryptoCellInfo in
       guard let matchedTicker = cryptoTickerList.first(where: { $0.market == cryptoCellInfo.market }) else {
         return CryptoCellInfo(cryptoName: "", market: "", marketEvent: nil)
       }
@@ -175,18 +219,28 @@ extension MainReactor {
       return updatedCryptoCellInfo
     }
     
-    return krwCryptoCells
+    return cryptoCells
   }
   
-  func combineTicker(cryptoList: CryptoList, socketTicker: CryptoSocketTicker) -> [CryptoCellInfo] {
-    let krwCrypto = cryptoList.filter { $0.market.contains("KRW-") }
-//      .map { self.transformCrypto(crypto: $0) }
+  
+  func combineTicker(selectedTab: SelectedTab, cryptoList: CryptoList, socketTicker: CryptoSocketTicker) -> [CryptoCellInfo] {
+    var filteredCryptoList: CryptoList = []
     
-    let krwCellInfos: [CryptoCellInfo] = krwCrypto.compactMap { crypto in
-      return CryptoCellInfo(cryptoName: crypto.koreanName, market: crypto.market, marketEvent: crypto.marketEvent)
+    switch selectedTab {
+    case .krw:
+      filteredCryptoList = cryptoList.filter { $0.market.contains("KRW-") }
+      
+    case .btc:
+      filteredCryptoList = cryptoList.filter { $0.market.contains("BTC-") }
+      
+    case .favorite:
+      break
     }
     
-    let krwCryptoCells: [CryptoCellInfo] = krwCellInfos.compactMap { cryptoCellInfo in
+    let cellInfos: [CryptoCellInfo] = filteredCryptoList.compactMap { crypto in
+      return CryptoCellInfo(cryptoName: crypto.koreanName, market: crypto.market, marketEvent: crypto.marketEvent)
+    }
+    let cryptoCells: [CryptoCellInfo] = cellInfos.compactMap { cryptoCellInfo in
       var updatedCryptoCellInfo = cryptoCellInfo
       
       if socketTicker.code == cryptoCellInfo.market {
@@ -198,66 +252,29 @@ extension MainReactor {
         
         return updatedCryptoCellInfo
       } else {
-        return CryptoCellInfo(cryptoName: "", market: "", marketEvent: nil)
+        
+        return nil
       }
     }
     
-    return krwCryptoCells
-  }
-  
-  /// CryptoList를 조회하고 이어서 바로 CryptoTicker를 조회한다. (SocketTicker와는 다름)
-  /// - Returns: CryptoList와 CryptoTicker 구조체를 합쳐서 observer에 담고, MainMutation에 대한 Observable을 반환
-  func loadCrypto_Ticker() -> Observable<MainMutation> {
-    let loadCryptoObservable = self.mainUseCase.loadCryptoList()
-      .flatMap { cryptoList -> Observable<MainMutation> in
-        let krwCrypto = cryptoList.filter { $0.market.contains("KRW-") }
-        let btcCrypto = cryptoList.filter { $0.market.contains("BTC-") }
-        let krwMarkets = krwCrypto.map { $0.market }
-        let btcMarkets = btcCrypto.map { $0.market }
-        
-        let setKRWCryptoMutation = Observable.just(MainMutation.setKrwCrypto(krwCrypto: krwCrypto))
-        
-        let tickerObservable = self.mainUseCase.loadTickerList(markets: krwMarkets)
-          .flatMap { cryptoTickerList -> Observable<MainMutation> in
-            let combineResult = self.combineCrypto(cryptoList: cryptoList, cryptoTickerList: cryptoTickerList)
-            return Observable.just(MainMutation.setCombinedKRWArray(cryptoCellInfo: combineResult))
-          }
-        
-        return Observable.concat([setKRWCryptoMutation, tickerObservable])
-        
-      }
-      .concat(Observable.just(MainMutation.setIsFirstTableSet(isSet: true)))
-      .catch { error in
-        return Observable.error(error)
-      }
+    var tempCellInfos: [CryptoCellInfo] = []
     
-    loadCryptoObservable
-      .subscribe { mutation in
-        switch mutation {
-        case .completed:
-          // 여기서 MainMutation.setIsFirstTableSet을 해주고 싶어.
-          self.action.onNext(.setIsFirstTableSet(isSet: true))
-        case .next(let mutation):
-          break
-        case .error(let error):
-          print("error : \(error.localizedDescription)")
-        }
+    switch selectedTab {
+    case .krw:
+      tempCellInfos = self.currentState.krwCryptoCellInfo.map { cellInfo in
+        cryptoCells.first(where: { $0.cryptoName == cellInfo.cryptoName }) ?? cellInfo
       }
-      .disposed(by: self.disposeBag)
-    
-    return loadCryptoObservable
-  }
-  
-  func transformCrypto(crypto: Crypto) -> Crypto {
-    var transformedCrypto = crypto
-    let components = crypto.market.split(separator: "-")
-    if components.count == 2 {
-      transformedCrypto.market = "\(components[1])/\(components[0])"
-    } else {
-      // 기본값 유지
-      transformedCrypto.market = crypto.market
+      
+    case .btc:
+      tempCellInfos = self.currentState.btcCryptoCellInfo.map { cellInfo in
+        cryptoCells.first(where: { $0.cryptoName == cellInfo.cryptoName }) ?? cellInfo
+      }
+      
+    case .favorite:
+      break
     }
-    return transformedCrypto
+    
+    return tempCellInfos
   }
   
   
@@ -276,19 +293,7 @@ extension MainReactor {
     return transformMarket
   }
   
-  func transformMarketForm22(market: String) -> String {
-    var transformMarket = market
-    let components = transformMarket.split(separator: "/")
-    if components.count == 2 {
-      transformMarket = "\(components[1])-\(components[0])"
-    } else {
-      // 기본값 유지
-      transformMarket = market
-    }
-    return transformMarket
-  }
-  
-  private func loadRealSocketTicker(cryptoList: CryptoList) -> Observable<MainMutation> {
+  private func loadRealSocketTicker(selectedTab: SelectedTab, cryptoList: CryptoList) -> Observable<MainMutation> {
     let socketObservable = Observable<MainMutation>.create { observer in
       self.loadSocketTicker(cryptoList: cryptoList)
         .subscribe { event in
@@ -298,8 +303,7 @@ extension MainReactor {
           case .error(let error):
             print(error.localizedDescription)
           case .next(let ticker):
-            let combineResult = self.combineTicker(cryptoList: cryptoList, socketTicker: ticker)
-  //          observer.onNext(.connectSocket(socketTicker: ticker))
+            let combineResult = self.combineTicker(selectedTab: selectedTab, cryptoList: cryptoList, socketTicker: ticker)
             observer.onNext(.setCombinedKRWArray(cryptoCellInfo: combineResult))
           }
         }.disposed(by: self.disposeBag)

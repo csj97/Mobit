@@ -17,11 +17,18 @@ enum MarketWarning: String {
 
 class CoinTableViewCell: UITableViewCell {
   let rootFlexContainer = UIView()
+  
+  let priceBox = UIView().then {
+    $0.layer.borderWidth = 0.3
+    $0.layer.borderColor = UIColor.clear.cgColor
+    $0.layer.masksToBounds = true
+  }
+  
   var coinName = UILabel().then {
     $0.text = "-"
     $0.textColor = .black
     $0.font = UIFont.systemFont(ofSize: 12)
-    $0.numberOfLines = 2
+    $0.numberOfLines = 1
     $0.textAlignment = .left
   }
   var coinSymbol = UILabel().then {
@@ -87,6 +94,7 @@ class CoinTableViewCell: UITableViewCell {
     
     self.rootFlexContainer.addSubview(coinName)
     self.rootFlexContainer.addSubview(coinSymbol)
+    self.rootFlexContainer.addSubview(priceBox)
     self.rootFlexContainer.addSubview(price)
     self.rootFlexContainer.addSubview(changeRate)
     self.rootFlexContainer.addSubview(tradingVolume)
@@ -99,36 +107,75 @@ class CoinTableViewCell: UITableViewCell {
           flex.addItem(self.coinName).width(80%)
           flex.addItem(self.coinSymbol).width(80%)
         }.width(25%).paddingLeft(10)
-      flex.addItem(self.price).width(25%)
+      flex.addItem().width(25%)
+        .alignItems(.center)
+        .justifyContent(.center)
+        .define { flex in
+          flex.addItem(self.priceBox).width(80%).height(80%)
+            .justifyContent(.center)
+            .define { flex in
+              flex.addItem(self.price)
+            }
+        }
+      
       flex.addItem(self.changeRate).width(25%)
       flex.addItem(self.tradingVolume).width(25%)
     }
   }
   
   func configure(crypto: CryptoCellInfo) {
-    if crypto.marketEvent?.warning == true {
+    
+    guard let marketEvent = crypto.marketEvent,
+          let tradePrice = crypto.tradePrice,
+          let signedChangeRate = crypto.signedChangeRate,
+          let accTradeVolume = crypto.accTradeVolume,
+          let change = crypto.change  else { return }
+    
+    if marketEvent.warning == true {
       self.coinName.text = "[유]\(crypto.cryptoName)"
     } else {
       self.coinName.text = crypto.cryptoName
     }
     self.coinSymbol.text = crypto.market
-    self.price.text = String(crypto.tradePrice ?? 0)
-    self.changeRate.text = String(format: "%.2f", crypto.signedChangeRate ?? 0)
-    self.tradingVolume.text = String(format: "%.f", crypto.accTradeVolume ?? 0)
     
-    switch crypto.change {
+    let numberFormatter = NumberFormatter()
+    numberFormatter.numberStyle = .decimal
+    self.price.text = numberFormatter.string(from: NSNumber(value: tradePrice))
+    
+    self.changeRate.text = String(format: "%.3f%%", signedChangeRate)
+    self.tradingVolume.text = String(format: "%.f", accTradeVolume)
+    
+    switch change {
     case "RISE":
-      self.price.textColor = .blue
-      self.changeRate.textColor = .blue
-    case "FALL":
       self.price.textColor = .red
       self.changeRate.textColor = .red
+      DispatchQueue.main.async {
+        UIView.animate(withDuration: 0.3) {
+          self.priceBox.layer.borderColor = UIColor.red.cgColor
+        } completion: { _ in
+          self.priceBox.layer.borderColor = UIColor.clear.cgColor
+        }
+      }
+      
+    case "FALL":
+      self.price.textColor = .blue
+      self.changeRate.textColor = .blue
+      DispatchQueue.main.async {
+        UIView.animate(withDuration: 0.15) {
+          self.priceBox.layer.borderColor = UIColor.blue.cgColor
+        } completion: { _ in
+          self.priceBox.layer.borderColor = UIColor.clear.cgColor
+        }
+      }
+      
     case "EVEN":
       self.price.textColor = .black
       self.changeRate.textColor = .black
-    case .none:
-      break
-    case .some(_):
+      DispatchQueue.main.async {
+        self.priceBox.layer.borderColor = UIColor.clear.cgColor
+      }
+      
+    default:
       break
     }
     

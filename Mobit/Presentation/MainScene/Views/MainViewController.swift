@@ -24,6 +24,8 @@ class MainViewController: UIViewController {
   var disposeBag = DisposeBag()
   var reactor: MainReactor
   
+  var selectedTab: SelectedTab = .krw
+  
   private let cellIndentifier = "CryptoCell"
   
   init(reactor: MainReactor) {
@@ -152,6 +154,7 @@ class MainViewController: UIViewController {
     
     self.dataSource?.defaultRowAnimation = .fade
     self.tableView.dataSource = self.dataSource
+    self.tableView.delegate = self
   }
   
   func applySnapshot(cellInfo: [CryptoCellInfo]?) {
@@ -183,10 +186,15 @@ class MainViewController: UIViewController {
     
     switch sender.tag {
     case 0:
+      self.selectedTab = .krw
+      self.reactor.action.onNext(.loadCrypto(selectedTab: .krw))
       self.applySnapshot(cellInfo: reactor.currentState.krwCryptoCellInfo)
     case 1:
+      self.selectedTab = .btc
+      self.reactor.action.onNext(.loadCrypto(selectedTab: .btc))
       self.applySnapshot(cellInfo: reactor.currentState.btcCryptoCellInfo)
     case 2:
+      self.selectedTab = .favorite
       self.applySnapshot(cellInfo: [])
     default:
       break
@@ -235,43 +243,59 @@ extension MainViewController: View {
     
     reactor.state.map { $0.krwCryptoCellInfo }
       .distinctUntilChanged()
+      .observe(on: MainScheduler.instance)
       .subscribe(onNext: { cellInfos in
-        print(cellInfos.count)
         self.applySnapshot(cellInfo: cellInfos)
       })
       .disposed(by: self.disposeBag)
     
     reactor.state.map { $0.isFirstTableSet }
       .distinctUntilChanged()
-      .delay(.seconds(2), scheduler: MainScheduler.instance)
+      .delay(.milliseconds(500), scheduler: MainScheduler.instance)
       .subscribe(onNext: { isSet in
         if isSet {
           print("mobit first table setting is completed")
           
           guard let visibleCells = self.tableView.visibleCells as? [CoinTableViewCell] else { return }
           let cryptoNames = visibleCells.compactMap { $0.coinName.text }
-          let matchedCrypto = reactor.currentState.krwCryptoList.filter { cryptoNames.contains($0.koreanName) }
+          var matchedCryptoList: CryptoList = []
+          
+          switch self.selectedTab {
+          case .krw:
+            matchedCryptoList = reactor.currentState.krwCryptoList.filter { cryptoNames.contains($0.koreanName) }
+          case .btc:
+            matchedCryptoList = reactor.currentState.btcCryptoList.filter { cryptoNames.contains($0.koreanName) }
+          case .favorite:
+            break
+          }
 
-          reactor.action.onNext(.loadSocketTicker(cryptoList: matchedCrypto))
+          self.reactor.action.onNext(.loadSocketTicker(selectedTab: self.selectedTab, cryptoList: matchedCryptoList))
           
         } else {
           print("mobit first table setting is not completed")
         }
       })
-//      .subscribe { event in
-//        switch event {
-//        case .next(let isSet):
-//          if isSet {
-//            reactor.action.onNext(.loadSocketTicker(cryptoList: reactor.currentState.krwCryptoList))
-//          }
-//          
-//        case .completed:
-//          break
-//        case .error(let error):
-//          print("is Set error : \(error.localizedDescription)")
-//        }
-//      }
       .disposed(by: self.disposeBag)
     
+  }
+}
+
+
+extension MainViewController: UITableViewDelegate {
+  func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+    guard let visibleCells = self.tableView.visibleCells as? [CoinTableViewCell] else { return }
+    let cryptoNames = visibleCells.compactMap { $0.coinName.text }
+    var matchedCryptoList: CryptoList = []
+    
+    switch self.selectedTab {
+    case .krw:
+      matchedCryptoList = reactor.currentState.krwCryptoList.filter { cryptoNames.contains($0.koreanName) }
+    case .btc:
+      matchedCryptoList = reactor.currentState.btcCryptoList.filter { cryptoNames.contains($0.koreanName) }
+    case .favorite:
+      break
+    }
+
+    self.reactor.action.onNext(.loadSocketTicker(selectedTab: self.selectedTab, cryptoList: matchedCryptoList))
   }
 }

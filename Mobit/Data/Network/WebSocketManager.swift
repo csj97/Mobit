@@ -19,6 +19,7 @@ class WebSocketManager: NSObject {
   private var webSocket: URLSessionWebSocketTask?
   private var timer: Timer? // 5초마다 ping
   private var session: URLSession!
+  private var isConnected: Bool = false
   
   var cryptoTickerSubject = PublishRelay<CryptoSocketTicker>() // 구독한 시점 이후부터 방출
   
@@ -28,15 +29,23 @@ class WebSocketManager: NSObject {
   }
   
   func connect(codes: [String]) {
+    // 이미 연결 상태라면, 새로운 요청만 전송
+    guard !self.isConnected else {
+      self.send(codes)
+      return
+    }
     let url = URL(string: "wss://api.upbit.com/websocket/v1")!
     self.webSocket = session.webSocketTask(with: url)
     self.webSocket?.resume()
+    self.isConnected = true
+    
     self.send(codes)
     self.receiveMessage()
   }
   
   func disconnect() {
     self.webSocket?.cancel(with: .goingAway, reason: nil)
+    self.isConnected = false
   }
   
   func send(_ codes: [String]) {
@@ -108,6 +117,7 @@ extension WebSocketManager: URLSessionWebSocketDelegate {
   func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
     print(#function)
     print("WebSocket CLOSE")
+    self.disconnect()
   }
   
   func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
