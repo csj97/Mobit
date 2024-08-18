@@ -140,9 +140,13 @@ class CoinTableViewCell: UITableViewCell {
     
     let numberFormatter = NumberFormatter()
     numberFormatter.numberStyle = .decimal
-    self.price.text = numberFormatter.string(from: NSNumber(value: tradePrice))
+    if tradePrice < 1 {
+      self.price.text = formatTradePrice(tradePrice)
+    } else {
+      self.price.text = numberFormatter.string(from: NSNumber(value: tradePrice))
+    }
     
-    self.changeRate.text = String(format: "%.3f%%", signedChangeRate)
+    self.changeRate.text = String(format: "%.2f%%", signedChangeRate * 100)
     self.tradingVolume.text = String(format: "%.f", accTradeVolume)
     
     switch change {
@@ -180,6 +184,13 @@ class CoinTableViewCell: UITableViewCell {
     }
     
     setNeedsLayout()
+  }
+
+  func formatTradePrice(_ tradePrice: Double?, precision: Int = 8) -> String {
+    guard let price = tradePrice else {
+      return "N/A"  // 값이 없을 때 반환할 기본 문자열
+    }
+    return String(format: "%.\(precision)f", price)
   }
   
 }

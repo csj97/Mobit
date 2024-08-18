@@ -154,7 +154,6 @@ class MainViewController: UIViewController {
     
     self.dataSource?.defaultRowAnimation = .fade
     self.tableView.dataSource = self.dataSource
-    self.tableView.delegate = self
   }
   
   func applySnapshot(cellInfo: [CryptoCellInfo]?) {
@@ -188,11 +187,11 @@ class MainViewController: UIViewController {
     case 0:
       self.selectedTab = .krw
       self.reactor.action.onNext(.loadCrypto(selectedTab: .krw))
-      self.applySnapshot(cellInfo: reactor.currentState.krwCryptoCellInfo)
+      self.applySnapshot(cellInfo: reactor.currentState.cryptoCellInfo)
     case 1:
       self.selectedTab = .btc
       self.reactor.action.onNext(.loadCrypto(selectedTab: .btc))
-      self.applySnapshot(cellInfo: reactor.currentState.btcCryptoCellInfo)
+      self.applySnapshot(cellInfo: reactor.currentState.cryptoCellInfo)
     case 2:
       self.selectedTab = .favorite
       self.applySnapshot(cellInfo: [])
@@ -241,61 +240,12 @@ class MainViewController: UIViewController {
 extension MainViewController: View {
   func bind(reactor: MainReactor) {
     
-    reactor.state.map { $0.krwCryptoCellInfo }
+    reactor.state.map { $0.cryptoCellInfo }
       .distinctUntilChanged()
       .observe(on: MainScheduler.instance)
       .subscribe(onNext: { cellInfos in
         self.applySnapshot(cellInfo: cellInfos)
       })
       .disposed(by: self.disposeBag)
-    
-    reactor.state.map { $0.isFirstTableSet }
-      .distinctUntilChanged()
-      .delay(.milliseconds(500), scheduler: MainScheduler.instance)
-      .subscribe(onNext: { isSet in
-        if isSet {
-          print("mobit first table setting is completed")
-          
-          guard let visibleCells = self.tableView.visibleCells as? [CoinTableViewCell] else { return }
-          let cryptoNames = visibleCells.compactMap { $0.coinName.text }
-          var matchedCryptoList: CryptoList = []
-          
-          switch self.selectedTab {
-          case .krw:
-            matchedCryptoList = reactor.currentState.krwCryptoList.filter { cryptoNames.contains($0.koreanName) }
-          case .btc:
-            matchedCryptoList = reactor.currentState.btcCryptoList.filter { cryptoNames.contains($0.koreanName) }
-          case .favorite:
-            break
-          }
-
-          self.reactor.action.onNext(.loadSocketTicker(selectedTab: self.selectedTab, cryptoList: matchedCryptoList))
-          
-        } else {
-          print("mobit first table setting is not completed")
-        }
-      })
-      .disposed(by: self.disposeBag)
-    
-  }
-}
-
-
-extension MainViewController: UITableViewDelegate {
-  func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-    guard let visibleCells = self.tableView.visibleCells as? [CoinTableViewCell] else { return }
-    let cryptoNames = visibleCells.compactMap { $0.coinName.text }
-    var matchedCryptoList: CryptoList = []
-    
-    switch self.selectedTab {
-    case .krw:
-      matchedCryptoList = reactor.currentState.krwCryptoList.filter { cryptoNames.contains($0.koreanName) }
-    case .btc:
-      matchedCryptoList = reactor.currentState.btcCryptoList.filter { cryptoNames.contains($0.koreanName) }
-    case .favorite:
-      break
-    }
-
-    self.reactor.action.onNext(.loadSocketTicker(selectedTab: self.selectedTab, cryptoList: matchedCryptoList))
   }
 }
