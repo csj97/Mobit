@@ -154,6 +154,7 @@ class MainViewController: UIViewController {
     
     self.dataSource?.defaultRowAnimation = .fade
     self.tableView.dataSource = self.dataSource
+    self.tableView.delegate = self
   }
   
   func applySnapshot(cellInfo: [CryptoCellInfo]?) {
@@ -247,5 +248,13 @@ extension MainViewController: View {
         self.applySnapshot(cellInfo: cellInfos)
       })
       .disposed(by: self.disposeBag)
+  }
+}
+
+// MARK: TableView Delegate
+extension MainViewController: UITableViewDelegate {
+  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    print("cell click : \(indexPath.row)")
+    self.coordinator?.pushCryptoDetailVC(selectCrypto: reactor.currentState.cryptoCellInfo[indexPath.row].market)
   }
 }

@@ -23,9 +23,11 @@ class MainCoordinator: BaseCoordinator {
     self.navigationController.viewControllers = [mainVC]
   }
   
-  /// KRW 코인 목록 탭 노출
-  func showKRWCoinList() {
-    
+  
+  func pushCryptoDetailVC(selectCrypto: String) {
+    let cryptoDetailCoordinator = CryptoDetailCoordinator(selectCrypto: selectCrypto, navigationController: self.navigationController)
+    self.childCoordinators.append(cryptoDetailCoordinator)
+    cryptoDetailCoordinator.start()
   }
   
   /// BTC 코인 목록 탭 노출

@@ -19,8 +19,6 @@ class MainReactor: Reactor {
   private let mainUseCase: MainUseCase
   private let disposeBag = DisposeBag()
   let initialState: MainReactorState = MainReactorState()
-  var cryptoTickerRelay = PublishRelay<CryptoSocketTicker>() // 구독한 시점 이후부터 방출
-  lazy var cryptoTickerObservable: Observable<CryptoSocketTicker> = cryptoTickerRelay.asObservable()
   
   init(mainUseCase: MainUseCase) {
     self.mainUseCase = mainUseCase
@@ -103,7 +101,6 @@ extension MainReactor {
           let krwCryptoList = cryptoList.filter { $0.market.contains("KRW-") }
           let krwMarkets = krwCryptoList.map { $0.market }
           
-//          let setKRWCryptoMutation = Observable.just(MainMutation.setKrwCrypto(krwCrypto: krwCrypto))
           let setKRWCryptoMutation = Observable.just(MainMutation.setTabCryptoList(cryptoList: krwCryptoList))
           let tickerObservable = self.loadTicker(selectedTab: selectedTab, cryptoList: krwCryptoList, markets: krwMarkets)
           observableConcat = [setKRWCryptoMutation, tickerObservable]
@@ -130,7 +127,6 @@ extension MainReactor {
       .subscribe { mutation in
         switch mutation {
         case .completed:
-//          self.action.onNext(.setIsFirstTableSet(isSet: true))
           self.action.onNext(.loadSocketTicker(selectedTab: selectedTab, cryptoList: self.currentState.tabCryptoList))
         case .next:
           break
@@ -149,15 +145,6 @@ extension MainReactor {
         let combineResult = self.combineCrypto(selectedTab: selectedTab, cryptoList: cryptoList, cryptoTickerList: cryptoTickerList)
         
         return Observable.just(MainMutation.setCombinedArray(cryptoCellInfo: combineResult))
-        
-//        if selectedTab == .krw {
-//          return Observable.just(MainMutation.setCombinedKRWArray(cryptoCellInfo: combineResult))
-//        } else if selectedTab == .btc {
-//          return Observable.just(MainMutation.setCombinedBTCArray(cryptoCellInfo: combineResult))
-//        } else {
-//          return Observable.concat([])
-//        }
-        
       }
   }
   
@@ -168,7 +155,7 @@ extension MainReactor {
   /// - Parameters:
   ///   - cryptoList: name, market, event 정보를 갖고 있음
   ///   - cryptoTickerList: tradePrice, signedChangeRate, change, accTradeVolume 정보를 갖고 있음
-  /// - Returns: Main TableView Cell에 노출될 Cell 정보를 반환
+  /// - Returns: Main TableView Cell에 노출될 Cell 정보를 결합해서 반환
   func combineCrypto(selectedTab: SelectedTab, cryptoList: CryptoList, cryptoTickerList: CryptoTickerList) -> [CryptoCellInfo] {
     var filteredCryptoList: CryptoList = []
     

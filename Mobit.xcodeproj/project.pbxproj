@@ -22,6 +22,11 @@
 		3133E2702C3F7098000D4B1A /* MainUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E26F2C3F7098000D4B1A /* MainUseCase.swift */; };
 		3133E2742C3F7135000D4B1A /* PinLayout in Frameworks */ = {isa = PBXBuildFile; productRef = 3133E2732C3F7135000D4B1A /* PinLayout */; };
 		3133E2772C3F7192000D4B1A /* FlexLayout in Frameworks */ = {isa = PBXBuildFile; productRef = 3133E2762C3F7192000D4B1A /* FlexLayout */; };
+		31D644462C7257B500C7F96D /* CryptoDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D644452C7257B500C7F96D /* CryptoDetailViewController.swift */; };
+		31D644482C7257F900C7F96D /* CryptoDetailCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D644472C7257F900C7F96D /* CryptoDetailCoordinator.swift */; };
+		31D6444A2C72587B00C7F96D /* CryptoDetailReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D644492C72587B00C7F96D /* CryptoDetailReactor.swift */; };
+		31D6444D2C72590C00C7F96D /* CryptoDetailUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D6444C2C72590C00C7F96D /* CryptoDetailUseCase.swift */; };
+		31D6444F2C72595000C7F96D /* CryptoDetailRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D6444E2C72595000C7F96D /* CryptoDetailRepository.swift */; };
 		31E208042C4677CB000BFEBC /* AppTabBarCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208032C4677CB000BFEBC /* AppTabBarCoordinator.swift */; };
 		31E208072C4678B9000BFEBC /* MainCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208062C4678B9000BFEBC /* MainCoordinator.swift */; };
 		31E208092C46BF6B000BFEBC /* MainTabBarCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208082C46BF6B000BFEBC /* MainTabBarCoordinator.swift */; };
@@ -115,6 +120,11 @@
 		3133E2652C3F6A44000D4B1A /* BaseCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseCoordinator.swift; sourceTree = "<group>"; };
 		3133E2672C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoordinatorFinishDelegate.swift; sourceTree = "<group>"; };
 		3133E26F2C3F7098000D4B1A /* MainUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainUseCase.swift; sourceTree = "<group>"; };
+		31D644452C7257B500C7F96D /* CryptoDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailViewController.swift; sourceTree = "<group>"; };
+		31D644472C7257F900C7F96D /* CryptoDetailCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailCoordinator.swift; sourceTree = "<group>"; };
+		31D644492C72587B00C7F96D /* CryptoDetailReactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailReactor.swift; sourceTree = "<group>"; };
+		31D6444C2C72590C00C7F96D /* CryptoDetailUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailUseCase.swift; sourceTree = "<group>"; };
+		31D6444E2C72595000C7F96D /* CryptoDetailRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailRepository.swift; sourceTree = "<group>"; };
 		31E208032C4677CB000BFEBC /* AppTabBarCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTabBarCoordinator.swift; sourceTree = "<group>"; };
 		31E208062C4678B9000BFEBC /* MainCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCoordinator.swift; sourceTree = "<group>"; };
 		31E208082C46BF6B000BFEBC /* MainTabBarCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabBarCoordinator.swift; sourceTree = "<group>"; };
@@ -328,6 +338,7 @@
 			isa = PBXGroup;
 			children = (
 				3133E26F2C3F7098000D4B1A /* MainUseCase.swift */,
+				31D6444C2C72590C00C7F96D /* CryptoDetailUseCase.swift */,
 			);
 			path = Main;
 			sourceTree = "<group>";
@@ -346,6 +357,7 @@
 			isa = PBXGroup;
 			children = (
 				31E208062C4678B9000BFEBC /* MainCoordinator.swift */,
+				31D644472C7257F900C7F96D /* CryptoDetailCoordinator.swift */,
 				31E208082C46BF6B000BFEBC /* MainTabBarCoordinator.swift */,
 			);
 			path = Coordinator;
@@ -380,6 +392,7 @@
 			isa = PBXGroup;
 			children = (
 				311E33FB2C4608800054C6BC /* MainViewController.swift */,
+				31D644452C7257B500C7F96D /* CryptoDetailViewController.swift */,
 				99C20A5C2C48DF11009276E7 /* CoinTableViewCell.swift */,
 			);
 			path = Views;
@@ -447,6 +460,7 @@
 			isa = PBXGroup;
 			children = (
 				99C20A752C490A3C009276E7 /* MainRepository.swift */,
+				31D6444E2C72595000C7F96D /* CryptoDetailRepository.swift */,
 			);
 			path = Main;
 			sourceTree = "<group>";
@@ -465,6 +479,7 @@
 			isa = PBXGroup;
 			children = (
 				99C20A822C4A2787009276E7 /* MainReactor.swift */,
+				31D644492C72587B00C7F96D /* CryptoDetailReactor.swift */,
 			);
 			path = Reactors;
 			sourceTree = "<group>";
@@ -653,6 +668,7 @@
 				998849E62C5379960073A27D /* CryptoTicker.swift in Sources */,
 				3133E2702C3F7098000D4B1A /* MainUseCase.swift in Sources */,
 				99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */,
+				31D644482C7257F900C7F96D /* CryptoDetailCoordinator.swift in Sources */,
 				998849E22C524AAA0073A27D /* CryptoCellInfo.swift in Sources */,
 				31E208072C4678B9000BFEBC /* MainCoordinator.swift in Sources */,
 				31E208102C46C2FE000BFEBC /* InvestmentCoordinator.swift in Sources */,
@@ -664,6 +680,7 @@
 				3133E2642C3F6A3B000D4B1A /* AppCoordinator.swift in Sources */,
 				99C20AAE2C4F63E4009276E7 /* WebSocketManager.swift in Sources */,
 				99C20AAC2C4F458C009276E7 /* CryptoSocketTickerDTO.swift in Sources */,
+				31D6444D2C72590C00C7F96D /* CryptoDetailUseCase.swift in Sources */,
 				99C20A692C490326009276E7 /* MainNetworkService.swift in Sources */,
 				311E33FA2C46068C0054C6BC /* ErrorType.swift in Sources */,
 				31E208042C4677CB000BFEBC /* AppTabBarCoordinator.swift in Sources */,
@@ -671,7 +688,10 @@
 				3133E2682C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift in Sources */,
 				3133E2282C3E2355000D4B1A /* AppDelegate.swift in Sources */,
 				99C20AB22C4F6A04009276E7 /* Environment.swift in Sources */,
+				31D6444A2C72587B00C7F96D /* CryptoDetailReactor.swift in Sources */,
 				3133E22A2C3E2355000D4B1A /* SceneDelegate.swift in Sources */,
+				31D6444F2C72595000C7F96D /* CryptoDetailRepository.swift in Sources */,
+				31D644462C7257B500C7F96D /* CryptoDetailViewController.swift in Sources */,
 				99C20AB42C4F7177009276E7 /* CryptoSocketTicker.swift in Sources */,
 				31E208092C46BF6B000BFEBC /* MainTabBarCoordinator.swift in Sources */,
 				311E33FC2C4608800054C6BC /* MainViewController.swift in Sources */,
