@@ -39,8 +39,6 @@ extension MainReactor {
     
     case setTabCryptoList(cryptoList: CryptoList)
     case setCombinedArray(cryptoCellInfo: [CryptoCellInfo])
-    case setCryptoSocketTicker(CryptoSocketTicker)
-    
   }
   
   struct MainReactorState {
@@ -77,9 +75,6 @@ extension MainReactor {
       
     case .setTabCryptoList(let cryptoList):
       newState.tabCryptoList = cryptoList
-    
-    case .setCryptoSocketTicker(let cryptoSocketTicker):
-      newState.cryptoSocketTicker = cryptoSocketTicker
       
     case .setCombinedArray(let combinedResult):
       newState.cryptoCellInfo = combinedResult
@@ -181,6 +176,7 @@ extension MainReactor {
       var updatedCryptoCellInfo = cryptoCellInfo
       updatedCryptoCellInfo.market = self.transformMarketForm(market: cryptoCellInfo.market)
       updatedCryptoCellInfo.tradePrice = matchedTicker.tradePrice
+      updatedCryptoCellInfo.changePrice = matchedTicker.changePrice
       updatedCryptoCellInfo.signedChangeRate = matchedTicker.signedChangeRate
       updatedCryptoCellInfo.change = matchedTicker.change
       updatedCryptoCellInfo.accTradeVolume = matchedTicker.accTradeVolume24h
@@ -219,6 +215,7 @@ extension MainReactor {
       if socketTicker.code == cryptoCellInfo.market {
         updatedCryptoCellInfo.market = self.transformMarketForm(market: cryptoCellInfo.market)
         updatedCryptoCellInfo.tradePrice = socketTicker.tradePrice
+        updatedCryptoCellInfo.changePrice = socketTicker.changePrice
         updatedCryptoCellInfo.signedChangeRate = socketTicker.signedChangeRate
         updatedCryptoCellInfo.change = socketTicker.change
         updatedCryptoCellInfo.accTradeVolume = socketTicker.accTradeVolume24H

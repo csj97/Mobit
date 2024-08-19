@@ -10,9 +10,9 @@ import UIKit
 class CryptoDetailCoordinator: BaseCoordinator {
   var childCoordinators = [BaseCoordinator]()
   var navigationController: UINavigationController
-  var selectCrypto: String
+  var selectCrypto: CryptoCellInfo
   
-  init(selectCrypto: String, navigationController: UINavigationController) {
+  init(selectCrypto: CryptoCellInfo, navigationController: UINavigationController) {
     self.selectCrypto = selectCrypto
     self.navigationController = navigationController
     self.navigationController.isNavigationBarHidden = true
