@@ -11,6 +11,11 @@ import SwiftJWT
 import RxSwift
 import RxRelay
 
+enum SocketType: String {
+  case ticker = "ticker"
+  case orderbook = "orderbook"
+}
+
 // Singleton
 class WebSocketManager: NSObject {
   static let shared = WebSocketManager()
@@ -21,14 +26,15 @@ class WebSocketManager: NSObject {
   private var session: URLSession!
   private var isConnected: Bool = false
   
-  var cryptoTickerSubject = PublishRelay<CryptoSocketTicker>() // 구독한 시점 이후부터 방출
+  var socketType: SocketType = .ticker
   
   override init() {
     super.init()
     self.session = URLSession(configuration: .default, delegate: self, delegateQueue: OperationQueue.main)
   }
   
-  func connect(codes: [String]) {
+  func connect(codes: [String], socketType: SocketType) {
+    self.socketType = socketType
     // 이미 연결 상태라면, 새로운 요청만 전송
     guard !self.isConnected else {
       self.send(codes)
@@ -51,7 +57,7 @@ class WebSocketManager: NSObject {
   func send(_ codes: [String]) {
     let ticket = ["ticket": "test"]
     let subscribe = [
-      "type": "ticker",
+      "type": self.socketType.rawValue,
       "codes": codes
     ] as [String : Any]
     

@@ -55,6 +55,8 @@ class CryptoDetailViewController: UIViewController {
   let changeRateLabel: UILabel = UILabel().then {
     $0.text = "0%"
     $0.textColor = .black
+    $0.lineBreakMode = .byWordWrapping
+    $0.adjustsFontSizeToFitWidth = true
     $0.font = UIFont.systemFont(ofSize: 11)
   }
   let changePriceImageView: UIImageView = UIImageView().then {
@@ -65,9 +67,39 @@ class CryptoDetailViewController: UIViewController {
   let changePriceLabel: UILabel = UILabel().then {
     $0.text = "0"
     $0.textColor = .black
+    $0.lineBreakMode = .byWordWrapping
+    $0.adjustsFontSizeToFitWidth = true
     $0.font = UIFont.systemFont(ofSize: 11)
   }
-  
+  let segmentedControl: UISegmentedControl = UISegmentedControl(items: ["주문", "차트", "정보"]).then {
+    $0.selectedSegmentIndex = 0
+    $0.backgroundColor = .clear
+    $0.selectedSegmentTintColor = .clear
+    $0.setBackgroundImage(UIImage(), for: .normal, barMetrics: .default)
+    $0.setDividerImage(
+        UIImage(),
+        forLeftSegmentState: .normal,
+        rightSegmentState: .normal,
+        barMetrics: .default
+      )
+    $0.setTitleTextAttributes(
+        [.foregroundColor: UIColor.blue, .font: UIFont.systemFont(ofSize: 15)],
+        for: .selected
+      )
+    $0.setTitleTextAttributes(
+        [.foregroundColor: UIColor.black, .font: UIFont.systemFont(ofSize: 15)],
+        for: .normal
+      )
+  }
+  let orderView: UIView = UIView().then {
+    $0.backgroundColor = .yellow
+  }
+  let chartView: UIView = UIView().then {
+    $0.backgroundColor = .brown
+  }
+  let informationView: UIView = UIView().then {
+    $0.backgroundColor = .green
+  }
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -76,9 +108,18 @@ class CryptoDetailViewController: UIViewController {
     self.addViews()
     self.setUpViews()
     self.setButtons()
+    self.setSegmentedControl()
+    
     self.setUpFlexItems()
     
     self.bind(reactor: self.reactor)
+  }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
+      self.reactor.action
+        .onNext(.connectTickerSocket(cryptoCellInfo: self.reactor.selectCrypto))
+    })
   }
   
   override func viewDidLayoutSubviews() {
@@ -98,6 +139,10 @@ class CryptoDetailViewController: UIViewController {
     self.rootContainer.addSubview(self.changeRateLabel)
     self.rootContainer.addSubview(self.changePriceImageView)
     self.rootContainer.addSubview(self.changePriceLabel)
+    self.rootContainer.addSubview(self.segmentedControl)
+    self.rootContainer.addSubview(self.orderView)
+    self.rootContainer.addSubview(self.chartView)
+    self.rootContainer.addSubview(self.informationView)
   }
   
   func setUpViews(crypto: CryptoCellInfo? = nil) {
@@ -153,9 +198,6 @@ class CryptoDetailViewController: UIViewController {
     default:
       break
     }
-    
-    self.reactor.action
-      .onNext(.connectTickerSocket(cryptoCellInfo: selectCrypto))
   }
   
   func setUpFlexItems() {
@@ -200,6 +242,8 @@ class CryptoDetailViewController: UIViewController {
               .direction(.row)
               .define { flex in
                 flex.addItem(self.changeRateLabel)
+                  .grow(1)
+                  .marginRight(20)
                 flex.addItem()
                   .direction(.row)
                   .alignItems(.center)
@@ -210,16 +254,37 @@ class CryptoDetailViewController: UIViewController {
                       .aspectRatio(1)
                       .marginRight(2)
                     flex.addItem(self.changePriceLabel)
-                  }.marginLeft(20)
-              }
-              .marginLeft(16)
+                      .width(100%)
+                  }
+              }.marginLeft(16)
           }
-          .width(100%)
+        
+        flex.addItem()
+          .direction(.column).define { flex in
+            flex.addItem(self.segmentedControl)
+              .marginTop(10).width(100%).height(50)
+            
+            flex.addItem(DividerLineView()).height(1)
+          }
+        
+        flex.addItem()
+          .define { flex in
+            flex.addItem(self.orderView)
+              .position(.absolute)
+              .top(0).left(0).right(0).bottom(0)
+            flex.addItem(self.chartView)
+              .position(.absolute)
+              .top(0).left(0).right(0).bottom(0)
+            flex.addItem(self.informationView)
+              .position(.absolute)
+              .top(0).left(0).right(0).bottom(0)
+          }.height(100%)
       }
   }
   
 }
 
+// MARK: viewcontroller 기타 설정 메소드
 extension CryptoDetailViewController {
   func setButtons() {
     self.backButton
@@ -232,6 +297,22 @@ extension CryptoDetailViewController {
   
   @objc private func tapOnBackButton(_ sender: UIButton) {
     self.coordinator?.navigationController.popViewController(animated: true)
+  }
+  
+  func setSegmentedControl() {
+    self.segmentedControl
+      .addTarget(
+        self,
+        action: #selector(segmentedValueChanged(_:)),
+        for: .valueChanged
+      )
+    self.segmentedValueChanged(self.segmentedControl)
+  }
+  
+  @objc private func segmentedValueChanged(_ sender: UISegmentedControl) {
+    self.orderView.isHidden = sender.selectedSegmentIndex != 0
+    self.chartView.isHidden = sender.selectedSegmentIndex != 1
+    self.informationView.isHidden = sender.selectedSegmentIndex != 2
   }
   
   func formatTradePrice(_ tradePrice: Double?, precision: Int = 8) -> String {

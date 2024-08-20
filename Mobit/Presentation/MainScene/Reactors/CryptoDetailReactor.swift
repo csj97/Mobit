@@ -70,7 +70,10 @@ extension CryptoDetailReactor {
     
     let socketObservable = Observable<CryptoDetailMutation>.create { observer in
       WebSocketManager.shared
-        .connect(codes: [self.transformMarketForm(market: crypto.market)])
+        .connect(
+          codes: [self.transformMarketForm(market: crypto.market)],
+          socketType: .ticker
+        )
       WebSocketManager.shared.observeReceivedData()
         .observe(on: MainScheduler.instance)
         .subscribe { [weak self] data in

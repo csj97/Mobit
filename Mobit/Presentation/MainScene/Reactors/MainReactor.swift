@@ -253,7 +253,7 @@ extension MainReactor {
     let cryptoJoined = cryptoList.map { $0.market }
     
     let socketObservable = Observable<MainMutation>.create { observer in
-      WebSocketManager.shared.connect(codes: cryptoJoined)
+      WebSocketManager.shared.connect(codes: cryptoJoined, socketType: .ticker)
       WebSocketManager.shared.observeReceivedData()
         .observe(on: MainScheduler.instance)
         .subscribe { [weak self] data in
