@@ -35,6 +35,9 @@
 		31E208172C46C441000BFEBC /* MoreCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208162C46C441000BFEBC /* MoreCoordinator.swift */; };
 		31E208192C46C448000BFEBC /* MoreViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208182C46C448000BFEBC /* MoreViewController.swift */; };
 		31E208432C46CB47000BFEBC /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 31E208422C46CB47000BFEBC /* Then */; };
+		367271AD2C7B2DA600F9D86E /* OrderBookResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367271AC2C7B2DA600F9D86E /* OrderBookResponse.swift */; };
+		367271B12C7B305500F9D86E /* OrderBookCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367271B02C7B305500F9D86E /* OrderBookCell.swift */; };
+		369E877F2C7D955E0020A0B3 /* OrderBookResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */; };
 		998725022C50944700088C71 /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = 998725012C50944700088C71 /* RxCocoa */; };
 		998725062C50944700088C71 /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = 998725052C50944700088C71 /* RxRelay */; };
 		9987250A2C50944700088C71 /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 998725092C50944700088C71 /* RxSwift */; };
@@ -133,6 +136,10 @@
 		31E208162C46C441000BFEBC /* MoreCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreCoordinator.swift; sourceTree = "<group>"; };
 		31E208182C46C448000BFEBC /* MoreViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreViewController.swift; sourceTree = "<group>"; };
 		31E208532C46CD9F000BFEBC /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/iPhoneOS.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		367271AB2C7B2B1900F9D86E /* UpbitKey.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = UpbitKey.xcconfig; sourceTree = "<group>"; };
+		367271AC2C7B2DA600F9D86E /* OrderBookResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderBookResponse.swift; sourceTree = "<group>"; };
+		367271B02C7B305500F9D86E /* OrderBookCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderBookCell.swift; sourceTree = "<group>"; };
+		369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderBookResponseDTO.swift; sourceTree = "<group>"; };
 		998849E12C524AAA0073A27D /* CryptoCellInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoCellInfo.swift; sourceTree = "<group>"; };
 		998849E32C5378CD0073A27D /* CryptoTickerDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTickerDTO.swift; sourceTree = "<group>"; };
 		998849E52C5379960073A27D /* CryptoTicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTicker.swift; sourceTree = "<group>"; };
@@ -144,7 +151,6 @@
 		99C20A822C4A2787009276E7 /* MainReactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainReactor.swift; sourceTree = "<group>"; };
 		99C20AAB2C4F458C009276E7 /* CryptoSocketTickerDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoSocketTickerDTO.swift; sourceTree = "<group>"; };
 		99C20AAD2C4F63E4009276E7 /* WebSocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketManager.swift; sourceTree = "<group>"; };
-		99C20AAF2C4F66E1009276E7 /* UpbitKey.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = UpbitKey.xcconfig; sourceTree = "<group>"; };
 		99C20AB12C4F6A04009276E7 /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
 		99C20AB32C4F7177009276E7 /* CryptoSocketTicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CryptoSocketTicker.swift; path = Mobit/Domain/Model/CryptoSocketTicker.swift; sourceTree = SOURCE_ROOT; };
 		99C20AB72C4F775B009276E7 /* Crypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Crypto.swift; sourceTree = "<group>"; };
@@ -246,7 +252,7 @@
 			children = (
 				3133E2302C3E2357000D4B1A /* Assets.xcassets */,
 				3133E2322C3E2357000D4B1A /* LaunchScreen.storyboard */,
-				99C20AAF2C4F66E1009276E7 /* UpbitKey.xcconfig */,
+				367271AB2C7B2B1900F9D86E /* UpbitKey.xcconfig */,
 			);
 			path = Resource;
 			sourceTree = "<group>";
@@ -394,6 +400,7 @@
 				311E33FB2C4608800054C6BC /* MainViewController.swift */,
 				31D644452C7257B500C7F96D /* CryptoDetailViewController.swift */,
 				99C20A5C2C48DF11009276E7 /* CoinTableViewCell.swift */,
+				367271B02C7B305500F9D86E /* OrderBookCell.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -471,6 +478,7 @@
 				99C20A782C490B08009276E7 /* CryptoDTO.swift */,
 				99C20AAB2C4F458C009276E7 /* CryptoSocketTickerDTO.swift */,
 				998849E32C5378CD0073A27D /* CryptoTickerDTO.swift */,
+				369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */,
 			);
 			path = DataMapping;
 			sourceTree = "<group>";
@@ -500,6 +508,7 @@
 				998849E52C5379960073A27D /* CryptoTicker.swift */,
 				99C20AB72C4F775B009276E7 /* Crypto.swift */,
 				998849E12C524AAA0073A27D /* CryptoCellInfo.swift */,
+				367271AC2C7B2DA600F9D86E /* OrderBookResponse.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -664,6 +673,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				99C20A792C490B08009276E7 /* CryptoDTO.swift in Sources */,
+				367271B12C7B305500F9D86E /* OrderBookCell.swift in Sources */,
 				99C20A762C490A3C009276E7 /* MainRepository.swift in Sources */,
 				998849E62C5379960073A27D /* CryptoTicker.swift in Sources */,
 				3133E2702C3F7098000D4B1A /* MainUseCase.swift in Sources */,
@@ -674,6 +684,7 @@
 				31E208102C46C2FE000BFEBC /* InvestmentCoordinator.swift in Sources */,
 				3133E2662C3F6A44000D4B1A /* BaseCoordinator.swift in Sources */,
 				31E208192C46C448000BFEBC /* MoreViewController.swift in Sources */,
+				369E877F2C7D955E0020A0B3 /* OrderBookResponseDTO.swift in Sources */,
 				31E208122C46C323000BFEBC /* InvestmentViewController.swift in Sources */,
 				998849E42C5378CD0073A27D /* CryptoTickerDTO.swift in Sources */,
 				31E208172C46C441000BFEBC /* MoreCoordinator.swift in Sources */,
@@ -696,6 +707,7 @@
 				31E208092C46BF6B000BFEBC /* MainTabBarCoordinator.swift in Sources */,
 				311E33FC2C4608800054C6BC /* MainViewController.swift in Sources */,
 				99C20A832C4A2787009276E7 /* MainReactor.swift in Sources */,
+				367271AD2C7B2DA600F9D86E /* OrderBookResponse.swift in Sources */,
 				99C20A5D2C48DF11009276E7 /* CoinTableViewCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -865,7 +877,6 @@
 		};
 		3133E24F2C3E2357000D4B1A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 99C20AAF2C4F66E1009276E7 /* UpbitKey.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -901,7 +912,6 @@
 		};
 		3133E2502C3E2357000D4B1A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 99C20AAF2C4F66E1009276E7 /* UpbitKey.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;

@@ -26,27 +26,29 @@ class CryptoDetailReactor: Reactor {
 
 extension CryptoDetailReactor {
   enum CryptoDetailAction {
-    case connectTickerSocket(cryptoCellInfo: CryptoCellInfo)
+    case connectTickerSocket
     case connectOrderBookSocket
   }
   
   enum CryptoDetailMutation {
     case setCryptoInfo(cryptoInfo: CryptoCellInfo?)
+    case setOrderBookInfo(obTicker: Orderbook)
   }
   
   struct CryptoDetailState {
     var cryptoInfo: CryptoCellInfo? = nil
+    var obTicker: Orderbook?
   }
 }
 
 extension CryptoDetailReactor {
   func mutate(action: CryptoDetailAction) -> Observable<CryptoDetailMutation> {
     switch action {
-    case .connectTickerSocket(let cryptoCellInfo):
-      return self.loadSocketTicker(crypto: cryptoCellInfo)
+    case .connectTickerSocket:
+      return self.connectTickerSocket(crypto: self.selectCrypto)
       
     case .connectOrderBookSocket:
-      return Observable.concat([])
+      return self.connectOrderBookTicker(crypto: self.selectCrypto)
     }
   }
   
@@ -58,6 +60,9 @@ extension CryptoDetailReactor {
       if let cryptoInfo = cryptoInfo {
         newState.cryptoInfo = cryptoInfo
       }
+    case .setOrderBookInfo(let obTicker):
+      print(obTicker)
+      newState.obTicker = obTicker
     }
     
     return newState
@@ -66,7 +71,7 @@ extension CryptoDetailReactor {
 
 extension CryptoDetailReactor {
   // WebSocket Ticker
-  private func loadSocketTicker(crypto: CryptoCellInfo) -> Observable<CryptoDetailMutation> {
+  private func connectTickerSocket(crypto: CryptoCellInfo) -> Observable<CryptoDetailMutation> {
     
     let socketObservable = Observable<CryptoDetailMutation>.create { observer in
       WebSocketManager.shared
@@ -92,7 +97,7 @@ extension CryptoDetailReactor {
             
             observer.onNext(.setCryptoInfo(cryptoInfo: updatedCryptoCellInfo))
           } catch {
-            print("websocket receive decoding error : \(error.localizedDescription)")
+            print("Crypto Detail Ticker websocket receive decoding error : \(error.localizedDescription)")
           }
         } onError: { error in
           observer.onError(error)
@@ -101,15 +106,49 @@ extension CryptoDetailReactor {
         }.disposed(by: self.disposeBag)
       
       return Disposables.create {
-        WebSocketManager.shared.disconnect()
+        WebSocketManager.shared.disconnect(socketType: .ticker)
       }
     }
     
     return socketObservable
   }
-}
+  
+  // 호가창 WebSocket 통신
+  private func connectOrderBookTicker(crypto: CryptoCellInfo) -> Observable<CryptoDetailMutation> {
+    let socketObservable = Observable<CryptoDetailMutation>.create { observer in
+      WebSocketManager.shared
+        .connectOrderBook(
+          codes: [self.transformMarketForm(market: self.selectCrypto.market)],
+          socketType: .orderbook
+        )
+      WebSocketManager.shared.observeReceivedData()
+        .observe(on: MainScheduler.instance)
+        .subscribe { [weak self] data in
+          guard let self = self else { return }
 
-extension CryptoDetailReactor {
+          do {
+            let decodeTarget = OrderbookDTO.self
+            let orderBookDTO = try JSONDecoder().decode(decodeTarget, from: data)
+            let obTicker = orderBookDTO.toDomain()
+            observer.onNext(.setOrderBookInfo(obTicker: obTicker))
+          } catch {
+            print("orderbook websocket receive decoding error : \(error.localizedDescription)")
+          }
+        } onError: { error in
+          observer.onError(error)
+        } onCompleted: {
+          observer.onCompleted()
+        }.disposed(by: self.disposeBag)
+      
+      return Disposables.create {
+        WebSocketManager.shared.disconnect(socketType: .orderbook)
+      }
+    }
+    
+    return socketObservable
+  }
+  
+  
   func transformMarketForm(market: String) -> String {
     var transformMarket = market
     let components = transformMarket.split(separator: "/")
@@ -121,4 +160,5 @@ extension CryptoDetailReactor {
     }
     return transformMarket
   }
+  
 }

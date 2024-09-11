@@ -17,6 +17,8 @@ class CryptoDetailViewController: UIViewController {
   weak var coordinator: CryptoDetailCoordinator?
   var reactor: CryptoDetailReactor
   var disposeBag = DisposeBag()
+  var dataSource: UITableViewDiffableDataSource<TableViewSection, Orderbook>?
+  private let cellIndentifier = "OrderBookCell"
   
   
   init(reactor: CryptoDetailReactor) {
@@ -94,6 +96,13 @@ class CryptoDetailViewController: UIViewController {
   let orderView: UIView = UIView().then {
     $0.backgroundColor = .yellow
   }
+  let orderTableView: UITableView = UITableView().then {
+    $0.separatorStyle = .singleLine
+    $0.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+  }
+  let tradeView: UIView = UIView().then {
+    $0.backgroundColor = .blue
+  }
   let chartView: UIView = UIView().then {
     $0.backgroundColor = .brown
   }
@@ -118,8 +127,10 @@ class CryptoDetailViewController: UIViewController {
   override func viewDidAppear(_ animated: Bool) {
     DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
       self.reactor.action
-        .onNext(.connectTickerSocket(cryptoCellInfo: self.reactor.selectCrypto))
+        .onNext(.connectTickerSocket)
     })
+    self.reactor.action
+      .onNext(.connectOrderBookSocket)
   }
   
   override func viewDidLayoutSubviews() {
@@ -200,6 +211,24 @@ class CryptoDetailViewController: UIViewController {
     }
   }
   
+  func setTableView() {
+    self.orderTableView.register(OrderBookCell.self, forCellReuseIdentifier: self.cellIndentifier)
+    self.orderTableView.rowHeight = 50
+    
+    self.dataSource = UITableViewDiffableDataSource<TableViewSection, Orderbook>(tableView: self.orderTableView) { (tableView: UITableView, indexPath: IndexPath, obTicker: Orderbook) -> UITableViewCell? in
+      
+      guard let cell = self.orderTableView.dequeueReusableCell(withIdentifier: self.cellIndentifier, for: indexPath) as? OrderBookCell else { return UITableViewCell() }
+      
+      cell.configure(obTicker: obTicker)
+      cell.selectionStyle = .none
+      return cell
+    }
+    
+    self.dataSource?.defaultRowAnimation = .fade
+    self.orderTableView.dataSource = self.dataSource
+    self.orderTableView.delegate = self
+  }
+  
   func setUpFlexItems() {
     rootContainer.flex
       .justifyContent(.start)
@@ -232,6 +261,7 @@ class CryptoDetailViewController: UIViewController {
               .alignItems(.center)
           }
         
+        // 코인 정보
         flex.addItem()
           .direction(.column)
           .define { flex in
@@ -259,6 +289,7 @@ class CryptoDetailViewController: UIViewController {
               }.marginLeft(16)
           }
         
+        // segmentedControl
         flex.addItem()
           .direction(.column).define { flex in
             flex.addItem(self.segmentedControl)
@@ -272,6 +303,13 @@ class CryptoDetailViewController: UIViewController {
             flex.addItem(self.orderView)
               .position(.absolute)
               .top(0).left(0).right(0).bottom(0)
+              .direction(.row)
+              .define { flex in
+                flex.addItem(self.orderTableView)
+                  .width(33%)
+                flex.addItem(self.tradeView)
+                  .width(67%)
+              }
             flex.addItem(self.chartView)
               .position(.absolute)
               .top(0).left(0).right(0).bottom(0)
@@ -333,5 +371,12 @@ extension CryptoDetailViewController {
         self.setUpViews(crypto: cellInfo)
       })
       .disposed(by: self.disposeBag)
+  }
+}
+
+// MARK: TableView Delegate
+extension CryptoDetailViewController: UITableViewDelegate {
+  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    print("orderbook cell click : \(indexPath.row)")
   }
 }

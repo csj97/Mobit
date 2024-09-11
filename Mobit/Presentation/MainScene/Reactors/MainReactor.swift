@@ -254,7 +254,7 @@ extension MainReactor {
     
     let socketObservable = Observable<MainMutation>.create { observer in
       WebSocketManager.shared.connect(codes: cryptoJoined, socketType: .ticker)
-      WebSocketManager.shared.observeReceivedData()
+      WebSocketManager.shared.tickerDataSubject
         .observe(on: MainScheduler.instance)
         .subscribe { [weak self] data in
           guard let self = self else { return }
@@ -266,7 +266,7 @@ extension MainReactor {
             let combineResult = self.combineTicker(selectedTab: selectedTab, cryptoList: cryptoList, socketTicker: ticker)
             observer.onNext(.setCombinedArray(cryptoCellInfo: combineResult))
           } catch {
-            print("websocket receive decoding error : \(error.localizedDescription)")
+            print("MainReactor ticker websocket receive decoding error : \(error.localizedDescription)")
           }
         } onError: { error in
           observer.onError(error)
@@ -275,7 +275,7 @@ extension MainReactor {
         }.disposed(by: self.disposeBag)
       
       return Disposables.create {
-        WebSocketManager.shared.disconnect()
+        WebSocketManager.shared.disconnect(socketType: .ticker)
       }
     }
     
