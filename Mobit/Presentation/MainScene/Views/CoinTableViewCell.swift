@@ -123,7 +123,10 @@ class CoinTableViewCell: UITableViewCell {
     }
   }
   
-  func configure(crypto: CryptoCellInfo) {
+    func configure(
+        crypto: CryptoCellInfo,
+        isInitialize: Bool? = nil
+    ) {
     
     guard let marketEvent = crypto.marketEvent,
           let tradePrice = crypto.tradePrice,

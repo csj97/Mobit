@@ -25,6 +25,9 @@ class MainViewController: UIViewController {
   var reactor: MainReactor
   
   var selectedTab: SelectedTab = .krw
+  var isInitialize: Bool = true
+    var isTableViewScrolling: Bool = false
+    let mainWebSocket: WebSocketManager? = nil
   
   private let cellIndentifier = "CryptoCell"
   
@@ -140,14 +143,22 @@ class MainViewController: UIViewController {
   }
   
   func setTableView() {
-    self.tableView.register(CoinTableViewCell.self, forCellReuseIdentifier: self.cellIndentifier)
+      
+    self.tableView.register(
+        CoinTableViewCell.self,
+        forCellReuseIdentifier: self.cellIndentifier
+    )
     self.tableView.rowHeight = 50
+    self.isInitialize = true
     
     self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoCellInfo>(tableView: self.tableView) { (tableView: UITableView, indexPath: IndexPath, crypto: CryptoCellInfo) -> UITableViewCell? in
       
       guard let cell = self.tableView.dequeueReusableCell(withIdentifier: self.cellIndentifier, for: indexPath) as? CoinTableViewCell else { return UITableViewCell() }
       
-      cell.configure(crypto: crypto)
+      cell.configure(
+        crypto: crypto, 
+        isInitialize: self.isInitialize
+      )
       cell.selectionStyle = .none
       return cell
     }
@@ -158,6 +169,9 @@ class MainViewController: UIViewController {
   }
   
   func applySnapshot(cellInfo: [CryptoCellInfo]?) {
+      // scroll 중 > applySnapshot 제한
+      guard !isTableViewScrolling else { return }
+      
     // tableview에 들어가는 section, item 초기화
     var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, CryptoCellInfo>()
     snapshot.appendSections([.main])
@@ -166,7 +180,7 @@ class MainViewController: UIViewController {
     } else {
       snapshot.appendItems([])
     }
-    
+    self.isInitialize = false
     self.dataSource?.apply(snapshot, animatingDifferences: false)
   }
   
@@ -254,8 +268,16 @@ extension MainViewController: View {
 // MARK: TableView Delegate
 extension MainViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    print("cell click : \(indexPath.row)")
-    WebSocketManager.shared.disconnect(socketType: .ticker)
+    self.reactor.mainSocketManager?.disconnect(socketType: .ticker)
+      
     self.coordinator?.pushCryptoDetailVC(selectCrypto: reactor.currentState.cryptoCellInfo[indexPath.row])
   }
+    
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        isTableViewScrolling = false
+    }
+    
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        isTableViewScrolling = true
+    }
 }

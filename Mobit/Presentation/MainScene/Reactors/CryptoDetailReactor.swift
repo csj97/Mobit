@@ -72,14 +72,14 @@ extension CryptoDetailReactor {
 extension CryptoDetailReactor {
   // WebSocket Ticker
   private func connectTickerSocket(crypto: CryptoCellInfo) -> Observable<CryptoDetailMutation> {
-    
+    let webSocket = WebSocketManager()
     let socketObservable = Observable<CryptoDetailMutation>.create { observer in
-      WebSocketManager.shared
+      webSocket
         .connect(
           codes: [self.transformMarketForm(market: crypto.market)],
           socketType: .ticker
         )
-      WebSocketManager.shared.observeReceivedData()
+      webSocket.observeReceivedData()
         .observe(on: MainScheduler.instance)
         .subscribe { [weak self] data in
           guard let self = self else { return }
@@ -115,13 +115,14 @@ extension CryptoDetailReactor {
   
   // 호가창 WebSocket 통신
   private func connectOrderBookTicker(crypto: CryptoCellInfo) -> Observable<CryptoDetailMutation> {
+      let webSocket = WebSocketManager()
     let socketObservable = Observable<CryptoDetailMutation>.create { observer in
-      WebSocketManager.shared
+      webSocket
         .connectOrderBook(
           codes: [self.transformMarketForm(market: self.selectCrypto.market)],
           socketType: .orderbook
         )
-      WebSocketManager.shared.observeReceivedData()
+        webSocket.observeReceivedData()
         .observe(on: MainScheduler.instance)
         .subscribe { [weak self] data in
           guard let self = self else { return }

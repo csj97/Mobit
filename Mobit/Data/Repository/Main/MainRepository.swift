@@ -50,6 +50,7 @@ class MainRepository: MainRepositoryProtocol {
     }
   }
   
+    // ticker 리스트 조회
   func loadTicker(markets: [String]) -> Observable<CryptoTickerList> {
     let decodeTarget = CryptoTickerListDTO.self
 
@@ -60,7 +61,10 @@ class MainRepository: MainRepositoryProtocol {
           case .success(let response):
             switch response.statusCode {
             case 200..<300:
-              guard let cryptoTickerList = try? JSONDecoder().decode(decodeTarget, from: response.data) else {
+              guard let cryptoTickerList = try? JSONDecoder().decode(
+                decodeTarget,
+                from: response.data
+              ) else {
                 observer.onError(ErrorType.dataMappingError)
                 return
               }

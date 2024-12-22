@@ -17,7 +17,9 @@ class MainCoordinator: BaseCoordinator {
   }
   
   func start() {
-    let reactor = MainReactor(mainUseCase: MainUseCase(mainRepository: MainRepository()))
+    let reactor = MainReactor(
+        mainUseCase: MainUseCase(mainRepository: MainRepository())
+    )
     let mainVC = MainViewController(reactor: reactor)
     mainVC.coordinator = self
     self.navigationController.viewControllers = [mainVC]

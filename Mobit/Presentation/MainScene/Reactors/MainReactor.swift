@@ -19,7 +19,12 @@ class MainReactor: Reactor {
   private let mainUseCase: MainUseCase
   private let disposeBag = DisposeBag()
   let initialState: MainReactorState = MainReactorState()
+  var mainSocketManager: WebSocketManager? = nil
   
+    deinit {
+        print("MainReactor Deinit()")
+    }
+    
   init(mainUseCase: MainUseCase) {
     self.mainUseCase = mainUseCase
     self.action.onNext(.loadCrypto(selectedTab: .krw))
@@ -29,7 +34,7 @@ class MainReactor: Reactor {
 // 기본 설정
 extension MainReactor {
   enum MainAction {
-    case loadCrypto(selectedTab: SelectedTab)
+      case loadCrypto(selectedTab: SelectedTab)
     case loadSocketTicker(selectedTab: SelectedTab, cryptoList: CryptoList)
   }
   
@@ -61,7 +66,10 @@ extension MainReactor {
       return self.loadCrypto_Ticker(selectedTab: selectedTab)
       
     case .loadSocketTicker(let selectedTab, let cryptoList):
-      return self.loadSocketTicker(selectedTab: selectedTab, cryptoList: cryptoList)
+      return self.loadSocketTicker(
+        selectedTab: selectedTab,
+        cryptoList: cryptoList
+      )
       
     }
   }
@@ -166,7 +174,11 @@ extension MainReactor {
     }
     
     let cellInfos: [CryptoCellInfo] = filteredCryptoList.compactMap { crypto in
-      return CryptoCellInfo(cryptoName: crypto.koreanName, market: crypto.market, marketEvent: crypto.marketEvent)
+      return CryptoCellInfo(
+        cryptoName: crypto.koreanName,
+        market: crypto.market,
+        marketEvent: crypto.marketEvent
+      )
     }
     
     let cryptoCells: [CryptoCellInfo] = cellInfos.compactMap { cryptoCellInfo in
@@ -249,12 +261,16 @@ extension MainReactor {
   }
   
   // WebSocket Ticker
-  private func loadSocketTicker(selectedTab: SelectedTab, cryptoList: CryptoList) -> Observable<MainMutation> {
+    private func loadSocketTicker(
+        selectedTab: SelectedTab,
+        cryptoList: CryptoList
+    ) -> Observable<MainMutation> {
     let cryptoJoined = cryptoList.map { $0.market }
     
     let socketObservable = Observable<MainMutation>.create { observer in
-      WebSocketManager.shared.connect(codes: cryptoJoined, socketType: .ticker)
-      WebSocketManager.shared.tickerDataSubject
+      self.mainSocketManager = WebSocketManager()
+      self.mainSocketManager?.connect(codes: cryptoJoined, socketType: .ticker)
+      self.mainSocketManager?.tickerDataSubject
         .observe(on: MainScheduler.instance)
         .subscribe { [weak self] data in
           guard let self = self else { return }
@@ -275,7 +291,8 @@ extension MainReactor {
         }.disposed(by: self.disposeBag)
       
       return Disposables.create {
-        WebSocketManager.shared.disconnect(socketType: .ticker)
+          // 구독 해제될 때
+          self.mainSocketManager?.disconnect(socketType: .ticker)
       }
     }
     
