@@ -14,7 +14,6 @@ struct Crypto: Hashable {
   var market: String  // KRW-BTC 형태
   let koreanName: String
   let englishName: String
-  let marketWarning: String
   let marketEvent: MarketEvent
 }
 

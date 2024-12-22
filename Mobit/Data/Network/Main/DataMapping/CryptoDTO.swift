@@ -13,14 +13,12 @@ struct CryptoDTO: Hashable, Codable {
   let market: String  // KRW-BTC 형태
   let koreanName: String
   let englishName: String
-  let marketWarning: String
   let marketEvent: MarketEventDTO
   
   enum CodingKeys: String, CodingKey {
     case market
     case koreanName = "korean_name"
     case englishName = "english_name"
-    case marketWarning = "market_warning" // 유의 종목 여부 (NONE, CAUTION-투자유의)
     case marketEvent = "market_event"
   }
 }
@@ -51,7 +49,6 @@ extension CryptoDTO {
     return .init(market: market,
                  koreanName: koreanName,
                  englishName: englishName,
-                 marketWarning: marketWarning,
                  marketEvent: marketEvent.toDomain())
   }
 }
