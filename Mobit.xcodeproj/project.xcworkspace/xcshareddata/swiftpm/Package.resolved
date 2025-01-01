@@ -1,4 +1,5 @@
 {
+  "originHash" : "1a4f5c7e39ed4d9c3ba84695e164c2bb9bdb0d09f113454e2090c82a5d7b19a1",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -109,6 +110,15 @@
       }
     },
     {
+      "identity" : "starscream",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/daltoniam/Starscream.git",
+      "state" : {
+        "revision" : "c6bfd1af48efcc9a9ad203665db12375ba6b145a",
+        "version" : "4.0.8"
+      }
+    },
+    {
       "identity" : "swift-jwt",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Kitura/Swift-JWT.git",
@@ -145,5 +155,5 @@
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }

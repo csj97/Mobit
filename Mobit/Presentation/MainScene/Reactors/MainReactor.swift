@@ -18,6 +18,7 @@ enum SelectedTab {
 class MainReactor: Reactor {
   private let mainUseCase: MainUseCase
   private let disposeBag = DisposeBag()
+  let socketManager: NewWebSocketManager = NewWebSocketManager()
   let initialState: MainReactorState = MainReactorState()
   
   init(mainUseCase: MainUseCase) {
@@ -122,7 +123,8 @@ extension MainReactor {
       .subscribe { mutation in
         switch mutation {
         case .completed:
-          self.action.onNext(.loadSocketTicker(selectedTab: selectedTab, cryptoList: self.currentState.tabCryptoList))
+          self.action.onNext(.loadSocketTicker(selectedTab: selectedTab,
+                                               cryptoList: self.currentState.tabCryptoList))
         case .next:
           break
         case .error(let error):
@@ -151,7 +153,11 @@ extension MainReactor {
   ///   - cryptoList: name, market, event 정보를 갖고 있음
   ///   - cryptoTickerList: tradePrice, signedChangeRate, change, accTradeVolume 정보를 갖고 있음
   /// - Returns: Main TableView Cell에 노출될 Cell 정보를 결합해서 반환
-  func combineCrypto(selectedTab: SelectedTab, cryptoList: CryptoList, cryptoTickerList: CryptoTickerList) -> [CryptoCellInfo] {
+  func combineCrypto(
+    selectedTab: SelectedTab,
+    cryptoList: CryptoList,
+    cryptoTickerList: CryptoTickerList
+  ) -> [CryptoCellInfo] {
     var filteredCryptoList: CryptoList = []
     
     switch selectedTab {
@@ -166,7 +172,11 @@ extension MainReactor {
     }
     
     let cellInfos: [CryptoCellInfo] = filteredCryptoList.compactMap { crypto in
-      return CryptoCellInfo(cryptoName: crypto.koreanName, market: crypto.market, marketEvent: crypto.marketEvent)
+      return CryptoCellInfo(
+        cryptoName: crypto.koreanName,
+        market: crypto.market,
+        marketEvent: crypto.marketEvent
+      )
     }
     
     let cryptoCells: [CryptoCellInfo] = cellInfos.compactMap { cryptoCellInfo in
@@ -175,6 +185,7 @@ extension MainReactor {
       }
       var updatedCryptoCellInfo = cryptoCellInfo
       updatedCryptoCellInfo.market = self.transformMarketForm(market: cryptoCellInfo.market)
+      updatedCryptoCellInfo.prevPrice = matchedTicker.prevClosingPrice
       updatedCryptoCellInfo.tradePrice = matchedTicker.tradePrice
       updatedCryptoCellInfo.changePrice = matchedTicker.changePrice
       updatedCryptoCellInfo.signedChangeRate = matchedTicker.signedChangeRate
@@ -253,8 +264,19 @@ extension MainReactor {
     let cryptoJoined = cryptoList.map { $0.market }
     
     let socketObservable = Observable<MainMutation>.create { observer in
-      WebSocketManager.shared.connect(codes: cryptoJoined, socketType: .ticker)
-      WebSocketManager.shared.tickerDataSubject
+      self.socketManager.connect()
+      
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
+        self.socketManager.sendMessage(
+          codes: cryptoJoined,
+          socketType: .ticker
+        )
+      })
+      
+//      WebSocketManager.shared.connect(codes: cryptoJoined, socketType: .ticker)
+      
+//    WebSocketManager.shared.tickerDataSubject
+      self.socketManager.tickerDataSubject
         .observe(on: MainScheduler.instance)
         .subscribe { [weak self] data in
           guard let self = self else { return }
@@ -275,7 +297,7 @@ extension MainReactor {
         }.disposed(by: self.disposeBag)
       
       return Disposables.create {
-        WebSocketManager.shared.disconnect(socketType: .ticker)
+        self.socketManager.disconnect()
       }
     }
     

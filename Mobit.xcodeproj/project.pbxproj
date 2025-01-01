@@ -27,6 +27,8 @@
 		31D6444A2C72587B00C7F96D /* CryptoDetailReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D644492C72587B00C7F96D /* CryptoDetailReactor.swift */; };
 		31D6444D2C72590C00C7F96D /* CryptoDetailUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D6444C2C72590C00C7F96D /* CryptoDetailUseCase.swift */; };
 		31D6444F2C72595000C7F96D /* CryptoDetailRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D6444E2C72595000C7F96D /* CryptoDetailRepository.swift */; };
+		31DC41E02CD9196400F0FFF2 /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = 31DC41DF2CD9196400F0FFF2 /* Starscream */; };
+		31DC41E22CD9197700F0FFF2 /* NewWebSocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31DC41E12CD9197700F0FFF2 /* NewWebSocketManager.swift */; };
 		31E208042C4677CB000BFEBC /* AppTabBarCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208032C4677CB000BFEBC /* AppTabBarCoordinator.swift */; };
 		31E208072C4678B9000BFEBC /* MainCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208062C4678B9000BFEBC /* MainCoordinator.swift */; };
 		31E208092C46BF6B000BFEBC /* MainTabBarCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208082C46BF6B000BFEBC /* MainTabBarCoordinator.swift */; };
@@ -128,6 +130,7 @@
 		31D644492C72587B00C7F96D /* CryptoDetailReactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailReactor.swift; sourceTree = "<group>"; };
 		31D6444C2C72590C00C7F96D /* CryptoDetailUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailUseCase.swift; sourceTree = "<group>"; };
 		31D6444E2C72595000C7F96D /* CryptoDetailRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailRepository.swift; sourceTree = "<group>"; };
+		31DC41E12CD9197700F0FFF2 /* NewWebSocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewWebSocketManager.swift; sourceTree = "<group>"; };
 		31E208032C4677CB000BFEBC /* AppTabBarCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTabBarCoordinator.swift; sourceTree = "<group>"; };
 		31E208062C4678B9000BFEBC /* MainCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCoordinator.swift; sourceTree = "<group>"; };
 		31E208082C46BF6B000BFEBC /* MainTabBarCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabBarCoordinator.swift; sourceTree = "<group>"; };
@@ -172,6 +175,7 @@
 				99C20A5B2C48DE40009276E7 /* SwiftJWT in Frameworks */,
 				99C20A862C4A27F1009276E7 /* ReactorKit in Frameworks */,
 				3133E2772C3F7192000D4B1A /* FlexLayout in Frameworks */,
+				31DC41E02CD9196400F0FFF2 /* Starscream in Frameworks */,
 				9987250A2C50944700088C71 /* RxSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -449,8 +453,9 @@
 		99C20A672C490317009276E7 /* Network */ = {
 			isa = PBXGroup;
 			children = (
-				99C20AAD2C4F63E4009276E7 /* WebSocketManager.swift */,
+				31DC41E12CD9197700F0FFF2 /* NewWebSocketManager.swift */,
 				99C20AB52C4F76B5009276E7 /* Main */,
+				99C20AAD2C4F63E4009276E7 /* WebSocketManager.swift */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -543,6 +548,7 @@
 				998725012C50944700088C71 /* RxCocoa */,
 				998725052C50944700088C71 /* RxRelay */,
 				998725092C50944700088C71 /* RxSwift */,
+				31DC41DF2CD9196400F0FFF2 /* Starscream */,
 			);
 			productName = Mobit;
 			productReference = 3133E2242C3E2355000D4B1A /* Mobit.app */;
@@ -629,6 +635,7 @@
 				99C20A6A2C490615009276E7 /* XCRemoteSwiftPackageReference "Moya" */,
 				99C20A842C4A27F1009276E7 /* XCRemoteSwiftPackageReference "ReactorKit" */,
 				998724FC2C50944700088C71 /* XCRemoteSwiftPackageReference "RxSwift" */,
+				31DC41DE2CD9196400F0FFF2 /* XCRemoteSwiftPackageReference "Starscream" */,
 			);
 			productRefGroup = 3133E2252C3E2355000D4B1A /* Products */;
 			projectDirPath = "";
@@ -692,6 +699,7 @@
 				99C20AAE2C4F63E4009276E7 /* WebSocketManager.swift in Sources */,
 				99C20AAC2C4F458C009276E7 /* CryptoSocketTickerDTO.swift in Sources */,
 				31D6444D2C72590C00C7F96D /* CryptoDetailUseCase.swift in Sources */,
+				31DC41E22CD9197700F0FFF2 /* NewWebSocketManager.swift in Sources */,
 				99C20A692C490326009276E7 /* MainNetworkService.swift in Sources */,
 				311E33FA2C46068C0054C6BC /* ErrorType.swift in Sources */,
 				31E208042C4677CB000BFEBC /* AppTabBarCoordinator.swift in Sources */,
@@ -1079,6 +1087,14 @@
 				minimumVersion = 2.0.10;
 			};
 		};
+		31DC41DE2CD9196400F0FFF2 /* XCRemoteSwiftPackageReference "Starscream" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/daltoniam/Starscream.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.8;
+			};
+		};
 		31E208412C46CB47000BFEBC /* XCRemoteSwiftPackageReference "Then" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/devxoul/Then.git";
@@ -1131,6 +1147,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3133E2752C3F7192000D4B1A /* XCRemoteSwiftPackageReference "FlexLayout" */;
 			productName = FlexLayout;
+		};
+		31DC41DF2CD9196400F0FFF2 /* Starscream */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 31DC41DE2CD9196400F0FFF2 /* XCRemoteSwiftPackageReference "Starscream" */;
+			productName = Starscream;
 		};
 		31E208422C46CB47000BFEBC /* Then */ = {
 			isa = XCSwiftPackageProductDependency;

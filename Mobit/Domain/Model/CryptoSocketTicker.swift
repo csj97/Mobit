@@ -43,7 +43,7 @@ struct CryptoSocketTicker: Hashable {
   let marketStateForIOS: String?
   let isTradingSuspended: Bool
   let delistingDate: Date?
-  let marketWarning: String
+  let marketWarning: String?
   let timestamp: Int64
   let streamType: String
 }

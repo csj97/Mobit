@@ -13,6 +13,7 @@ struct CryptoCellInfo: Hashable {
   var cryptoName: String  // 종목명
   var market: String    // 종목 구분 코드 BTC-KRW
   var marketEvent: MarketEvent?
+  var prevPrice: Double?
   var tradePrice: Double?
   var changePrice: Double?
   var signedChangeRate: Double?  // 부호있는 전일대비 변화율

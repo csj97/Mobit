@@ -19,7 +19,12 @@ class CryptoDetailCoordinator: BaseCoordinator {
   }
   
   func start() {
-    let reactor = CryptoDetailReactor(selectCrypto: self.selectCrypto, cryptoDetailUseCase: CryptoDetailUseCase(cryptoDetailRepository: CryptoDetailRepository()))
+    let reactor = CryptoDetailReactor(
+      selectCrypto: self.selectCrypto,
+      cryptoDetailUseCase: CryptoDetailUseCase(
+        cryptoDetailRepository: CryptoDetailRepository()
+      )
+    )
     let cryptoDetailVC = CryptoDetailViewController(reactor: reactor)
     cryptoDetailVC.coordinator = self
     self.navigationController.pushViewController(cryptoDetailVC, animated: true)

@@ -17,8 +17,13 @@ class CryptoDetailReactor: Reactor {
   private let disposeBag = DisposeBag()
   
   let initialState: CryptoDetailState = CryptoDetailState()
+  let tickerSocketManager: NewWebSocketManager = NewWebSocketManager()
+  let orderBookSocketManager: NewWebSocketManager = NewWebSocketManager()
   
-  init(selectCrypto: CryptoCellInfo, cryptoDetailUseCase: CryptoDetailUseCase) {
+  init(
+    selectCrypto: CryptoCellInfo,
+    cryptoDetailUseCase: CryptoDetailUseCase
+  ) {
     self.selectCrypto = selectCrypto
     self.cryptoDetailUseCase = cryptoDetailUseCase
   }
@@ -31,7 +36,7 @@ extension CryptoDetailReactor {
   }
   
   enum CryptoDetailMutation {
-    case setCryptoInfo(cryptoInfo: CryptoCellInfo?)
+    case setCryptoInfo(cryptoInfo: CryptoCellInfo)
     case setOrderBookInfo(obTicker: Orderbook)
   }
   
@@ -52,16 +57,16 @@ extension CryptoDetailReactor {
     }
   }
   
-  func reduce(state: CryptoDetailState, mutation: CryptoDetailMutation) -> CryptoDetailState {
+  func reduce(state: CryptoDetailState,
+              mutation: CryptoDetailMutation) -> CryptoDetailState {
     var newState = state
     
     switch mutation {
     case .setCryptoInfo(let cryptoInfo):
-      if let cryptoInfo = cryptoInfo {
-        newState.cryptoInfo = cryptoInfo
-      }
+      print("CryptoInfo!! \(cryptoInfo)")
+      newState.cryptoInfo = cryptoInfo
     case .setOrderBookInfo(let obTicker):
-      print(obTicker)
+      print("OrderBook Ticker!! \(obTicker)")
       newState.obTicker = obTicker
     }
     
@@ -74,12 +79,12 @@ extension CryptoDetailReactor {
   private func connectTickerSocket(crypto: CryptoCellInfo) -> Observable<CryptoDetailMutation> {
     
     let socketObservable = Observable<CryptoDetailMutation>.create { observer in
-      WebSocketManager.shared
-        .connect(
-          codes: [self.transformMarketForm(market: crypto.market)],
-          socketType: .ticker
-        )
-      WebSocketManager.shared.observeReceivedData()
+      self.tickerSocketManager.connect()
+      self.tickerSocketManager.sendMessage(
+        codes: [self.transformMarketForm(market: crypto.market)],
+        socketType: .ticker
+      )
+      self.tickerSocketManager.observeReceivedData()
         .observe(on: MainScheduler.instance)
         .subscribe { [weak self] data in
           guard let self = self else { return }
@@ -106,7 +111,7 @@ extension CryptoDetailReactor {
         }.disposed(by: self.disposeBag)
       
       return Disposables.create {
-        WebSocketManager.shared.disconnect(socketType: .ticker)
+        self.tickerSocketManager.disconnect()
       }
     }
     
@@ -116,16 +121,18 @@ extension CryptoDetailReactor {
   // 호가창 WebSocket 통신
   private func connectOrderBookTicker(crypto: CryptoCellInfo) -> Observable<CryptoDetailMutation> {
     let socketObservable = Observable<CryptoDetailMutation>.create { observer in
-      WebSocketManager.shared
-        .connectOrderBook(
-          codes: [self.transformMarketForm(market: self.selectCrypto.market)],
+      self.orderBookSocketManager.connect()
+      self.orderBookSocketManager.sendMessage(
+          codes: [
+            self.transformMarketForm(
+              market: self.selectCrypto.market
+            )
+          ],
           socketType: .orderbook
         )
-      WebSocketManager.shared.observeReceivedData()
+      self.orderBookSocketManager.observeReceivedData()
         .observe(on: MainScheduler.instance)
         .subscribe { [weak self] data in
-          guard let self = self else { return }
-
           do {
             let decodeTarget = OrderbookDTO.self
             let orderBookDTO = try JSONDecoder().decode(decodeTarget, from: data)
@@ -141,7 +148,7 @@ extension CryptoDetailReactor {
         }.disposed(by: self.disposeBag)
       
       return Disposables.create {
-        WebSocketManager.shared.disconnect(socketType: .orderbook)
+        self.orderBookSocketManager.disconnect()
       }
     }
     

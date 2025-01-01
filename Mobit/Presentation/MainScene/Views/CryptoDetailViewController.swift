@@ -17,7 +17,10 @@ class CryptoDetailViewController: UIViewController {
   weak var coordinator: CryptoDetailCoordinator?
   var reactor: CryptoDetailReactor
   var disposeBag = DisposeBag()
-  var dataSource: UITableViewDiffableDataSource<TableViewSection, Orderbook>?
+  var dataSource: UITableViewDiffableDataSource<TableViewSection, Orderbook.OrderbookUnit>?
+  var prevClosingPrice: Double? = nil
+  private var askData: [Orderbook.OrderbookUnit] = []
+  private var bidData: [Orderbook.OrderbookUnit] = []
   private let cellIndentifier = "OrderBookCell"
   
   
@@ -125,10 +128,8 @@ class CryptoDetailViewController: UIViewController {
   }
   
   override func viewDidAppear(_ animated: Bool) {
-    DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
-      self.reactor.action
-        .onNext(.connectTickerSocket)
-    })
+    self.reactor.action
+      .onNext(.connectTickerSocket)
     self.reactor.action
       .onNext(.connectOrderBookSocket)
   }
@@ -158,6 +159,7 @@ class CryptoDetailViewController: UIViewController {
   
   func setUpViews(crypto: CryptoCellInfo? = nil) {
     
+    self.prevClosingPrice = crypto?.prevPrice
     let numberFormatter = NumberFormatter()
     numberFormatter.numberStyle = .decimal
     
@@ -167,24 +169,24 @@ class CryptoDetailViewController: UIViewController {
           let changePrice = selectCrypto.changePrice else { return }
     
     self.titleLabel.text = "\(selectCrypto.cryptoName)(\(selectCrypto.market))"
-    if selectCrypto.tradePrice ?? 0 < 1 {
+    if tradePrice < 1 {
       self.priceLabel.text = self.formatTradePrice(tradePrice)
     } else {
-      self.priceLabel.text = numberFormatter
-        .string(from: NSNumber(value: selectCrypto.tradePrice ?? 0))
+      self.priceLabel.text = numberFormatter.string(
+        from: NSNumber(value: tradePrice)
+      )
     }
     
     self.changeRateLabel.text = String(
-      format: "%.2f%%",
-      signedChangeRate * 100
+      format: "%.2f%%", signedChangeRate * 100
     )
     
     if changePrice < 1 {
-      self.changePriceLabel.text = self
-        .formatTradePrice(changePrice)
+      self.changePriceLabel.text = self.formatTradePrice(changePrice)
     } else {
-      self.changePriceLabel.text = numberFormatter
-        .string(from: NSNumber(value: changePrice))
+      self.changePriceLabel.text = numberFormatter.string(
+        from: NSNumber(value: changePrice)
+      )
     }
     
     switch selectCrypto.change {
@@ -215,11 +217,34 @@ class CryptoDetailViewController: UIViewController {
     self.orderTableView.register(OrderBookCell.self, forCellReuseIdentifier: self.cellIndentifier)
     self.orderTableView.rowHeight = 50
     
-    self.dataSource = UITableViewDiffableDataSource<TableViewSection, Orderbook>(tableView: self.orderTableView) { (tableView: UITableView, indexPath: IndexPath, obTicker: Orderbook) -> UITableViewCell? in
+    self.dataSource = UITableViewDiffableDataSource<TableViewSection, Orderbook.OrderbookUnit>(tableView: self.orderTableView) { (
+      tableView: UITableView,
+      indexPath: IndexPath,
+      obUnits: Orderbook.OrderbookUnit
+    ) -> UITableViewCell? in
       
       guard let cell = self.orderTableView.dequeueReusableCell(withIdentifier: self.cellIndentifier, for: indexPath) as? OrderBookCell else { return UITableViewCell() }
       
-      cell.configure(obTicker: obTicker)
+      if indexPath.row < self.askData.count {
+        // 상단 15개의 ask
+        cell.configure(
+          changeRate: self.calculateFluctuation(
+            obPrice: self.askData[indexPath.row].askPrice
+          ),
+          obPrice: self.askData[indexPath.row].askPrice,
+          obSize: self.askData[indexPath.row].askSize
+        )
+      } else {
+        // 하단 15개의 bid
+        cell.configure(
+          changeRate: self.calculateFluctuation(
+            obPrice: self.bidData[indexPath.row].bidPrice
+          ),
+          obPrice: self.bidData[indexPath.row].bidPrice,
+          obSize: self.bidData[indexPath.row].bidSize
+        )
+      }
+      
       cell.selectionStyle = .none
       return cell
     }
@@ -227,6 +252,21 @@ class CryptoDetailViewController: UIViewController {
     self.dataSource?.defaultRowAnimation = .fade
     self.orderTableView.dataSource = self.dataSource
     self.orderTableView.delegate = self
+  }
+  
+  /// TableViewDiffableDataSource Snapshot Update
+  func applySnapshot(obTicker: Orderbook?) {
+    // tableview에 들어가는 section, item 초기화
+    var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, Orderbook.OrderbookUnit>()
+    snapshot.appendSections([.main])
+    if let obTicker = obTicker {
+      let obUnits = obTicker.orderbookUnits.map { $0 }
+      snapshot.appendItems(obUnits, toSection: .main)
+    } else {
+      snapshot.appendItems([])
+    }
+    
+    self.dataSource?.apply(snapshot, animatingDifferences: false)
   }
   
   func setUpFlexItems() {
@@ -359,17 +399,50 @@ extension CryptoDetailViewController {
     }
     return String(format: "%.\(precision)f", price)
   }
+  
+  /// 변동성 % 계산
+  private func calculateFluctuation(obPrice: Double?) -> Double? {
+      guard let obPrice = obPrice,
+            let prevClosingPrice = self.prevClosingPrice else {
+          return nil
+      }
+      
+      if prevClosingPrice == 0 {
+          return 1
+      } else {
+          return obPrice / prevClosingPrice
+      }
+  }
 }
 
 // MARK: Reactor - View
 extension CryptoDetailViewController {
+  
   func bind(reactor: CryptoDetailReactor) {
+    
     reactor.state.map { $0.cryptoInfo }
       .distinctUntilChanged()
       .observe(on: MainScheduler.instance)
       .subscribe(onNext: { cellInfo in
         self.setUpViews(crypto: cellInfo)
       })
+      .disposed(by: self.disposeBag)
+    
+    reactor.state.map { $0.obTicker }
+      .distinctUntilChanged()
+      .observe(on: MainScheduler.asyncInstance)
+      .subscribe(
+        onNext: { obTicker in
+          guard let obTicker = obTicker else { return }
+          self.askData = obTicker.orderbookUnits.sorted(
+            by: { $0.askPrice > $1.askPrice }
+          )
+          self.bidData = obTicker.orderbookUnits.sorted(
+            by: { $0.bidPrice < $1.bidPrice }
+          )
+          self.applySnapshot(obTicker: obTicker)
+        }
+      )
       .disposed(by: self.disposeBag)
   }
 }
