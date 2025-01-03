@@ -13,16 +13,20 @@ import PinLayout
 import Then
 import UIKit
 
+struct OrderUnit: Hashable {
+  var identifier: UUID = UUID()
+  var price: Double
+  var size: Double
+}
+
 class CryptoDetailViewController: UIViewController {
   weak var coordinator: CryptoDetailCoordinator?
   var reactor: CryptoDetailReactor
   var disposeBag = DisposeBag()
-  var dataSource: UITableViewDiffableDataSource<TableViewSection, Orderbook.OrderbookUnit>?
+  var dataSource: UITableViewDiffableDataSource<TableViewSection, OrderUnit>?
   var prevClosingPrice: Double? = nil
-  private var askData: [Orderbook.OrderbookUnit] = []
-  private var bidData: [Orderbook.OrderbookUnit] = []
+  var isFirstInput: Bool = false
   private let cellIndentifier = "OrderBookCell"
-  
   
   init(reactor: CryptoDetailReactor) {
     self.reactor = reactor
@@ -119,6 +123,7 @@ class CryptoDetailViewController: UIViewController {
     
     self.addViews()
     self.setUpViews()
+    self.setTableView()
     self.setButtons()
     self.setSegmentedControl()
     
@@ -217,33 +222,20 @@ class CryptoDetailViewController: UIViewController {
     self.orderTableView.register(OrderBookCell.self, forCellReuseIdentifier: self.cellIndentifier)
     self.orderTableView.rowHeight = 50
     
-    self.dataSource = UITableViewDiffableDataSource<TableViewSection, Orderbook.OrderbookUnit>(tableView: self.orderTableView) { (
+    self.dataSource = UITableViewDiffableDataSource<TableViewSection, OrderUnit>(tableView: self.orderTableView) { (
       tableView: UITableView,
       indexPath: IndexPath,
-      obUnits: Orderbook.OrderbookUnit
+      obUnit: OrderUnit
     ) -> UITableViewCell? in
       
       guard let cell = self.orderTableView.dequeueReusableCell(withIdentifier: self.cellIndentifier, for: indexPath) as? OrderBookCell else { return UITableViewCell() }
-      
-      if indexPath.row < self.askData.count {
-        // 상단 15개의 ask
-        cell.configure(
-          changeRate: self.calculateFluctuation(
-            obPrice: self.askData[indexPath.row].askPrice
-          ),
-          obPrice: self.askData[indexPath.row].askPrice,
-          obSize: self.askData[indexPath.row].askSize
-        )
-      } else {
-        // 하단 15개의 bid
-        cell.configure(
-          changeRate: self.calculateFluctuation(
-            obPrice: self.bidData[indexPath.row].bidPrice
-          ),
-          obPrice: self.bidData[indexPath.row].bidPrice,
-          obSize: self.bidData[indexPath.row].bidSize
-        )
-      }
+      cell.configure(
+        changeRate: self.calculateFluctuation(
+          obPrice: obUnit.price
+        ),
+        obPrice: obUnit.price,
+        obSize: obUnit.size
+      )
       
       cell.selectionStyle = .none
       return cell
@@ -255,18 +247,25 @@ class CryptoDetailViewController: UIViewController {
   }
   
   /// TableViewDiffableDataSource Snapshot Update
-  func applySnapshot(obTicker: Orderbook?) {
+  func applySnapshot(orderDatas: [OrderUnit]?) {
     // tableview에 들어가는 section, item 초기화
-    var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, Orderbook.OrderbookUnit>()
+    var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, OrderUnit>()
     snapshot.appendSections([.main])
-    if let obTicker = obTicker {
-      let obUnits = obTicker.orderbookUnits.map { $0 }
-      snapshot.appendItems(obUnits, toSection: .main)
+    if let orderDatas = orderDatas {
+      snapshot.appendItems(orderDatas, toSection: .main)
     } else {
       snapshot.appendItems([])
     }
     
-    self.dataSource?.apply(snapshot, animatingDifferences: false)
+    self.dataSource?.apply(snapshot, animatingDifferences: false, completion: {
+      if self.isFirstInput == false {
+        DispatchQueue.main.async {
+          self.isFirstInput = true
+          let indexPath = IndexPath(row: 15, section: 0)
+          self.orderTableView.scrollToRow(at: indexPath, at: .middle, animated: false)
+        }
+      }
+    })
   }
   
   func setUpFlexItems() {
@@ -434,13 +433,14 @@ extension CryptoDetailViewController {
       .subscribe(
         onNext: { obTicker in
           guard let obTicker = obTicker else { return }
-          self.askData = obTicker.orderbookUnits.sorted(
+          let askData = obTicker.orderbookUnits.sorted(
             by: { $0.askPrice > $1.askPrice }
-          )
-          self.bidData = obTicker.orderbookUnits.sorted(
+          ).map { OrderUnit(price: $0.askPrice, size: $0.askSize) }
+          let bidData = obTicker.orderbookUnits.sorted(
             by: { $0.bidPrice < $1.bidPrice }
-          )
-          self.applySnapshot(obTicker: obTicker)
+          ).map { OrderUnit(price: $0.bidPrice, size: $0.bidSize) }
+          let orderDatas = askData + bidData
+          self.applySnapshot(orderDatas: orderDatas)
         }
       )
       .disposed(by: self.disposeBag)
