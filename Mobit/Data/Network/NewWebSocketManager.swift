@@ -18,7 +18,7 @@ class NewWebSocketManager: WebSocketDelegate {
 
   static let shared = NewWebSocketManager()
   
-  
+  var callBack: (() -> ())? = nil
   let tickerDataSubject = PublishSubject<Data>()
   let orderBookDataSubject = PublishSubject<Data>()
   var sockets: [String: WebSocket] = [:]
@@ -31,6 +31,11 @@ class NewWebSocketManager: WebSocketDelegate {
   private var socket: WebSocket!
   private var isConnected = false
   var socketType: SocketType = .ticker
+  
+  convenience init(socketType: SocketType) {
+    self.init()
+    self.socketType = socketType
+  }
   
   init() {
     // WebSocket 초기화 (URL을 연결할 서버의 URL로 변경)
@@ -83,7 +88,8 @@ class NewWebSocketManager: WebSocketDelegate {
     switch event {
     case .connected(let headers):
       isConnected = true
-      print("WebSocket connected: \(headers)")
+      callBack?()
+      print("WebSocket connected")
       
     case .disconnected(let reason, let code):
       isConnected = false
@@ -99,7 +105,7 @@ class NewWebSocketManager: WebSocketDelegate {
       case .orderbook:
         self.orderBookDataSubject.onNext(data)
       }
-      print("Received binary data: \(data)")
+//      print("Received binary data: \(data)")
       
     case .error(let error):
       isConnected = false
