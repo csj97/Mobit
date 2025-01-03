@@ -17,8 +17,8 @@ class CryptoDetailReactor: Reactor {
   private let disposeBag = DisposeBag()
   
   let initialState: CryptoDetailState = CryptoDetailState()
-  let tickerSocketManager: NewWebSocketManager = NewWebSocketManager()
-  let orderBookSocketManager: NewWebSocketManager = NewWebSocketManager()
+  let tickerSocketManager: NewWebSocketManager = NewWebSocketManager(socketType: .ticker)
+  let orderBookSocketManager: NewWebSocketManager = NewWebSocketManager(socketType: .orderbook)
   
   init(
     selectCrypto: CryptoCellInfo,
@@ -80,10 +80,13 @@ extension CryptoDetailReactor {
     
     let socketObservable = Observable<CryptoDetailMutation>.create { observer in
       self.tickerSocketManager.connect()
-      self.tickerSocketManager.sendMessage(
-        codes: [self.transformMarketForm(market: crypto.market)],
-        socketType: .ticker
-      )
+      self.tickerSocketManager.callBack = {
+        self.tickerSocketManager.sendMessage(
+          codes: [self.transformMarketForm(market: crypto.market)],
+          socketType: .ticker
+        )
+      }
+      
       self.tickerSocketManager.observeReceivedData()
         .observe(on: MainScheduler.instance)
         .subscribe { [weak self] data in
@@ -122,7 +125,8 @@ extension CryptoDetailReactor {
   private func connectOrderBookTicker(crypto: CryptoCellInfo) -> Observable<CryptoDetailMutation> {
     let socketObservable = Observable<CryptoDetailMutation>.create { observer in
       self.orderBookSocketManager.connect()
-      self.orderBookSocketManager.sendMessage(
+      self.orderBookSocketManager.callBack = {
+        self.orderBookSocketManager.sendMessage(
           codes: [
             self.transformMarketForm(
               market: self.selectCrypto.market
@@ -130,6 +134,8 @@ extension CryptoDetailReactor {
           ],
           socketType: .orderbook
         )
+      }
+      
       self.orderBookSocketManager.observeReceivedData()
         .observe(on: MainScheduler.instance)
         .subscribe { [weak self] data in
