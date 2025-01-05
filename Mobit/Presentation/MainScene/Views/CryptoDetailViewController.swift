@@ -123,6 +123,13 @@ class CryptoDetailViewController: UIViewController {
     $0.backgroundColor = .green
   }
   
+  override func viewWillAppear(_ animated: Bool) {
+    self.reactor.action
+      .onNext(.connectTickerSocket)
+    self.reactor.action
+      .onNext(.connectOrderBookSocket)
+  }
+  
   override func viewDidLoad() {
     super.viewDidLoad()
     self.view.backgroundColor = .white
@@ -136,13 +143,6 @@ class CryptoDetailViewController: UIViewController {
     self.setUpFlexItems()
     
     self.bind(reactor: self.reactor)
-  }
-  
-  override func viewDidAppear(_ animated: Bool) {
-    self.reactor.action
-      .onNext(.connectTickerSocket)
-    self.reactor.action
-      .onNext(.connectOrderBookSocket)
   }
   
   override func viewDidLayoutSubviews() {
@@ -234,7 +234,11 @@ class CryptoDetailViewController: UIViewController {
       obUnit: OrderUnit
     ) -> UITableViewCell? in
       
-      guard let cell = self.orderTableView.dequeueReusableCell(withIdentifier: self.cellIndentifier, for: indexPath) as? OrderBookCell else { return UITableViewCell() }
+      guard let cell = self.orderTableView.dequeueReusableCell(
+        withIdentifier: self.cellIndentifier,
+        for: indexPath
+      ) as? OrderBookCell else { return UITableViewCell() }
+      
       cell.configure(
         changeRate: self.calculateFluctuation(
           obPrice: obUnit.price
