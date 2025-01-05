@@ -37,48 +37,51 @@ struct CryptoSocketTickerDTO: Codable {
   let highest52WeekDate: String
   let lowest52WeekPrice: Double
   let lowest52WeekDate: String
-  let tradeStatus: String?
   let marketState: String
-  let marketStateForIOS: String?
-  let isTradingSuspended: Bool
-  let delistingDate: Date?
+  let delistingDate: DelistingDateDTO?
   let marketWarning: String
   let timestamp: Int64
   let streamType: String
   
   enum CodingKeys: String, CodingKey {
-    case type, code, change, timestamp
+    case type
+    case code
     case openingPrice = "opening_price"
     case highPrice = "high_price"
     case lowPrice = "low_price"
     case tradePrice = "trade_price"
     case prevClosingPrice = "prev_closing_price"
-    case accTradePrice = "acc_trade_price"
+    case change
     case changePrice = "change_price"
     case signedChangePrice = "signed_change_price"
     case changeRate = "change_rate"
     case signedChangeRate = "signed_change_rate"
-    case askBid = "ask_bid"
     case tradeVolume = "trade_volume"
     case accTradeVolume = "acc_trade_volume"
+    case accTradeVolume24H = "acc_trade_volume_24h"
+    case accTradePrice = "acc_trade_price"
+    case accTradePrice24H = "acc_trade_price_24h"
     case tradeDate = "trade_date"
     case tradeTime = "trade_time"
     case tradeTimestamp = "trade_timestamp"
+    case askBid = "ask_bid"
     case accAskVolume = "acc_ask_volume"
     case accBidVolume = "acc_bid_volume"
     case highest52WeekPrice = "highest_52_week_price"
     case highest52WeekDate = "highest_52_week_date"
     case lowest52WeekPrice = "lowest_52_week_price"
     case lowest52WeekDate = "lowest_52_week_date"
-    case tradeStatus = "trade_status"
     case marketState = "market_state"
-    case marketStateForIOS = "market_state_for_ios"
-    case isTradingSuspended = "is_trading_suspended"
     case delistingDate = "delisting_date"
     case marketWarning = "market_warning"
-    case accTradePrice24H = "acc_trade_price_24h"
-    case accTradeVolume24H = "acc_trade_volume_24h"
+    case timestamp
     case streamType = "stream_type"
+  }
+  
+  struct DelistingDateDTO: Codable {
+    let year: Int
+    let month: Int
+    let day: Int
   }
 }
 
@@ -111,11 +114,8 @@ extension CryptoSocketTickerDTO {
                  highest52WeekDate: highest52WeekDate,
                  lowest52WeekPrice: lowest52WeekPrice,
                  lowest52WeekDate: lowest52WeekDate,
-                 tradeStatus: tradeStatus,
                  marketState: marketState,
-                 marketStateForIOS: marketStateForIOS,
-                 isTradingSuspended: isTradingSuspended,
-                 delistingDate: delistingDate,
+                 delistingDate: self.delistingDate?.toDomain(),
                  marketWarning: marketWarning,
                  timestamp: timestamp,
                  streamType: streamType)
@@ -126,5 +126,11 @@ extension CryptoSocketTickerListDTO{
   // Crypto toDomain을 map을 사용해 배열로 return
   func toDomain() -> [CryptoSocketTicker] {
     return self.map { $0.toDomain() }
+  }
+}
+
+extension CryptoSocketTickerDTO.DelistingDateDTO {
+  func toDomain() -> CryptoSocketTicker.DelistingDate {
+    return .init(year: self.year, month: self.month, day: self.day)
   }
 }
