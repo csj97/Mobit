@@ -13,13 +13,26 @@ import PinLayout
 import Then
 import UIKit
 
+struct OrderUnit: Hashable {
+  var identifier: UUID = UUID()
+  var type: TradeSide
+  var price: Double
+  var size: Double
+}
+
+enum TradeSide {
+  case ask
+  case bid
+}
+
 class CryptoDetailViewController: UIViewController {
   weak var coordinator: CryptoDetailCoordinator?
   var reactor: CryptoDetailReactor
   var disposeBag = DisposeBag()
-  var dataSource: UITableViewDiffableDataSource<TableViewSection, Orderbook>?
+  var dataSource: UITableViewDiffableDataSource<TableViewSection, OrderUnit>?
+  var prevClosingPrice: Double? = nil
+  var isFirstInput: Bool = false
   private let cellIndentifier = "OrderBookCell"
-  
   
   init(reactor: CryptoDetailReactor) {
     self.reactor = reactor
@@ -73,7 +86,9 @@ class CryptoDetailViewController: UIViewController {
     $0.adjustsFontSizeToFitWidth = true
     $0.font = UIFont.systemFont(ofSize: 11)
   }
-  let segmentedControl: UISegmentedControl = UISegmentedControl(items: ["주문", "차트", "정보"]).then {
+  let segmentedControl: UISegmentedControl = UISegmentedControl(
+    items: ["주문", "차트", "정보"]
+  ).then {
     $0.selectedSegmentIndex = 0
     $0.backgroundColor = .clear
     $0.selectedSegmentTintColor = .clear
@@ -110,27 +125,26 @@ class CryptoDetailViewController: UIViewController {
     $0.backgroundColor = .green
   }
   
+  override func viewWillAppear(_ animated: Bool) {
+    self.reactor.action
+      .onNext(.connectTickerSocket)
+    self.reactor.action
+      .onNext(.connectOrderBookSocket)
+  }
+  
   override func viewDidLoad() {
     super.viewDidLoad()
     self.view.backgroundColor = .white
     
     self.addViews()
     self.setUpViews()
+    self.setTableView()
     self.setButtons()
     self.setSegmentedControl()
     
     self.setUpFlexItems()
     
     self.bind(reactor: self.reactor)
-  }
-  
-  override func viewDidAppear(_ animated: Bool) {
-    DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
-      self.reactor.action
-        .onNext(.connectTickerSocket)
-    })
-    self.reactor.action
-      .onNext(.connectOrderBookSocket)
   }
   
   override func viewDidLayoutSubviews() {
@@ -158,6 +172,7 @@ class CryptoDetailViewController: UIViewController {
   
   func setUpViews(crypto: CryptoCellInfo? = nil) {
     
+    self.prevClosingPrice = crypto?.prevPrice
     let numberFormatter = NumberFormatter()
     numberFormatter.numberStyle = .decimal
     
@@ -167,24 +182,24 @@ class CryptoDetailViewController: UIViewController {
           let changePrice = selectCrypto.changePrice else { return }
     
     self.titleLabel.text = "\(selectCrypto.cryptoName)(\(selectCrypto.market))"
-    if selectCrypto.tradePrice ?? 0 < 1 {
+    if tradePrice < 1 {
       self.priceLabel.text = self.formatTradePrice(tradePrice)
     } else {
-      self.priceLabel.text = numberFormatter
-        .string(from: NSNumber(value: selectCrypto.tradePrice ?? 0))
+      self.priceLabel.text = numberFormatter.string(
+        from: NSNumber(value: tradePrice)
+      )
     }
     
     self.changeRateLabel.text = String(
-      format: "%.2f%%",
-      signedChangeRate * 100
+      format: "%.2f%%", signedChangeRate * 100
     )
     
     if changePrice < 1 {
-      self.changePriceLabel.text = self
-        .formatTradePrice(changePrice)
+      self.changePriceLabel.text = self.formatTradePrice(changePrice)
     } else {
-      self.changePriceLabel.text = numberFormatter
-        .string(from: NSNumber(value: changePrice))
+      self.changePriceLabel.text = numberFormatter.string(
+        from: NSNumber(value: changePrice)
+      )
     }
     
     switch selectCrypto.change {
@@ -212,14 +227,34 @@ class CryptoDetailViewController: UIViewController {
   }
   
   func setTableView() {
-    self.orderTableView.register(OrderBookCell.self, forCellReuseIdentifier: self.cellIndentifier)
+    self.orderTableView.register(
+      OrderBookCell.self,
+      forCellReuseIdentifier: self.cellIndentifier
+    )
     self.orderTableView.rowHeight = 50
     
-    self.dataSource = UITableViewDiffableDataSource<TableViewSection, Orderbook>(tableView: self.orderTableView) { (tableView: UITableView, indexPath: IndexPath, obTicker: Orderbook) -> UITableViewCell? in
+    self.dataSource = UITableViewDiffableDataSource<TableViewSection, OrderUnit>(
+      tableView: self.orderTableView
+    ) { (
+      tableView: UITableView,
+      indexPath: IndexPath,
+      obUnit: OrderUnit
+    ) -> UITableViewCell? in
       
-      guard let cell = self.orderTableView.dequeueReusableCell(withIdentifier: self.cellIndentifier, for: indexPath) as? OrderBookCell else { return UITableViewCell() }
+      guard let cell = self.orderTableView.dequeueReusableCell(
+        withIdentifier: self.cellIndentifier,
+        for: indexPath
+      ) as? OrderBookCell else { return UITableViewCell() }
       
-      cell.configure(obTicker: obTicker)
+      cell.configure(
+        changeRate: self.calculateFluctuation(
+          obPrice: obUnit.price
+        ),
+        obType: obUnit.type,
+        obPrice: obUnit.price,
+        obSize: obUnit.size
+      )
+      
       cell.selectionStyle = .none
       return cell
     }
@@ -227,6 +262,32 @@ class CryptoDetailViewController: UIViewController {
     self.dataSource?.defaultRowAnimation = .fade
     self.orderTableView.dataSource = self.dataSource
     self.orderTableView.delegate = self
+  }
+  
+  /// TableViewDiffableDataSource Snapshot Update
+  func applySnapshot(orderDatas: [OrderUnit]?) {
+    // tableview에 들어가는 section, item 초기화
+    var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, OrderUnit>()
+    snapshot.appendSections([.main])
+    if let orderDatas = orderDatas {
+      snapshot.appendItems(orderDatas, toSection: .main)
+    } else {
+      snapshot.appendItems([])
+    }
+    
+    self.dataSource?.apply(snapshot, animatingDifferences: false, completion: {
+      if self.isFirstInput == false {
+        DispatchQueue.main.async {
+          self.isFirstInput = true
+          let indexPath = IndexPath(row: 16, section: 0)
+          self.orderTableView.scrollToRow(
+            at: indexPath,
+            at: .middle,
+            animated: false
+          )
+        }
+      }
+    })
   }
   
   func setUpFlexItems() {
@@ -335,6 +396,8 @@ extension CryptoDetailViewController {
   
   @objc private func tapOnBackButton(_ sender: UIButton) {
     self.coordinator?.navigationController.popViewController(animated: true)
+    self.reactor.tickerSocketManager.disconnect()
+    self.reactor.orderBookSocketManager.disconnect()
   }
   
   func setSegmentedControl() {
@@ -359,17 +422,51 @@ extension CryptoDetailViewController {
     }
     return String(format: "%.\(precision)f", price)
   }
+  
+  /// 변동성 % 계산
+  private func calculateFluctuation(obPrice: Double?) -> Double? {
+      guard let obPrice = obPrice,
+            let prevClosingPrice = self.prevClosingPrice else {
+          return nil
+      }
+      
+      if prevClosingPrice == 0 {
+          return 1
+      } else {
+          return obPrice / prevClosingPrice
+      }
+  }
 }
 
 // MARK: Reactor - View
 extension CryptoDetailViewController {
+  
   func bind(reactor: CryptoDetailReactor) {
+    
     reactor.state.map { $0.cryptoInfo }
       .distinctUntilChanged()
       .observe(on: MainScheduler.instance)
       .subscribe(onNext: { cellInfo in
         self.setUpViews(crypto: cellInfo)
       })
+      .disposed(by: self.disposeBag)
+    
+    reactor.state.map { $0.obTicker }
+      .distinctUntilChanged()
+      .observe(on: MainScheduler.asyncInstance)
+      .subscribe(
+        onNext: { obTicker in
+          guard let obTicker = obTicker else { return }
+          let askData = obTicker.orderbookUnits.sorted(
+            by: { $0.askPrice > $1.askPrice }
+          ).map { OrderUnit(type: .ask, price: $0.askPrice, size: $0.askSize) }
+          let bidData = obTicker.orderbookUnits.sorted(
+            by: { $0.bidPrice < $1.bidPrice }
+          ).map { OrderUnit(type: .bid, price: $0.bidPrice, size: $0.bidSize) }
+          let orderDatas = askData + bidData
+          self.applySnapshot(orderDatas: orderDatas)
+        }
+      )
       .disposed(by: self.disposeBag)
   }
 }

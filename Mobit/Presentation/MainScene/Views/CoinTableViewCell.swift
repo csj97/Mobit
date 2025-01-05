@@ -123,10 +123,10 @@ class CoinTableViewCell: UITableViewCell {
     }
   }
   
-    func configure(
-        crypto: CryptoCellInfo,
-        isInitialize: Bool? = nil
-    ) {
+  func configure(
+    crypto: CryptoCellInfo,
+    isScrolling: Bool
+  ) {
     
     guard let marketEvent = crypto.marketEvent,
           let tradePrice = crypto.tradePrice,
@@ -152,38 +152,40 @@ class CoinTableViewCell: UITableViewCell {
     self.changeRate.text = String(format: "%.2f%%", signedChangeRate * 100)
     self.tradingVolume.text = String(format: "%.f", accTradeVolume)
     
-    switch change {
-    case "RISE":
-      self.price.textColor = .red
-      self.changeRate.textColor = .red
-      DispatchQueue.main.async {
-        UIView.animate(withDuration: 0.3) {
-          self.priceBox.layer.borderColor = UIColor.red.cgColor
-        } completion: { _ in
+    if isScrolling == false {
+      switch change {
+      case "RISE":
+        self.price.textColor = .red
+        self.changeRate.textColor = .red
+        DispatchQueue.main.async {
+          UIView.animate(withDuration: 0.15) {
+            self.priceBox.layer.borderColor = UIColor.red.cgColor
+          } completion: { _ in
+            self.priceBox.layer.borderColor = UIColor.clear.cgColor
+          }
+        }
+        
+      case "FALL":
+        self.price.textColor = .blue
+        self.changeRate.textColor = .blue
+        DispatchQueue.main.async {
+          UIView.animate(withDuration: 0.15) {
+            self.priceBox.layer.borderColor = UIColor.blue.cgColor
+          } completion: { _ in
+            self.priceBox.layer.borderColor = UIColor.clear.cgColor
+          }
+        }
+        
+      case "EVEN":
+        self.price.textColor = .black
+        self.changeRate.textColor = .black
+        DispatchQueue.main.async {
           self.priceBox.layer.borderColor = UIColor.clear.cgColor
         }
+        
+      default:
+        break
       }
-      
-    case "FALL":
-      self.price.textColor = .blue
-      self.changeRate.textColor = .blue
-      DispatchQueue.main.async {
-        UIView.animate(withDuration: 0.15) {
-          self.priceBox.layer.borderColor = UIColor.blue.cgColor
-        } completion: { _ in
-          self.priceBox.layer.borderColor = UIColor.clear.cgColor
-        }
-      }
-      
-    case "EVEN":
-      self.price.textColor = .black
-      self.changeRate.textColor = .black
-      DispatchQueue.main.async {
-        self.priceBox.layer.borderColor = UIColor.clear.cgColor
-      }
-      
-    default:
-      break
     }
     
     setNeedsLayout()

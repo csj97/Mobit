@@ -10,7 +10,7 @@ import Foundation
 struct OrderbookDTO: Codable {
   let type: String
   let code: String
-  let timestamp: Int64
+  let timestamp: Int    // 1704867306396
   let totalAskSize: Double
   let totalBidSize: Double
   let orderbookUnits: [OrderbookUnitDTO]
@@ -27,21 +27,22 @@ struct OrderbookDTO: Codable {
     case streamType = "stream_type"
     case level
   }
-}
-
-struct OrderbookUnitDTO: Codable {
-  let askPrice: Double    // 매도 호가
-  let bidPrice: Double    // 매수 호가
-  let askSize: Double     // 매도 잔량
-  let bidSize: Double     // 매수 잔량
   
-  enum CodingKeys: String, CodingKey {
-    case askPrice = "ask_price"
-    case bidPrice = "bid_price"
-    case askSize = "ask_size"
-    case bidSize = "bid_size"
+  struct OrderbookUnitDTO: Codable {
+    let askPrice: Double    // 매도 호가
+    let bidPrice: Double    // 매수 호가
+    let askSize: Double     // 매도 잔량
+    let bidSize: Double     // 매수 잔량
+    
+    enum CodingKeys: String, CodingKey {
+      case askPrice = "ask_price"
+      case bidPrice = "bid_price"
+      case askSize = "ask_size"
+      case bidSize = "bid_size"
+    }
   }
 }
+
 
 extension OrderbookDTO {
   func toDomain() -> Orderbook {
@@ -57,8 +58,8 @@ extension OrderbookDTO {
   }
 }
 
-extension OrderbookUnitDTO {
-  func toDomain() -> OrderbookUnit {
+extension OrderbookDTO.OrderbookUnitDTO {
+  func toDomain() -> Orderbook.OrderbookUnit {
     return .init(askPrice: self.askPrice, bidPrice: self.bidPrice, askSize: self.askSize, bidSize: self.bidSize)
   }
 }

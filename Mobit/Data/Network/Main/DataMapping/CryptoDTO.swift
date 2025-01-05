@@ -21,6 +21,19 @@ struct CryptoDTO: Hashable, Codable {
     case englishName = "english_name"
     case marketEvent = "market_event"
   }
+  
+  struct MarketEvent: Codable {
+    let warning: Bool
+    let caution: Caution
+    
+    struct Caution: Codable {
+      let PRICE_FLUCTUATIONS: Bool
+      let TRADING_VOLUME_SOARING: Bool
+      let DEPOSIT_AMOUNT_SOARING: Bool
+      let GLOBAL_PRICE_DIFFERENCES: Bool
+      let CONCENTRATION_OF_SMALL_ACCOUNTS: Bool
+    }
+  }
 }
 
 struct MarketEventDTO: Hashable, Codable {

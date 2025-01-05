@@ -27,6 +27,8 @@
 		31D6444A2C72587B00C7F96D /* CryptoDetailReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D644492C72587B00C7F96D /* CryptoDetailReactor.swift */; };
 		31D6444D2C72590C00C7F96D /* CryptoDetailUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D6444C2C72590C00C7F96D /* CryptoDetailUseCase.swift */; };
 		31D6444F2C72595000C7F96D /* CryptoDetailRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D6444E2C72595000C7F96D /* CryptoDetailRepository.swift */; };
+		31DC41E02CD9196400F0FFF2 /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = 31DC41DF2CD9196400F0FFF2 /* Starscream */; };
+		31DC41E22CD9197700F0FFF2 /* NewWebSocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31DC41E12CD9197700F0FFF2 /* NewWebSocketManager.swift */; };
 		31E208042C4677CB000BFEBC /* AppTabBarCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208032C4677CB000BFEBC /* AppTabBarCoordinator.swift */; };
 		31E208072C4678B9000BFEBC /* MainCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208062C4678B9000BFEBC /* MainCoordinator.swift */; };
 		31E208092C46BF6B000BFEBC /* MainTabBarCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208082C46BF6B000BFEBC /* MainTabBarCoordinator.swift */; };
@@ -63,6 +65,8 @@
 		99C20AB22C4F6A04009276E7 /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB12C4F6A04009276E7 /* Environment.swift */; };
 		99C20AB42C4F7177009276E7 /* CryptoSocketTicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB32C4F7177009276E7 /* CryptoSocketTicker.swift */; };
 		99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB72C4F775B009276E7 /* Crypto.swift */; };
+		C17E08332D2A62BC0029A8D0 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C17E08322D2A62BC0029A8D0 /* Colors.xcassets */; };
+		C17E08352D2A64EE0029A8D0 /* ColorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -128,6 +132,7 @@
 		31D644492C72587B00C7F96D /* CryptoDetailReactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailReactor.swift; sourceTree = "<group>"; };
 		31D6444C2C72590C00C7F96D /* CryptoDetailUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailUseCase.swift; sourceTree = "<group>"; };
 		31D6444E2C72595000C7F96D /* CryptoDetailRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailRepository.swift; sourceTree = "<group>"; };
+		31DC41E12CD9197700F0FFF2 /* NewWebSocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewWebSocketManager.swift; sourceTree = "<group>"; };
 		31E208032C4677CB000BFEBC /* AppTabBarCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTabBarCoordinator.swift; sourceTree = "<group>"; };
 		31E208062C4678B9000BFEBC /* MainCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCoordinator.swift; sourceTree = "<group>"; };
 		31E208082C46BF6B000BFEBC /* MainTabBarCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabBarCoordinator.swift; sourceTree = "<group>"; };
@@ -154,6 +159,8 @@
 		99C20AB12C4F6A04009276E7 /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
 		99C20AB32C4F7177009276E7 /* CryptoSocketTicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CryptoSocketTicker.swift; path = Mobit/Domain/Model/CryptoSocketTicker.swift; sourceTree = SOURCE_ROOT; };
 		99C20AB72C4F775B009276E7 /* Crypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Crypto.swift; sourceTree = "<group>"; };
+		C17E08322D2A62BC0029A8D0 /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
+		C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtension.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -172,6 +179,7 @@
 				99C20A5B2C48DE40009276E7 /* SwiftJWT in Frameworks */,
 				99C20A862C4A27F1009276E7 /* ReactorKit in Frameworks */,
 				3133E2772C3F7192000D4B1A /* FlexLayout in Frameworks */,
+				31DC41E02CD9196400F0FFF2 /* Starscream in Frameworks */,
 				9987250A2C50944700088C71 /* RxSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -251,6 +259,7 @@
 			isa = PBXGroup;
 			children = (
 				3133E2302C3E2357000D4B1A /* Assets.xcassets */,
+				C17E08322D2A62BC0029A8D0 /* Colors.xcassets */,
 				3133E2322C3E2357000D4B1A /* LaunchScreen.storyboard */,
 				367271AB2C7B2B1900F9D86E /* UpbitKey.xcconfig */,
 			);
@@ -300,6 +309,7 @@
 			children = (
 				311E33F92C46068C0054C6BC /* ErrorType.swift */,
 				99C20AB12C4F6A04009276E7 /* Environment.swift */,
+				C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -449,8 +459,9 @@
 		99C20A672C490317009276E7 /* Network */ = {
 			isa = PBXGroup;
 			children = (
-				99C20AAD2C4F63E4009276E7 /* WebSocketManager.swift */,
+				31DC41E12CD9197700F0FFF2 /* NewWebSocketManager.swift */,
 				99C20AB52C4F76B5009276E7 /* Main */,
+				99C20AAD2C4F63E4009276E7 /* WebSocketManager.swift */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -543,6 +554,7 @@
 				998725012C50944700088C71 /* RxCocoa */,
 				998725052C50944700088C71 /* RxRelay */,
 				998725092C50944700088C71 /* RxSwift */,
+				31DC41DF2CD9196400F0FFF2 /* Starscream */,
 			);
 			productName = Mobit;
 			productReference = 3133E2242C3E2355000D4B1A /* Mobit.app */;
@@ -629,6 +641,7 @@
 				99C20A6A2C490615009276E7 /* XCRemoteSwiftPackageReference "Moya" */,
 				99C20A842C4A27F1009276E7 /* XCRemoteSwiftPackageReference "ReactorKit" */,
 				998724FC2C50944700088C71 /* XCRemoteSwiftPackageReference "RxSwift" */,
+				31DC41DE2CD9196400F0FFF2 /* XCRemoteSwiftPackageReference "Starscream" */,
 			);
 			productRefGroup = 3133E2252C3E2355000D4B1A /* Products */;
 			projectDirPath = "";
@@ -646,6 +659,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C17E08332D2A62BC0029A8D0 /* Colors.xcassets in Resources */,
 				3133E2342C3E2357000D4B1A /* LaunchScreen.storyboard in Resources */,
 				3133E2312C3E2357000D4B1A /* Assets.xcassets in Resources */,
 			);
@@ -684,6 +698,7 @@
 				31E208102C46C2FE000BFEBC /* InvestmentCoordinator.swift in Sources */,
 				3133E2662C3F6A44000D4B1A /* BaseCoordinator.swift in Sources */,
 				31E208192C46C448000BFEBC /* MoreViewController.swift in Sources */,
+				C17E08352D2A64EE0029A8D0 /* ColorExtension.swift in Sources */,
 				369E877F2C7D955E0020A0B3 /* OrderBookResponseDTO.swift in Sources */,
 				31E208122C46C323000BFEBC /* InvestmentViewController.swift in Sources */,
 				998849E42C5378CD0073A27D /* CryptoTickerDTO.swift in Sources */,
@@ -692,6 +707,7 @@
 				99C20AAE2C4F63E4009276E7 /* WebSocketManager.swift in Sources */,
 				99C20AAC2C4F458C009276E7 /* CryptoSocketTickerDTO.swift in Sources */,
 				31D6444D2C72590C00C7F96D /* CryptoDetailUseCase.swift in Sources */,
+				31DC41E22CD9197700F0FFF2 /* NewWebSocketManager.swift in Sources */,
 				99C20A692C490326009276E7 /* MainNetworkService.swift in Sources */,
 				311E33FA2C46068C0054C6BC /* ErrorType.swift in Sources */,
 				31E208042C4677CB000BFEBC /* AppTabBarCoordinator.swift in Sources */,
@@ -1079,6 +1095,14 @@
 				minimumVersion = 2.0.10;
 			};
 		};
+		31DC41DE2CD9196400F0FFF2 /* XCRemoteSwiftPackageReference "Starscream" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/daltoniam/Starscream.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.8;
+			};
+		};
 		31E208412C46CB47000BFEBC /* XCRemoteSwiftPackageReference "Then" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/devxoul/Then.git";
@@ -1131,6 +1155,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3133E2752C3F7192000D4B1A /* XCRemoteSwiftPackageReference "FlexLayout" */;
 			productName = FlexLayout;
+		};
+		31DC41DF2CD9196400F0FFF2 /* Starscream */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 31DC41DE2CD9196400F0FFF2 /* XCRemoteSwiftPackageReference "Starscream" */;
+			productName = Starscream;
 		};
 		31E208422C46CB47000BFEBC /* Then */ = {
 			isa = XCSwiftPackageProductDependency;

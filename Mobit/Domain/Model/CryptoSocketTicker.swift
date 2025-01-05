@@ -18,7 +18,7 @@ struct CryptoSocketTicker: Hashable {
   let lowPrice: Double
   let tradePrice: Double
   let prevClosingPrice: Double
-  let change: String // RISE : 상승, EVEN : 보합, FALL : 하락
+  let change: String  // RISE : 상승, EVEN : 보합, FALL : 하락
   let changePrice: Double
   let signedChangePrice: Double
   let changeRate: Double
@@ -38,13 +38,17 @@ struct CryptoSocketTicker: Hashable {
   let highest52WeekDate: String
   let lowest52WeekPrice: Double
   let lowest52WeekDate: String
-  let tradeStatus: String?
   let marketState: String
-  let marketStateForIOS: String?
-  let isTradingSuspended: Bool
-  let delistingDate: Date?
-  let marketWarning: String
+  let delistingDate: DelistingDate?
+  let marketWarning: String?
   let timestamp: Int64
   let streamType: String
+  
+  struct DelistingDate: Hashable {
+    let year: Int
+    let month: Int
+    let day: Int
+  }
 }
+
 

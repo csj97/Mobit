@@ -23,11 +23,8 @@ class MainViewController: UIViewController {
   var dataSource: UITableViewDiffableDataSource<TableViewSection, CryptoCellInfo>?
   var disposeBag = DisposeBag()
   var reactor: MainReactor
-  
+  var isSocketUpdating = false
   var selectedTab: SelectedTab = .krw
-  var isInitialize: Bool = true
-    var isTableViewScrolling: Bool = false
-    let mainWebSocket: WebSocketManager? = nil
   
   private let cellIndentifier = "CryptoCell"
   
@@ -116,6 +113,7 @@ class MainViewController: UIViewController {
     self.setSearchBar()
     self.setTableView()
     self.setTabButton()
+    self.setSortButton()
     
     self.setUpFlexItems()
     
@@ -143,22 +141,26 @@ class MainViewController: UIViewController {
   }
   
   func setTableView() {
-      
     self.tableView.register(
-        CoinTableViewCell.self,
-        forCellReuseIdentifier: self.cellIndentifier
+      CoinTableViewCell.self,
+      forCellReuseIdentifier: self.cellIndentifier
     )
     self.tableView.rowHeight = 50
-    self.isInitialize = true
     
-    self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoCellInfo>(tableView: self.tableView) { (tableView: UITableView, indexPath: IndexPath, crypto: CryptoCellInfo) -> UITableViewCell? in
+    self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoCellInfo>(
+      tableView: self.tableView
+    ) { (
+      tableView: UITableView,
+      indexPath: IndexPath,
+      crypto: CryptoCellInfo
+    ) -> UITableViewCell? in
       
-      guard let cell = self.tableView.dequeueReusableCell(withIdentifier: self.cellIndentifier, for: indexPath) as? CoinTableViewCell else { return UITableViewCell() }
+      guard let cell = self.tableView.dequeueReusableCell(
+        withIdentifier: self.cellIndentifier,
+        for: indexPath
+      ) as? CoinTableViewCell else { return UITableViewCell() }
       
-      cell.configure(
-        crypto: crypto, 
-        isInitialize: self.isInitialize
-      )
+      cell.configure(crypto: crypto, isScrolling: self.isSocketUpdating)
       cell.selectionStyle = .none
       return cell
     }
@@ -169,9 +171,6 @@ class MainViewController: UIViewController {
   }
   
   func applySnapshot(cellInfo: [CryptoCellInfo]?) {
-      // scroll 중 > applySnapshot 제한
-      guard !isTableViewScrolling else { return }
-      
     // tableview에 들어가는 section, item 초기화
     var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, CryptoCellInfo>()
     snapshot.appendSections([.main])
@@ -180,14 +179,39 @@ class MainViewController: UIViewController {
     } else {
       snapshot.appendItems([])
     }
-    self.isInitialize = false
+    
     self.dataSource?.apply(snapshot, animatingDifferences: false)
   }
   
+  func setSortButton() {
+    self.currentPriceButton.addTarget(
+      self, action: #selector(tapOnSortButton(_:)), for: .touchUpInside
+    )
+  }
+  
+  @objc private func tapOnSortButton(_ sender: UIButton) {
+    switch sender.tag {
+    case 0:
+      print("현재가 기준 정렬")
+    case 1:
+      print("전일대비 기준 정렬")
+    case 2:
+      print("거래량 기준 정렬")
+    default:
+      break
+    }
+  }
+  
   func setTabButton() {
-    self.krwButton.addTarget(self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside)
-    self.btcButton.addTarget(self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside)
-    self.favoriteButton.addTarget(self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside)
+    self.krwButton.addTarget(
+      self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside
+    )
+    self.btcButton.addTarget(
+      self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside
+    )
+    self.favoriteButton.addTarget(
+      self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside
+    )
   }
   
   @objc private func tapOnTabButton(_ sender: UIButton) {
@@ -217,12 +241,16 @@ class MainViewController: UIViewController {
   
   /// UISearchBar 설정
   func setSearchBar() {
-    if let searchTextField = self.searchBar.value(forKey: "searchField") as? UISearchTextField {
+    if let searchTextField = self.searchBar.value(
+      forKey: "searchField"
+    ) as? UISearchTextField {
       searchTextField.do {
         $0.backgroundColor = .clear
         $0.textColor = .black
-        $0.attributedPlaceholder = NSAttributedString(string: "코인명/심볼 검색",
-                                                      attributes: [NSAttributedString.Key.foregroundColor: UIColor.lightGray])
+        $0.attributedPlaceholder = NSAttributedString(
+          string: "코인명/심볼 검색",
+          attributes: [NSAttributedString.Key.foregroundColor: UIColor.lightGray]
+        )
       }
     }
   }
@@ -259,7 +287,9 @@ extension MainViewController: View {
       .distinctUntilChanged()
       .observe(on: MainScheduler.instance)
       .subscribe(onNext: { cellInfos in
-        self.applySnapshot(cellInfo: cellInfos)
+        if self.isSocketUpdating == false {
+          self.applySnapshot(cellInfo: cellInfos)
+        }
       })
       .disposed(by: self.disposeBag)
   }
@@ -268,16 +298,20 @@ extension MainViewController: View {
 // MARK: TableView Delegate
 extension MainViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    self.reactor.mainSocketManager?.disconnect(socketType: .ticker)
-      
-    self.coordinator?.pushCryptoDetailVC(selectCrypto: reactor.currentState.cryptoCellInfo[indexPath.row])
+    print("cell click : \(indexPath.row)")
+    self.reactor.action.onNext(.disconnectSocket)
+    self.coordinator?.pushCryptoDetailVC(
+      selectCrypto: reactor.currentState.cryptoCellInfo[indexPath.row]
+    )
   }
-    
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        isTableViewScrolling = false
-    }
-    
-    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        isTableViewScrolling = true
-    }
+  
+  /// 스크롤 시작되면 소켓 업데이트 일시정지
+  func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+    isSocketUpdating = true
+  }
+  
+  /// 스크롤 끝나면 소켓 업데이트 재개
+  func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+    isSocketUpdating = false
+  }
 }
