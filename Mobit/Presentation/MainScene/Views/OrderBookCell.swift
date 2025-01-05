@@ -14,22 +14,37 @@ class OrderBookCell: UITableViewCell {
   
   let rootFlexContainer = UIView()
   
+  let spaceView: UIView = UIView().then {
+    $0.backgroundColor = .white
+  }
+  
   let obPrice: UILabel = UILabel().then {
     $0.text = "0"
+    $0.textAlignment = .right
+    $0.font = UIFont.systemFont(ofSize: 12)
+    $0.adjustsFontSizeToFitWidth = true
+    $0.minimumScaleFactor = 0.3
   }
   
   let obChangeRate: UILabel = UILabel().then {
     $0.text = "0.0%"
+    $0.textAlignment = .right
+    $0.font = UIFont.systemFont(ofSize: 12)
+    $0.adjustsFontSizeToFitWidth = true
+    $0.minimumScaleFactor = 0.5
   }
   
   let obSizeLabel: UILabel = UILabel().then {
     $0.text = "0.0"
     $0.textAlignment = .left
+    $0.font = UIFont.systemFont(ofSize: 12)
+    $0.adjustsFontSizeToFitWidth = true
+    $0.minimumScaleFactor = 0.5
   }
   
   // 잔량 수에 따른 막대 바
   let obBarView: UIView = UIView().then {
-    $0.backgroundColor = .blue.withAlphaComponent(0.3)
+    $0.backgroundColor = .blue.withAlphaComponent(0.5)
   }
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -76,23 +91,40 @@ class OrderBookCell: UITableViewCell {
           flex.addItem(self.obPrice)
           flex.addItem(self.obChangeRate)
         }.width(64%)
+      
+      flex.addItem(
+        self.spaceView
+      ).grow(1)
+      
       flex.addItem()
         .direction(.column)
+        .justifyContent(.center)
         .define { flex in
           flex.addItem(self.obBarView)
-            .justifyContent(.center)
-            .height(80%)
+            .height(50%)
           
           flex.addItem(self.obSizeLabel)
-            .justifyContent(.center)
             .position(.absolute)
         }.width(35%).paddingLeft(2)
     }
   }
   
-  func configure(changeRate: Double?, obPrice: Double, obSize: Double) {
+  func configure(
+    changeRate: Double?,
+    obType: TradeSide,
+    obPrice: Double,
+    obSize: Double
+  ) {
     self.obPrice.text = String(obPrice)
     self.obSizeLabel.text = String(obSize)
+    switch obType {
+    case .ask:
+      self.backgroundColor = .mobitColors(.askLightBlue)
+      self.obBarView.backgroundColor = .mobitColors(.askDeepBlue)
+    case .bid:
+      self.backgroundColor = .mobitColors(.bidLightRed)
+      self.obBarView.backgroundColor = .mobitColors(.bidDeepRed)
+    }
     
     guard let changeRate = changeRate else { return }
     self.obChangeRate.text = "\(changeRate)"

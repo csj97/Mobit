@@ -15,8 +15,14 @@ import UIKit
 
 struct OrderUnit: Hashable {
   var identifier: UUID = UUID()
+  var type: TradeSide
   var price: Double
   var size: Double
+}
+
+enum TradeSide {
+  case ask
+  case bid
 }
 
 class CryptoDetailViewController: UIViewController {
@@ -233,6 +239,7 @@ class CryptoDetailViewController: UIViewController {
         changeRate: self.calculateFluctuation(
           obPrice: obUnit.price
         ),
+        obType: obUnit.type,
         obPrice: obUnit.price,
         obSize: obUnit.size
       )
@@ -261,7 +268,7 @@ class CryptoDetailViewController: UIViewController {
       if self.isFirstInput == false {
         DispatchQueue.main.async {
           self.isFirstInput = true
-          let indexPath = IndexPath(row: 15, section: 0)
+          let indexPath = IndexPath(row: 16, section: 0)
           self.orderTableView.scrollToRow(at: indexPath, at: .middle, animated: false)
         }
       }
@@ -374,6 +381,8 @@ extension CryptoDetailViewController {
   
   @objc private func tapOnBackButton(_ sender: UIButton) {
     self.coordinator?.navigationController.popViewController(animated: true)
+    self.reactor.tickerSocketManager.disconnect()
+    self.reactor.orderBookSocketManager.disconnect()
   }
   
   func setSegmentedControl() {
@@ -435,10 +444,10 @@ extension CryptoDetailViewController {
           guard let obTicker = obTicker else { return }
           let askData = obTicker.orderbookUnits.sorted(
             by: { $0.askPrice > $1.askPrice }
-          ).map { OrderUnit(price: $0.askPrice, size: $0.askSize) }
+          ).map { OrderUnit(type: .ask, price: $0.askPrice, size: $0.askSize) }
           let bidData = obTicker.orderbookUnits.sorted(
             by: { $0.bidPrice < $1.bidPrice }
-          ).map { OrderUnit(price: $0.bidPrice, size: $0.bidSize) }
+          ).map { OrderUnit(type: .bid, price: $0.bidPrice, size: $0.bidSize) }
           let orderDatas = askData + bidData
           self.applySnapshot(orderDatas: orderDatas)
         }
