@@ -18,7 +18,7 @@ enum SelectedTab {
 class MainReactor: Reactor {
   private let mainUseCase: MainUseCase
   private let disposeBag = DisposeBag()
-  private var position: [String: Int] = [:]
+  private var sortedCryptoPosition: [[String: Int]] = []
   let socketManager: NewWebSocketManager = NewWebSocketManager()
   let initialState: MainReactorState = MainReactorState()
   
@@ -81,9 +81,7 @@ extension MainReactor {
       newState.tabCryptoList = cryptoList
       
     case .setCombinedArray(let combinedResult):
-      newState.cryptoCellInfo = combinedResult.sorted(
-        by: { $0.accTradeVolume! > $1.accTradeVolume! }
-      )
+      newState.cryptoCellInfo = combinedResult
     }
     return newState
   }
@@ -156,7 +154,11 @@ extension MainReactor {
     return loadCryptoObservable
   }
   
-  func loadTicker(selectedTab: SelectedTab, cryptoList: CryptoList, markets: [String]) -> Observable<MainMutation> {
+  func loadTicker(
+    selectedTab: SelectedTab,
+    cryptoList: CryptoList,
+    markets: [String]
+  ) -> Observable<MainMutation> {
     self.mainUseCase.loadTickerList(markets: markets)
       .flatMap { cryptoTickerList -> Observable<MainMutation> in
         let combineResult = self.combineCrypto(
@@ -170,7 +172,6 @@ extension MainReactor {
         )
       }
   }
-  
   
   // MARK: - Combine Function
   
@@ -317,6 +318,12 @@ extension MainReactor {
               cryptoList: cryptoList,
               socketTicker: ticker
             )
+            // 정렬 버튼 설정 이후 처리
+//            let sortedKeys = self.position.map({ $0.keys.first })
+//            let sortedByPosition = sortedKeys.compactMap { key in
+//              combineResult.first { $0.market == key }
+//            }
+            
             observer.onNext(.setCombinedArray(cryptoCellInfo: combineResult))
           } catch {
             print("MainReactor ticker websocket receive decoding error : \(error.localizedDescription)")
@@ -339,5 +346,15 @@ extension MainReactor {
   private func disconnectSocket() -> Observable<MainMutation> {
     self.socketManager.disconnect()
     return .empty() 
+  }
+  
+  /// 정렬 기준에 따라 포지션을 재정비
+  /// 다음 소켓 데이터에선 그 포지션에 따라 정렬되어야함
+  /// 타입에 따라 새로 소켓이 들어올 때마다 정렬하면 보이는 위치가 계속 달라짐
+  func sortFromCrypto(cryptoCellInfos: [CryptoCellInfo]) {
+    let markets = cryptoCellInfos.map({ $0.market })
+    self.sortedCryptoPosition = markets.enumerated().map { (index, key) in
+      [key: index]
+    }
   }
 }
