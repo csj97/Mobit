@@ -255,8 +255,9 @@ extension MainViewController: View {
 extension MainViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     print("cell click : \(indexPath.row)")
-    self.reactor.socketManager.disconnect()
-//    WebSocketManager.shared.disconnect(socketType: .ticker)
-    self.coordinator?.pushCryptoDetailVC(selectCrypto: reactor.currentState.cryptoCellInfo[indexPath.row])
+    self.reactor.action.onNext(.disconnectSocket)
+    self.coordinator?.pushCryptoDetailVC(
+      selectCrypto: reactor.currentState.cryptoCellInfo[indexPath.row]
+    )
   }
 }

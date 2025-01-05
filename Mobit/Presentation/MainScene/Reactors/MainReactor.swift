@@ -32,6 +32,7 @@ extension MainReactor {
   enum MainAction {
     case loadCrypto(selectedTab: SelectedTab)
     case loadSocketTicker(selectedTab: SelectedTab, cryptoList: CryptoList)
+    case disconnectSocket
   }
   
   /// 상태 변경 단위, 작업 단위
@@ -64,6 +65,8 @@ extension MainReactor {
     case .loadSocketTicker(let selectedTab, let cryptoList):
       return self.loadSocketTicker(selectedTab: selectedTab, cryptoList: cryptoList)
       
+    case .disconnectSocket:
+      return self.disconnectSocket()
     }
   }
   
@@ -97,16 +100,28 @@ extension MainReactor {
           let krwCryptoList = cryptoList.filter { $0.market.contains("KRW-") }
           let krwMarkets = krwCryptoList.map { $0.market }
           
-          let setKRWCryptoMutation = Observable.just(MainMutation.setTabCryptoList(cryptoList: krwCryptoList))
-          let tickerObservable = self.loadTicker(selectedTab: selectedTab, cryptoList: krwCryptoList, markets: krwMarkets)
+          let setKRWCryptoMutation = Observable.just(
+            MainMutation.setTabCryptoList(cryptoList: krwCryptoList)
+          )
+          let tickerObservable = self.loadTicker(
+            selectedTab: selectedTab,
+            cryptoList: krwCryptoList,
+            markets: krwMarkets
+          )
           observableConcat = [setKRWCryptoMutation, tickerObservable]
           
         case .btc:
           let btcCryptoList = cryptoList.filter { $0.market.contains("BTC-") }
           let btcMarkets = btcCryptoList.map { $0.market }
 
-          let setBTCCryptoMutation = Observable.just(MainMutation.setTabCryptoList(cryptoList: btcCryptoList))
-          let tickerObservable = self.loadTicker(selectedTab: selectedTab, cryptoList: btcCryptoList, markets: btcMarkets)
+          let setBTCCryptoMutation = Observable.just(
+            MainMutation.setTabCryptoList(cryptoList: btcCryptoList)
+          )
+          let tickerObservable = self.loadTicker(
+            selectedTab: selectedTab,
+            cryptoList: btcCryptoList,
+            markets: btcMarkets
+          )
           observableConcat = [setBTCCryptoMutation, tickerObservable]
           
         case .favorite:
@@ -123,8 +138,12 @@ extension MainReactor {
       .subscribe { mutation in
         switch mutation {
         case .completed:
-          self.action.onNext(.loadSocketTicker(selectedTab: selectedTab,
-                                               cryptoList: self.currentState.tabCryptoList))
+          self.action.onNext(
+            .loadSocketTicker(
+              selectedTab: selectedTab,
+              cryptoList: self.currentState.tabCryptoList
+            )
+          )
         case .next:
           break
         case .error(let error):
@@ -139,9 +158,15 @@ extension MainReactor {
   func loadTicker(selectedTab: SelectedTab, cryptoList: CryptoList, markets: [String]) -> Observable<MainMutation> {
     self.mainUseCase.loadTickerList(markets: markets)
       .flatMap { cryptoTickerList -> Observable<MainMutation> in
-        let combineResult = self.combineCrypto(selectedTab: selectedTab, cryptoList: cryptoList, cryptoTickerList: cryptoTickerList)
+        let combineResult = self.combineCrypto(
+          selectedTab: selectedTab,
+          cryptoList: cryptoList,
+          cryptoTickerList: cryptoTickerList
+        )
         
-        return Observable.just(MainMutation.setCombinedArray(cryptoCellInfo: combineResult))
+        return Observable.just(
+          MainMutation.setCombinedArray(cryptoCellInfo: combineResult)
+        )
       }
   }
   
@@ -225,6 +250,7 @@ extension MainReactor {
       
       if socketTicker.code == cryptoCellInfo.market {
         updatedCryptoCellInfo.market = self.transformMarketForm(market: cryptoCellInfo.market)
+        updatedCryptoCellInfo.prevPrice = socketTicker.prevClosingPrice
         updatedCryptoCellInfo.tradePrice = socketTicker.tradePrice
         updatedCryptoCellInfo.changePrice = socketTicker.changePrice
         updatedCryptoCellInfo.signedChangeRate = socketTicker.signedChangeRate
@@ -260,7 +286,10 @@ extension MainReactor {
   }
   
   // WebSocket Ticker
-  private func loadSocketTicker(selectedTab: SelectedTab, cryptoList: CryptoList) -> Observable<MainMutation> {
+  private func loadSocketTicker(
+    selectedTab: SelectedTab,
+    cryptoList: CryptoList
+  ) -> Observable<MainMutation> {
     let cryptoJoined = cryptoList.map { $0.market }
     
     let socketObservable = Observable<MainMutation>.create { observer in
@@ -273,9 +302,6 @@ extension MainReactor {
         )
       })
       
-//      WebSocketManager.shared.connect(codes: cryptoJoined, socketType: .ticker)
-      
-//    WebSocketManager.shared.tickerDataSubject
       self.socketManager.tickerDataSubject
         .observe(on: MainScheduler.instance)
         .subscribe { [weak self] data in
@@ -302,5 +328,11 @@ extension MainReactor {
     }
     
     return socketObservable
+  }
+  
+  /// SocketManager Disconnect
+  private func disconnectSocket() -> Observable<MainMutation> {
+    self.socketManager.disconnect()
+    return .empty() 
   }
 }
