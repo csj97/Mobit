@@ -7,7 +7,7 @@
 
 import UIKit
 
-class MainCoordinator: BaseCoordinator {
+class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate {
   var childCoordinators = [BaseCoordinator]()
   var navigationController: UINavigationController
   
@@ -17,6 +17,7 @@ class MainCoordinator: BaseCoordinator {
   }
   
   func start() {
+    self.navigationController.delegate = self
     let reactor = MainReactor(mainUseCase: MainUseCase(mainRepository: MainRepository()))
     let mainVC = MainViewController(reactor: reactor)
     mainVC.coordinator = self
@@ -38,5 +39,16 @@ class MainCoordinator: BaseCoordinator {
   /// 관심 코인 목록 탭 노출
   func showFavoriteCoinList() {
     
+  }
+  
+  func navigationController(
+    _ navigationController: UINavigationController,
+    didShow viewController: UIViewController,
+    animated: Bool
+  ) {
+    // 뒤로가기 이 후, mainVC로 돌아왔다면, 다시 socket 연결
+    if let mainVC = viewController as? MainViewController {
+      mainVC.reactor.action.onNext(.loadCrypto(selectedTab: .krw))
+    }
   }
 }
