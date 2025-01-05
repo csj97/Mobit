@@ -18,12 +18,12 @@ enum SelectedTab {
 class MainReactor: Reactor {
   private let mainUseCase: MainUseCase
   private let disposeBag = DisposeBag()
+  private var position: [String: Int] = [:]
   let socketManager: NewWebSocketManager = NewWebSocketManager()
   let initialState: MainReactorState = MainReactorState()
   
   init(mainUseCase: MainUseCase) {
     self.mainUseCase = mainUseCase
-    self.action.onNext(.loadCrypto(selectedTab: .krw))
   }
 }
 
@@ -81,8 +81,9 @@ extension MainReactor {
       newState.tabCryptoList = cryptoList
       
     case .setCombinedArray(let combinedResult):
-      newState.cryptoCellInfo = combinedResult
-      
+      newState.cryptoCellInfo = combinedResult.sorted(
+        by: { $0.accTradeVolume! > $1.accTradeVolume! }
+      )
     }
     return newState
   }
@@ -311,7 +312,11 @@ extension MainReactor {
             let decodeTarget = CryptoSocketTickerDTO.self
             let cryptoTickerDTO = try JSONDecoder().decode(decodeTarget, from: data)
             let ticker = cryptoTickerDTO.toDomain()
-            let combineResult = self.combineTicker(selectedTab: selectedTab, cryptoList: cryptoList, socketTicker: ticker)
+            let combineResult = self.combineTicker(
+              selectedTab: selectedTab,
+              cryptoList: cryptoList,
+              socketTicker: ticker
+            )
             observer.onNext(.setCombinedArray(cryptoCellInfo: combineResult))
           } catch {
             print("MainReactor ticker websocket receive decoding error : \(error.localizedDescription)")

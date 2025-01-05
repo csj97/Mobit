@@ -154,7 +154,7 @@ class CoinTableViewCell: UITableViewCell {
       self.price.textColor = .red
       self.changeRate.textColor = .red
       DispatchQueue.main.async {
-        UIView.animate(withDuration: 0.3) {
+        UIView.animate(withDuration: 0.15) {
           self.priceBox.layer.borderColor = UIColor.red.cgColor
         } completion: { _ in
           self.priceBox.layer.borderColor = UIColor.clear.cgColor

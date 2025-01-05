@@ -23,7 +23,7 @@ class MainViewController: UIViewController {
   var dataSource: UITableViewDiffableDataSource<TableViewSection, CryptoCellInfo>?
   var disposeBag = DisposeBag()
   var reactor: MainReactor
-  
+  var isSocketUpdating = false
   var selectedTab: SelectedTab = .krw
   
   private let cellIndentifier = "CryptoCell"
@@ -143,11 +143,22 @@ class MainViewController: UIViewController {
     self.tableView.register(CoinTableViewCell.self, forCellReuseIdentifier: self.cellIndentifier)
     self.tableView.rowHeight = 50
     
-    self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoCellInfo>(tableView: self.tableView) { (tableView: UITableView, indexPath: IndexPath, crypto: CryptoCellInfo) -> UITableViewCell? in
+    self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoCellInfo>(
+      tableView: self.tableView
+    ) { (
+      tableView: UITableView,
+      indexPath: IndexPath,
+      crypto: CryptoCellInfo
+    ) -> UITableViewCell? in
       
-      guard let cell = self.tableView.dequeueReusableCell(withIdentifier: self.cellIndentifier, for: indexPath) as? CoinTableViewCell else { return UITableViewCell() }
+      guard let cell = self.tableView.dequeueReusableCell(
+        withIdentifier: self.cellIndentifier,
+        for: indexPath
+      ) as? CoinTableViewCell else { return UITableViewCell() }
       
-      cell.configure(crypto: crypto)
+      if self.isSocketUpdating == false {
+        cell.configure(crypto: crypto)
+      }
       cell.selectionStyle = .none
       return cell
     }
@@ -245,7 +256,9 @@ extension MainViewController: View {
       .distinctUntilChanged()
       .observe(on: MainScheduler.instance)
       .subscribe(onNext: { cellInfos in
-        self.applySnapshot(cellInfo: cellInfos)
+        if self.isSocketUpdating == false {
+          self.applySnapshot(cellInfo: cellInfos)
+        }
       })
       .disposed(by: self.disposeBag)
   }
@@ -259,5 +272,15 @@ extension MainViewController: UITableViewDelegate {
     self.coordinator?.pushCryptoDetailVC(
       selectCrypto: reactor.currentState.cryptoCellInfo[indexPath.row]
     )
+  }
+  
+  /// 스크롤 시작되면 소켓 업데이트 일시정지
+  func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+    isSocketUpdating = true
+  }
+  
+  /// 스크롤 끝나면 소켓 업데이트 재개
+  func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+    isSocketUpdating = false
   }
 }
