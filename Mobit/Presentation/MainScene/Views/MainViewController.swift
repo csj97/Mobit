@@ -113,6 +113,7 @@ class MainViewController: UIViewController {
     self.setSearchBar()
     self.setTableView()
     self.setTabButton()
+    self.setSortButton()
     
     self.setUpFlexItems()
     
@@ -156,9 +157,7 @@ class MainViewController: UIViewController {
         for: indexPath
       ) as? CoinTableViewCell else { return UITableViewCell() }
       
-      if self.isSocketUpdating == false {
-        cell.configure(crypto: crypto)
-      }
+      cell.configure(crypto: crypto, isScrolling: self.isSocketUpdating)
       cell.selectionStyle = .none
       return cell
     }
@@ -181,10 +180,35 @@ class MainViewController: UIViewController {
     self.dataSource?.apply(snapshot, animatingDifferences: false)
   }
   
+  func setSortButton() {
+    self.currentPriceButton.addTarget(
+      self, action: #selector(tapOnSortButton(_:)), for: .touchUpInside
+    )
+  }
+  
+  @objc private func tapOnSortButton(_ sender: UIButton) {
+    switch sender.tag {
+    case 0:
+      print("현재가 기준 정렬")
+    case 1:
+      print("전일대비 기준 정렬")
+    case 2:
+      print("거래량 기준 정렬")
+    default:
+      break
+    }
+  }
+  
   func setTabButton() {
-    self.krwButton.addTarget(self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside)
-    self.btcButton.addTarget(self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside)
-    self.favoriteButton.addTarget(self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside)
+    self.krwButton.addTarget(
+      self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside
+    )
+    self.btcButton.addTarget(
+      self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside
+    )
+    self.favoriteButton.addTarget(
+      self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside
+    )
   }
   
   @objc private func tapOnTabButton(_ sender: UIButton) {
@@ -214,12 +238,16 @@ class MainViewController: UIViewController {
   
   /// UISearchBar 설정
   func setSearchBar() {
-    if let searchTextField = self.searchBar.value(forKey: "searchField") as? UISearchTextField {
+    if let searchTextField = self.searchBar.value(
+      forKey: "searchField"
+    ) as? UISearchTextField {
       searchTextField.do {
         $0.backgroundColor = .clear
         $0.textColor = .black
-        $0.attributedPlaceholder = NSAttributedString(string: "코인명/심볼 검색",
-                                                      attributes: [NSAttributedString.Key.foregroundColor: UIColor.lightGray])
+        $0.attributedPlaceholder = NSAttributedString(
+          string: "코인명/심볼 검색",
+          attributes: [NSAttributedString.Key.foregroundColor: UIColor.lightGray]
+        )
       }
     }
   }

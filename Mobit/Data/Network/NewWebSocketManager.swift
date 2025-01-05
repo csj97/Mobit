@@ -86,7 +86,7 @@ class NewWebSocketManager: WebSocketDelegate {
     client: any Starscream.WebSocketClient
   ) {
     switch event {
-    case .connected(let headers):
+    case .connected:
       isConnected = true
       callBack?()
       print("WebSocket connected")
