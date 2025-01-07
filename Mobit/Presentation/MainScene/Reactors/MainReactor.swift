@@ -33,6 +33,7 @@ extension MainReactor {
     case loadCrypto(selectedTab: SelectedTab)
     case loadSocketTicker(selectedTab: SelectedTab, cryptoList: CryptoList)
     case disconnectSocket
+    case setSortType(sortBy: CryptoSortType)
   }
   
   /// 상태 변경 단위, 작업 단위
@@ -41,6 +42,7 @@ extension MainReactor {
     
     case setTabCryptoList(cryptoList: CryptoList)
     case setCombinedArray(cryptoCellInfo: [CryptoCellInfo])
+    case setSortType(sortBy: CryptoSortType)
   }
   
   struct MainReactorState {
@@ -51,7 +53,7 @@ extension MainReactor {
     // Cell에 필요한 정보들을 모아 놓은 모델 변수
     var cryptoCellInfo: [CryptoCellInfo] = []
     var cryptoSocketTicker: CryptoSocketTicker? = nil
-    
+    var sortBy: CryptoSortType = .normal
   }
 }
 
@@ -60,13 +62,16 @@ extension MainReactor {
   func mutate(action: MainAction) -> Observable<MainMutation> {
     switch action {
     case .loadCrypto(let selectedTab):
-      return self.loadCrypto_Ticker(selectedTab: selectedTab)
+      return self.loadCryptoTicker(selectedTab: selectedTab)
       
     case .loadSocketTicker(let selectedTab, let cryptoList):
       return self.loadSocketTicker(selectedTab: selectedTab, cryptoList: cryptoList)
       
     case .disconnectSocket:
       return self.disconnectSocket()
+      
+    case .setSortType(let sortBy):
+      return self.setSortType(sortBy: sortBy)
     }
   }
   
@@ -82,13 +87,16 @@ extension MainReactor {
       
     case .setCombinedArray(let combinedResult):
       newState.cryptoCellInfo = combinedResult
+      
+    case .setSortType(let sortBy):
+      newState.sortBy = sortBy
     }
     return newState
   }
   
   /// CryptoList를 조회하고 이어서 바로 CryptoTicker를 조회한다. (SocketTicker와는 다름)
   /// - Returns: CryptoList와 CryptoTicker 구조체를 합쳐서 observer에 담고, MainMutation에 대한 Observable을 반환
-  func loadCrypto_Ticker(selectedTab: SelectedTab) -> Observable<MainMutation> {
+  func loadCryptoTicker(selectedTab: SelectedTab) -> Observable<MainMutation> {
     let loadCryptoObservable = self.mainUseCase.loadCryptoList()
       .flatMap { cryptoList -> Observable<MainMutation> in
         
@@ -230,7 +238,11 @@ extension MainReactor {
   ///   - cryptoList: name, market, event 정보를 갖고 있음
   ///   - cryptoTickerList: tradePrice, signedChangeRate, change, accTradeVolume 정보를 갖고 있음
   /// - Returns: Main TableView Cell에 노출될 Cell 정보를 반환
-  func combineTicker(selectedTab: SelectedTab, cryptoList: CryptoList, socketTicker: CryptoSocketTicker) -> [CryptoCellInfo] {
+  func combineTicker(
+    selectedTab: SelectedTab,
+    cryptoList: CryptoList,
+    socketTicker: CryptoSocketTicker
+  ) -> [CryptoCellInfo] {
     var filteredCryptoList: CryptoList = []
     
     switch selectedTab {
@@ -313,11 +325,39 @@ extension MainReactor {
             let decodeTarget = CryptoSocketTickerDTO.self
             let cryptoTickerDTO = try JSONDecoder().decode(decodeTarget, from: data)
             let ticker = cryptoTickerDTO.toDomain()
-            let combineResult = self.combineTicker(
+            var combineResult = self.combineTicker(
               selectedTab: selectedTab,
               cryptoList: cryptoList,
               socketTicker: ticker
             )
+            switch currentState.sortBy {
+            case .normal:
+              break
+            case .currentPriceAscending:
+              combineResult = combineResult.sorted(
+                by: { $0.tradePrice ?? 0 < $1.tradePrice ?? 0 }
+              )
+            case .currentPriceDescending:
+              combineResult = combineResult.sorted(
+                by: { $0.tradePrice ?? 0 > $1.tradePrice ?? 0 }
+              )
+            case .previousDayAscending:
+              combineResult = combineResult.sorted(
+                by: { $0.signedChangeRate ?? 0 < $1.signedChangeRate ?? 0 }
+              )
+            case .previousDayDescending:
+              combineResult = combineResult.sorted(
+                by: { $0.signedChangeRate ?? 0 > $1.signedChangeRate ?? 0 }
+              )
+            case .tradeVolumeAscending:
+              combineResult = combineResult.sorted(
+                by: { $0.accTradePrice24h ?? 0 < $1.accTradePrice24h ?? 0 }
+              )
+            case .tradeVolumeDescending:
+              combineResult = combineResult.sorted(
+                by: { $0.accTradePrice24h ?? 0 > $1.accTradePrice24h ?? 0 }
+              )
+            }
             // 정렬 버튼 설정 이후 처리
 //            let sortedKeys = self.position.map({ $0.keys.first })
 //            let sortedByPosition = sortedKeys.compactMap { key in
@@ -346,6 +386,29 @@ extension MainReactor {
   private func disconnectSocket() -> Observable<MainMutation> {
     self.socketManager.disconnect()
     return .empty() 
+  }
+  
+  func setSortType(sortBy: CryptoSortType) -> Observable<MainMutation> {
+//    switch sortBy {
+//    case .normal:
+//      break
+//    case .currentPriceAscending:
+//      break
+//    case .currentPriceDescending:
+//      break
+//    case .previousDayAscending:
+//      break
+//    case .previousDayDescending:
+//      break
+//    case .tradeVolumeAscending:
+//      break
+//    case .tradeVolumeDescending:
+//      break
+//    }
+    
+    return Observable.just(
+      MainMutation.setSortType(sortBy: sortBy)
+    )
   }
   
   /// 정렬 기준에 따라 포지션을 재정비

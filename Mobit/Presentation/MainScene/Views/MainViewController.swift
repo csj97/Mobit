@@ -17,9 +17,10 @@ enum TableViewSection: CaseIterable {
   case main
 }
 
-enum CyptoSortType {
+enum CryptoSortType {
+  case normal
   case currentPriceAscending  // 오름차순 1,2,3,4
-  case currentPriceDescending // 내림차순 4,3,2,1\
+  case currentPriceDescending // 내림차순 4,3,2,1
   case previousDayAscending
   case previousDayDescending
   case tradeVolumeAscending
@@ -208,10 +209,32 @@ class MainViewController: UIViewController {
     switch sender.tag {
     case 0:
       print("현재가 기준 정렬")
+      if self.reactor.currentState.sortBy == .currentPriceAscending {
+        self.reactor.action.onNext(.setSortType(sortBy: .currentPriceDescending))
+      } else if self.reactor.currentState.sortBy == .currentPriceDescending {
+        self.reactor.action.onNext(.setSortType(sortBy: .currentPriceAscending))
+      } else {
+        self.reactor.action.onNext(.setSortType(sortBy: .currentPriceDescending))
+      }
+      
     case 1:
       print("전일대비 기준 정렬")
+      if self.reactor.currentState.sortBy == .previousDayAscending {
+        self.reactor.action.onNext(.setSortType(sortBy: .previousDayDescending))
+      } else if self.reactor.currentState.sortBy == .previousDayDescending {
+        self.reactor.action.onNext(.setSortType(sortBy: .previousDayAscending))
+      } else {
+        self.reactor.action.onNext(.setSortType(sortBy: .previousDayDescending))
+      }
     case 2:
-      print("거래량 기준 정렬")
+      print("거래대금 기준 정렬")
+      if self.reactor.currentState.sortBy == .tradeVolumeAscending {
+        self.reactor.action.onNext(.setSortType(sortBy: .tradeVolumeDescending))
+      } else if self.reactor.currentState.sortBy == .tradeVolumeDescending {
+        self.reactor.action.onNext(.setSortType(sortBy: .tradeVolumeAscending))
+      } else {
+        self.reactor.action.onNext(.setSortType(sortBy: .tradeVolumeDescending))
+      }
     default:
       break
     }
