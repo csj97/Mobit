@@ -217,7 +217,7 @@ extension MainReactor {
       updatedCryptoCellInfo.changePrice = matchedTicker.changePrice
       updatedCryptoCellInfo.signedChangeRate = matchedTicker.signedChangeRate
       updatedCryptoCellInfo.change = matchedTicker.change
-      updatedCryptoCellInfo.accTradeVolume = matchedTicker.accTradeVolume24h
+      updatedCryptoCellInfo.accTradePrice24h = matchedTicker.accTradePrice24h
       
       return updatedCryptoCellInfo
     }
@@ -257,7 +257,7 @@ extension MainReactor {
         updatedCryptoCellInfo.changePrice = socketTicker.changePrice
         updatedCryptoCellInfo.signedChangeRate = socketTicker.signedChangeRate
         updatedCryptoCellInfo.change = socketTicker.change
-        updatedCryptoCellInfo.accTradeVolume = socketTicker.accTradeVolume24H
+        updatedCryptoCellInfo.accTradePrice24h = socketTicker.accTradePrice24H
         
         return updatedCryptoCellInfo
       } else {

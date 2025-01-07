@@ -17,6 +17,15 @@ enum TableViewSection: CaseIterable {
   case main
 }
 
+enum CyptoSortType {
+  case currentPriceAscending  // 오름차순 1,2,3,4
+  case currentPriceDescending // 내림차순 4,3,2,1\
+  case previousDayAscending
+  case previousDayDescending
+  case tradeVolumeAscending
+  case tradeVolumeDescending
+}
+
 class MainViewController: UIViewController {
   // coordinator <-> viewcontroller 강한 참조 사이클 방지
   weak var coordinator: MainCoordinator?
@@ -88,7 +97,7 @@ class MainViewController: UIViewController {
   
   // 거래량
   let tradingVolumeButton: UIButton = UIButton().then {
-    $0.setTitle("거래량↓↑", for: .normal)
+    $0.setTitle("거래대금↓↑", for: .normal)
     $0.titleLabel?.font = UIFont.systemFont(ofSize: 10, weight: .light)
     $0.setTitleColor(.gray, for: .normal)
     $0.tag = 2
@@ -185,6 +194,12 @@ class MainViewController: UIViewController {
   
   func setSortButton() {
     self.currentPriceButton.addTarget(
+      self, action: #selector(tapOnSortButton(_:)), for: .touchUpInside
+    )
+    self.previousDayButton.addTarget(
+      self, action: #selector(tapOnSortButton(_:)), for: .touchUpInside
+    )
+    self.tradingVolumeButton.addTarget(
       self, action: #selector(tapOnSortButton(_:)), for: .touchUpInside
     )
   }
