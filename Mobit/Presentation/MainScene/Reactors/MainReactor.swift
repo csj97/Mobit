@@ -18,7 +18,7 @@ enum SelectedTab {
 class MainReactor: Reactor {
   private let mainUseCase: MainUseCase
   private let disposeBag = DisposeBag()
-  private var sortedCryptoPosition: [[String: Int]] = []
+  private var sortedCryptoPosition: [String: Int] = [:]
   let socketManager: NewWebSocketManager = NewWebSocketManager()
   let initialState: MainReactorState = MainReactorState()
   
@@ -330,41 +330,35 @@ extension MainReactor {
               cryptoList: cryptoList,
               socketTicker: ticker
             )
-            switch currentState.sortBy {
-            case .normal:
-              break
-            case .currentPriceAscending:
-              combineResult = combineResult.sorted(
-                by: { $0.tradePrice ?? 0 < $1.tradePrice ?? 0 }
-              )
-            case .currentPriceDescending:
-              combineResult = combineResult.sorted(
-                by: { $0.tradePrice ?? 0 > $1.tradePrice ?? 0 }
-              )
-            case .previousDayAscending:
-              combineResult = combineResult.sorted(
-                by: { $0.signedChangeRate ?? 0 < $1.signedChangeRate ?? 0 }
-              )
-            case .previousDayDescending:
-              combineResult = combineResult.sorted(
-                by: { $0.signedChangeRate ?? 0 > $1.signedChangeRate ?? 0 }
-              )
-            case .tradeVolumeAscending:
-              combineResult = combineResult.sorted(
-                by: { $0.accTradePrice24h ?? 0 < $1.accTradePrice24h ?? 0 }
-              )
-            case .tradeVolumeDescending:
-              combineResult = combineResult.sorted(
-                by: { $0.accTradePrice24h ?? 0 > $1.accTradePrice24h ?? 0 }
-              )
-            }
-            // 정렬 버튼 설정 이후 처리
-//            let sortedKeys = self.position.map({ $0.keys.first })
-//            let sortedByPosition = sortedKeys.compactMap { key in
-//              combineResult.first { $0.market == key }
-//            }
             
-            observer.onNext(.setCombinedArray(cryptoCellInfo: combineResult))
+            // 현재 정렬 타입으로 맞춤
+            self.sortCryptoCellInfos(
+              sortBy: currentState.sortBy,
+              cellInfos: combineResult,
+              completion: { sortedCellInfos in
+                
+                guard let sortedCellInfos = sortedCellInfos else { return }
+                combineResult = sortedCellInfos
+                
+                // 정렬된 배열 > 포지션 찾아가기 (포지션이 설정되어 있다면)
+                if self.sortedCryptoPosition.count > 0 {
+                  self.updateCryptoCellPositions(
+                    cryptoCellInfos: combineResult
+                  ) { sortedCombineResult in
+                    guard let sortedCombineResult = sortedCombineResult else { return }
+                    observer.onNext(
+                      .setCombinedArray(cryptoCellInfo: sortedCombineResult)
+                    )
+                  }
+                } else {
+                  // 일단 포지션 설정보단 레이아웃 설정
+                  observer.onNext(
+                    .setCombinedArray(cryptoCellInfo: combineResult)
+                  )
+                }
+              }
+            )
+            
           } catch {
             print("MainReactor ticker websocket receive decoding error : \(error.localizedDescription)")
           }
@@ -388,36 +382,91 @@ extension MainReactor {
     return .empty() 
   }
   
+  /// Sort Type Setting
   func setSortType(sortBy: CryptoSortType) -> Observable<MainMutation> {
-//    switch sortBy {
-//    case .normal:
-//      break
-//    case .currentPriceAscending:
-//      break
-//    case .currentPriceDescending:
-//      break
-//    case .previousDayAscending:
-//      break
-//    case .previousDayDescending:
-//      break
-//    case .tradeVolumeAscending:
-//      break
-//    case .tradeVolumeDescending:
-//      break
-//    }
     
+    self.sortCryptoCellInfos(
+      sortBy: sortBy,
+      cellInfos: currentState.cryptoCellInfo
+    ) { sortedCellInfos in
+      guard let sortedCellInfos = sortedCellInfos else { return }
+      
+      // 매번 소켓 데이터 수신때마다 하는 것이 아닌, 정렬 초기에 포지션 저장
+      let markets = sortedCellInfos.map({ $0.market })
+      self.sortedCryptoPosition = Dictionary(
+        uniqueKeysWithValues: markets.enumerated().map { ($1, $0) }
+      )
+    }
+    
+    // 포지션 저장하는 것과 별개로 sort type setting
     return Observable.just(
       MainMutation.setSortType(sortBy: sortBy)
     )
   }
   
-  /// 정렬 기준에 따라 포지션을 재정비
+  /// crypto cell infos 정렬
+  func sortCryptoCellInfos(
+    sortBy: CryptoSortType,
+    cellInfos: [CryptoCellInfo],
+    completion: @escaping ([CryptoCellInfo]?) -> ()
+  ) {
+    var sortedCellInfos: [CryptoCellInfo]? = nil
+    
+    switch sortBy {
+    case .normal:
+      break
+    case .currentPriceAscending:
+      sortedCellInfos = cellInfos.sorted(
+        by: { $0.tradePrice ?? 0 < $1.tradePrice ?? 0 }
+      )
+    case .currentPriceDescending:
+      sortedCellInfos = cellInfos.sorted(
+        by: { $0.tradePrice ?? 0 > $1.tradePrice ?? 0 }
+      )
+    case .previousDayAscending:
+      sortedCellInfos = cellInfos.sorted(
+        by: { $0.signedChangeRate ?? 0 < $1.signedChangeRate ?? 0 }
+      )
+    case .previousDayDescending:
+      sortedCellInfos = cellInfos.sorted(
+        by: { $0.signedChangeRate ?? 0 > $1.signedChangeRate ?? 0 }
+      )
+    case .tradeVolumeAscending:
+      sortedCellInfos = cellInfos.sorted(
+        by: { $0.accTradePrice24h ?? 0 < $1.accTradePrice24h ?? 0 }
+      )
+    case .tradeVolumeDescending:
+      sortedCellInfos = cellInfos.sorted(
+        by: { $0.accTradePrice24h ?? 0 > $1.accTradePrice24h ?? 0 }
+      )
+    }
+    
+    guard let sortedCellInfos = sortedCellInfos else {
+      completion(nil)
+      return
+    }
+    completion(sortedCellInfos)
+  }
+  
+  
+  /// 정렬 기준에 따라 설정된 crypto position
   /// 다음 소켓 데이터에선 그 포지션에 따라 정렬되어야함
   /// 타입에 따라 새로 소켓이 들어올 때마다 정렬하면 보이는 위치가 계속 달라짐
-  func sortFromCrypto(cryptoCellInfos: [CryptoCellInfo]) {
-    let markets = cryptoCellInfos.map({ $0.market })
-    self.sortedCryptoPosition = markets.enumerated().map { (index, key) in
-      [key: index]
+  func updateCryptoCellPositions(
+    cryptoCellInfos: [CryptoCellInfo],
+    completion: @escaping ([CryptoCellInfo]?) -> ()
+  ) {
+    let positionedCryptoInfos = self.sortedCryptoPosition
+    if positionedCryptoInfos.count > 0 {
+      let cryptoInfoDict = Dictionary(
+        uniqueKeysWithValues: cryptoCellInfos.map { ($0.market, $0) }
+      )
+      let newPositionedCryptoInfos = positionedCryptoInfos
+        .sorted { $0.value < $1.value }
+        .compactMap { cryptoInfoDict[$0.key] }  // 해당 인덱스의 크립토 정보를 맵핑
+      completion(newPositionedCryptoInfos)
+    } else {
+      completion(nil)
     }
   }
 }

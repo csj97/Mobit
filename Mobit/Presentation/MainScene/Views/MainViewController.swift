@@ -83,7 +83,7 @@ class MainViewController: UIViewController {
   // 현재가 기준 정렬 버튼
   let currentPriceButton: UIButton = UIButton().then {
     $0.setTitle("현재가↓↑", for: .normal)
-    $0.titleLabel?.font = UIFont.systemFont(ofSize: 10, weight: .light)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
     $0.setTitleColor(.gray, for: .normal)
     $0.tag = 0
   }
@@ -91,7 +91,7 @@ class MainViewController: UIViewController {
   // 전일대비
   let previousDayButton: UIButton = UIButton().then {
     $0.setTitle("전일대비↓↑", for: .normal)
-    $0.titleLabel?.font = UIFont.systemFont(ofSize: 10, weight: .light)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
     $0.setTitleColor(.gray, for: .normal)
     $0.tag = 1
   }
@@ -99,7 +99,7 @@ class MainViewController: UIViewController {
   // 거래량
   let tradingVolumeButton: UIButton = UIButton().then {
     $0.setTitle("거래대금↓↑", for: .normal)
-    $0.titleLabel?.font = UIFont.systemFont(ofSize: 10, weight: .light)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
     $0.setTitleColor(.gray, for: .normal)
     $0.tag = 2
   }
@@ -206,38 +206,59 @@ class MainViewController: UIViewController {
   }
   
   @objc private func tapOnSortButton(_ sender: UIButton) {
+    var title: String = ""
+    var targetText: String = ""
+    
     switch sender.tag {
     case 0:
+      title = "현재가↓↑"
       print("현재가 기준 정렬")
       if self.reactor.currentState.sortBy == .currentPriceAscending {
         self.reactor.action.onNext(.setSortType(sortBy: .currentPriceDescending))
+        targetText = "↓"
       } else if self.reactor.currentState.sortBy == .currentPriceDescending {
         self.reactor.action.onNext(.setSortType(sortBy: .currentPriceAscending))
+        targetText = "↑"
       } else {
+        // 아무것도 설정되어 있지 않으면 내림차순 먼저
         self.reactor.action.onNext(.setSortType(sortBy: .currentPriceDescending))
+        targetText = "↓"
       }
       
     case 1:
+      title = "전일대비↓↑"
       print("전일대비 기준 정렬")
       if self.reactor.currentState.sortBy == .previousDayAscending {
         self.reactor.action.onNext(.setSortType(sortBy: .previousDayDescending))
+        targetText = "↓"
       } else if self.reactor.currentState.sortBy == .previousDayDescending {
         self.reactor.action.onNext(.setSortType(sortBy: .previousDayAscending))
+        targetText = "↑"
       } else {
         self.reactor.action.onNext(.setSortType(sortBy: .previousDayDescending))
+        targetText = "↓"
       }
     case 2:
+      title = "거래대금↓↑"
       print("거래대금 기준 정렬")
       if self.reactor.currentState.sortBy == .tradeVolumeAscending {
         self.reactor.action.onNext(.setSortType(sortBy: .tradeVolumeDescending))
+        targetText = "↓"
       } else if self.reactor.currentState.sortBy == .tradeVolumeDescending {
         self.reactor.action.onNext(.setSortType(sortBy: .tradeVolumeAscending))
+        targetText = "↑"
       } else {
         self.reactor.action.onNext(.setSortType(sortBy: .tradeVolumeDescending))
+        targetText = "↓"
       }
     default:
       break
     }
+    
+    let attributedString = self.setUniqueTextColor(
+      text: title, targetText: targetText
+    )
+    sender.setAttributedTitle(attributedString, for: .normal)
   }
   
   func setTabButton() {
@@ -275,6 +296,20 @@ class MainViewController: UIViewController {
     default:
       break
     }
+  }
+  
+  func setUniqueTextColor(text: String, targetText: String) -> NSAttributedString {
+    let attributedString = NSMutableAttributedString(string: text)
+    
+    // 끝 글자인 "↓↑" 부분에 대한 색상 변경
+    let range = (text as NSString).range(of: targetText)
+    attributedString.addAttribute(
+      .foregroundColor,
+      value: UIColor.blue,
+      range: range
+    )
+    
+    return attributedString
   }
   
   /// UISearchBar 설정
