@@ -298,6 +298,7 @@ class MainViewController: UIViewController {
     }
   }
   
+  /// 특정 텍스트만 색상 변경
   func setUniqueTextColor(text: String, targetText: String) -> NSAttributedString {
     let attributedString = NSMutableAttributedString(string: text)
     
