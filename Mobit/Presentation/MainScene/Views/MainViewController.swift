@@ -17,14 +17,14 @@ enum TableViewSection: CaseIterable {
   case main
 }
 
-enum CryptoSortType {
+enum CryptoSortType: String {
   case normal
-  case currentPriceAscending  // 오름차순 1,2,3,4
-  case currentPriceDescending // 내림차순 4,3,2,1
-  case previousDayAscending
-  case previousDayDescending
-  case tradeVolumeAscending
-  case tradeVolumeDescending
+  case currentPriceAscending = "현재가↑"  // 오름차순 1,2,3,4
+  case currentPriceDescending = "현재가↓" // 내림차순 4,3,2,1
+  case previousDayAscending = "전일대비↑"
+  case previousDayDescending = "전일대비↓"
+  case tradeVolumeAscending = "거래대금↑"
+  case tradeVolumeDescending = "거래대금↓"
 }
 
 class MainViewController: UIViewController {
@@ -35,6 +35,8 @@ class MainViewController: UIViewController {
   var reactor: MainReactor
   var isSocketUpdating = false
   var selectedTab: SelectedTab = .krw
+  var prevSortedButton: UIButton?
+  let defaultTitles = ["현재가 ↑↓", "전일대비 ↑↓", "거래대금 ↑↓"]
   
   private let cellIndentifier = "CryptoCell"
   
@@ -85,6 +87,7 @@ class MainViewController: UIViewController {
     $0.setTitle("현재가↓↑", for: .normal)
     $0.titleLabel?.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
     $0.setTitleColor(.gray, for: .normal)
+    $0.setTitleColor(.blue, for: .selected)
     $0.tag = 0
   }
   
@@ -93,14 +96,16 @@ class MainViewController: UIViewController {
     $0.setTitle("전일대비↓↑", for: .normal)
     $0.titleLabel?.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
     $0.setTitleColor(.gray, for: .normal)
+    $0.setTitleColor(.blue, for: .selected)
     $0.tag = 1
   }
   
-  // 거래량
+  // 거래대금
   let tradingVolumeButton: UIButton = UIButton().then {
     $0.setTitle("거래대금↓↑", for: .normal)
     $0.titleLabel?.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
     $0.setTitleColor(.gray, for: .normal)
+    $0.setTitleColor(.blue, for: .selected)
     $0.tag = 2
   }
   
@@ -206,59 +211,36 @@ class MainViewController: UIViewController {
   }
   
   @objc private func tapOnSortButton(_ sender: UIButton) {
-    var title: String = ""
-    var targetText: String = ""
+    // 직전 선택 버튼 해제
+    if let prevSortedButton = self.prevSortedButton,
+       prevSortedButton !== sender {
+      let title = defaultTitles[prevSortedButton.tag]
+      prevSortedButton.setTitle(title, for: .normal)
+      prevSortedButton.isSelected = false
+    }
     
+    var newSortType: CryptoSortType? = nil
     switch sender.tag {
     case 0:
-      title = "현재가↓↑"
-      print("현재가 기준 정렬")
-      if self.reactor.currentState.sortBy == .currentPriceAscending {
-        self.reactor.action.onNext(.setSortType(sortBy: .currentPriceDescending))
-        targetText = "↓"
-      } else if self.reactor.currentState.sortBy == .currentPriceDescending {
-        self.reactor.action.onNext(.setSortType(sortBy: .currentPriceAscending))
-        targetText = "↑"
-      } else {
-        // 아무것도 설정되어 있지 않으면 내림차순 먼저
-        self.reactor.action.onNext(.setSortType(sortBy: .currentPriceDescending))
-        targetText = "↓"
-      }
-      
+      newSortType = self.reactor.currentState.sortBy == .currentPriceAscending
+              ? .currentPriceDescending : .currentPriceAscending
     case 1:
-      title = "전일대비↓↑"
-      print("전일대비 기준 정렬")
-      if self.reactor.currentState.sortBy == .previousDayAscending {
-        self.reactor.action.onNext(.setSortType(sortBy: .previousDayDescending))
-        targetText = "↓"
-      } else if self.reactor.currentState.sortBy == .previousDayDescending {
-        self.reactor.action.onNext(.setSortType(sortBy: .previousDayAscending))
-        targetText = "↑"
-      } else {
-        self.reactor.action.onNext(.setSortType(sortBy: .previousDayDescending))
-        targetText = "↓"
-      }
+        newSortType = self.reactor.currentState.sortBy == .previousDayAscending
+        ? .previousDayDescending : .previousDayAscending
     case 2:
-      title = "거래대금↓↑"
-      print("거래대금 기준 정렬")
-      if self.reactor.currentState.sortBy == .tradeVolumeAscending {
-        self.reactor.action.onNext(.setSortType(sortBy: .tradeVolumeDescending))
-        targetText = "↓"
-      } else if self.reactor.currentState.sortBy == .tradeVolumeDescending {
-        self.reactor.action.onNext(.setSortType(sortBy: .tradeVolumeAscending))
-        targetText = "↑"
-      } else {
-        self.reactor.action.onNext(.setSortType(sortBy: .tradeVolumeDescending))
-        targetText = "↓"
-      }
+        newSortType = self.reactor.currentState.sortBy == .tradeVolumeAscending
+        ? .tradeVolumeDescending : .tradeVolumeAscending
     default:
       break
     }
     
-    let attributedString = self.setUniqueTextColor(
-      text: title, targetText: targetText
-    )
-    sender.setAttributedTitle(attributedString, for: .normal)
+    guard let newSortType = newSortType else { return }
+    self.reactor.action.onNext(.setSortType(sortBy: newSortType))
+    
+    let sortedTitle = self.reactor.currentState.sortBy.rawValue
+    sender.setTitle(sortedTitle , for: .normal)
+    sender.isSelected = true
+    self.prevSortedButton = sender
   }
   
   func setTabButton() {
@@ -299,18 +281,26 @@ class MainViewController: UIViewController {
   }
   
   /// 특정 텍스트만 색상 변경
-  func setUniqueTextColor(text: String, targetText: String) -> NSAttributedString {
-    let attributedString = NSMutableAttributedString(string: text)
+  func setUniqueTextColor(preTitle: String, title: String, targetText: String) -> NSAttributedString {
+    let attributedTitle = NSMutableAttributedString(string: title)
+    
+    // 맨 앞 title
+    let preRange = (title as NSString).range(of: preTitle)
+    attributedTitle.addAttribute(
+      .foregroundColor,
+      value: UIColor.blue,
+      range: preRange
+    )
     
     // 끝 글자인 "↓↑" 부분에 대한 색상 변경
-    let range = (text as NSString).range(of: targetText)
-    attributedString.addAttribute(
+    let range = (title as NSString).range(of: targetText)
+    attributedTitle.addAttribute(
       .foregroundColor,
       value: UIColor.blue,
       range: range
     )
     
-    return attributedString
+    return attributedTitle
   }
   
   /// UISearchBar 설정
