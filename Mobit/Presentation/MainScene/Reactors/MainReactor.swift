@@ -167,18 +167,41 @@ extension MainReactor {
     cryptoList: CryptoList,
     markets: [String]
   ) -> Observable<MainMutation> {
-    self.mainUseCase.loadTickerList(markets: markets)
-      .flatMap { cryptoTickerList -> Observable<MainMutation> in
-        let combineResult = self.combineCrypto(
+    
+    let tickerObservable = Observable<MainMutation>.create { observer in
+      let cryptoTickerObservable = self.mainUseCase.loadTickerList(markets: markets)
+      
+      cryptoTickerObservable.subscribe { cryptoTickerList in
+        let combineCrypto = self.combineCrypto(
           selectedTab: selectedTab,
           cryptoList: cryptoList,
           cryptoTickerList: cryptoTickerList
         )
         
-        return Observable.just(
-          MainMutation.setCombinedArray(cryptoCellInfo: combineResult)
-        )
-      }
+        self.sortCryptoCellInfos(
+          sortBy: self.currentState.sortBy,
+          cellInfos: combineCrypto
+        ) { sortedCellInfos in
+          
+          guard let sortedCellInfos = sortedCellInfos else { return }
+          
+          if self.sortedCryptoPosition.count == 0 {
+            observer.onNext(.setCombinedArray(cryptoCellInfo: sortedCellInfos))
+            observer.onCompleted()
+          } else {
+            self.updateCryptoCellPositions(cryptoCellInfos: sortedCellInfos) { sortedCombineResult in
+              guard let sortedCombineResult = sortedCombineResult else { return }
+              observer.onNext(.setCombinedArray(cryptoCellInfo: sortedCombineResult))
+              observer.onCompleted()
+            }
+          }
+        }
+      }.disposed(by: self.disposeBag)
+      
+      return Disposables.create()
+    }
+    
+    return tickerObservable
   }
   
   // MARK: - Combine Function
@@ -414,7 +437,7 @@ extension MainReactor {
     
     switch sortBy {
     case .normal:
-      break
+      sortedCellInfos = cellInfos
     case .currentPriceAscending:
       sortedCellInfos = cellInfos.sorted(
         by: { $0.tradePrice ?? 0 < $1.tradePrice ?? 0 }
