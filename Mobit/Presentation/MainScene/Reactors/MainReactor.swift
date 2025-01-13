@@ -189,9 +189,13 @@ extension MainReactor {
             observer.onNext(.setCombinedArray(cryptoCellInfo: sortedCellInfos))
             observer.onCompleted()
           } else {
-            self.updateCryptoCellPositions(cryptoCellInfos: sortedCellInfos) { sortedCombineResult in
+            self.updateCryptoCellPositions(
+              cryptoCellInfos: sortedCellInfos
+            ) { sortedCombineResult in
               guard let sortedCombineResult = sortedCombineResult else { return }
-              observer.onNext(.setCombinedArray(cryptoCellInfo: sortedCombineResult))
+              observer.onNext(
+                .setCombinedArray(cryptoCellInfo: sortedCombineResult)
+              )
               observer.onCompleted()
             }
           }

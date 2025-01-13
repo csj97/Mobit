@@ -15,12 +15,13 @@ import UIKit
 
 struct OrderUnit: Hashable {
   var identifier: UUID = UUID()
-  var type: TradeSide
+  var type: OrderType
   var price: Double
   var size: Double
 }
 
-enum TradeSide {
+/// 매수, 매도 타입
+enum OrderType {
   case ask
   case bid
 }
@@ -116,7 +117,7 @@ class CryptoDetailViewController: UIViewController {
     $0.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
   }
   let tradeView: UIView = UIView().then {
-    $0.backgroundColor = .blue
+    $0.backgroundColor = .white
   }
   let chartView: UIView = UIView().then {
     $0.backgroundColor = .brown
@@ -124,7 +125,26 @@ class CryptoDetailViewController: UIViewController {
   let informationView: UIView = UIView().then {
     $0.backgroundColor = .green
   }
-  
+  let bidTabButton: UIButton = UIButton().then {
+    $0.setTitle("매수", for: .normal)
+    $0.setTitleColor(.darkGray, for: .normal)
+    $0.setTitleColor(.red, for: .selected)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: 13)
+    $0.tag = 0
+  }
+  let askTabButton: UIButton = UIButton().then {
+    $0.setTitle("매도", for: .normal)
+    $0.setTitleColor(.darkGray, for: .normal)
+    $0.setTitleColor(.blue, for: .selected)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: 13)
+    $0.tag = 1
+  }
+  let tradeHistoryTabButton: UIButton = UIButton().then {
+    $0.setTitle("거래내역", for: .normal)
+    $0.setTitleColor(.darkGray, for: .normal)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: 13)
+    $0.tag = 2
+  }
   override func viewWillAppear(_ animated: Bool) {
     self.reactor.action
       .onNext(.connectTickerSocket)
@@ -165,6 +185,9 @@ class CryptoDetailViewController: UIViewController {
     self.rootContainer.addSubview(self.changePriceImageView)
     self.rootContainer.addSubview(self.changePriceLabel)
     self.rootContainer.addSubview(self.segmentedControl)
+    self.rootContainer.addSubview(self.bidTabButton)
+    self.rootContainer.addSubview(self.askTabButton)
+    self.rootContainer.addSubview(self.tradeHistoryTabButton)
     self.rootContainer.addSubview(self.orderView)
     self.rootContainer.addSubview(self.chartView)
     self.rootContainer.addSubview(self.informationView)
@@ -367,9 +390,18 @@ class CryptoDetailViewController: UIViewController {
               .direction(.row)
               .define { flex in
                 flex.addItem(self.orderTableView)
-                  .width(33%)
+                  .width(35%)
                 flex.addItem(self.tradeView)
-                  .width(67%)
+                  .width(65%)
+                  .direction(.column)
+                  .define { flex in
+                    flex.addItem().direction(.row)
+                      .define { flex in
+                        flex.addItem(self.bidTabButton).grow(1).basis(0%)
+                        flex.addItem(self.askTabButton).grow(1).basis(0%)
+                        flex.addItem(self.tradeHistoryTabButton).grow(1).basis(0%)
+                      }
+                  }
               }
             flex.addItem(self.chartView)
               .position(.absolute)
@@ -386,18 +418,41 @@ class CryptoDetailViewController: UIViewController {
 // MARK: viewcontroller 기타 설정 메소드
 extension CryptoDetailViewController {
   func setButtons() {
-    self.backButton
-      .addTarget(
-        self,
-        action: #selector(tapOnBackButton(_:)),
-        for: .touchUpInside
-      )
+    self.backButton.addTarget(
+      self, action: #selector(tapOnBackButton(_:)), for: .touchUpInside
+    )
+    self.bidTabButton.addTarget(
+      self, action: #selector(tapOnTradeTabButtons(_:)), for: .touchUpInside
+    )
+    self.askTabButton.addTarget(
+      self, action: #selector(tapOnTradeTabButtons(_:)), for: .touchUpInside
+    )
+    self.tradeHistoryTabButton.addTarget(
+      self, action: #selector(tapOnTradeTabButtons(_:)), for: .touchUpInside
+    )
   }
   
   @objc private func tapOnBackButton(_ sender: UIButton) {
     self.coordinator?.navigationController.popViewController(animated: true)
     self.reactor.tickerSocketManager.disconnect()
     self.reactor.orderBookSocketManager.disconnect()
+  }
+  
+  /// 매수, 매도, 거래내역 버튼 터치
+  @objc private func tapOnTradeTabButtons(_ sender: UIButton) {
+    switch sender.tag {
+    case 0:
+      self.bidTabButton.setTitleColor(.red, for: .selected)
+      self.bidTabButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 13)
+    case 1:
+      self.askTabButton.setTitleColor(.blue, for: .selected)
+      self.askTabButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 13)
+    case 2:
+      self.tradeHistoryTabButton.setTitleColor(.darkGray, for: .selected)
+      self.tradeHistoryTabButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 13)
+    default:
+      break
+    }
   }
   
   func setSegmentedControl() {

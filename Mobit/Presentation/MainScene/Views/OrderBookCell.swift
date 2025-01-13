@@ -111,7 +111,7 @@ class OrderBookCell: UITableViewCell {
   
   func configure(
     changeRate: Double?,
-    obType: TradeSide,
+    obType: OrderType,
     obPrice: Double,
     obSize: Double
   ) {
