@@ -130,6 +130,8 @@ class CryptoDetailViewController: UIViewController {
     $0.setTitleColor(.darkGray, for: .normal)
     $0.setTitleColor(.red, for: .selected)
     $0.titleLabel?.font = UIFont.systemFont(ofSize: 13)
+    $0.isSelected = true  // default
+    $0.backgroundColor = .white
     $0.tag = 0
   }
   let askTabButton: UIButton = UIButton().then {
@@ -137,14 +139,107 @@ class CryptoDetailViewController: UIViewController {
     $0.setTitleColor(.darkGray, for: .normal)
     $0.setTitleColor(.blue, for: .selected)
     $0.titleLabel?.font = UIFont.systemFont(ofSize: 13)
+    $0.isSelected = false
+    $0.backgroundColor = .mobitColors(.lightGrayBG)
     $0.tag = 1
   }
   let tradeHistoryTabButton: UIButton = UIButton().then {
     $0.setTitle("거래내역", for: .normal)
     $0.setTitleColor(.darkGray, for: .normal)
     $0.titleLabel?.font = UIFont.systemFont(ofSize: 13)
+    $0.isSelected = false
+    $0.backgroundColor = .mobitColors(.lightGrayBG)
     $0.tag = 2
   }
+  let availableOrderLabel: UILabel = UILabel().then {
+    $0.text = "주문 가능"
+    $0.textColor = .gray
+    $0.textAlignment = .left
+    $0.font = UIFont.systemFont(ofSize: 12)
+  }
+  let availableOrderAmount: UILabel = UILabel().then {
+    $0.text = "0"
+    $0.textColor = .black
+    $0.textAlignment = .right
+    $0.font = UIFont.systemFont(ofSize: 12, weight: .bold)
+    $0.adjustsFontSizeToFitWidth = true
+    $0.minimumScaleFactor = 0.5
+  }
+  let availableOrderCurrency: UILabel = UILabel().then {
+    $0.text = "KRW"
+    $0.textColor = .black
+    $0.textAlignment = .right
+    $0.font = UIFont.systemFont(ofSize: 12, weight: .bold)
+  }
+  let cryptoCountLabel: UILabel = UILabel().then {
+    $0.text = "수량"
+    $0.textColor = .darkGray
+    $0.textAlignment = .left
+    $0.adjustsFontSizeToFitWidth = true
+    $0.minimumScaleFactor = 0.5
+    $0.font = UIFont.systemFont(ofSize: 12)
+  }
+  let cryptoCountAmount: UITextField = UITextField().then {
+    $0.text = "0"
+    $0.textColor = .black
+    $0.textAlignment = .right
+    $0.font = UIFont.systemFont(ofSize: 12)
+  }
+  let cryptoCountCurrency: UILabel = UILabel().then {
+    $0.text = "BTC"
+    $0.textColor = .black
+    $0.textAlignment = .right
+    $0.font = UIFont.systemFont(ofSize: 11)
+  }
+  let cryptoPriceLabel: UILabel = UILabel().then {
+    $0.text = "가격"
+    $0.textColor = .black
+    $0.textAlignment = .right
+    $0.font = UIFont.systemFont(ofSize: 11)
+  }
+  let cryptoPriceAmount: UITextField = UITextField().then {
+    $0.text = "100,000,000" // 첫 진입시 현재가
+    $0.textColor = .black
+    $0.textAlignment = .right
+    $0.font = UIFont.systemFont(ofSize: 11)
+  }
+  let cryptoPriceCurrency: UILabel = UILabel().then {
+    $0.text = "KRW"
+    $0.textColor = .black
+    $0.textAlignment = .right
+    $0.font = UIFont.systemFont(ofSize: 11)
+  }
+  let cryptoTotalPriceLabel: UILabel = UILabel().then {
+    $0.text = "총액"
+    $0.textColor = .black
+    $0.textAlignment = .right
+    $0.font = UIFont.systemFont(ofSize: 11)
+  }
+  let cryptoTotalPriceAmount: UITextField = UITextField().then {
+    $0.text = "0" // 첫 진입시 현재가
+    $0.textColor = .black
+    $0.textAlignment = .right
+    $0.font = UIFont.systemFont(ofSize: 11)
+  }
+  let cryptoTotalPriceCurrency: UILabel = UILabel().then {
+    $0.text = "KRW"
+    $0.textColor = .black
+    $0.textAlignment = .right
+    $0.font = UIFont.systemFont(ofSize: 11)
+  }
+  let setInitButton: UIButton = UIButton().then {
+    $0.setTitle("초기화", for: .normal)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
+    $0.setTitleColor(.white, for: .normal)
+    $0.backgroundColor = .darkGray
+  }
+  let tradeButton: UIButton = UIButton().then {
+    $0.setTitle("매수", for: .normal) // default
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
+    $0.setTitleColor(.white, for: .normal)
+    $0.backgroundColor = .red
+  }
+  
   override func viewWillAppear(_ animated: Bool) {
     self.reactor.action
       .onNext(.connectTickerSocket)
@@ -178,16 +273,8 @@ class CryptoDetailViewController: UIViewController {
     self.view.addSubview(self.rootContainer)
     self.rootContainer.addSubview(self.naviBar)
     self.rootContainer.addSubview(self.backButton)
-    self.rootContainer.addSubview(self.titleLabel)
     self.rootContainer.addSubview(self.favoriteButton)
-    self.rootContainer.addSubview(self.priceLabel)
-    self.rootContainer.addSubview(self.changeRateLabel)
-    self.rootContainer.addSubview(self.changePriceImageView)
-    self.rootContainer.addSubview(self.changePriceLabel)
     self.rootContainer.addSubview(self.segmentedControl)
-    self.rootContainer.addSubview(self.bidTabButton)
-    self.rootContainer.addSubview(self.askTabButton)
-    self.rootContainer.addSubview(self.tradeHistoryTabButton)
     self.rootContainer.addSubview(self.orderView)
     self.rootContainer.addSubview(self.chartView)
     self.rootContainer.addSubview(self.informationView)
@@ -382,6 +469,8 @@ class CryptoDetailViewController: UIViewController {
             flex.addItem(DividerLineView()).height(1)
           }
         
+        // 매수, 매도, 거래내역 탭
+        // 파생된 view
         flex.addItem()
           .define { flex in
             flex.addItem(self.orderView)
@@ -400,7 +489,56 @@ class CryptoDetailViewController: UIViewController {
                         flex.addItem(self.bidTabButton).grow(1).basis(0%)
                         flex.addItem(self.askTabButton).grow(1).basis(0%)
                         flex.addItem(self.tradeHistoryTabButton).grow(1).basis(0%)
+                      }.height(40)
+                    flex.addItem().direction(.row)
+                      .define { flex in
+                        flex.addItem(self.availableOrderLabel)
+                        flex.addItem(self.availableOrderAmount)
+                          .marginRight(2)
+                          .grow(1)
+                        flex.addItem(self.availableOrderCurrency)
+                      }.marginHorizontal(10).marginTop(10).marginBottom(5)
+                    flex.addItem().direction(.row)
+                      .define { flex in
+                        flex.addItem(self.cryptoCountLabel).marginLeft(5)
+                        flex.addItem(self.cryptoCountAmount).marginRight(4).grow(1)
+                        flex.addItem(self.cryptoCountCurrency).marginRight(10)
                       }
+                      .height(40)
+                      .marginHorizontal(10).marginBottom(5)
+                      .cornerRadius(5).border(1, .bgLightGray)
+                    
+                    flex.addItem().direction(.row)
+                      .define { flex in
+                        flex.addItem(self.cryptoPriceLabel).marginLeft(5)
+                        flex.addItem(self.cryptoPriceAmount).marginRight(4).grow(1)
+                        flex.addItem(self.cryptoPriceCurrency).marginRight(10)
+                      }
+                      .height(40)
+                      .marginHorizontal(10).marginBottom(5)
+                      .cornerRadius(5).border(1, .bgLightGray)
+                    
+                    flex.addItem().direction(.row)
+                      .define { flex in
+                        flex.addItem(self.cryptoTotalPriceLabel).marginLeft(5)
+                        flex.addItem(self.cryptoTotalPriceAmount).marginRight(4).grow(1)
+                        flex.addItem(self.cryptoTotalPriceCurrency).marginRight(10)
+                      }
+                      .height(40)
+                      .marginHorizontal(10).marginBottom(10)
+                      .cornerRadius(5).border(1, .bgLightGray)
+                    
+                    flex.addItem().direction(.row).gap(5)
+                      .define { flex in
+                        flex.addItem(self.setInitButton)
+                          .cornerRadius(5)
+                          .width(50%)
+                        flex.addItem(self.tradeButton)
+                          .cornerRadius(5)
+                          .width(50%)
+                      }
+                      .height(40)
+                      .marginHorizontal(10)
                   }
               }
             flex.addItem(self.chartView)
@@ -440,16 +578,31 @@ extension CryptoDetailViewController {
   
   /// 매수, 매도, 거래내역 버튼 터치
   @objc private func tapOnTradeTabButtons(_ sender: UIButton) {
+    [bidTabButton, askTabButton, tradeHistoryTabButton]
+      .filter { $0.tag != sender.tag }
+      .forEach { $0.backgroundColor = .mobitColors(.lightGrayBG) }
+    
+    self.bidTabButton.isSelected = false
+    self.askTabButton.isSelected = false
+    self.tradeHistoryTabButton.isSelected = false
+    
+    sender.isSelected = true
+    
     switch sender.tag {
     case 0:
       self.bidTabButton.setTitleColor(.red, for: .selected)
       self.bidTabButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 13)
+      self.bidTabButton.backgroundColor = .white
+      self.tradeButton.backgroundColor = .red
     case 1:
       self.askTabButton.setTitleColor(.blue, for: .selected)
       self.askTabButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 13)
+      self.askTabButton.backgroundColor = .white
+      self.tradeButton.backgroundColor = .blue
     case 2:
       self.tradeHistoryTabButton.setTitleColor(.darkGray, for: .selected)
       self.tradeHistoryTabButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 13)
+      self.tradeHistoryTabButton.backgroundColor = .white
     default:
       break
     }

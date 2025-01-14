@@ -1,13 +1,12 @@
 {
-  "originHash" : "1a4f5c7e39ed4d9c3ba84695e164c2bb9bdb0d09f113454e2090c82a5d7b19a1",
   "pins" : [
     {
       "identity" : "alamofire",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Alamofire/Alamofire.git",
       "state" : {
-        "revision" : "f455c2975872ccd2d9c81594c658af65716e9b9a",
-        "version" : "5.9.1"
+        "revision" : "513364f870f6bfc468f9d2ff0a95caccc10044c5",
+        "version" : "5.10.2"
       }
     },
     {
@@ -33,8 +32,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Kitura/BlueRSA.git",
       "state" : {
-        "revision" : "440f78db26d8bb073f29590f1c7bd31004da09ae",
-        "version" : "1.0.201"
+        "revision" : "4c9464b4a21dd558a9b1f4a4ed603bb67dcbc773",
+        "version" : "1.0.202"
       }
     },
     {
@@ -42,8 +41,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/layoutBox/FlexLayout.git",
       "state" : {
-        "revision" : "9b46c098c0471b847e6feee49692ae239633bae3",
-        "version" : "2.0.10"
+        "revision" : "0ceb4f5e3da86b6f2988eed7ee7a09296a193dd9",
+        "version" : "2.1.0"
       }
     },
     {
@@ -103,10 +102,10 @@
     {
       "identity" : "rxswift",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/ReactiveX/RxSwift.git",
+      "location" : "https://github.com/ReactiveX/RxSwift",
       "state" : {
-        "revision" : "b06a8c8596e4c3e8e7788e08e720e3248563ce6a",
-        "version" : "6.7.1"
+        "revision" : "c7c7d2cf50a3211fe2843f76869c698e4e417930",
+        "version" : "6.8.0"
       }
     },
     {
@@ -123,8 +122,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Kitura/Swift-JWT.git",
       "state" : {
-        "revision" : "f68ec28fbd90a651597e9e825ea7f315f8d52a1f",
-        "version" : "4.0.1"
+        "revision" : "2cf7ef3eeb0df84318c75662c257651285f8289f",
+        "version" : "4.0.2"
       }
     },
     {
@@ -132,8 +131,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-log.git",
       "state" : {
-        "revision" : "9cb486020ebf03bfa5b5df985387a14a98744537",
-        "version" : "1.6.1"
+        "revision" : "96a2f8a0fa41e9e09af4585e2724c4e825410b91",
+        "version" : "1.6.2"
       }
     },
     {
@@ -153,7 +152,16 @@
         "revision" : "cb05d64cef2bbf51e85c53adee937df46540a74e",
         "version" : "1.2.1"
       }
+    },
+    {
+      "identity" : "yoga",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/facebook/yoga.git",
+      "state" : {
+        "revision" : "042f5013152eb81c1552dec945b88f7b95ca350f",
+        "version" : "3.2.1"
+      }
     }
   ],
-  "version" : 3
+  "version" : 2
 }
