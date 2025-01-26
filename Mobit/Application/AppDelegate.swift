@@ -11,7 +11,8 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
   
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-    // Override point for customization after application launch.
+    
+    checkFirstLaunch()
     return true
   }
 
@@ -29,6 +30,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
   }
 
-
+  /// App의 첫 실행 여부
+  func checkFirstLaunch() {
+    // 첫 실행이면 천만원 설정
+    if UserDataManager.isFirstLaunch {
+      let userInformation = MobitUserInformation(
+        userAvailableBalance: UserDataManager.userAvailableBalance,
+        userCryptoList: UserDataManager.userCryptoList ?? []
+      )
+      UserDataManager.userInformation = userInformation
+    } else {
+      UserDataManager.isFirstLaunch = true
+      let userInformation = MobitUserInformation(
+        userAvailableBalance: 10_000_000,
+        userCryptoList: UserDataManager.userCryptoList ?? []
+      )
+    }
+  }
 }
 

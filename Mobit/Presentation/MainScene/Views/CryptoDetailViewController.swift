@@ -175,14 +175,13 @@ class CryptoDetailViewController: UIViewController {
     $0.text = "수량"
     $0.textColor = .darkGray
     $0.textAlignment = .left
-    $0.adjustsFontSizeToFitWidth = true
-    $0.minimumScaleFactor = 0.5
     $0.font = UIFont.systemFont(ofSize: 12)
   }
   let cryptoCountAmount: UITextField = UITextField().then {
     $0.text = "0"
     $0.textColor = .black
     $0.textAlignment = .right
+    
     $0.font = UIFont.systemFont(ofSize: 12)
   }
   let cryptoCountCurrency: UILabel = UILabel().then {
@@ -311,6 +310,9 @@ class CryptoDetailViewController: UIViewController {
         from: NSNumber(value: changePrice)
       )
     }
+    
+    let currency = crypto?.market.components(separatedBy: "/").first
+    self.cryptoCountCurrency.text = currency
     
     switch selectCrypto.change {
     case "RISE":
@@ -568,6 +570,9 @@ extension CryptoDetailViewController {
     self.tradeHistoryTabButton.addTarget(
       self, action: #selector(tapOnTradeTabButtons(_:)), for: .touchUpInside
     )
+    self.tradeButton.addTarget(
+      self, action: #selector(tapOnTradeButton(_:)), for: .touchUpInside
+    )
   }
   
   @objc private func tapOnBackButton(_ sender: UIButton) {
@@ -606,6 +611,14 @@ extension CryptoDetailViewController {
     default:
       break
     }
+  }
+  
+  @objc private func tapOnTradeButton(_ sender: UIButton) {
+    guard let currentPrice = self.reactor.currentState.cryptoInfo?.tradePrice,
+          let userBalance = UserDataManager.userInformation?.userAvailableBalance else { return }
+    
+    let availableAmount = round((userBalance / currentPrice) * 100) / 100
+    print("💵 : \(availableAmount)")
   }
   
   func setSegmentedControl() {
