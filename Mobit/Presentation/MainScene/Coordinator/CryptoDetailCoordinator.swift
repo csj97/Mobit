@@ -25,9 +25,13 @@ class CryptoDetailCoordinator: BaseCoordinator {
         cryptoDetailRepository: CryptoDetailRepository()
       )
     )
-    let cryptoDetailVC = CryptoDetailViewController(reactor: reactor)
-    cryptoDetailVC.coordinator = self
-    self.navigationController.pushViewController(cryptoDetailVC, animated: true)
+    let tradeVC =  TradeViewController()
+    tradeVC.coordinator = self
+    self.navigationController.pushViewController(tradeVC, animated: true)
+      
+//    let cryptoDetailVC = CryptoDetailViewController(reactor: reactor)
+//    cryptoDetailVC.coordinator = self
+//    self.navigationController.pushViewController(cryptoDetailVC, animated: true)
   }
   
 }

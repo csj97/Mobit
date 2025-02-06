@@ -115,7 +115,15 @@ class OrderBookCell: UITableViewCell {
     obPrice: Double,
     obSize: Double
   ) {
-    self.obPrice.text = String(obPrice)
+    let numberFormatter = NumberFormatter()
+    numberFormatter.numberStyle = .decimal
+    if obPrice < 1 {
+      self.obPrice.text = formatOrderPrice(obPrice)
+    } else {
+      self.obPrice.text = numberFormatter.string(
+        from: NSNumber(value: obPrice)
+      )
+    }
     self.obSizeLabel.text = String(obSize)
     switch obType {
     case .ask:
@@ -127,6 +135,13 @@ class OrderBookCell: UITableViewCell {
     }
     
     guard let changeRate = changeRate else { return }
-    self.obChangeRate.text = "\(changeRate)"
+    self.obChangeRate.text = "\(changeRate)%"
+  }
+  
+  func formatOrderPrice(_ obPrice: Double?, precision: Int = 8) -> String {
+    guard let price = obPrice else {
+      return "N/A"  // 값이 없을 때 반환할 기본 문자열
+    }
+    return String(format: "%.\(precision)f", price)
   }
 }

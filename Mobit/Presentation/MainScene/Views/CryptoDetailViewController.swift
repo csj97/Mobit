@@ -177,6 +177,12 @@ class CryptoDetailViewController: UIViewController {
     $0.textAlignment = .left
     $0.font = UIFont.systemFont(ofSize: 12)
   }
+  let maxCryptoButton: UIButton = UIButton().then {
+    $0.setTitle("최대수량", for: .normal)
+    $0.setTitleColor(.black, for: .normal)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: 12)
+    $0.backgroundColor = .bgLightGray
+  }
   let cryptoCountAmount: UITextField = UITextField().then {
     $0.text = "0"
     $0.textColor = .black
@@ -402,6 +408,7 @@ class CryptoDetailViewController: UIViewController {
     })
   }
   
+  /// flex item 나열
   func setUpFlexItems() {
     rootContainer.flex
       .justifyContent(.start)
@@ -480,18 +487,22 @@ class CryptoDetailViewController: UIViewController {
               .top(0).left(0).right(0).bottom(0)
               .direction(.row)
               .define { flex in
+                // order book tableview
                 flex.addItem(self.orderTableView)
                   .width(35%)
+                // 주문 화면
                 flex.addItem(self.tradeView)
                   .width(65%)
                   .direction(.column)
                   .define { flex in
                     flex.addItem().direction(.row)
                       .define { flex in
+                        // 매수, 매도, 거래내역 버튼 (basis 균등 비율)
                         flex.addItem(self.bidTabButton).grow(1).basis(0%)
                         flex.addItem(self.askTabButton).grow(1).basis(0%)
                         flex.addItem(self.tradeHistoryTabButton).grow(1).basis(0%)
                       }.height(40)
+                    // 주문 컴포넌트 추가
                     flex.addItem().direction(.row)
                       .define { flex in
                         flex.addItem(self.availableOrderLabel)
@@ -500,16 +511,26 @@ class CryptoDetailViewController: UIViewController {
                           .grow(1)
                         flex.addItem(self.availableOrderCurrency)
                       }.marginHorizontal(10).marginTop(10).marginBottom(5)
+                    // 수량
                     flex.addItem().direction(.row)
                       .define { flex in
-                        flex.addItem(self.cryptoCountLabel).marginLeft(5)
-                        flex.addItem(self.cryptoCountAmount).marginRight(4).grow(1)
-                        flex.addItem(self.cryptoCountCurrency).marginRight(10)
+                        flex.addItem().direction(.row)
+                          .define { flex in
+                            flex.addItem(self.cryptoCountLabel).marginLeft(5)
+                            flex.addItem(self.cryptoCountAmount).marginRight(4).grow(1)
+                            flex.addItem(self.cryptoCountCurrency).marginRight(10)
+                          }
+                          .height(40)
+                          .marginHorizontal(10).marginBottom(5).grow(1)
+                          .cornerRadius(5).border(1, .bgLightGray)
+                        flex.addItem(self.maxCryptoButton)
+                          .height(40)
+                          .width(60)
+                          .marginLeft(5)
+                          .marginRight(10)
+                          .cornerRadius(5)
                       }
-                      .height(40)
-                      .marginHorizontal(10).marginBottom(5)
-                      .cornerRadius(5).border(1, .bgLightGray)
-                    
+                    // 가격
                     flex.addItem().direction(.row)
                       .define { flex in
                         flex.addItem(self.cryptoPriceLabel).marginLeft(5)
@@ -519,7 +540,7 @@ class CryptoDetailViewController: UIViewController {
                       .height(40)
                       .marginHorizontal(10).marginBottom(5)
                       .cornerRadius(5).border(1, .bgLightGray)
-                    
+                    // 총액
                     flex.addItem().direction(.row)
                       .define { flex in
                         flex.addItem(self.cryptoTotalPriceLabel).marginLeft(5)
@@ -599,11 +620,13 @@ extension CryptoDetailViewController {
       self.bidTabButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 13)
       self.bidTabButton.backgroundColor = .white
       self.tradeButton.backgroundColor = .red
+      self.tradeButton.setTitle("매수", for: .normal)
     case 1:
       self.askTabButton.setTitleColor(.blue, for: .selected)
       self.askTabButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 13)
       self.askTabButton.backgroundColor = .white
       self.tradeButton.backgroundColor = .blue
+      self.tradeButton.setTitle("매도", for: .normal)
     case 2:
       self.tradeHistoryTabButton.setTitleColor(.darkGray, for: .selected)
       self.tradeHistoryTabButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 13)
@@ -637,6 +660,7 @@ extension CryptoDetailViewController {
     self.informationView.isHidden = sender.selectedSegmentIndex != 2
   }
   
+  /// price format
   func formatTradePrice(_ tradePrice: Double?, precision: Int = 8) -> String {
     guard let price = tradePrice else {
       return "N/A"  // 값이 없을 때 반환할 기본 문자열
@@ -646,16 +670,17 @@ extension CryptoDetailViewController {
   
   /// 변동성 % 계산
   private func calculateFluctuation(obPrice: Double?) -> Double? {
-      guard let obPrice = obPrice,
-            let prevClosingPrice = self.prevClosingPrice else {
-          return nil
-      }
-      
-      if prevClosingPrice == 0 {
-          return 1
-      } else {
-          return obPrice / prevClosingPrice
-      }
+    guard let obPrice = obPrice,
+          let prevClosingPrice = self.prevClosingPrice else {
+      return nil
+    }
+    
+    if prevClosingPrice == 0 {
+      return 1
+    } else {
+      let fluctuation = ceil((obPrice / prevClosingPrice) * 100) / 100
+      return fluctuation
+    }
   }
 }
 

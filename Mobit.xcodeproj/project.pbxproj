@@ -22,6 +22,14 @@
 		3133E2702C3F7098000D4B1A /* MainUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E26F2C3F7098000D4B1A /* MainUseCase.swift */; };
 		3133E2742C3F7135000D4B1A /* PinLayout in Frameworks */ = {isa = PBXBuildFile; productRef = 3133E2732C3F7135000D4B1A /* PinLayout */; };
 		3133E2772C3F7192000D4B1A /* FlexLayout in Frameworks */ = {isa = PBXBuildFile; productRef = 3133E2762C3F7192000D4B1A /* FlexLayout */; };
+		31B741EC2D524F7000706340 /* TradeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741EA2D524F7000706340 /* TradeViewController.swift */; };
+		31B741ED2D524F7000706340 /* TradeViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B741EB2D524F7000706340 /* TradeViewController.xib */; };
+		31B741EF2D53A37E00706340 /* ViewRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741EE2D53A37600706340 /* ViewRule.swift */; };
+		31B741F22D53A50600706340 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 31B741F12D53A50600706340 /* SnapKit */; };
+		31B741F52D53AA6C00706340 /* TradeOrderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741F42D53AA6C00706340 /* TradeOrderView.swift */; };
+		31B741F72D53AA7600706340 /* TradeOrderView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B741F62D53AA7600706340 /* TradeOrderView.xib */; };
+		31B741F92D53AAAC00706340 /* TradeChartView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B741F82D53AAAC00706340 /* TradeChartView.xib */; };
+		31B741FB2D53AAD800706340 /* TradeChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741FA2D53AAD800706340 /* TradeChartView.swift */; };
 		31D644462C7257B500C7F96D /* CryptoDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D644452C7257B500C7F96D /* CryptoDetailViewController.swift */; };
 		31D644482C7257F900C7F96D /* CryptoDetailCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D644472C7257F900C7F96D /* CryptoDetailCoordinator.swift */; };
 		31D6444A2C72587B00C7F96D /* CryptoDetailReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D644492C72587B00C7F96D /* CryptoDetailReactor.swift */; };
@@ -129,6 +137,13 @@
 		3133E2652C3F6A44000D4B1A /* BaseCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseCoordinator.swift; sourceTree = "<group>"; };
 		3133E2672C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoordinatorFinishDelegate.swift; sourceTree = "<group>"; };
 		3133E26F2C3F7098000D4B1A /* MainUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainUseCase.swift; sourceTree = "<group>"; };
+		31B741EA2D524F7000706340 /* TradeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeViewController.swift; sourceTree = "<group>"; };
+		31B741EB2D524F7000706340 /* TradeViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeViewController.xib; sourceTree = "<group>"; };
+		31B741EE2D53A37600706340 /* ViewRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewRule.swift; sourceTree = "<group>"; };
+		31B741F42D53AA6C00706340 /* TradeOrderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeOrderView.swift; sourceTree = "<group>"; };
+		31B741F62D53AA7600706340 /* TradeOrderView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeOrderView.xib; sourceTree = "<group>"; };
+		31B741F82D53AAAC00706340 /* TradeChartView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeChartView.xib; sourceTree = "<group>"; };
+		31B741FA2D53AAD800706340 /* TradeChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeChartView.swift; sourceTree = "<group>"; };
 		31D644452C7257B500C7F96D /* CryptoDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailViewController.swift; sourceTree = "<group>"; };
 		31D644472C7257F900C7F96D /* CryptoDetailCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailCoordinator.swift; sourceTree = "<group>"; };
 		31D644492C72587B00C7F96D /* CryptoDetailReactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailReactor.swift; sourceTree = "<group>"; };
@@ -175,6 +190,7 @@
 				3133E2742C3F7135000D4B1A /* PinLayout in Frameworks */,
 				99C20A6E2C490615009276E7 /* Moya in Frameworks */,
 				998725062C50944700088C71 /* RxRelay in Frameworks */,
+				31B741F22D53A50600706340 /* SnapKit in Frameworks */,
 				99C20A722C490615009276E7 /* RxMoya in Frameworks */,
 				31E208432C46CB47000BFEBC /* Then in Frameworks */,
 				99C20A6C2C490615009276E7 /* CombineMoya in Frameworks */,
@@ -311,6 +327,7 @@
 		3133E25C2C3F6979000D4B1A /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				31B741EE2D53A37600706340 /* ViewRule.swift */,
 				311E33F92C46068C0054C6BC /* ErrorType.swift */,
 				99C20AB12C4F6A04009276E7 /* Environment.swift */,
 				C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */,
@@ -365,6 +382,19 @@
 			path = Main;
 			sourceTree = "<group>";
 		};
+		31B741F32D53AA3200706340 /* Trade */ = {
+			isa = PBXGroup;
+			children = (
+				31B741EA2D524F7000706340 /* TradeViewController.swift */,
+				31B741EB2D524F7000706340 /* TradeViewController.xib */,
+				31B741F42D53AA6C00706340 /* TradeOrderView.swift */,
+				31B741F62D53AA7600706340 /* TradeOrderView.xib */,
+				31B741FA2D53AAD800706340 /* TradeChartView.swift */,
+				31B741F82D53AAAC00706340 /* TradeChartView.xib */,
+			);
+			path = Trade;
+			sourceTree = "<group>";
+		};
 		31E208052C4678A0000BFEBC /* MainScene */ = {
 			isa = PBXGroup;
 			children = (
@@ -413,6 +443,7 @@
 		31E2080E2C46C2CC000BFEBC /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				31B741F32D53AA3200706340 /* Trade */,
 				311E33FB2C4608800054C6BC /* MainViewController.swift */,
 				31D644452C7257B500C7F96D /* CryptoDetailViewController.swift */,
 				99C20A5C2C48DF11009276E7 /* CoinTableViewCell.swift */,
@@ -561,6 +592,7 @@
 				998725052C50944700088C71 /* RxRelay */,
 				998725092C50944700088C71 /* RxSwift */,
 				31DC41DF2CD9196400F0FFF2 /* Starscream */,
+				31B741F12D53A50600706340 /* SnapKit */,
 			);
 			productName = Mobit;
 			productReference = 3133E2242C3E2355000D4B1A /* Mobit.app */;
@@ -648,6 +680,7 @@
 				99C20A842C4A27F1009276E7 /* XCRemoteSwiftPackageReference "ReactorKit" */,
 				998724FC2C50944700088C71 /* XCRemoteSwiftPackageReference "RxSwift" */,
 				31DC41DE2CD9196400F0FFF2 /* XCRemoteSwiftPackageReference "Starscream" */,
+				31B741F02D53A42700706340 /* XCRemoteSwiftPackageReference "SnapKit" */,
 			);
 			productRefGroup = 3133E2252C3E2355000D4B1A /* Products */;
 			projectDirPath = "";
@@ -666,8 +699,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				C17E08332D2A62BC0029A8D0 /* Colors.xcassets in Resources */,
+				31B741F72D53AA7600706340 /* TradeOrderView.xib in Resources */,
+				31B741F92D53AAAC00706340 /* TradeChartView.xib in Resources */,
 				3133E2342C3E2357000D4B1A /* LaunchScreen.storyboard in Resources */,
 				3133E2312C3E2357000D4B1A /* Assets.xcassets in Resources */,
+				31B741ED2D524F7000706340 /* TradeViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -706,13 +742,17 @@
 				3133E2662C3F6A44000D4B1A /* BaseCoordinator.swift in Sources */,
 				31E208192C46C448000BFEBC /* MoreViewController.swift in Sources */,
 				C17424C42D4600A8009861CC /* UserDataManager.swift in Sources */,
+				31B741F52D53AA6C00706340 /* TradeOrderView.swift in Sources */,
 				C17E08352D2A64EE0029A8D0 /* ColorExtension.swift in Sources */,
 				369E877F2C7D955E0020A0B3 /* OrderBookResponseDTO.swift in Sources */,
 				31E208122C46C323000BFEBC /* InvestmentViewController.swift in Sources */,
 				998849E42C5378CD0073A27D /* CryptoTickerDTO.swift in Sources */,
+				31B741FB2D53AAD800706340 /* TradeChartView.swift in Sources */,
 				31E208172C46C441000BFEBC /* MoreCoordinator.swift in Sources */,
 				3133E2642C3F6A3B000D4B1A /* AppCoordinator.swift in Sources */,
+				31B741EF2D53A37E00706340 /* ViewRule.swift in Sources */,
 				99C20AAE2C4F63E4009276E7 /* WebSocketManager.swift in Sources */,
+				31B741EC2D524F7000706340 /* TradeViewController.swift in Sources */,
 				99C20AAC2C4F458C009276E7 /* CryptoSocketTickerDTO.swift in Sources */,
 				31D6444D2C72590C00C7F96D /* CryptoDetailUseCase.swift in Sources */,
 				31DC41E22CD9197700F0FFF2 /* NewWebSocketManager.swift in Sources */,
@@ -1103,6 +1143,14 @@
 				minimumVersion = 2.0.10;
 			};
 		};
+		31B741F02D53A42700706340 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.7.1;
+			};
+		};
 		31DC41DE2CD9196400F0FFF2 /* XCRemoteSwiftPackageReference "Starscream" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/daltoniam/Starscream.git";
@@ -1163,6 +1211,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3133E2752C3F7192000D4B1A /* XCRemoteSwiftPackageReference "FlexLayout" */;
 			productName = FlexLayout;
+		};
+		31B741F12D53A50600706340 /* SnapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 31B741F02D53A42700706340 /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
 		};
 		31DC41DF2CD9196400F0FFF2 /* Starscream */ = {
 			isa = XCSwiftPackageProductDependency;
