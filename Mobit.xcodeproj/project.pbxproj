@@ -78,6 +78,10 @@
 		C17E08332D2A62BC0029A8D0 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C17E08322D2A62BC0029A8D0 /* Colors.xcassets */; };
 		C17E08352D2A64EE0029A8D0 /* ColorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */; };
 		C18EED4F2D55A82B0038BBF7 /* MobitSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */; };
+		C18EED512D55FE3D0038BBF7 /* TradeBidView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED502D55FE3D0038BBF7 /* TradeBidView.swift */; };
+		C18EED532D55FE450038BBF7 /* TradeBidView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C18EED522D55FE450038BBF7 /* TradeBidView.xib */; };
+		C18EED552D55FE4D0038BBF7 /* TradeAskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED542D55FE4D0038BBF7 /* TradeAskView.swift */; };
+		C18EED572D55FE610038BBF7 /* TradeAskView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C18EED562D55FE610038BBF7 /* TradeAskView.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -182,6 +186,10 @@
 		C17E08322D2A62BC0029A8D0 /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
 		C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtension.swift; sourceTree = "<group>"; };
 		C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitSegmentedControl.swift; sourceTree = "<group>"; };
+		C18EED502D55FE3D0038BBF7 /* TradeBidView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeBidView.swift; sourceTree = "<group>"; };
+		C18EED522D55FE450038BBF7 /* TradeBidView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeBidView.xib; sourceTree = "<group>"; };
+		C18EED542D55FE4D0038BBF7 /* TradeAskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeAskView.swift; sourceTree = "<group>"; };
+		C18EED562D55FE610038BBF7 /* TradeAskView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeAskView.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -394,6 +402,10 @@
 				31B741EB2D524F7000706340 /* TradeViewController.xib */,
 				31B741F42D53AA6C00706340 /* TradeOrderView.swift */,
 				31B741F62D53AA7600706340 /* TradeOrderView.xib */,
+				C18EED502D55FE3D0038BBF7 /* TradeBidView.swift */,
+				C18EED522D55FE450038BBF7 /* TradeBidView.xib */,
+				C18EED542D55FE4D0038BBF7 /* TradeAskView.swift */,
+				C18EED562D55FE610038BBF7 /* TradeAskView.xib */,
 				31B741FA2D53AAD800706340 /* TradeChartView.swift */,
 				31B741F82D53AAAC00706340 /* TradeChartView.xib */,
 			);
@@ -715,8 +727,10 @@
 				C17E08332D2A62BC0029A8D0 /* Colors.xcassets in Resources */,
 				31B741F72D53AA7600706340 /* TradeOrderView.xib in Resources */,
 				31B741F92D53AAAC00706340 /* TradeChartView.xib in Resources */,
+				C18EED572D55FE610038BBF7 /* TradeAskView.xib in Resources */,
 				3133E2342C3E2357000D4B1A /* LaunchScreen.storyboard in Resources */,
 				3133E2312C3E2357000D4B1A /* Assets.xcassets in Resources */,
+				C18EED532D55FE450038BBF7 /* TradeBidView.xib in Resources */,
 				31B741ED2D524F7000706340 /* TradeViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -750,6 +764,7 @@
 				99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */,
 				31D644482C7257F900C7F96D /* CryptoDetailCoordinator.swift in Sources */,
 				998849E22C524AAA0073A27D /* CryptoCellInfo.swift in Sources */,
+				C18EED512D55FE3D0038BBF7 /* TradeBidView.swift in Sources */,
 				31E208072C4678B9000BFEBC /* MainCoordinator.swift in Sources */,
 				31E208102C46C2FE000BFEBC /* InvestmentCoordinator.swift in Sources */,
 				C17424C62D460478009861CC /* MobitUserInformation.swift in Sources */,
@@ -764,6 +779,7 @@
 				31B741FB2D53AAD800706340 /* TradeChartView.swift in Sources */,
 				31E208172C46C441000BFEBC /* MoreCoordinator.swift in Sources */,
 				3133E2642C3F6A3B000D4B1A /* AppCoordinator.swift in Sources */,
+				C18EED552D55FE4D0038BBF7 /* TradeAskView.swift in Sources */,
 				31B741EF2D53A37E00706340 /* ViewRule.swift in Sources */,
 				99C20AAE2C4F63E4009276E7 /* WebSocketManager.swift in Sources */,
 				31B741EC2D524F7000706340 /* TradeViewController.swift in Sources */,
