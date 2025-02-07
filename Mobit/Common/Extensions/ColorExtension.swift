@@ -21,6 +21,10 @@ extension UIColor {
       return UIColor(named: "bid_deep_red")!
     case .lightGrayBG:
       return UIColor(named: "bg_light_gray")!
+	case .lightYellowBG:
+	  return UIColor(named: "bg_light_yellow")!
+	case .yellowBG:
+	  return UIColor(named: "bg_yellow")!
     }
   }
   
@@ -30,5 +34,7 @@ extension UIColor {
     case bidLightRed
     case bidDeepRed
     case lightGrayBG
+	case lightYellowBG
+	case yellowBG
   }
 }

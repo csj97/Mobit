@@ -77,6 +77,7 @@
 		C17424C62D460478009861CC /* MobitUserInformation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17424C52D460478009861CC /* MobitUserInformation.swift */; };
 		C17E08332D2A62BC0029A8D0 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C17E08322D2A62BC0029A8D0 /* Colors.xcassets */; };
 		C17E08352D2A64EE0029A8D0 /* ColorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */; };
+		C18EED4F2D55A82B0038BBF7 /* MobitSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -137,7 +138,7 @@
 		3133E2652C3F6A44000D4B1A /* BaseCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseCoordinator.swift; sourceTree = "<group>"; };
 		3133E2672C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoordinatorFinishDelegate.swift; sourceTree = "<group>"; };
 		3133E26F2C3F7098000D4B1A /* MainUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainUseCase.swift; sourceTree = "<group>"; };
-		31B741EA2D524F7000706340 /* TradeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeViewController.swift; sourceTree = "<group>"; };
+		31B741EA2D524F7000706340 /* TradeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeViewController.swift; sourceTree = "<group>"; tabWidth = 4; usesTabs = 1; };
 		31B741EB2D524F7000706340 /* TradeViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeViewController.xib; sourceTree = "<group>"; };
 		31B741EE2D53A37600706340 /* ViewRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewRule.swift; sourceTree = "<group>"; };
 		31B741F42D53AA6C00706340 /* TradeOrderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeOrderView.swift; sourceTree = "<group>"; };
@@ -180,6 +181,7 @@
 		C17424C52D460478009861CC /* MobitUserInformation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitUserInformation.swift; sourceTree = "<group>"; };
 		C17E08322D2A62BC0029A8D0 /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
 		C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtension.swift; sourceTree = "<group>"; };
+		C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitSegmentedControl.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -255,8 +257,11 @@
 				3133E2582C3F696D000D4B1A /* Data */,
 				3133E2572C3F696A000D4B1A /* Resource */,
 			);
+			indentWidth = 2;
 			path = Mobit;
 			sourceTree = "<group>";
+			tabWidth = 4;
+			usesTabs = 1;
 		};
 		3133E23D2C3E2357000D4B1A /* MobitTests */ = {
 			isa = PBXGroup;
@@ -327,10 +332,10 @@
 		3133E25C2C3F6979000D4B1A /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				C18EED4D2D55A81A0038BBF7 /* Extensions */,
 				31B741EE2D53A37600706340 /* ViewRule.swift */,
 				311E33F92C46068C0054C6BC /* ErrorType.swift */,
 				99C20AB12C4F6A04009276E7 /* Environment.swift */,
-				C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */,
 				C17424C32D4600A8009861CC /* UserDataManager.swift */,
 				C17424C52D460478009861CC /* MobitUserInformation.swift */,
 			);
@@ -561,6 +566,15 @@
 			path = Model;
 			sourceTree = "<group>";
 		};
+		C18EED4D2D55A81A0038BBF7 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */,
+				C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -769,6 +783,7 @@
 				31D644462C7257B500C7F96D /* CryptoDetailViewController.swift in Sources */,
 				99C20AB42C4F7177009276E7 /* CryptoSocketTicker.swift in Sources */,
 				31E208092C46BF6B000BFEBC /* MainTabBarCoordinator.swift in Sources */,
+				C18EED4F2D55A82B0038BBF7 /* MobitSegmentedControl.swift in Sources */,
 				311E33FC2C4608800054C6BC /* MainViewController.swift in Sources */,
 				99C20A832C4A2787009276E7 /* MainReactor.swift in Sources */,
 				367271AD2C7B2DA600F9D86E /* OrderBookResponse.swift in Sources */,

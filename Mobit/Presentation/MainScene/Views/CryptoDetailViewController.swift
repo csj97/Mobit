@@ -13,18 +13,6 @@ import PinLayout
 import Then
 import UIKit
 
-struct OrderUnit: Hashable {
-  var identifier: UUID = UUID()
-  var type: OrderType
-  var price: Double
-  var size: Double
-}
-
-/// 매수, 매도 타입
-enum OrderType {
-  case ask
-  case bid
-}
 
 class CryptoDetailViewController: UIViewController {
   weak var coordinator: CryptoDetailCoordinator?
