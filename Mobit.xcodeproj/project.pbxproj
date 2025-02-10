@@ -30,6 +30,12 @@
 		31B741F72D53AA7600706340 /* TradeOrderView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B741F62D53AA7600706340 /* TradeOrderView.xib */; };
 		31B741F92D53AAAC00706340 /* TradeChartView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B741F82D53AAAC00706340 /* TradeChartView.xib */; };
 		31B741FB2D53AAD800706340 /* TradeChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741FA2D53AAD800706340 /* TradeChartView.swift */; };
+		31B741FD2D58D67200706340 /* TradeHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741FC2D58D67200706340 /* TradeHistoryView.swift */; };
+		31B741FF2D58D67800706340 /* TradeHistoryView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B741FE2D58D67800706340 /* TradeHistoryView.xib */; };
+		31B742012D5A2AC400706340 /* ButtonExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B742002D5A2ABD00706340 /* ButtonExtension.swift */; };
+		31B742032D5A2CAC00706340 /* VieweExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B742022D5A2CAC00706340 /* VieweExtension.swift */; };
+		31B742082D5A3BC400706340 /* tradingview.html in Resources */ = {isa = PBXBuildFile; fileRef = 31B742072D5A3BBB00706340 /* tradingview.html */; };
+		31B7420A2D5A46B300706340 /* LeakAvoider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B742092D5A46B300706340 /* LeakAvoider.swift */; };
 		31D644462C7257B500C7F96D /* CryptoDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D644452C7257B500C7F96D /* CryptoDetailViewController.swift */; };
 		31D644482C7257F900C7F96D /* CryptoDetailCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D644472C7257F900C7F96D /* CryptoDetailCoordinator.swift */; };
 		31D6444A2C72587B00C7F96D /* CryptoDetailReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D644492C72587B00C7F96D /* CryptoDetailReactor.swift */; };
@@ -149,6 +155,12 @@
 		31B741F62D53AA7600706340 /* TradeOrderView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeOrderView.xib; sourceTree = "<group>"; };
 		31B741F82D53AAAC00706340 /* TradeChartView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeChartView.xib; sourceTree = "<group>"; };
 		31B741FA2D53AAD800706340 /* TradeChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeChartView.swift; sourceTree = "<group>"; };
+		31B741FC2D58D67200706340 /* TradeHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeHistoryView.swift; sourceTree = "<group>"; };
+		31B741FE2D58D67800706340 /* TradeHistoryView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeHistoryView.xib; sourceTree = "<group>"; };
+		31B742002D5A2ABD00706340 /* ButtonExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonExtension.swift; sourceTree = "<group>"; };
+		31B742022D5A2CAC00706340 /* VieweExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VieweExtension.swift; sourceTree = "<group>"; };
+		31B742072D5A3BBB00706340 /* tradingview.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = tradingview.html; sourceTree = "<group>"; };
+		31B742092D5A46B300706340 /* LeakAvoider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeakAvoider.swift; sourceTree = "<group>"; };
 		31D644452C7257B500C7F96D /* CryptoDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailViewController.swift; sourceTree = "<group>"; };
 		31D644472C7257F900C7F96D /* CryptoDetailCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailCoordinator.swift; sourceTree = "<group>"; };
 		31D644492C72587B00C7F96D /* CryptoDetailReactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailReactor.swift; sourceTree = "<group>"; };
@@ -340,12 +352,14 @@
 		3133E25C2C3F6979000D4B1A /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				31B742072D5A3BBB00706340 /* tradingview.html */,
 				C18EED4D2D55A81A0038BBF7 /* Extensions */,
 				31B741EE2D53A37600706340 /* ViewRule.swift */,
 				311E33F92C46068C0054C6BC /* ErrorType.swift */,
 				99C20AB12C4F6A04009276E7 /* Environment.swift */,
 				C17424C32D4600A8009861CC /* UserDataManager.swift */,
 				C17424C52D460478009861CC /* MobitUserInformation.swift */,
+				31B742092D5A46B300706340 /* LeakAvoider.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -406,6 +420,8 @@
 				C18EED522D55FE450038BBF7 /* TradeBidView.xib */,
 				C18EED542D55FE4D0038BBF7 /* TradeAskView.swift */,
 				C18EED562D55FE610038BBF7 /* TradeAskView.xib */,
+				31B741FC2D58D67200706340 /* TradeHistoryView.swift */,
+				31B741FE2D58D67800706340 /* TradeHistoryView.xib */,
 				31B741FA2D53AAD800706340 /* TradeChartView.swift */,
 				31B741F82D53AAAC00706340 /* TradeChartView.xib */,
 			);
@@ -581,8 +597,10 @@
 		C18EED4D2D55A81A0038BBF7 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				31B742002D5A2ABD00706340 /* ButtonExtension.swift */,
 				C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */,
 				C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */,
+				31B742022D5A2CAC00706340 /* VieweExtension.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -725,9 +743,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				C17E08332D2A62BC0029A8D0 /* Colors.xcassets in Resources */,
+				31B741FF2D58D67800706340 /* TradeHistoryView.xib in Resources */,
 				31B741F72D53AA7600706340 /* TradeOrderView.xib in Resources */,
 				31B741F92D53AAAC00706340 /* TradeChartView.xib in Resources */,
 				C18EED572D55FE610038BBF7 /* TradeAskView.xib in Resources */,
+				31B742082D5A3BC400706340 /* tradingview.html in Resources */,
 				3133E2342C3E2357000D4B1A /* LaunchScreen.storyboard in Resources */,
 				3133E2312C3E2357000D4B1A /* Assets.xcassets in Resources */,
 				C18EED532D55FE450038BBF7 /* TradeBidView.xib in Resources */,
@@ -773,12 +793,14 @@
 				C17424C42D4600A8009861CC /* UserDataManager.swift in Sources */,
 				31B741F52D53AA6C00706340 /* TradeOrderView.swift in Sources */,
 				C17E08352D2A64EE0029A8D0 /* ColorExtension.swift in Sources */,
+				31B742012D5A2AC400706340 /* ButtonExtension.swift in Sources */,
 				369E877F2C7D955E0020A0B3 /* OrderBookResponseDTO.swift in Sources */,
 				31E208122C46C323000BFEBC /* InvestmentViewController.swift in Sources */,
 				998849E42C5378CD0073A27D /* CryptoTickerDTO.swift in Sources */,
 				31B741FB2D53AAD800706340 /* TradeChartView.swift in Sources */,
 				31E208172C46C441000BFEBC /* MoreCoordinator.swift in Sources */,
 				3133E2642C3F6A3B000D4B1A /* AppCoordinator.swift in Sources */,
+				31B741FD2D58D67200706340 /* TradeHistoryView.swift in Sources */,
 				C18EED552D55FE4D0038BBF7 /* TradeAskView.swift in Sources */,
 				31B741EF2D53A37E00706340 /* ViewRule.swift in Sources */,
 				99C20AAE2C4F63E4009276E7 /* WebSocketManager.swift in Sources */,
@@ -791,7 +813,9 @@
 				31E208042C4677CB000BFEBC /* AppTabBarCoordinator.swift in Sources */,
 				99C20A582C48D35C009276E7 /* DividerLineView.swift in Sources */,
 				3133E2682C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift in Sources */,
+				31B742032D5A2CAC00706340 /* VieweExtension.swift in Sources */,
 				3133E2282C3E2355000D4B1A /* AppDelegate.swift in Sources */,
+				31B7420A2D5A46B300706340 /* LeakAvoider.swift in Sources */,
 				99C20AB22C4F6A04009276E7 /* Environment.swift in Sources */,
 				31D6444A2C72587B00C7F96D /* CryptoDetailReactor.swift in Sources */,
 				3133E22A2C3E2355000D4B1A /* SceneDelegate.swift in Sources */,

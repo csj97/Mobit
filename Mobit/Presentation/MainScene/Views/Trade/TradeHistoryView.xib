@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="TradeHistoryView" customModule="Mobit" customModuleProvider="target">
+            <connections>
+                <outlet property="historyTableView" destination="uzF-bX-XJ3" id="0YY-P9-Bdt"/>
+                <outlet property="segmentedContainerView" destination="hSj-2l-Ump" id="IW8-Jq-d0Y"/>
+                <outlet property="segmentedControl" destination="KpT-FC-hVB" id="VMC-5O-LUy"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="vLo-HX-bLa" userLabel="Trade History View">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <subviews>
+                <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="KpT-FC-hVB">
+                    <rect key="frame" x="10" y="20" width="373" height="41"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="40" id="3OK-dk-ZQS"/>
+                    </constraints>
+                    <segments>
+                        <segment title="미체결"/>
+                        <segment title="체결"/>
+                    </segments>
+                </segmentedControl>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hSj-2l-Ump">
+                    <rect key="frame" x="0.0" y="70" width="393" height="782"/>
+                    <subviews>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="내역이 없습니다." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="NzF-oq-nI2">
+                            <rect key="frame" x="150.33333333333334" y="382.66666666666669" width="92.666666666666657" height="17"/>
+                            <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                            <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                    </subviews>
+                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    <constraints>
+                        <constraint firstItem="NzF-oq-nI2" firstAttribute="centerY" secondItem="hSj-2l-Ump" secondAttribute="centerY" id="c9K-B8-u5z"/>
+                        <constraint firstItem="NzF-oq-nI2" firstAttribute="centerX" secondItem="hSj-2l-Ump" secondAttribute="centerX" id="cg7-SU-laY"/>
+                    </constraints>
+                </view>
+                <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="uzF-bX-XJ3">
+                    <rect key="frame" x="0.0" y="70" width="393" height="782"/>
+                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                </tableView>
+            </subviews>
+            <viewLayoutGuide key="safeArea" id="bGA-sz-911"/>
+            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+            <constraints>
+                <constraint firstItem="KpT-FC-hVB" firstAttribute="leading" secondItem="vLo-HX-bLa" secondAttribute="leading" constant="10" id="4sC-Oe-aXa"/>
+                <constraint firstAttribute="trailing" secondItem="uzF-bX-XJ3" secondAttribute="trailing" id="8O1-4n-fSR"/>
+                <constraint firstItem="hSj-2l-Ump" firstAttribute="leading" secondItem="vLo-HX-bLa" secondAttribute="leading" id="HJj-Zu-htk"/>
+                <constraint firstItem="hSj-2l-Ump" firstAttribute="top" secondItem="KpT-FC-hVB" secondAttribute="bottom" constant="10" id="Mc0-Tr-AUq"/>
+                <constraint firstAttribute="bottom" secondItem="hSj-2l-Ump" secondAttribute="bottom" id="QU4-Kn-rYv"/>
+                <constraint firstAttribute="trailing" secondItem="hSj-2l-Ump" secondAttribute="trailing" id="ZMg-Bo-YEm"/>
+                <constraint firstItem="KpT-FC-hVB" firstAttribute="top" secondItem="vLo-HX-bLa" secondAttribute="top" constant="20" id="auX-0E-NxP"/>
+                <constraint firstItem="uzF-bX-XJ3" firstAttribute="leading" secondItem="vLo-HX-bLa" secondAttribute="leading" id="bVA-b4-jey"/>
+                <constraint firstAttribute="trailing" secondItem="KpT-FC-hVB" secondAttribute="trailing" constant="10" id="c25-A9-zr1"/>
+                <constraint firstItem="uzF-bX-XJ3" firstAttribute="top" secondItem="KpT-FC-hVB" secondAttribute="bottom" constant="10" id="u84-y6-5FJ"/>
+                <constraint firstAttribute="bottom" secondItem="uzF-bX-XJ3" secondAttribute="bottom" id="y27-1z-8p7"/>
+            </constraints>
+            <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+            <point key="canvasLocation" x="1628" y="485"/>
+        </view>
+    </objects>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>

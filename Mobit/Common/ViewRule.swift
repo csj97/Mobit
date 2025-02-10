@@ -8,6 +8,6 @@
 import Foundation
 
 protocol ViewRule {
-    func setUI()
-    func setData()
+  func setUI()
+  func setData()
 }

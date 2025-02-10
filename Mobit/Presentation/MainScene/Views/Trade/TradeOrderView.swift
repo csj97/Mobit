@@ -22,6 +22,9 @@ class TradeOrderView: UIView, ViewRule {
   var reactor: CryptoDetailReactor? = nil
   private let cellIndentifier = "OrderBookCell"
   
+  var bidView: TradeBidView? = nil
+  var askView: TradeAskView? = nil
+  
   deinit {
 	print("deinit : \(String(describing: type(of: self)))")
   }
@@ -54,6 +57,29 @@ class TradeOrderView: UIView, ViewRule {
 	  normalColor: .mobitColors(.lightGrayBG),
 	  selectedColor: .white
 	)
+	
+	guard let reactor = self.reactor else { return }
+	bidView = TradeBidView.instanceFromNib(reactor: reactor, disposeBag: self.disposeBag) { [weak self] in }
+	askView = TradeAskView.instanceFromNib(reactor: reactor,  disposeBag: self.disposeBag) { [weak self] in }
+	
+	guard let bidView = bidView, let askView = askView else { return }
+	
+	self.segmentedContainerView.addSubview(bidView)
+	self.segmentedContainerView.addSubview(askView)
+	
+	bidView.snp.makeConstraints { make in
+      make.top.leading.equalToSuperview().offset(10)
+	  make.trailing.equalToSuperview().offset(-10)
+      make.bottom.greaterThanOrEqualToSuperview()
+	}
+	askView.snp.makeConstraints { make in
+	  make.top.leading.equalToSuperview().offset(10)
+	  make.trailing.equalToSuperview().offset(-10)
+      make.bottom.greaterThanOrEqualToSuperview()
+	}
+	
+	self.segmentedControl.selectedSegmentIndex = 0
+	self.tapOnSegmentedControl(self.segmentedControl)
   }
   
   func setData() {
@@ -93,6 +119,23 @@ class TradeOrderView: UIView, ViewRule {
 	self.dataSource?.defaultRowAnimation = .fade
 	orderbookTableView.dataSource = self.dataSource
 	orderbookTableView.delegate = self
+  }
+  
+  @IBAction func tapOnSegmentedControl(_ sender: MobitSegmentedControl) {
+    switch sender.selectedSegmentIndex {
+    case 0:
+      self.bidView?.isHidden = false
+      self.askView?.isHidden = true
+    case 1:
+      self.bidView?.isHidden = true
+      self.askView?.isHidden = false
+    case 2:
+      self.bidView?.isHidden = true
+      self.askView?.isHidden = true
+      
+    default:
+      break
+    }
   }
   
   func setCrypto(crypto: CryptoCellInfo? = nil) {
@@ -150,8 +193,9 @@ extension TradeOrderView {
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.asyncInstance)
 	  .subscribe(
-		onNext: { obTicker in
-		  guard let obTicker = obTicker else { return }
+		onNext: { [weak self] obTicker in
+		  guard let self = self,
+				let obTicker = obTicker else { return }
 		  let askData = obTicker.orderbookUnits.sorted(
 			by: { $0.askPrice > $1.askPrice }
 		  ).map { OrderUnit(type: .ask, price: $0.askPrice, size: $0.askSize) }

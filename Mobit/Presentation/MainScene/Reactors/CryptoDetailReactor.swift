@@ -138,7 +138,9 @@ extension CryptoDetailReactor {
       
       self.orderBookSocketManager.observeReceivedData()
         .observe(on: MainScheduler.instance)
-        .subscribe { data in
+		.subscribe { [weak self] data in
+		  guard let self = self else { return }
+
           do {
             let decodeTarget = OrderbookDTO.self
             let orderBookDTO = try JSONDecoder().decode(decodeTarget, from: data)

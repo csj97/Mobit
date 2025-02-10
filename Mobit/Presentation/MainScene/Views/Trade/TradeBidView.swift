@@ -10,10 +10,11 @@ import RxSwift
 
 class TradeBidView: UIView, ViewRule {
   
-    @IBOutlet weak var availableTradePrice: UILabel!
-    @IBOutlet weak var inputTradeAmount: UITextField!
-    var disposeBag = DisposeBag()
-  var reactor: CryptoDetailReactor? = nil
+  @IBOutlet weak var availableTradePrice: UILabel!
+  @IBOutlet weak var inputTradeAmount: UITextField!
+  
+  var disposeBag = DisposeBag()
+  weak var reactor: CryptoDetailReactor? = nil
   
   deinit {
 	print("deinit : \(String(describing: type(of: self)))")
@@ -21,6 +22,7 @@ class TradeBidView: UIView, ViewRule {
   
   static func instanceFromNib(
 	reactor: CryptoDetailReactor,
+	disposeBag: DisposeBag,
 	result: @escaping () -> ()
   ) -> TradeBidView {
 	
@@ -36,6 +38,7 @@ class TradeBidView: UIView, ViewRule {
 	}
 	
 	selfView.reactor = reactor
+	selfView.disposeBag = disposeBag
 	selfView.setUI()
 	selfView.setData()
 	
@@ -43,14 +46,14 @@ class TradeBidView: UIView, ViewRule {
   }
   
   func setUI() {
-	<#code#>
+	
   }
   
   func setData() {
-	<#code#>
+	
   }
-    
-    @IBAction func tapOnMaxAmount(_ sender: UIButton) {
-    }
-    
+  
+  @IBAction func tapOnMaxAmount(_ sender: UIButton) {
+  }
+  
 }

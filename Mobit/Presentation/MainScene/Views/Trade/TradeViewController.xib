@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="22505" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22504"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -11,7 +11,6 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="TradeViewController" customModule="Mobit" customModuleProvider="target">
             <connections>
-                <outlet property="chartView" destination="4VM-h2-5dc" id="AeT-7O-b2n"/>
                 <outlet property="cryptoChangedPrice" destination="qyQ-8W-573" id="4fw-ZW-I8O"/>
                 <outlet property="cryptoChangedRate" destination="QEz-7Y-xVg" id="XDT-Hh-p7V"/>
                 <outlet property="cryptoMarketName" destination="Xb2-df-6RC" id="mgk-UI-kCz"/>
@@ -20,8 +19,6 @@
                 <outlet property="informationView" destination="Aly-Ii-uTJ" id="meB-T2-t6u"/>
                 <outlet property="segmentedContainerView" destination="om4-Hj-cJa" id="7MX-53-aZo"/>
                 <outlet property="segmentedControl" destination="FD0-zH-lWO" id="YeN-kZ-msO"/>
-                <outlet property="tradeHistoryTableView" destination="ztg-te-CN4" id="Y4g-zT-veZ"/>
-                <outlet property="tradeHistoryView" destination="VgE-Ob-5P3" id="BQB-cc-SrM"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
         </placeholder>
@@ -87,7 +84,7 @@
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="KPZ-5O-zSm">
                             <rect key="frame" x="20" y="0.0" width="353" height="79.333333333333329"/>
                             <subviews>
-                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Price" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YAR-Rz-3PG">
+                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="Price" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YAR-Rz-3PG">
                                     <rect key="frame" x="0.0" y="0.0" width="353" height="19.333333333333332"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                     <nil key="textColor"/>
@@ -96,7 +93,7 @@
                                 <stackView opaque="NO" contentMode="scaleToFill" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="wDR-2Q-tFi">
                                     <rect key="frame" x="0.0" y="29.333333333333343" width="353" height="50"/>
                                     <subviews>
-                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="changed rate" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QEz-7Y-xVg">
+                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="changed rate" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QEz-7Y-xVg">
                                             <rect key="frame" x="0.0" y="0.0" width="74.666666666666671" height="50"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                             <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -106,13 +103,13 @@
                                             <rect key="frame" x="89.666666666666657" y="0.0" width="263.33333333333337" height="50"/>
                                             <subviews>
                                                 <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="arrowtriangle.down.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="BzX-h7-aIN">
-                                                    <rect key="frame" x="0.0" y="21.333333333333332" width="12" height="7.3333333333333321"/>
+                                                    <rect key="frame" x="0.0" y="21.333333333333332" width="12" height="7.3333333333333464"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="12" id="7jd-mg-vQI"/>
                                                         <constraint firstAttribute="width" constant="12" id="Zmr-ua-48E"/>
                                                     </constraints>
                                                 </imageView>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" text="Changed Price" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qyQ-8W-573">
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Changed Price" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qyQ-8W-573">
                                                     <rect key="frame" x="12.000000000000014" y="0.0" width="251.33333333333337" height="50"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                     <nil key="textColor"/>
@@ -196,78 +193,6 @@
                 <constraint firstItem="VqE-1C-Oab" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="vGE-fH-1e9"/>
             </constraints>
             <point key="canvasLocation" x="130.53435114503816" y="-11.267605633802818"/>
-        </view>
-        <view contentMode="scaleToFill" id="VgE-Ob-5P3" userLabel="Trade History View">
-            <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
-            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-            <subviews>
-                <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="T8U-qY-TX2">
-                    <rect key="frame" x="10" y="20" width="373" height="41"/>
-                    <constraints>
-                        <constraint firstAttribute="height" constant="40" id="t8z-S7-jpH"/>
-                    </constraints>
-                    <segments>
-                        <segment title="미체결"/>
-                        <segment title="체결"/>
-                    </segments>
-                </segmentedControl>
-                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="4Iw-HI-wVk">
-                    <rect key="frame" x="0.0" y="70" width="393" height="782"/>
-                    <subviews>
-                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="내역이 없습니다." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Jyy-LH-LTa">
-                            <rect key="frame" x="150.33333333333334" y="382.66666666666669" width="92.666666666666657" height="17"/>
-                            <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                            <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                            <nil key="highlightedColor"/>
-                        </label>
-                    </subviews>
-                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-                    <constraints>
-                        <constraint firstItem="Jyy-LH-LTa" firstAttribute="centerY" secondItem="4Iw-HI-wVk" secondAttribute="centerY" id="Uz4-dd-4da"/>
-                        <constraint firstItem="Jyy-LH-LTa" firstAttribute="centerX" secondItem="4Iw-HI-wVk" secondAttribute="centerX" id="hX4-la-OAv"/>
-                    </constraints>
-                </view>
-                <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="ztg-te-CN4">
-                    <rect key="frame" x="0.0" y="70" width="393" height="782"/>
-                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-                </tableView>
-            </subviews>
-            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-            <constraints>
-                <constraint firstAttribute="trailing" secondItem="ztg-te-CN4" secondAttribute="trailing" id="92A-gd-1kd"/>
-                <constraint firstAttribute="trailing" secondItem="T8U-qY-TX2" secondAttribute="trailing" constant="10" id="CiM-Ma-QJc"/>
-                <constraint firstItem="ztg-te-CN4" firstAttribute="top" secondItem="T8U-qY-TX2" secondAttribute="bottom" constant="10" id="S38-ht-WOu"/>
-                <constraint firstAttribute="bottom" secondItem="4Iw-HI-wVk" secondAttribute="bottom" id="SLS-LR-vPz"/>
-                <constraint firstItem="4Iw-HI-wVk" firstAttribute="leading" secondItem="VgE-Ob-5P3" secondAttribute="leading" id="fqx-15-RUo"/>
-                <constraint firstAttribute="bottom" secondItem="ztg-te-CN4" secondAttribute="bottom" id="fu6-yT-u82"/>
-                <constraint firstAttribute="trailing" secondItem="4Iw-HI-wVk" secondAttribute="trailing" id="rM0-KA-9x4"/>
-                <constraint firstItem="4Iw-HI-wVk" firstAttribute="top" secondItem="T8U-qY-TX2" secondAttribute="bottom" constant="10" id="ubg-yF-ezU"/>
-                <constraint firstItem="ztg-te-CN4" firstAttribute="leading" secondItem="VgE-Ob-5P3" secondAttribute="leading" id="udW-LH-U7N"/>
-                <constraint firstItem="T8U-qY-TX2" firstAttribute="leading" secondItem="VgE-Ob-5P3" secondAttribute="leading" constant="10" id="ung-qs-u28"/>
-                <constraint firstItem="T8U-qY-TX2" firstAttribute="top" secondItem="VgE-Ob-5P3" secondAttribute="top" constant="20" id="xI6-Fa-N95"/>
-            </constraints>
-            <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
-            <point key="canvasLocation" x="1628" y="485"/>
-        </view>
-        <view contentMode="scaleToFill" id="4VM-h2-5dc" userLabel="Chart View">
-            <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
-            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-            <subviews>
-                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="chart" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="bJ7-Qg-tQ2">
-                    <rect key="frame" x="176.66666666666666" y="415.66666666666669" width="40" height="21"/>
-                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                    <nil key="textColor"/>
-                    <nil key="highlightedColor"/>
-                </label>
-            </subviews>
-            <viewLayoutGuide key="safeArea" id="R3Z-EL-RSv"/>
-            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-            <constraints>
-                <constraint firstItem="bJ7-Qg-tQ2" firstAttribute="centerX" secondItem="4VM-h2-5dc" secondAttribute="centerX" id="Uf4-mK-YSZ"/>
-                <constraint firstItem="bJ7-Qg-tQ2" firstAttribute="centerY" secondItem="4VM-h2-5dc" secondAttribute="centerY" id="fHl-EW-CKG"/>
-            </constraints>
-            <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
-            <point key="canvasLocation" x="2433" y="-13"/>
         </view>
         <view contentMode="scaleToFill" id="Aly-Ii-uTJ" userLabel="Info View">
             <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>

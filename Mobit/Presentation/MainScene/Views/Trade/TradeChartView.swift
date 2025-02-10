@@ -6,7 +6,125 @@
 //
 
 import UIKit
+import WebKit
 
-class TradeChartView: UIView {
+class TradeChartView: UIView, WKScriptMessageHandler {
   
+  @IBOutlet weak var webView: WKWebView!
+  
+  var symbol: String? = nil
+  var html: String? = nil
+  
+  deinit {
+	print("deinit : \(String(describing: type(of: self)))")
+  }
+  
+  static func instanceFromNib(
+    symbol: String
+  ) -> TradeChartView {
+    
+    let selfView = UINib(
+      nibName: String(describing: self),
+      bundle: nil
+    ).instantiate(
+      withOwner: self, options: nil
+    ).first as? TradeChartView
+    
+    guard let selfView = selfView else {
+      return TradeChartView()
+    }
+    
+    selfView.symbol = symbol
+	selfView.configureWebView()
+    selfView.configure()
+	selfView.loadLocalHTML(symbol: symbol)
+    
+    return selfView
+  }
+  
+  func configure() {
+  }
+  
+  func configureWebView() {
+    let config = WKWebViewConfiguration()
+    config.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
+	config.userContentController.add(LeakAvoider(delegate: self), name: "MobitTradingViewChart")
+    if #available(iOS 15.4, *) {
+      config.preferences.isElementFullscreenEnabled = true
+    }
+    
+    webView.configuration.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
+    if #available(iOS 15.4, *) {
+      webView.configuration.preferences.isElementFullscreenEnabled = true
+    }
+    webView.scrollView.contentInsetAdjustmentBehavior = .never
+    webView.navigationDelegate = self
+    webView.uiDelegate = self
+//    webView.isInspectable = true
+  }
+  
+  private func loadLocalHTML(symbol: String) {
+	if let url = Bundle.main.url(forResource: "tradingview", withExtension: "html") {
+	  webView.loadFileURL(url, allowingReadAccessTo: url)
+	}
+  }
+  
+  private func loadHTML() {
+    guard let html = html else { return }
+    webView.loadHTMLString(html, baseURL: nil)
+    webView.scrollView.isScrollEnabled = false
+  }
+  
+  func toUpbitSymbol(symbol: String?) -> String {
+	guard let symbol = symbol else { return "UPBIT:BTCKRW" }
+	return "UPBIT:" + symbol.replacingOccurrences(of: "/", with: "")
+  }
+  
+  func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+  }
+}
+
+// MARK: - WKNavigationDelegate
+extension TradeChartView: WKNavigationDelegate {
+  func webView(
+	_ webView: WKWebView,
+	decidePolicyFor navigationAction: WKNavigationAction,
+	decisionHandler: @escaping (WKNavigationActionPolicy
+	) -> Void) {
+	if navigationAction.navigationType == .other,
+	   let url = navigationAction.request.url,
+	   let host = url.host, host.hasPrefix("www.tradingview.com"),
+	   UIApplication.shared.canOpenURL(url) {
+	  UIApplication.shared.open(url)
+	  decisionHandler(.cancel)
+	} else {
+	  decisionHandler(.allow)
+	}
+  }
+  
+  func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+	let upbitChartSymbol = self.toUpbitSymbol(symbol: self.symbol)
+	let script = "updateSymbol('\(upbitChartSymbol)');"
+	webView.evaluateJavaScript(script) { [weak self] (_, error) in
+	  guard let self = self else { return }
+	  if let error = error {
+		print("❌ JavaScript 실행 오류: \(error)")
+	  }
+	}
+  }
+}
+
+// MARK: - WKUIDelegate
+extension TradeChartView: WKUIDelegate {
+  func webView(
+	_ webView: WKWebView,
+	createWebViewWith configuration: WKWebViewConfiguration,
+	for navigationAction: WKNavigationAction,
+	windowFeatures: WKWindowFeatures
+  ) -> WKWebView? {
+	if let url = navigationAction.request.url {
+	  webView.load(URLRequest(url: url))
+	}
+	return nil
+  }
 }
