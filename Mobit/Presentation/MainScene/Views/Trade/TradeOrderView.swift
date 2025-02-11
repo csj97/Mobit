@@ -57,6 +57,7 @@ class TradeOrderView: UIView, ViewRule {
 	  normalColor: .mobitColors(.lightGrayBG),
 	  selectedColor: .white
 	)
+	self.isUserInteractionEnabled = true
 	
 	guard let reactor = self.reactor else { return }
 	bidView = TradeBidView.instanceFromNib(reactor: reactor, disposeBag: self.disposeBag) { [weak self] in }

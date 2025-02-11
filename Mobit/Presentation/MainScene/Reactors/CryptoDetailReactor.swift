@@ -63,10 +63,8 @@ extension CryptoDetailReactor {
     
     switch mutation {
     case .setCryptoInfo(let cryptoInfo):
-      print("CryptoInfo!! \(cryptoInfo)")
       newState.cryptoInfo = cryptoInfo
     case .setOrderBookInfo(let obTicker):
-      print("OrderBook Ticker!! \(obTicker)")
       newState.obTicker = obTicker
     }
     

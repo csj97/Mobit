@@ -88,6 +88,7 @@
 		C18EED532D55FE450038BBF7 /* TradeBidView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C18EED522D55FE450038BBF7 /* TradeBidView.xib */; };
 		C18EED552D55FE4D0038BBF7 /* TradeAskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED542D55FE4D0038BBF7 /* TradeAskView.swift */; };
 		C18EED572D55FE610038BBF7 /* TradeAskView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C18EED562D55FE610038BBF7 /* TradeAskView.xib */; };
+		C18FF26E2D5AEDF7003E95B0 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -202,6 +203,7 @@
 		C18EED522D55FE450038BBF7 /* TradeBidView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeBidView.xib; sourceTree = "<group>"; };
 		C18EED542D55FE4D0038BBF7 /* TradeAskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeAskView.swift; sourceTree = "<group>"; };
 		C18EED562D55FE610038BBF7 /* TradeAskView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeAskView.xib; sourceTree = "<group>"; };
+		C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -601,6 +603,7 @@
 				C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */,
 				C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */,
 				31B742022D5A2CAC00706340 /* VieweExtension.swift */,
+				C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -824,6 +827,7 @@
 				99C20AB42C4F7177009276E7 /* CryptoSocketTicker.swift in Sources */,
 				31E208092C46BF6B000BFEBC /* MainTabBarCoordinator.swift in Sources */,
 				C18EED4F2D55A82B0038BBF7 /* MobitSegmentedControl.swift in Sources */,
+				C18FF26E2D5AEDF7003E95B0 /* StringExtension.swift in Sources */,
 				311E33FC2C4608800054C6BC /* MainViewController.swift in Sources */,
 				99C20A832C4A2787009276E7 /* MainReactor.swift in Sources */,
 				367271AD2C7B2DA600F9D86E /* OrderBookResponse.swift in Sources */,

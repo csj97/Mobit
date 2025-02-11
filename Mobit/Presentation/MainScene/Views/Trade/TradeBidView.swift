@@ -20,6 +20,10 @@ class TradeBidView: UIView, ViewRule {
 	print("deinit : \(String(describing: type(of: self)))")
   }
   
+  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+	  print(#function)
+  }
+  
   static func instanceFromNib(
 	reactor: CryptoDetailReactor,
 	disposeBag: DisposeBag,
@@ -46,14 +50,24 @@ class TradeBidView: UIView, ViewRule {
   }
   
   func setUI() {
-	
+	self.isUserInteractionEnabled = true
   }
   
   func setData() {
 	
   }
   
-  @IBAction func tapOnMaxAmount(_ sender: UIButton) {
+    @IBAction func tapOnMaxAmount(_ sender: UIButton) {
+	guard let currentPrice = self.reactor?.currentState.cryptoInfo?.tradePrice,
+		  let userBalance = UserDataManager.userInformation?.userAvailableBalance else { return }
+	
+	let availableAmount = round((userBalance / currentPrice) * 100) / 100
+	self.availableTradePrice.text = String(availableAmount).addComma()
+	print("💵 : \(availableAmount)")
   }
   
+  @IBAction func tapOnBidButton(_ sender: UIButton) {
+	
+  }
+    
 }

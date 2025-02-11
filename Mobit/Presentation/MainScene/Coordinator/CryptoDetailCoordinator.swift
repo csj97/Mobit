@@ -27,6 +27,7 @@ class CryptoDetailCoordinator: BaseCoordinator {
     )
     let tradeVC =  TradeViewController(reactor: reactor)
     tradeVC.coordinator = self
+	tradeVC.hidesBottomBarWhenPushed = true
     self.navigationController.pushViewController(tradeVC, animated: true)
       
 //    let cryptoDetailVC = CryptoDetailViewController(reactor: reactor)

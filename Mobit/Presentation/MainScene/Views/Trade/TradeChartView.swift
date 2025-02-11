@@ -14,6 +14,7 @@ class TradeChartView: UIView, WKScriptMessageHandler {
   
   var symbol: String? = nil
   var html: String? = nil
+  var javascriptBridgeInterfaceName = "MobitTradingViewChart"
   
   deinit {
 	print("deinit : \(String(describing: type(of: self)))")
@@ -48,19 +49,15 @@ class TradeChartView: UIView, WKScriptMessageHandler {
   func configureWebView() {
     let config = WKWebViewConfiguration()
     config.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
-	config.userContentController.add(LeakAvoider(delegate: self), name: "MobitTradingViewChart")
+	config.userContentController.add(LeakAvoider(delegate: self), name: javascriptBridgeInterfaceName)
     if #available(iOS 15.4, *) {
       config.preferences.isElementFullscreenEnabled = true
     }
-    
-    webView.configuration.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
-    if #available(iOS 15.4, *) {
-      webView.configuration.preferences.isElementFullscreenEnabled = true
-    }
+	
     webView.scrollView.contentInsetAdjustmentBehavior = .never
+	webView.scrollView.isScrollEnabled = false
     webView.navigationDelegate = self
     webView.uiDelegate = self
-//    webView.isInspectable = true
   }
   
   private func loadLocalHTML(symbol: String) {
@@ -69,18 +66,24 @@ class TradeChartView: UIView, WKScriptMessageHandler {
 	}
   }
   
-  private func loadHTML() {
-    guard let html = html else { return }
-    webView.loadHTMLString(html, baseURL: nil)
-    webView.scrollView.isScrollEnabled = false
-  }
-  
   func toUpbitSymbol(symbol: String?) -> String {
 	guard let symbol = symbol else { return "UPBIT:BTCKRW" }
 	return "UPBIT:" + symbol.replacingOccurrences(of: "/", with: "")
   }
   
-  func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+  func userContentController(
+	_ userContentController: WKUserContentController,
+	didReceive message: WKScriptMessage
+  ) {
+	if message.name == javascriptBridgeInterfaceName {
+		guard
+			let bridge = message.body as? [String: Any]
+		else {
+			return
+		}
+		
+//		self.webViewBridgeAction?.action(bridge: bridge)
+	}
   }
 }
 
@@ -108,7 +111,7 @@ extension TradeChartView: WKNavigationDelegate {
 	webView.evaluateJavaScript(script) { [weak self] (_, error) in
 	  guard let self = self else { return }
 	  if let error = error {
-		print("❌ JavaScript 실행 오류: \(error)")
+		print("JavaScript 실행 오류: \(error)")
 	  }
 	}
   }

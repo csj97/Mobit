@@ -26,7 +26,10 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
   
   
   func pushCryptoDetailVC(selectCrypto: CryptoCellInfo) {
-    let cryptoDetailCoordinator = CryptoDetailCoordinator(selectCrypto: selectCrypto, navigationController: self.navigationController)
+    let cryptoDetailCoordinator = CryptoDetailCoordinator(
+	  selectCrypto: selectCrypto,
+	  navigationController: self.navigationController
+	)
     self.childCoordinators.append(cryptoDetailCoordinator)
     cryptoDetailCoordinator.start()
   }

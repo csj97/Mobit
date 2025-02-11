@@ -15,7 +15,10 @@ class LeakAvoider: NSObject, WKScriptMessageHandler {
 		super.init()
 	}
 
-	func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+	func userContentController(
+	  _ userContentController: WKUserContentController,
+	  didReceive message: WKScriptMessage
+	) {
 		self.delegate?.userContentController(userContentController, didReceive: message)
 	}
 }
