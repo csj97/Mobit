@@ -24,6 +24,7 @@ class TradeOrderView: UIView, ViewRule {
   
   var bidView: TradeBidView? = nil
   var askView: TradeAskView? = nil
+  var historyView: TradeHistoryView? = nil
   
   deinit {
 	print("deinit : \(String(describing: type(of: self)))")
@@ -62,11 +63,13 @@ class TradeOrderView: UIView, ViewRule {
 	guard let reactor = self.reactor else { return }
 	bidView = TradeBidView.instanceFromNib(reactor: reactor, disposeBag: self.disposeBag) { [weak self] in }
 	askView = TradeAskView.instanceFromNib(reactor: reactor,  disposeBag: self.disposeBag) { [weak self] in }
+	historyView = TradeHistoryView.instanceFromNib(reactor: reactor) { [weak self] in }
 	
-	guard let bidView = bidView, let askView = askView else { return }
+	guard let bidView = bidView, let askView = askView, let historyView = historyView else { return }
 	
 	self.segmentedContainerView.addSubview(bidView)
 	self.segmentedContainerView.addSubview(askView)
+	self.segmentedContainerView.addSubview(historyView)
 	
 	bidView.snp.makeConstraints { make in
       make.top.leading.equalToSuperview().offset(10)
@@ -77,6 +80,11 @@ class TradeOrderView: UIView, ViewRule {
 	  make.top.leading.equalToSuperview().offset(10)
 	  make.trailing.equalToSuperview().offset(-10)
       make.bottom.greaterThanOrEqualToSuperview()
+	}
+	historyView.snp.makeConstraints { make in
+	  make.top.leading.equalToSuperview().offset(10)
+	  make.trailing.equalToSuperview().offset(-10)
+	  make.bottom.greaterThanOrEqualToSuperview().offset(-10)
 	}
 	
 	self.segmentedControl.selectedSegmentIndex = 0
@@ -127,12 +135,15 @@ class TradeOrderView: UIView, ViewRule {
     case 0:
       self.bidView?.isHidden = false
       self.askView?.isHidden = true
+	  self.historyView?.isHidden = true
     case 1:
       self.bidView?.isHidden = true
       self.askView?.isHidden = false
+	  self.historyView?.isHidden = true
     case 2:
       self.bidView?.isHidden = true
       self.askView?.isHidden = true
+	  self.historyView?.isHidden = false
       
     default:
       break

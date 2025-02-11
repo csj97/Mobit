@@ -13,9 +13,33 @@ class TradeHistoryView: UIView, ViewRule {
   @IBOutlet weak var segmentedControl: UISegmentedControl!
   @IBOutlet weak var segmentedContainerView: UIView!
   @IBOutlet weak var historyTableView: UITableView!
+  @IBOutlet weak var noHistoryView: UIView!
   
   var disposeBag = DisposeBag()
   var reactor: CryptoDetailReactor? = nil
+  var tempTradeHistory: [TradeHistoryInformation?] = [
+	TradeHistoryInformation(
+	  tradeDate: "02.11 20:43",
+	  marketName: "XRP/KRW",
+	  tradeCryptoPrice: 3715,
+	  tradeAmount: 11.70717423,
+	  tradeTotalPrice: 39980
+	),
+	TradeHistoryInformation(
+	  tradeDate: "02.11 20:43",
+	  marketName: "XRP/KRW",
+	  tradeCryptoPrice: 3715,
+	  tradeAmount: 11.70717423,
+	  tradeTotalPrice: 39980
+	),
+	TradeHistoryInformation(
+	  tradeDate: "02.11 20:43",
+	  marketName: "XRP/KRW",
+	  tradeCryptoPrice: 3715,
+	  tradeAmount: 11.70717423,
+	  tradeTotalPrice: 39980
+	)
+  ]
   
   deinit {
 	print("deinit : \(String(describing: type(of: self)))")
@@ -45,29 +69,44 @@ class TradeHistoryView: UIView, ViewRule {
   }
   
   func setUI() {
-	
+    self.noHistoryView.isHidden = true
   }
   
   func setData() {
-//    self.historyTableView.delegate = self
+    self.historyTableView.delegate = self
+	self.historyTableView.dataSource = self
+	self.historyTableView.register(
+	  TradeHistoryTableViewCell.self,
+	  forCellReuseIdentifier: "TradeHistoryTableViewCell"
+	)
   }
   
+  // TODO: UserDefault에 Key 값을 "MobitTrade(MarketName)"으로 설정하고
+  // 내부에 [TradeHistoryInformation]을 저장
+  // 꺼내쓸 땐, MarketName으로 Key를 조회하고 없으면 noHistoryView 노출
 }
 
-//extension TradeHistoryView: UITableViewDelegate, UITableViewDataSource {
-//  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-//    if self.segmentedControl.selectedSegmentIndex == 0 {
-//      return 0
-//    } else {
-//      return 0
-//    }
-//  }
-//  
-//  func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-//    <#code#>
-//  }
-//  
-//  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//    <#code#>
-//  }
-//}
+// MARK: - UITableView Delegate, DataSource
+extension TradeHistoryView: UITableViewDelegate, UITableViewDataSource {
+  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    if self.segmentedControl.selectedSegmentIndex == 0 {
+      return 0
+    } else {
+	  return self.tempTradeHistory.count
+    }
+  }
+  
+  func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+	guard let cell = tableView.dequeueReusableCell(
+	  withIdentifier: "TradeHistoryTableViewCell",
+	  for: indexPath
+	) as? TradeHistoryTableViewCell else { return UITableViewCell() }
+	
+	
+	return cell
+  }
+  
+  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    
+  }
+}
