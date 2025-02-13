@@ -10,8 +10,6 @@ import RxSwift
 
 class TradeHistoryView: UIView, ViewRule {
   
-  @IBOutlet weak var segmentedControl: UISegmentedControl!
-  @IBOutlet weak var segmentedContainerView: UIView!
   @IBOutlet weak var historyTableView: UITableView!
   @IBOutlet weak var noHistoryView: UIView!
   
@@ -76,9 +74,10 @@ class TradeHistoryView: UIView, ViewRule {
     self.historyTableView.delegate = self
 	self.historyTableView.dataSource = self
 	self.historyTableView.register(
-	  TradeHistoryTableViewCell.self,
+	  UINib(nibName: "TradeHistoryTableViewCell", bundle: nil),
 	  forCellReuseIdentifier: "TradeHistoryTableViewCell"
 	)
+	self.historyTableView.rowHeight = UITableView.automaticDimension
   }
   
   // TODO: UserDefault에 Key 값을 "MobitTrade(MarketName)"으로 설정하고
@@ -89,19 +88,19 @@ class TradeHistoryView: UIView, ViewRule {
 // MARK: - UITableView Delegate, DataSource
 extension TradeHistoryView: UITableViewDelegate, UITableViewDataSource {
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    if self.segmentedControl.selectedSegmentIndex == 0 {
-      return 0
-    } else {
-	  return self.tempTradeHistory.count
-    }
+	return self.tempTradeHistory.count
   }
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 	guard let cell = tableView.dequeueReusableCell(
-	  withIdentifier: "TradeHistoryTableViewCell",
-	  for: indexPath
-	) as? TradeHistoryTableViewCell else { return UITableViewCell() }
+		withIdentifier: "TradeHistoryTableViewCell",
+		for: indexPath
+	) as? TradeHistoryTableViewCell,
+		  let tradeInfo = tempTradeHistory[indexPath.row] else {
+		return UITableViewCell()
+	}
 	
+	cell.configure(tradeInfo: tradeInfo)
 	
 	return cell
   }

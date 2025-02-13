@@ -61,8 +61,10 @@ class TradeBidView: UIView, ViewRule {
 	guard let currentPrice = self.reactor?.currentState.cryptoInfo?.tradePrice,
 		  let userBalance = UserDataManager.userInformation?.userAvailableBalance else { return }
 	
-	let availableAmount = round((userBalance / currentPrice) * 100) / 100
-	self.availableTradePrice.text = String(availableAmount).addComma()
+	let availableAmount = round((userBalance / currentPrice) * 100) / 1000
+	  let test = round((userBalance / currentPrice))
+	  self.availableTradePrice.text = String(userBalance).addComma()
+	  self.inputTradeAmount.text = String(test).addComma()
 	print("💵 : \(availableAmount)")
   }
   

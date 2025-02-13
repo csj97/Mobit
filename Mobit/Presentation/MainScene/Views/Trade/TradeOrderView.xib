@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="22505" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22504"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -50,7 +50,7 @@
                         <constraint firstAttribute="trailing" secondItem="l8x-3a-CZr" secondAttribute="trailing" id="4fB-kA-iwj"/>
                         <constraint firstAttribute="trailing" secondItem="cRc-ra-S1y" secondAttribute="trailing" id="5Vr-EV-DLX"/>
                         <constraint firstItem="l8x-3a-CZr" firstAttribute="leading" secondItem="e0J-eg-XXq" secondAttribute="leading" id="EDG-1r-vKz"/>
-                        <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="l8x-3a-CZr" secondAttribute="bottom" id="ETx-u8-uOZ"/>
+                        <constraint firstAttribute="bottom" secondItem="l8x-3a-CZr" secondAttribute="bottom" id="ETx-u8-uOZ"/>
                         <constraint firstItem="cRc-ra-S1y" firstAttribute="top" secondItem="e0J-eg-XXq" secondAttribute="top" id="abA-yU-OLV"/>
                         <constraint firstItem="l8x-3a-CZr" firstAttribute="top" secondItem="cRc-ra-S1y" secondAttribute="bottom" id="b8N-yr-dYH"/>
                         <constraint firstItem="cRc-ra-S1y" firstAttribute="leading" secondItem="e0J-eg-XXq" secondAttribute="leading" id="uST-du-Ivi"/>

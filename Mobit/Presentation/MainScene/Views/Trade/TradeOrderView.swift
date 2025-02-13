@@ -58,7 +58,6 @@ class TradeOrderView: UIView, ViewRule {
 	  normalColor: .mobitColors(.lightGrayBG),
 	  selectedColor: .white
 	)
-	self.isUserInteractionEnabled = true
 	
 	guard let reactor = self.reactor else { return }
 	bidView = TradeBidView.instanceFromNib(reactor: reactor, disposeBag: self.disposeBag) { [weak self] in }
@@ -74,17 +73,17 @@ class TradeOrderView: UIView, ViewRule {
 	bidView.snp.makeConstraints { make in
       make.top.leading.equalToSuperview().offset(10)
 	  make.trailing.equalToSuperview().offset(-10)
-      make.bottom.greaterThanOrEqualToSuperview()
+	  make.bottom.greaterThanOrEqualToSuperview()
 	}
 	askView.snp.makeConstraints { make in
 	  make.top.leading.equalToSuperview().offset(10)
 	  make.trailing.equalToSuperview().offset(-10)
-      make.bottom.greaterThanOrEqualToSuperview()
+	  make.bottom.greaterThanOrEqualToSuperview()
 	}
 	historyView.snp.makeConstraints { make in
 	  make.top.leading.equalToSuperview().offset(10)
 	  make.trailing.equalToSuperview().offset(-10)
-	  make.bottom.greaterThanOrEqualToSuperview().offset(-10)
+	  make.bottom.equalToSuperview()
 	}
 	
 	self.segmentedControl.selectedSegmentIndex = 0
@@ -136,14 +135,17 @@ class TradeOrderView: UIView, ViewRule {
       self.bidView?.isHidden = false
       self.askView?.isHidden = true
 	  self.historyView?.isHidden = true
+	  self.segmentedContainerView.bringSubviewToFront(self.bidView!)
     case 1:
       self.bidView?.isHidden = true
       self.askView?.isHidden = false
 	  self.historyView?.isHidden = true
+	  self.segmentedContainerView.bringSubviewToFront(self.askView!)
     case 2:
       self.bidView?.isHidden = true
       self.askView?.isHidden = true
 	  self.historyView?.isHidden = false
+	  self.segmentedContainerView.bringSubviewToFront(self.historyView!)
       
     default:
       break

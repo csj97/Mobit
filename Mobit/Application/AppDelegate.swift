@@ -45,6 +45,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         userAvailableBalance: 10_000_000,
         userCryptoList: UserDataManager.userCryptoList ?? []
       )
+	  UserDataManager.userInformation = userInformation
     }
   }
 }
