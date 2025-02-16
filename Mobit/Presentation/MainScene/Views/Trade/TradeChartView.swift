@@ -54,6 +54,7 @@ class TradeChartView: UIView, WKScriptMessageHandler {
       config.preferences.isElementFullscreenEnabled = true
     }
 	
+	webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     webView.scrollView.contentInsetAdjustmentBehavior = .never
 	webView.scrollView.isScrollEnabled = false
     webView.navigationDelegate = self
