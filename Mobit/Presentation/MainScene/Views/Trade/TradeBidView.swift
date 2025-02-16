@@ -21,7 +21,7 @@ class TradeBidView: UIView, ViewRule {
   }
   
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-	  print(#function)
+	print(#function)
   }
   
   static func instanceFromNib(
@@ -50,26 +50,53 @@ class TradeBidView: UIView, ViewRule {
   }
   
   func setUI() {
-	self.isUserInteractionEnabled = true
+	guard let userBalance = UserDataManager.userInformation?.userAvailableBalance
+	else { return }
+	
+	self.availableTradePrice.text = String(userBalance).addComma()
   }
   
   func setData() {
 	
   }
   
-    @IBAction func tapOnMaxAmount(_ sender: UIButton) {
+  @IBAction func tapOnMaxAmount(_ sender: UIButton) {
 	guard let currentPrice = self.reactor?.currentState.cryptoInfo?.tradePrice,
-		  let userBalance = UserDataManager.userInformation?.userAvailableBalance else { return }
+		  let userBalance = UserDataManager.userInformation?.userAvailableBalance 
+	else { return }
 	
-	let availableAmount = round((userBalance / currentPrice) * 100) / 1000
-	  let test = round((userBalance / currentPrice))
-	  self.availableTradePrice.text = String(userBalance).addComma()
-	  self.inputTradeAmount.text = String(test).addComma()
-	print("💵 : \(availableAmount)")
+	let inputAmount = (userBalance / currentPrice)
+	self.availableTradePrice.text = String(userBalance).addComma()
+	self.inputTradeAmount.text = String(inputAmount.roundToSignificantDigits()).addComma()
+	print("💵 : \(inputAmount)")
   }
   
   @IBAction func tapOnBidButton(_ sender: UIButton) {
 	
   }
-    
+  
+}
+
+extension Double {
+  func roundToSignificantDigits() -> String {
+	let formatter = NumberFormatter()
+	formatter.numberStyle = .decimal
+	formatter.maximumFractionDigits = 20
+	formatter.minimumFractionDigits = 0
+	
+	guard let stringValue = formatter.string(from: NSNumber(value: self)) else {
+	  return "\(self)"
+	}
+	
+	let components = stringValue.components(separatedBy: ".")
+	guard components.count == 2, let fractionalPart = components.last else {
+	  return stringValue
+	}
+	
+	let significantDigits = fractionalPart.firstIndex(where: { $0 != "0" }).map { fractionalPart.distance(from: fractionalPart.startIndex, to: $0) + 1 } ?? 0
+	
+	formatter.maximumFractionDigits = significantDigits
+	
+	return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
+  }
 }

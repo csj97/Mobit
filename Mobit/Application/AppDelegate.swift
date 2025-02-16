@@ -34,11 +34,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   func checkFirstLaunch() {
     // 첫 실행이면 천만원 설정
     if UserDataManager.isFirstLaunch {
-      let userInformation = MobitUserInformation(
-        userAvailableBalance: UserDataManager.userAvailableBalance,
-        userCryptoList: UserDataManager.userCryptoList ?? []
-      )
-      UserDataManager.userInformation = userInformation
+//      let userInformation = MobitUserInformation(
+//        userAvailableBalance: UserDataManager.userAvailableBalance,
+//        userCryptoList: UserDataManager.userCryptoList ?? []
+//      )
+//      UserDataManager.userInformation = userInformation
     } else {
       UserDataManager.isFirstLaunch = true
       let userInformation = MobitUserInformation(
