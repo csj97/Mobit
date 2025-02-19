@@ -63,4 +63,23 @@ class UserDataManager: NSObject {
       }
     }
   }
+  
+  static var bidCryptoList: [BidCryptoInfo?] {
+	get {
+	  let defaults = UserDefaults.standard
+	  if let data = defaults.data(forKey: "mobit-bid-crypto") {
+		let decodedData = try? JSONDecoder().decode([BidCryptoInfo?].self, from: data)
+		return decodedData ?? []
+	  }
+	  return []
+	}
+	set {
+	  let defaults = UserDefaults.standard
+	  if let encodedData = try? JSONEncoder().encode(newValue) {
+		defaults.set(encodedData, forKey: "mobit-bid-crypto")
+	  } else {
+		defaults.removeObject(forKey: "mobit-bid-crypto")
+	  }
+	}
+  }
 }
