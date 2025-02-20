@@ -93,6 +93,7 @@
 		C18EED572D55FE610038BBF7 /* TradeAskView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C18EED562D55FE610038BBF7 /* TradeAskView.xib */; };
 		C18FF26E2D5AEDF7003E95B0 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */; };
 		C190F29D2D65AD6A00895D9E /* BidCryptoInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C190F29C2D65AD6A00895D9E /* BidCryptoInfo.swift */; };
+		C1AEA1AF2D66E982001E2A9E /* CalculationUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1AEA1AE2D66E982001E2A9E /* CalculationUtils.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -212,6 +213,7 @@
 		C18EED562D55FE610038BBF7 /* TradeAskView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeAskView.xib; sourceTree = "<group>"; };
 		C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		C190F29C2D65AD6A00895D9E /* BidCryptoInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BidCryptoInfo.swift; sourceTree = "<group>"; };
+		C1AEA1AE2D66E982001E2A9E /* CalculationUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationUtils.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -368,8 +370,8 @@
 				311E33F92C46068C0054C6BC /* ErrorType.swift */,
 				99C20AB12C4F6A04009276E7 /* Environment.swift */,
 				C17424C32D4600A8009861CC /* UserDataManager.swift */,
-				C17424C52D460478009861CC /* MobitUserInformation.swift */,
 				31B742092D5A46B300706340 /* LeakAvoider.swift */,
+				C1AEA1AE2D66E982001E2A9E /* CalculationUtils.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -604,6 +606,7 @@
 				367271AC2C7B2DA600F9D86E /* OrderBookResponse.swift */,
 				31B742112D5B967F00706340 /* TradeHistoryInformation.swift */,
 				C190F29C2D65AD6A00895D9E /* BidCryptoInfo.swift */,
+				C17424C52D460478009861CC /* MobitUserInformation.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -848,6 +851,7 @@
 				99C20A832C4A2787009276E7 /* MainReactor.swift in Sources */,
 				367271AD2C7B2DA600F9D86E /* OrderBookResponse.swift in Sources */,
 				99C20A5D2C48DF11009276E7 /* CoinTableViewCell.swift in Sources */,
+				C1AEA1AF2D66E982001E2A9E /* CalculationUtils.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

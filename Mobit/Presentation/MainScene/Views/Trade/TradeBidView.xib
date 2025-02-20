@@ -75,11 +75,11 @@
                                                             <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                             <nil key="highlightedColor"/>
                                                         </label>
-                                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RJ2-Rc-pcZ">
+                                                        <view contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="RJ2-Rc-pcZ">
                                                             <rect key="frame" x="32.333333333333329" y="5" width="187.66666666666669" height="25"/>
                                                             <subviews>
-                                                                <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="0" textAlignment="right" minimumFontSize="8" translatesAutoresizingMaskIntoConstraints="NO" id="OZS-Az-OMm">
-                                                                    <rect key="frame" x="176.66666666666666" y="0.0" width="7" height="25"/>
+                                                                <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="0" textAlignment="right" minimumFontSize="8" translatesAutoresizingMaskIntoConstraints="NO" id="OZS-Az-OMm">
+                                                                    <rect key="frame" x="10" y="0.0" width="173.66666666666666" height="25"/>
                                                                     <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                                     <fontDescription key="fontDescription" type="system" pointSize="11"/>
                                                                     <textInputTraits key="textInputTraits"/>
@@ -89,11 +89,11 @@
                                                             <constraints>
                                                                 <constraint firstItem="OZS-Az-OMm" firstAttribute="top" secondItem="RJ2-Rc-pcZ" secondAttribute="top" id="0E3-H3-Hte"/>
                                                                 <constraint firstAttribute="bottom" secondItem="OZS-Az-OMm" secondAttribute="bottom" id="3nh-5y-Z9x"/>
-                                                                <constraint firstItem="OZS-Az-OMm" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="RJ2-Rc-pcZ" secondAttribute="leading" constant="10" id="Ntu-bh-0Qu"/>
+                                                                <constraint firstItem="OZS-Az-OMm" firstAttribute="leading" secondItem="RJ2-Rc-pcZ" secondAttribute="leading" constant="10" id="Ntu-bh-0Qu"/>
                                                                 <constraint firstAttribute="trailing" secondItem="OZS-Az-OMm" secondAttribute="trailing" constant="4" id="vph-GT-pdo"/>
                                                             </constraints>
                                                         </view>
-                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" horizontalCompressionResistancePriority="749" text="BTC" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.69999998807907104" translatesAutoresizingMaskIntoConstraints="NO" id="vPQ-Rf-LM6">
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="BTC" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.69999998807907104" translatesAutoresizingMaskIntoConstraints="NO" id="vPQ-Rf-LM6">
                                                             <rect key="frame" x="224" y="0.0" width="22" height="35"/>
                                                             <fontDescription key="fontDescription" type="system" pointSize="11"/>
                                                             <nil key="textColor"/>
@@ -337,7 +337,7 @@
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
         <systemColor name="systemRedColor">
-            <color red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="1" green="0.23137254901960785" blue="0.18823529411764706" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>

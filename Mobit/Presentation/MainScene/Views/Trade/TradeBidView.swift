@@ -15,9 +15,9 @@ class TradeBidView: UIView, ViewRule {
   @IBOutlet weak var currentPrice: UILabel!
   @IBOutlet weak var totalPriceTextField: UITextField!
     @IBOutlet weak var inputAmountTFView: UIView!
-    
-  var disposeBag = DisposeBag()
+  
   weak var reactor: CryptoDetailReactor? = nil
+  var disposeBag = DisposeBag()
   var cryptoInfo: CryptoCellInfo? = nil
   // 매수 수량
   var inputAmount: Double = 0.0
@@ -72,12 +72,12 @@ class TradeBidView: UIView, ViewRule {
   }
   
   @IBAction func tapOnMaxAmount(_ sender: UIButton) {
-	guard let currentPrice = self.reactor?.currentState.cryptoInfo?.tradePrice,
+	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
 		  let userBalance = UserDataManager.userInformation?.userAvailableBalance
 	else { return }
 	
-	let inputAmount = userBalance / currentPrice
-	let totalPrice = floor(currentPrice.formatMax8Digits() * inputAmount.formatMax8Digits())
+	self.inputAmount = (userBalance / currentPrice).formatDigits(digits: 8)
+	let totalPrice = floor(currentPrice * inputAmount)
 	self.inputTradeAmount.text = inputAmount.formatSignificantDigits()
 	self.totalPriceTextField.text = totalPrice.formatSignificantDigits()
 	
@@ -85,7 +85,87 @@ class TradeBidView: UIView, ViewRule {
   }
   
   @IBAction func tapOnBidButton(_ sender: UIButton) {
+	guard let marketName = self.cryptoInfo?.market else { return }
+	self.updateTransaction(marketName: marketName)
+  }
+  
+  func updateTransaction(marketName: String) {
 	
+	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8) else { return }
+	
+	let buyPrice = currentPrice.formatDigits(digits: 8)
+	var newTransaction: CryptoTransaction? = nil
+	
+	let transactionList = UserDataManager.bidCryptoList
+	if let transactionIndex = transactionList
+	  .compactMap({ $0 })
+	  .firstIndex(where: { $0.marketName == marketName }),
+	   let transaction = transactionList[transactionIndex] {
+	  
+	  let calcUtil = CalculationUtils(
+		currentPrice: currentPrice,
+		prevHoldingQuantity: transaction.holdingQuantity,
+		prevAverageBuyPrice: transaction.averageBuyPrice,
+		prevBuyAmount: transaction.buyAmount,
+		holdingQuantity: self.inputAmount
+	  )
+	  
+	  let averageBuyPrice = calcUtil.calcAverBuyPrice()
+	  let profitRate = calcUtil.calcProfitRate()
+	  let evaluationProfitLoss = calcUtil.calcEvalProfitLoss()
+	  let evaluationPrice = calcUtil.calcEvalPrice()
+	  let buyAmount = calcUtil.calcBuyAmount()
+	  let holdingQuantity = calcUtil.calcHoldingQuantity()
+	  
+	  newTransaction = CryptoTransaction(
+		marketName: marketName,
+		holdingQuantity: holdingQuantity,
+		profitRate: profitRate,
+		evaluationProfitLoss: evaluationProfitLoss,
+		evaluationPrice: evaluationPrice,
+		averageBuyPrice: averageBuyPrice,
+		buyAmount: buyAmount
+	  )
+	} else {
+	  
+	  let calcUtil = CalculationUtils(
+		currentPrice: currentPrice,
+		holdingQuantity: self.inputAmount
+	  )
+	  
+	  // 이전 매수 기록 없음
+	  let averageBuyPrice = calcUtil.calcAverBuyPrice()
+	  let profitRate = calcUtil.calcProfitRate()
+	  let evaluationProfitLoss = calcUtil.calcEvalProfitLoss()
+	  let evaluationPrice = calcUtil.calcEvalPrice()
+	  let buyAmount = calcUtil.calcBuyAmount()
+	  let holdingQuantity = calcUtil.calcHoldingQuantity()
+	  
+	  newTransaction = CryptoTransaction(
+		marketName: marketName,
+		holdingQuantity: holdingQuantity,
+		profitRate: profitRate,
+		evaluationProfitLoss: evaluationProfitLoss,
+		evaluationPrice: evaluationPrice,
+		averageBuyPrice: averageBuyPrice,
+		buyAmount: buyAmount
+	  )
+	}
+	
+	guard let newTransaction = newTransaction else { return }
+	if let transactionIndex = transactionList
+	  .compactMap({ $0 })
+	  .firstIndex(where: { $0.marketName == marketName }) {
+	  
+	  // Update
+	  print("매수 완료!!")
+	  UserDataManager.bidCryptoList[transactionIndex] = newTransaction
+	  print(UserDataManager.bidCryptoList[transactionIndex])
+	} else {
+	  print("매수 완료!!")
+	  UserDataManager.bidCryptoList.append(newTransaction)
+	  print(UserDataManager.bidCryptoList)
+	}
   }
   
   func bind(reactor: CryptoDetailReactor) {
@@ -111,7 +191,9 @@ extension TradeBidView: UITextFieldDelegate {
 	
 	if textField == self.inputTradeAmount {
 	  self.inputAmount = Double(textField.text ?? "0") ?? 0
-	  let totalPrice = floor(currentPrice.formatMax8Digits() * inputAmount.formatMax8Digits())
+	  let totalPrice = floor(
+		currentPrice.formatDigits(digits: 8) * inputAmount.formatDigits(digits: 8)
+	  )
 	  self.totalPriceTextField.text = totalPrice.formatSignificantDigits()
 	} else if textField == self.totalPriceTextField {
 	  
@@ -120,8 +202,10 @@ extension TradeBidView: UITextFieldDelegate {
 }
 
 extension Double {
-  func formatMax8Digits() -> Double {
-	let formattedValue = floor(self * 100_000_000) / 100_000_000
+  /// 자릿수 끊어내기
+  func formatDigits(digits: Int) -> Double {
+	let digitStandard = Double(Int(pow(10.0, Double(digits))))
+	let formattedValue = floor(self * digitStandard) / digitStandard
 	return formattedValue
   }
   
