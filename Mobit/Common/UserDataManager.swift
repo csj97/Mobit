@@ -34,16 +34,16 @@ class UserDataManager: NSObject {
   }
   
   /// 사용자가 매수한 코인 정보
-  static var userCryptoList: [MobitUserInformation.UserCrypto]? {
-    get {
-      let defaults = UserDefaults.standard
-      let data = defaults.object(forKey: "user-crypto-list") as? [MobitUserInformation.UserCrypto]
-      return data
-    }
-    set {
-      UserDefaults.standard.set(newValue, forKey: "user-crypto-list")
-    }
-  }
+//  static var userCryptoList: [MobitUserInformation.UserCrypto]? {
+//    get {
+//      let defaults = UserDefaults.standard
+//      let data = defaults.object(forKey: "user-crypto-list") as? [MobitUserInformation.UserCrypto]
+//      return data
+//    }
+//    set {
+//      UserDefaults.standard.set(newValue, forKey: "user-crypto-list")
+//    }
+//  }
   
   static var userInformation: MobitUserInformation? {
     get {
@@ -64,6 +64,7 @@ class UserDataManager: NSObject {
     }
   }
   
+  /// 매수한 코인 목록
   static var bidCryptoList: [CryptoTransaction?] {
 	get {
 	  let defaults = UserDefaults.standard

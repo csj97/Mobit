@@ -91,9 +91,10 @@ class TradeBidView: UIView, ViewRule {
   
   func updateTransaction(marketName: String) {
 	
-	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8) else { return }
+	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
+		  let userBalance = UserDataManager.userInformation?.userAvailableBalance
+	else { return }
 	
-	let buyPrice = currentPrice.formatDigits(digits: 8)
 	var newTransaction: CryptoTransaction? = nil
 	
 	let transactionList = UserDataManager.bidCryptoList
@@ -103,7 +104,7 @@ class TradeBidView: UIView, ViewRule {
 	   let transaction = transactionList[transactionIndex] {
 	  
 	  let calcUtil = CalculationUtils(
-		currentPrice: currentPrice,
+		currentPrice: currentPrice.formatDigits(digits: 8),
 		prevHoldingQuantity: transaction.holdingQuantity,
 		prevAverageBuyPrice: transaction.averageBuyPrice,
 		prevBuyAmount: transaction.buyAmount,
@@ -166,6 +167,15 @@ class TradeBidView: UIView, ViewRule {
 	  UserDataManager.bidCryptoList.append(newTransaction)
 	  print(UserDataManager.bidCryptoList)
 	}
+	
+	let availableBalance = userBalance - newTransaction.buyAmount
+	updateUserInformation(availableBalance: availableBalance)
+  }
+  
+  func updateUserInformation(availableBalance: Double) {
+	UserDataManager.userInformation = MobitUserInformation(
+	  userAvailableBalance: availableBalance
+	)
   }
   
   func bind(reactor: CryptoDetailReactor) {
