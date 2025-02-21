@@ -12,9 +12,11 @@ class UserDataManager: NSObject {
   /// 앱 설치 후, 첫 실행 여부
   static var isFirstLaunch: Bool {
     get {
-      let defaults = UserDefaults.standard
-      let data = defaults.bool(forKey: "isFirstLaunch")
-      return data
+	  let defaults = UserDefaults.standard
+	  if defaults.object(forKey: "isFirstLaunch") == nil {
+		return true
+	  }
+	  return defaults.bool(forKey: "isFirstLaunch")
     }
     set {
       UserDefaults.standard.set(newValue, forKey: "isFirstLaunch")

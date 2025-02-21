@@ -13,7 +13,7 @@ class CalculationUtils {
   private let prevAverageBuyPrice: Double
   private let prevBuyAmount: Double
   private let prevHoldingQuantity: Double
-  private let holdingQuantity: Double
+  private let newHoldingQuantity: Double
   
   // 초기화
   init(
@@ -21,17 +21,17 @@ class CalculationUtils {
 	prevHoldingQuantity: Double = 0,
 	prevAverageBuyPrice: Double = 0,
 	prevBuyAmount: Double = 0,
-	holdingQuantity: Double
+	newHoldingQuantity: Double
   ) {
 	self.currentPrice = currentPrice
 	self.prevHoldingQuantity = prevHoldingQuantity
 	self.prevAverageBuyPrice = prevAverageBuyPrice
 	self.prevBuyAmount = prevBuyAmount
-	self.holdingQuantity = holdingQuantity
+	self.newHoldingQuantity = newHoldingQuantity
   }
   
   func calcHoldingQuantity() -> Double {
-	return prevHoldingQuantity + holdingQuantity
+	return prevHoldingQuantity + newHoldingQuantity
   }
   
   /// 평단가 계산
@@ -56,23 +56,33 @@ class CalculationUtils {
   /// (현재가 - 평단가) * holdingQuantity
   func calcEvalProfitLoss() -> Double {
 	let averageBuyPrice = calcAverBuyPrice()
-	let profitLoss = (currentPrice - averageBuyPrice) * holdingQuantity
+	let profitLoss = (currentPrice - averageBuyPrice) * newHoldingQuantity
 	return profitLoss.formatDigits(digits: 2)
   }
   
   /// 평가금액 계산
   /// 현재가 * holdingQuantity
   func calcEvalPrice() -> Double {
-	return (currentPrice * holdingQuantity).formatDigits(digits: 8)
+	return (currentPrice * newHoldingQuantity).formatDigits(digits: 8)
   }
   
-  /// 총 매수금액 계산
-  /// prevBuyAmount + (현재 매수금액 * tradingFee)
+  /// 매수 예정) 총 매수금액 계산
+  /// 현재 매수하려는 총 금액 * tradingFee
   func calcBuyAmount() -> Double {
 	let tradingFee: Double = 0.05
-	let currentBuyAmount = floor(currentPrice * holdingQuantity)
-	let tradingFeePrice = currentBuyAmount - (currentBuyAmount * tradingFee)
+	let newBuyAmount = floor(currentPrice * newHoldingQuantity)
+	let totalAmount = newBuyAmount - (newBuyAmount * tradingFee)
 	
-	return prevBuyAmount + (currentBuyAmount - tradingFeePrice)
+	return totalAmount
+  }
+  
+  /// 누적 총 매수금액 (이전 매수 금액 포함)
+  /// prevBuyAmount + (현재 매수금액 * tradingFee)
+  func cumulCalcBuyAmount() -> Double {
+	let tradingFee: Double = 0.05
+	let newBuyAmount = floor(currentPrice * newHoldingQuantity)
+	let totalAmount = newBuyAmount - (newBuyAmount * tradingFee)
+	
+	return prevBuyAmount + totalAmount
   }
 }

@@ -76,12 +76,12 @@ class TradeBidView: UIView, ViewRule {
 		  let userBalance = UserDataManager.userInformation?.userAvailableBalance
 	else { return }
 	
-	self.inputAmount = (userBalance / currentPrice).formatDigits(digits: 8)
-	let totalPrice = floor(currentPrice * inputAmount)
-	self.inputTradeAmount.text = inputAmount.formatSignificantDigits()
-	self.totalPriceTextField.text = totalPrice.formatSignificantDigits()
+	inputAmount = (userBalance / currentPrice)
 	
-	print("💵 : \(inputAmount)")
+	let calcUtil = CalculationUtils(currentPrice: currentPrice, newHoldingQuantity: inputAmount)
+	let totalPrice = calcUtil.calcBuyAmount().formatDigits(digits: 0)
+	self.inputTradeAmount.text = inputAmount.formatSignificantDigits()
+	self.totalPriceTextField.text = String(totalPrice)
   }
   
   @IBAction func tapOnBidButton(_ sender: UIButton) {
@@ -108,7 +108,7 @@ class TradeBidView: UIView, ViewRule {
 		prevHoldingQuantity: transaction.holdingQuantity,
 		prevAverageBuyPrice: transaction.averageBuyPrice,
 		prevBuyAmount: transaction.buyAmount,
-		holdingQuantity: self.inputAmount
+		newHoldingQuantity: self.inputAmount
 	  )
 	  
 	  let averageBuyPrice = calcUtil.calcAverBuyPrice()
@@ -131,7 +131,7 @@ class TradeBidView: UIView, ViewRule {
 	  
 	  let calcUtil = CalculationUtils(
 		currentPrice: currentPrice,
-		holdingQuantity: self.inputAmount
+		newHoldingQuantity: self.inputAmount
 	  )
 	  
 	  // 이전 매수 기록 없음
@@ -159,11 +159,11 @@ class TradeBidView: UIView, ViewRule {
 	  .firstIndex(where: { $0.marketName == marketName }) {
 	  
 	  // Update
-	  print("매수 완료!!")
+	  print("매수 업데이트 완료!!")
 	  UserDataManager.bidCryptoList[transactionIndex] = newTransaction
-	  print(UserDataManager.bidCryptoList[transactionIndex])
+	  print(UserDataManager.bidCryptoList[transactionIndex]!)
 	} else {
-	  print("매수 완료!!")
+	  print("첫 매수 완료!!")
 	  UserDataManager.bidCryptoList.append(newTransaction)
 	  print(UserDataManager.bidCryptoList)
 	}
