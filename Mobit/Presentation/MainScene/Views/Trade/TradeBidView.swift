@@ -14,7 +14,7 @@ class TradeBidView: UIView, ViewRule {
   @IBOutlet weak var inputTradeAmount: UITextField!
   @IBOutlet weak var currentPrice: UILabel!
   @IBOutlet weak var totalPriceTextField: UITextField!
-    @IBOutlet weak var inputAmountTFView: UIView!
+  @IBOutlet weak var inputAmountTFView: UIView!
   
   weak var reactor: CryptoDetailReactor? = nil
   var disposeBag = DisposeBag()
@@ -59,9 +59,8 @@ class TradeBidView: UIView, ViewRule {
   func setUI() {
 	self.inputTradeAmount.keyboardType = .numberPad
 	self.totalPriceTextField.keyboardType = .numberPad
-	self.inputAmountTFView.layer.cornerRadius = 8
-	self.inputAmountTFView.layer.borderWidth = 1
-	self.inputAmountTFView.layer.borderColor = UIColor.lightGray.cgColor
+//    self.inputAmountTFView.layer.borderWidth = 1
+//	self.inputAmountTFView.layer.borderColor = UIColor.mobitColors(.lineLightGray).cgColor
   }
   
   func setData() {

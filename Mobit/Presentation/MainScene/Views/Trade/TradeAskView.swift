@@ -12,6 +12,9 @@ class TradeAskView: UIView, ViewRule {
   
   @IBOutlet weak var availableTradePrice: UILabel!
   @IBOutlet weak var inputTradeAmount: UITextField!
+  @IBOutlet weak var currentPrice: UILabel!
+  @IBOutlet weak var totalPriceTextField: UITextField!
+  @IBOutlet weak var inputAmountTFView: UIView!
   
   var disposeBag = DisposeBag()
   weak var reactor: CryptoDetailReactor? = nil
@@ -56,4 +59,8 @@ class TradeAskView: UIView, ViewRule {
   /// 최대 수량 버튼
   @IBAction func tapOnMaxAmount(_ sender: UIButton) {
   }
+  
+  @IBAction func tapOnAskButton(_ sender: UIButton) {
+  }
+  
 }

@@ -25,6 +25,8 @@ extension UIColor {
 	  return UIColor(named: "bg_light_yellow")!
 	case .yellowBG:
 	  return UIColor(named: "bg_yellow")!
+	case .lineLightGray:
+	  return UIColor(named: "line_light_gray")!
     }
   }
   
@@ -36,6 +38,7 @@ extension UIColor {
     case lightGrayBG
 	case lightYellowBG
 	case yellowBG
+	case lineLightGray
   }
   
   convenience init(hex: String) {
