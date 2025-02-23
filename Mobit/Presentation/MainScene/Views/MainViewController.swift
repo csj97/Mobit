@@ -317,6 +317,7 @@ class MainViewController: UIViewController {
         )
       }
     }
+	self.searchBar.delegate = self
   }
   
   /// FlexItem 설정
@@ -352,7 +353,12 @@ extension MainViewController: View {
       .observe(on: MainScheduler.instance)
       .subscribe(onNext: { cellInfos in
         if self.isSocketUpdating == false {
-          self.applySnapshot(cellInfo: cellInfos)
+		  if let searchText = self.searchBar.text, !searchText.isEmpty {
+			let filteredArray = cellInfos.filter { $0.cryptoName.contains(searchText) }
+			self.applySnapshot(cellInfo: filteredArray)
+		  } else {
+			self.applySnapshot(cellInfo: cellInfos)
+		  }
         }
       })
       .disposed(by: self.disposeBag)
@@ -377,5 +383,24 @@ extension MainViewController: UITableViewDelegate {
   /// 스크롤 끝나면 소켓 업데이트 재개
   func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
     isSocketUpdating = false
+  }
+}
+
+extension MainViewController: UISearchBarDelegate {
+  func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+	let cellInfos = self.reactor.currentState.cryptoCellInfo
+	if searchText.isEmpty {
+	  self.applySnapshot(cellInfo: cellInfos)
+	} else {
+	  let filteredArray = cellInfos.filter { $0.cryptoName.contains(searchText) }
+	  self.applySnapshot(cellInfo: filteredArray)
+	}
+  }
+  
+  func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+	let cellInfos = self.reactor.currentState.cryptoCellInfo
+	searchBar.text = nil
+	searchBar.resignFirstResponder() // 키보드 내림
+	self.applySnapshot(cellInfo: cellInfos)
   }
 }
