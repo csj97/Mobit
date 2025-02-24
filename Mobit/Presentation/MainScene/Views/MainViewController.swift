@@ -114,6 +114,12 @@ class MainViewController: UIViewController {
     $0.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
   }
   
+  let keyboardDismissButton: UIButton = UIButton().then {
+	$0.setTitle("키보드 내리기", for: .normal)
+	$0.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
+	$0.backgroundColor = .mobitColors(.lightGrayBG)
+  }
+  
   // MARK: Life Cycle
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
@@ -161,6 +167,7 @@ class MainViewController: UIViewController {
       forCellReuseIdentifier: self.cellIndentifier
     )
     self.tableView.rowHeight = 50
+	self.tableView.keyboardDismissMode = .onDrag
     
     self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoCellInfo>(
       tableView: self.tableView
@@ -198,7 +205,7 @@ class MainViewController: UIViewController {
     self.dataSource?.apply(snapshot, animatingDifferences: false)
   }
   
-  func setSortButton() {
+  func setButtonGesture() {
     self.currentPriceButton.addTarget(
       self, action: #selector(tapOnSortButton(_:)), for: .touchUpInside
     )
@@ -208,6 +215,9 @@ class MainViewController: UIViewController {
     self.tradingVolumeButton.addTarget(
       self, action: #selector(tapOnSortButton(_:)), for: .touchUpInside
     )
+	self.keyboardDismissButton.addTarget(
+	  self, action: #selector(tapOnSortButton(_:)), for: .touchUpInside
+	)
   }
   
   @objc private func tapOnSortButton(_ sender: UIButton) {
@@ -219,20 +229,20 @@ class MainViewController: UIViewController {
       prevSortedButton.isSelected = false
     }
     
-    var newSortType: CryptoSortType? = nil
-    switch sender.tag {
-    case 0:
-      newSortType = self.reactor.currentState.sortBy == .currentPriceAscending
-              ? .currentPriceDescending : .currentPriceAscending
-    case 1:
-        newSortType = self.reactor.currentState.sortBy == .previousDayAscending
-        ? .previousDayDescending : .previousDayAscending
-    case 2:
-        newSortType = self.reactor.currentState.sortBy == .tradeVolumeAscending
-        ? .tradeVolumeDescending : .tradeVolumeAscending
-    default:
-      break
-    }
+	var newSortType: CryptoSortType? = nil
+	switch sender.tag {
+	case 0:
+	  newSortType = self.reactor.currentState.sortBy == .currentPriceAscending
+	  ? .currentPriceDescending : .currentPriceAscending
+	case 1:
+	  newSortType = self.reactor.currentState.sortBy == .previousDayAscending
+	  ? .previousDayDescending : .previousDayAscending
+	case 2:
+	  newSortType = self.reactor.currentState.sortBy == .tradeVolumeAscending
+	  ? .tradeVolumeDescending : .tradeVolumeAscending
+	default:
+	  break
+	}
     
     guard let newSortType = newSortType else { return }
     self.reactor.action.onNext(.setSortType(sortBy: newSortType))
@@ -241,6 +251,9 @@ class MainViewController: UIViewController {
     sender.setTitle(sortedTitle , for: .normal)
     sender.isSelected = true
     self.prevSortedButton = sender
+  }
+  
+  @objc private func tapOnKeyboardDismissButton(_ sender: UIButton) {
   }
   
   func setTabButton() {
@@ -368,10 +381,15 @@ extension MainViewController: View {
 // MARK: TableView Delegate
 extension MainViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    print("cell click : \(indexPath.row)")
-    self.reactor.action.onNext(.disconnectSocket)
+	self.reactor.action.onNext(.disconnectSocket)
+	
+	var cryptoCellInfo = reactor.currentState.cryptoCellInfo
+	
+	if let searchText = self.searchBar.text, !searchText.isEmpty {
+	  cryptoCellInfo = cryptoCellInfo.filter { $0.cryptoName.contains(searchText) }
+	}
     self.coordinator?.pushCryptoDetailVC(
-      selectCrypto: reactor.currentState.cryptoCellInfo[indexPath.row]
+      selectCrypto: cryptoCellInfo[indexPath.row]
     )
   }
   
