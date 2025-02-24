@@ -1,0 +1,36 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:ios)
+    
+    def sendSlackNotification()
+        slack(message: "App successfully released!",
+              channel: "#개발",
+              slack_url: "https://hooks.slack.com/services/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",
+              username: "Mobit",
+                    payload: {  # Optional, lets you specify any number of your own Slack attachments.
+                    "Build Date" => Time.new.to_s,
+                    "Version": 1,
+                  },
+                default_payloads: [:lane, :git_author], # :git_branch
+            )
+    end
+
+platform :ios do
+  desc "mobit testflight upload"
+  lane :mobitTestFlight do
+    sendSlackNotification()
+  end
+end
