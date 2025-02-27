@@ -60,9 +60,15 @@ class TradeOrderView: UIView, ViewRule {
 	)
 	
 	guard let reactor = self.reactor else { return }
-	bidView = TradeBidView.instanceFromNib(reactor: reactor, disposeBag: self.disposeBag) { [weak self] in }
-	askView = TradeAskView.instanceFromNib(reactor: reactor,  disposeBag: self.disposeBag) { [weak self] in }
 	historyView = TradeHistoryView.instanceFromNib(reactor: reactor) { [weak self] in }
+	bidView = TradeBidView.instanceFromNib(
+	  reactor: reactor,
+	  disposeBag: self.disposeBag
+	) { [weak self] in
+	  guard let self = self else { return }
+	  historyView?.updateHistory()
+	}
+	askView = TradeAskView.instanceFromNib(reactor: reactor,  disposeBag: self.disposeBag) { [weak self] in }
 	
 	guard let bidView = bidView, let askView = askView, let historyView = historyView else { return }
 	

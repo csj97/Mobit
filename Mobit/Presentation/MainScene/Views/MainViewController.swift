@@ -134,7 +134,7 @@ class MainViewController: UIViewController {
     self.setSearchBar()
     self.setTableView()
     self.setTabButton()
-    self.setSortButton()
+	self.setButtonGesture()
     
     self.setUpFlexItems()
     

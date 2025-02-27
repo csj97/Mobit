@@ -18,7 +18,7 @@ default_platform(:ios)
     def sendSlackNotification()
         slack(message: "App successfully released!",
               channel: "#개발",
-              slack_url: "https://hooks.slack.com/services/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",
+              slack_url: "https://hooks.slack.com/services/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",
               username: "Mobit",
                     payload: {  # Optional, lets you specify any number of your own Slack attachments.
                     "Build Date" => Time.new.to_s,

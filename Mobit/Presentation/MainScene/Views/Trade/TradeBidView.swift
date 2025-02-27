@@ -17,6 +17,7 @@ class TradeBidView: UIView, ViewRule {
   @IBOutlet weak var inputAmountTFView: UIView!
   
   weak var reactor: CryptoDetailReactor? = nil
+  var callBack: (() -> ())? = nil
   var disposeBag = DisposeBag()
   var cryptoInfo: CryptoCellInfo? = nil
   // 매수 수량
@@ -33,7 +34,7 @@ class TradeBidView: UIView, ViewRule {
   static func instanceFromNib(
 	reactor: CryptoDetailReactor,
 	disposeBag: DisposeBag,
-	result: @escaping () -> ()
+	callBack: @escaping () -> ()
   ) -> TradeBidView {
 	
 	let selfView = UINib(
@@ -49,6 +50,7 @@ class TradeBidView: UIView, ViewRule {
 	
 	selfView.reactor = reactor
 	selfView.disposeBag = disposeBag
+	selfView.callBack = callBack
 	selfView.setUI()
 	selfView.setData()
 	selfView.bind(reactor: reactor)
@@ -94,19 +96,34 @@ class TradeBidView: UIView, ViewRule {
 		  let userBalance = UserDataManager.userInformation?.userAvailableBalance
 	else { return }
 	
-	var newTransaction: CryptoTransaction? = nil
+	let formatter = DateFormatter()
+	formatter.dateFormat = "MM.dd HH:mm"
+	formatter.locale = Locale(identifier: "ko_KR") // 한국 시간 기준
+	let currentTime = Date()
+	let executedDate = formatter.string(from: currentTime)
 	
-	let transactionList = UserDataManager.bidCryptoList
-	if let transactionIndex = transactionList
+	var bidCryptoList = UserDataManager.bidCryptoList
+	var newTransaction: CryptoTransaction? = nil
+	var postTransaction: CryptoTransaction? = nil
+	var transactionList: [CryptoTransaction.TransactionInfo?] = []
+	var transactionIndex: Int = 0
+	
+	if let matchedIndex = UserDataManager.bidCryptoList
 	  .compactMap({ $0 })
-	  .firstIndex(where: { $0.marketName == marketName }),
-	   let transaction = transactionList[transactionIndex] {
-	  
+	  .firstIndex(where: { $0.marketName == marketName }) {
+	  transactionList = UserDataManager.bidCryptoList[matchedIndex]?.transactionHistoryList ?? []
+	  postTransaction = UserDataManager.bidCryptoList[matchedIndex]
+	  transactionIndex = matchedIndex
+	}
+	
+	// 체결 내역은 말그대로 체결된 내역이 전부 보여야 한다.
+	// 매수 내역은 현재 가지고 있는 매매 기록에 대해서만 나와야한다.
+	if let postTransaction = postTransaction {
 	  let calcUtil = CalculationUtils(
 		currentPrice: currentPrice.formatDigits(digits: 8),
-		prevHoldingQuantity: transaction.holdingQuantity,
-		prevAverageBuyPrice: transaction.averageBuyPrice,
-		prevBuyAmount: transaction.buyAmount,
+		prevHoldingQuantity: postTransaction.holdingQuantity,
+		prevAverageBuyPrice: postTransaction.averageBuyPrice,
+		prevBuyAmount: postTransaction.buyAmount,
 		newHoldingQuantity: self.inputAmount
 	  )
 	  
@@ -116,6 +133,13 @@ class TradeBidView: UIView, ViewRule {
 	  let evaluationPrice = calcUtil.calcEvalPrice()
 	  let buyAmount = calcUtil.calcBuyAmount()
 	  let holdingQuantity = calcUtil.calcHoldingQuantity()
+	  let newTransactionInfo = CryptoTransaction.TransactionInfo(
+		executedDate: executedDate,
+		executedPrice: currentPrice,
+		executedQuantity: self.inputAmount,
+		executedAmount: buyAmount
+	  )
+	  transactionList.append(newTransactionInfo)
 	  
 	  newTransaction = CryptoTransaction(
 		marketName: marketName,
@@ -124,8 +148,17 @@ class TradeBidView: UIView, ViewRule {
 		evaluationProfitLoss: evaluationProfitLoss,
 		evaluationPrice: evaluationPrice,
 		averageBuyPrice: averageBuyPrice,
-		buyAmount: buyAmount
+		buyAmount: buyAmount,
+		transactionHistoryList: transactionList
 	  )
+	  
+	  guard let newTransaction = newTransaction else { return }
+	  print("매수 업데이트 완료!!")
+	  bidCryptoList[transactionIndex] = newTransaction
+	  UserDataManager.bidCryptoList = bidCryptoList
+
+	  let availableBalance = userBalance - newTransaction.buyAmount
+	  updateUserInformation(availableBalance: availableBalance)
 	} else {
 	  
 	  let calcUtil = CalculationUtils(
@@ -141,6 +174,15 @@ class TradeBidView: UIView, ViewRule {
 	  let buyAmount = calcUtil.calcBuyAmount()
 	  let holdingQuantity = calcUtil.calcHoldingQuantity()
 	  
+	  let newTransactionInfo = CryptoTransaction.TransactionInfo(
+		executedDate: executedDate,
+		executedPrice: currentPrice,
+		executedQuantity: holdingQuantity,
+		executedAmount: buyAmount
+	  )
+	  
+	  transactionList.append(newTransactionInfo)
+	  
 	  newTransaction = CryptoTransaction(
 		marketName: marketName,
 		holdingQuantity: holdingQuantity,
@@ -148,27 +190,21 @@ class TradeBidView: UIView, ViewRule {
 		evaluationProfitLoss: evaluationProfitLoss,
 		evaluationPrice: evaluationPrice,
 		averageBuyPrice: averageBuyPrice,
-		buyAmount: buyAmount
+		buyAmount: buyAmount,
+		transactionHistoryList: transactionList
 	  )
-	}
-	
-	guard let newTransaction = newTransaction else { return }
-	if let transactionIndex = transactionList
-	  .compactMap({ $0 })
-	  .firstIndex(where: { $0.marketName == marketName }) {
 	  
-	  // Update
-	  print("매수 업데이트 완료!!")
-	  UserDataManager.bidCryptoList[transactionIndex] = newTransaction
-	  print(UserDataManager.bidCryptoList[transactionIndex]!)
-	} else {
+	  guard let newTransaction = newTransaction else { return }
 	  print("첫 매수 완료!!")
-	  UserDataManager.bidCryptoList.append(newTransaction)
-	  print(UserDataManager.bidCryptoList)
+	  
+	  bidCryptoList.append(newTransaction)
+	  UserDataManager.bidCryptoList = bidCryptoList
+	  
+	  let availableBalance = userBalance - newTransaction.buyAmount
+	  updateUserInformation(availableBalance: availableBalance)
 	}
 	
-	let availableBalance = userBalance - newTransaction.buyAmount
-	updateUserInformation(availableBalance: availableBalance)
+	self.callBack?()
   }
   
   func updateUserInformation(availableBalance: Double) {

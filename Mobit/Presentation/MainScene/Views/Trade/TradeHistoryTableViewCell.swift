@@ -20,12 +20,15 @@ class TradeHistoryTableViewCell: UITableViewCell {
     // Initialization code
   }
   
-  func configure(tradeInfo: TradeHistoryInformation) {
-	self.tradeDate.text = tradeInfo.tradeDate
-	self.marketName.text = tradeInfo.marketName
-	self.tradeCryptoPrice.text = String(tradeInfo.tradeCryptoPrice)
-	self.tradeAmount.text = String(tradeInfo.tradeAmount)
-	self.tradeTotalPrice.text = String(tradeInfo.tradeTotalPrice)
+  func configure(
+	marketName: String,
+	transactionInfo: CryptoTransaction.TransactionInfo
+  ) {
+	self.tradeDate.text = transactionInfo.executedDate
+	self.marketName.text = marketName
+	self.tradeCryptoPrice.text = String(transactionInfo.executedPrice)
+	self.tradeAmount.text = String(transactionInfo.executedQuantity.formatDigits(digits: 8))
+	self.tradeTotalPrice.text = String(transactionInfo.executedAmount)
   }
   
   override func setSelected(_ selected: Bool, animated: Bool) {

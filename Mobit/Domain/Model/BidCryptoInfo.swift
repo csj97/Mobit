@@ -15,4 +15,12 @@ struct CryptoTransaction: Codable {
   var evaluationPrice: Double     // 평가금액	(지금 얼마인지)
   var averageBuyPrice: Double      // 매수평균가 (평단가)
   var buyAmount: Double            // 매수금액 (매수한 나의 총 금액)
+  var transactionHistoryList: [TransactionInfo?]	// 체결 리스트
+  
+  struct TransactionInfo: Codable {
+	let executedDate: String		// 체결 시간
+	let executedPrice: Double    // 체결 가격
+	let executedQuantity: Double    // 체결 수량
+	let executedAmount: Double   // 체결 금액 (가격 * 수량)
+  }
 }

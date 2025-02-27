@@ -70,7 +70,7 @@ class UserDataManager: NSObject {
   static var bidCryptoList: [CryptoTransaction?] {
 	get {
 	  let defaults = UserDefaults.standard
-	  if let data = defaults.data(forKey: "mobit-crypto-transaction") {
+	  if let data = defaults.data(forKey: "mobit-crypto-bid-transaction") {
 		// TODO: 이미 같은 코인 매수 히스토리가 있다면, 평균 금액을 산정해서 업데이트 필요
 		let decodedData = try? JSONDecoder().decode([CryptoTransaction?].self, from: data)
 		return decodedData ?? []
@@ -80,9 +80,30 @@ class UserDataManager: NSObject {
 	set {
 	  let defaults = UserDefaults.standard
 	  if let encodedData = try? JSONEncoder().encode(newValue) {
-		defaults.set(encodedData, forKey: "mobit-crypto-transaction")
+		defaults.set(encodedData, forKey: "mobit-crypto-bid-transaction")
 	  } else {
-		defaults.removeObject(forKey: "mobit-crypto-transaction")
+		defaults.removeObject(forKey: "mobit-crypto-bid-transaction")
+	  }
+	}
+  }
+  
+  /// 매도한 코인 목록
+  static var askCryptoList: [CryptoTransaction?] {
+	get {
+	  let defaults = UserDefaults.standard
+	  if let data = defaults.data(forKey: "mobit-crypto-ask-transaction") {
+		// TODO: 이미 같은 코인 매도 히스토리가 있다면, 평균 금액을 산정해서 업데이트 필요
+		let decodedData = try? JSONDecoder().decode([CryptoTransaction?].self, from: data)
+		return decodedData ?? []
+	  }
+	  return []
+	}
+	set {
+	  let defaults = UserDefaults.standard
+	  if let encodedData = try? JSONEncoder().encode(newValue) {
+		defaults.set(encodedData, forKey: "mobit-crypto-ask-transaction")
+	  } else {
+		defaults.removeObject(forKey: "mobit-crypto-ask-transaction")
 	  }
 	}
   }

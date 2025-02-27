@@ -15,29 +15,8 @@ class TradeHistoryView: UIView, ViewRule {
   
   var disposeBag = DisposeBag()
   var reactor: CryptoDetailReactor? = nil
-  var tempTradeHistory: [TradeHistoryInformation?] = [
-	TradeHistoryInformation(
-	  tradeDate: "02.11 20:43",
-	  marketName: "XRP/KRW",
-	  tradeCryptoPrice: 3715,
-	  tradeAmount: 11.70717423,
-	  tradeTotalPrice: 39980
-	),
-	TradeHistoryInformation(
-	  tradeDate: "02.11 20:43",
-	  marketName: "XRP/KRW",
-	  tradeCryptoPrice: 3715,
-	  tradeAmount: 11.70717423,
-	  tradeTotalPrice: 39980
-	),
-	TradeHistoryInformation(
-	  tradeDate: "02.11 20:43",
-	  marketName: "XRP/KRW",
-	  tradeCryptoPrice: 3715,
-	  tradeAmount: 11.70717423,
-	  tradeTotalPrice: 39980
-	)
-  ]
+  var transaction: CryptoTransaction? = nil
+  var callBack: (() -> ())? = nil
   
   deinit {
 	print("deinit : \(String(describing: type(of: self)))")
@@ -45,7 +24,7 @@ class TradeHistoryView: UIView, ViewRule {
   
   static func instanceFromNib(
 	reactor: CryptoDetailReactor,
-	result: @escaping () -> ()
+	callBack: @escaping () -> ()
   ) -> TradeHistoryView {
 	
 	let selfView = UINib(
@@ -60,6 +39,7 @@ class TradeHistoryView: UIView, ViewRule {
 	}
 	
 	selfView.reactor = reactor
+	selfView.callBack = callBack
 	selfView.setUI()
 	selfView.setData()
 	
@@ -78,6 +58,19 @@ class TradeHistoryView: UIView, ViewRule {
 	  forCellReuseIdentifier: "TradeHistoryTableViewCell"
 	)
 	self.historyTableView.rowHeight = UITableView.automaticDimension
+	self.updateHistory()
+  }
+  
+  func updateHistory() {
+	guard let transaction = UserDataManager.bidCryptoList.first(
+	  where: { $0?.marketName == self.reactor?.selectCrypto.market }
+	) else {
+	  noHistoryView.isHidden = false
+	  historyTableView.isHidden = true
+	  return
+	}
+	self.transaction = transaction
+	self.historyTableView.reloadData()
   }
   
   // TODO: UserDefault에 Key 값을 "MobitTrade(MarketName)"으로 설정하고
@@ -88,7 +81,7 @@ class TradeHistoryView: UIView, ViewRule {
 // MARK: - UITableView Delegate, DataSource
 extension TradeHistoryView: UITableViewDelegate, UITableViewDataSource {
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-	return self.tempTradeHistory.count
+	return self.transaction?.transactionHistoryList.count ?? 0
   }
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -96,11 +89,16 @@ extension TradeHistoryView: UITableViewDelegate, UITableViewDataSource {
 		withIdentifier: "TradeHistoryTableViewCell",
 		for: indexPath
 	) as? TradeHistoryTableViewCell,
-		  let tradeInfo = tempTradeHistory[indexPath.row] else {
+		  let marketName = self.reactor?.selectCrypto.market,
+		  let transactionInfo = self.transaction?.transactionHistoryList[indexPath.row] else {
 		return UITableViewCell()
 	}
 	
-	cell.configure(tradeInfo: tradeInfo)
+	cell.selectionStyle = .none
+	cell.configure(
+	  marketName: marketName,
+	  transactionInfo: transactionInfo
+	)
 	
 	return cell
   }
