@@ -15,7 +15,8 @@ class TradeBidView: UIView, ViewRule {
   @IBOutlet weak var currentPrice: UILabel!
   @IBOutlet weak var totalPriceTextField: UITextField!
   @IBOutlet weak var inputAmountTFView: UIView!
-  
+    @IBOutlet weak var inputMarketName: UILabel!
+    
   weak var reactor: CryptoDetailReactor? = nil
   var callBack: (() -> ())? = nil
   var disposeBag = DisposeBag()
@@ -59,6 +60,7 @@ class TradeBidView: UIView, ViewRule {
   }
   
   func setUI() {
+	self.inputMarketName.text = self.reactor?.selectCrypto.market.components(separatedBy: "/").first
 	self.inputTradeAmount.keyboardType = .numberPad
 	self.totalPriceTextField.keyboardType = .numberPad
 //    self.inputAmountTFView.layer.borderWidth = 1
