@@ -54,6 +54,10 @@ class TradeViewController: UIViewController, ViewRule {
 	fatalError("init(coder:) has not been implemented")
   }
   
+  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+	self.view.endEditing(true)
+  }
+  
   override func viewWillAppear(_ animated: Bool) {
 	self.reactor.action
 	  .onNext(.connectTickerSocket)
@@ -70,8 +74,14 @@ class TradeViewController: UIViewController, ViewRule {
   }
   
   func setUI() {
-	orderView = TradeOrderView.instanceFromNib(reactor: self.reactor) { [weak self] in
+	orderView = TradeOrderView.instanceFromNib(
+	  reactor: self.reactor
+	) { [weak self] orderResult in
 	  guard let self = self else { return }
+	  switch orderResult {
+	  case .alert(let title, let message):
+		self.showDefaultAlert(title: title, message: message)
+	  }
 	}
 	chartView = TradeChartView.instanceFromNib(symbol: self.reactor.selectCrypto.market)
 	
@@ -196,7 +206,14 @@ class TradeViewController: UIViewController, ViewRule {
 	}
 	return String(format: "%.\(precision)f", price)
   }
-   
+  
+  func showDefaultAlert(title: String, message: String) {
+	let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+	let okAction = UIAlertAction(title: "확인", style: .default, handler: nil)
+	
+	alert.addAction(okAction)
+	self.present(alert, animated: true, completion: nil)
+  }
 }
 
 // MARK: Reactor - View

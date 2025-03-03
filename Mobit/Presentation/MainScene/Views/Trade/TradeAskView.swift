@@ -10,6 +10,9 @@ import RxSwift
 
 class TradeAskView: UIView, ViewRule {
   
+  
+  @IBOutlet var marketNameLabels: [UILabel]!
+  @IBOutlet weak var availableCrypto: UILabel!
   @IBOutlet weak var availableTradePrice: UILabel!
   @IBOutlet weak var inputTradeAmount: UITextField!
   @IBOutlet weak var currentPrice: UILabel!
@@ -18,6 +21,7 @@ class TradeAskView: UIView, ViewRule {
   
   var disposeBag = DisposeBag()
   weak var reactor: CryptoDetailReactor? = nil
+  var availableCryptoCount: Double = 0.0
   
   deinit {
 	print("deinit : \(String(describing: type(of: self)))")
@@ -49,15 +53,28 @@ class TradeAskView: UIView, ViewRule {
   }
   
   func setUI() {
-	
+	let marketName = self.reactor?.selectCrypto.market.components(separatedBy: "/").first
+	self.marketNameLabels.forEach({ $0.text = marketName })
+	self.inputTradeAmount.keyboardType = .decimalPad
+	self.totalPriceTextField.keyboardType = .decimalPad
   }
   
   func setData() {
+	guard let crypto = UserDataManager.bidCryptoList
+	  .compactMap({ $0 })
+	  .first(where: { $0.marketName == self.reactor?.selectCrypto.market }),
+		  let currentPrice = self.reactor?.selectCrypto.tradePrice?.formatDigits(digits: 8)
+	else { return }
 	
+	let krwAvailablePrice = crypto.buyAmount.formatSignificantDigits()
+	self.availableCryptoCount = crypto.holdingQuantity
+	self.availableCrypto.text = String(self.availableCryptoCount)
+	self.availableTradePrice.text = "≈ " + String(krwAvailablePrice)
   }
   
   /// 최대 수량 버튼
   @IBAction func tapOnMaxAmount(_ sender: UIButton) {
+	self.inputTradeAmount.text = String(self.availableCryptoCount)
   }
   
   @IBAction func tapOnAskButton(_ sender: UIButton) {

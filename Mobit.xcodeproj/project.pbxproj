@@ -57,6 +57,8 @@
 		367271AD2C7B2DA600F9D86E /* OrderBookResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367271AC2C7B2DA600F9D86E /* OrderBookResponse.swift */; };
 		367271B12C7B305500F9D86E /* OrderBookCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367271B02C7B305500F9D86E /* OrderBookCell.swift */; };
 		369E877F2C7D955E0020A0B3 /* OrderBookResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */; };
+		36E7718F2D7595A700739CDE /* CallbackResultEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E7718E2D7595A700739CDE /* CallbackResultEnums.swift */; };
+		36E771932D75AF1E00739CDE /* MobitTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E771922D75AF1E00739CDE /* MobitTextField.swift */; };
 		998725022C50944700088C71 /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = 998725012C50944700088C71 /* RxCocoa */; };
 		998725062C50944700088C71 /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = 998725052C50944700088C71 /* RxRelay */; };
 		9987250A2C50944700088C71 /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 998725092C50944700088C71 /* RxSwift */; };
@@ -188,6 +190,8 @@
 		367271AC2C7B2DA600F9D86E /* OrderBookResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderBookResponse.swift; sourceTree = "<group>"; };
 		367271B02C7B305500F9D86E /* OrderBookCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderBookCell.swift; sourceTree = "<group>"; };
 		369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderBookResponseDTO.swift; sourceTree = "<group>"; };
+		36E7718E2D7595A700739CDE /* CallbackResultEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallbackResultEnums.swift; sourceTree = "<group>"; };
+		36E771922D75AF1E00739CDE /* MobitTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitTextField.swift; sourceTree = "<group>"; };
 		998849E12C524AAA0073A27D /* CryptoCellInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoCellInfo.swift; sourceTree = "<group>"; };
 		998849E32C5378CD0073A27D /* CryptoTickerDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTickerDTO.swift; sourceTree = "<group>"; };
 		998849E52C5379960073A27D /* CryptoTicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTicker.swift; sourceTree = "<group>"; };
@@ -379,6 +383,7 @@
 		3133E25D2C3F69FB000D4B1A /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				36E7718D2D75958700739CDE /* CallbackResultTypes */,
 				3133E25E2C3F6A04000D4B1A /* Coordinator */,
 				31E208612C46D1E5000BFEBC /* Views */,
 				3133E2602C3F6A12000D4B1A /* Delegate */,
@@ -540,6 +545,14 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		36E7718D2D75958700739CDE /* CallbackResultTypes */ = {
+			isa = PBXGroup;
+			children = (
+				36E7718E2D7595A700739CDE /* CallbackResultEnums.swift */,
+			);
+			path = CallbackResultTypes;
+			sourceTree = "<group>";
+		};
 		99C20A672C490317009276E7 /* Network */ = {
 			isa = PBXGroup;
 			children = (
@@ -617,6 +630,7 @@
 				31B742002D5A2ABD00706340 /* ButtonExtension.swift */,
 				C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */,
 				C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */,
+				36E771922D75AF1E00739CDE /* MobitTextField.swift */,
 				31B742022D5A2CAC00706340 /* VieweExtension.swift */,
 				C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */,
 			);
@@ -843,6 +857,7 @@
 				3133E22A2C3E2355000D4B1A /* SceneDelegate.swift in Sources */,
 				31D6444F2C72595000C7F96D /* CryptoDetailRepository.swift in Sources */,
 				31D644462C7257B500C7F96D /* CryptoDetailViewController.swift in Sources */,
+				36E7718F2D7595A700739CDE /* CallbackResultEnums.swift in Sources */,
 				99C20AB42C4F7177009276E7 /* CryptoSocketTicker.swift in Sources */,
 				31E208092C46BF6B000BFEBC /* MainTabBarCoordinator.swift in Sources */,
 				C18EED4F2D55A82B0038BBF7 /* MobitSegmentedControl.swift in Sources */,
@@ -852,6 +867,7 @@
 				367271AD2C7B2DA600F9D86E /* OrderBookResponse.swift in Sources */,
 				99C20A5D2C48DF11009276E7 /* CoinTableViewCell.swift in Sources */,
 				C1AEA1AF2D66E982001E2A9E /* CalculationUtils.swift in Sources */,
+				36E771932D75AF1E00739CDE /* MobitTextField.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -21,6 +21,7 @@ class TradeOrderView: UIView, ViewRule {
   var isFirstInput: Bool = false
   var reactor: CryptoDetailReactor? = nil
   private let cellIndentifier = "OrderBookCell"
+  var callback: ((OrderResult) -> ())? = nil
   
   var bidView: TradeBidView? = nil
   var askView: TradeAskView? = nil
@@ -32,7 +33,7 @@ class TradeOrderView: UIView, ViewRule {
   
   static func instanceFromNib(
 	reactor: CryptoDetailReactor,
-	result: @escaping () -> ()
+	callback: @escaping (OrderResult) -> ()
   ) -> TradeOrderView {
 	
 	let selfView = UINib(
@@ -47,10 +48,15 @@ class TradeOrderView: UIView, ViewRule {
 	}
 	
 	selfView.reactor = reactor
+	selfView.callback = callback
 	selfView.setUI()
 	selfView.setData()
 	
 	return selfView
+  }
+  
+  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+	self.endEditing(true)
   }
   
   func setUI() {
@@ -64,9 +70,15 @@ class TradeOrderView: UIView, ViewRule {
 	bidView = TradeBidView.instanceFromNib(
 	  reactor: reactor,
 	  disposeBag: self.disposeBag
-	) { [weak self] in
+	) { [weak self] bidResult in
 	  guard let self = self else { return }
-	  historyView?.updateHistory()
+	  switch bidResult {
+	  case .updateHistory:
+		historyView?.updateHistory()
+	  case .alert(let title, let message):
+		self.callback?(.alert(title: title, message: message))
+	  }
+	  
 	}
 	askView = TradeAskView.instanceFromNib(reactor: reactor,  disposeBag: self.disposeBag) { [weak self] in }
 	

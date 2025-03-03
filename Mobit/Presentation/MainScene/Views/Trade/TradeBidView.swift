@@ -15,10 +15,10 @@ class TradeBidView: UIView, ViewRule {
   @IBOutlet weak var currentPrice: UILabel!
   @IBOutlet weak var totalPriceTextField: UITextField!
   @IBOutlet weak var inputAmountTFView: UIView!
-    @IBOutlet weak var inputMarketName: UILabel!
-    
+  @IBOutlet weak var inputMarketName: UILabel!
+  
   weak var reactor: CryptoDetailReactor? = nil
-  var callBack: (() -> ())? = nil
+  var callBack: ((BidResult) -> ())? = nil
   var disposeBag = DisposeBag()
   var cryptoInfo: CryptoCellInfo? = nil
   // 매수 수량
@@ -35,7 +35,7 @@ class TradeBidView: UIView, ViewRule {
   static func instanceFromNib(
 	reactor: CryptoDetailReactor,
 	disposeBag: DisposeBag,
-	callBack: @escaping () -> ()
+	callBack: @escaping (BidResult) -> ()
   ) -> TradeBidView {
 	
 	let selfView = UINib(
@@ -61,17 +61,18 @@ class TradeBidView: UIView, ViewRule {
   
   func setUI() {
 	self.inputMarketName.text = self.reactor?.selectCrypto.market.components(separatedBy: "/").first
-	self.inputTradeAmount.keyboardType = .numberPad
-	self.totalPriceTextField.keyboardType = .numberPad
-//    self.inputAmountTFView.layer.borderWidth = 1
-//	self.inputAmountTFView.layer.borderColor = UIColor.mobitColors(.lineLightGray).cgColor
+	self.inputTradeAmount.keyboardType = .decimalPad
+	self.totalPriceTextField.keyboardType = .decimalPad
   }
   
   func setData() {
-	  guard let userBalance = UserDataManager.userInformation?.userAvailableBalance
-	  else { return }
-	  
-	  self.availableTradePrice.text = userBalance.formatSignificantDigits()
+	self.inputTradeAmount.delegate = self
+	self.totalPriceTextField.delegate = self
+	
+	guard let userBalance = UserDataManager.userInformation?.userAvailableBalance
+	else { return }
+	
+	self.availableTradePrice.text = userBalance.formatSignificantDigits()
   }
   
   @IBAction func tapOnMaxAmount(_ sender: UIButton) {
@@ -88,11 +89,24 @@ class TradeBidView: UIView, ViewRule {
   }
   
   @IBAction func tapOnBidButton(_ sender: UIButton) {
-	guard let marketName = self.cryptoInfo?.market else { return }
-	self.updateTransaction(marketName: marketName)
+	guard let marketName = self.cryptoInfo?.market,
+		  let totalPrice = self.totalPriceTextField.text,
+		  let doubleTotalPrice = Double(totalPrice.replacingOccurrences(
+			of: ",", with: ""
+		  ))
+	else { return }
+	
+	if doubleTotalPrice > 0.0 {
+	  self.updateTransaction(marketName: marketName) {
+		self.callBack?(.alert(title: "알림", message: "매수 되었습니다."))
+		self.callBack?(.updateHistory)
+	  }
+	} else {
+	  callBack?(.alert(title: "알림", message: "매수 금액을 입력해주세요"))
+	}
   }
   
-  func updateTransaction(marketName: String) {
+  func updateTransaction(marketName: String, completion: @escaping () -> ()) {
 	
 	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
 		  let userBalance = UserDataManager.userInformation?.userAvailableBalance
@@ -104,6 +118,7 @@ class TradeBidView: UIView, ViewRule {
 	let currentTime = Date()
 	let executedDate = formatter.string(from: currentTime)
 	
+	var availableBalance: Double = userBalance
 	var bidCryptoList = UserDataManager.bidCryptoList
 	var newTransaction: CryptoTransaction? = nil
 	var postTransaction: CryptoTransaction? = nil
@@ -158,9 +173,8 @@ class TradeBidView: UIView, ViewRule {
 	  print("매수 업데이트 완료!!")
 	  bidCryptoList[transactionIndex] = newTransaction
 	  UserDataManager.bidCryptoList = bidCryptoList
-
-	  let availableBalance = userBalance - newTransaction.buyAmount
-	  updateUserInformation(availableBalance: availableBalance)
+	  
+	  availableBalance = userBalance - newTransaction.buyAmount
 	} else {
 	  
 	  let calcUtil = CalculationUtils(
@@ -202,11 +216,13 @@ class TradeBidView: UIView, ViewRule {
 	  bidCryptoList.append(newTransaction)
 	  UserDataManager.bidCryptoList = bidCryptoList
 	  
-	  let availableBalance = userBalance - newTransaction.buyAmount
-	  updateUserInformation(availableBalance: availableBalance)
+	  availableBalance = userBalance - newTransaction.buyAmount
 	}
 	
-	self.callBack?()
+	self.availableTradePrice.text = availableBalance.formatSignificantDigits()
+	updateUserInformation(availableBalance: availableBalance)
+	
+	completion()
   }
   
   func updateUserInformation(availableBalance: Double) {
