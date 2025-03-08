@@ -33,7 +33,7 @@
 		31B741FD2D58D67200706340 /* TradeHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741FC2D58D67200706340 /* TradeHistoryView.swift */; };
 		31B741FF2D58D67800706340 /* TradeHistoryView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B741FE2D58D67800706340 /* TradeHistoryView.xib */; };
 		31B742012D5A2AC400706340 /* ButtonExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B742002D5A2ABD00706340 /* ButtonExtension.swift */; };
-		31B742032D5A2CAC00706340 /* VieweExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B742022D5A2CAC00706340 /* VieweExtension.swift */; };
+		31B742032D5A2CAC00706340 /* ViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B742022D5A2CAC00706340 /* ViewExtension.swift */; };
 		31B742082D5A3BC400706340 /* tradingview.html in Resources */ = {isa = PBXBuildFile; fileRef = 31B742072D5A3BBB00706340 /* tradingview.html */; };
 		31B7420A2D5A46B300706340 /* LeakAvoider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B742092D5A46B300706340 /* LeakAvoider.swift */; };
 		31B7420F2D5B939000706340 /* TradeHistoryTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B7420E2D5B939000706340 /* TradeHistoryTableViewCell.xib */; };
@@ -96,6 +96,7 @@
 		C18FF26E2D5AEDF7003E95B0 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */; };
 		C190F29D2D65AD6A00895D9E /* BidCryptoInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C190F29C2D65AD6A00895D9E /* BidCryptoInfo.swift */; };
 		C1AEA1AF2D66E982001E2A9E /* CalculationUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1AEA1AE2D66E982001E2A9E /* CalculationUtils.swift */; };
+		C1E12D402D7C29AF003C76F0 /* DoubleExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -166,7 +167,7 @@
 		31B741FC2D58D67200706340 /* TradeHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeHistoryView.swift; sourceTree = "<group>"; };
 		31B741FE2D58D67800706340 /* TradeHistoryView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeHistoryView.xib; sourceTree = "<group>"; };
 		31B742002D5A2ABD00706340 /* ButtonExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonExtension.swift; sourceTree = "<group>"; };
-		31B742022D5A2CAC00706340 /* VieweExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VieweExtension.swift; sourceTree = "<group>"; };
+		31B742022D5A2CAC00706340 /* ViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewExtension.swift; sourceTree = "<group>"; };
 		31B742072D5A3BBB00706340 /* tradingview.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = tradingview.html; sourceTree = "<group>"; };
 		31B742092D5A46B300706340 /* LeakAvoider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeakAvoider.swift; sourceTree = "<group>"; };
 		31B7420D2D5B939000706340 /* TradeHistoryTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeHistoryTableViewCell.swift; sourceTree = "<group>"; };
@@ -218,6 +219,7 @@
 		C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		C190F29C2D65AD6A00895D9E /* BidCryptoInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BidCryptoInfo.swift; sourceTree = "<group>"; };
 		C1AEA1AE2D66E982001E2A9E /* CalculationUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationUtils.swift; sourceTree = "<group>"; };
+		C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoubleExtension.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -631,8 +633,9 @@
 				C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */,
 				C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */,
 				36E771922D75AF1E00739CDE /* MobitTextField.swift */,
-				31B742022D5A2CAC00706340 /* VieweExtension.swift */,
+				31B742022D5A2CAC00706340 /* ViewExtension.swift */,
 				C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */,
+				C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -809,6 +812,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C1E12D402D7C29AF003C76F0 /* DoubleExtension.swift in Sources */,
 				99C20A792C490B08009276E7 /* CryptoDTO.swift in Sources */,
 				367271B12C7B305500F9D86E /* OrderBookCell.swift in Sources */,
 				99C20A762C490A3C009276E7 /* MainRepository.swift in Sources */,
@@ -848,7 +852,7 @@
 				31E208042C4677CB000BFEBC /* AppTabBarCoordinator.swift in Sources */,
 				99C20A582C48D35C009276E7 /* DividerLineView.swift in Sources */,
 				3133E2682C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift in Sources */,
-				31B742032D5A2CAC00706340 /* VieweExtension.swift in Sources */,
+				31B742032D5A2CAC00706340 /* ViewExtension.swift in Sources */,
 				31B742122D5B967F00706340 /* TradeHistoryInformation.swift in Sources */,
 				3133E2282C3E2355000D4B1A /* AppDelegate.swift in Sources */,
 				31B7420A2D5A46B300706340 /* LeakAvoider.swift in Sources */,

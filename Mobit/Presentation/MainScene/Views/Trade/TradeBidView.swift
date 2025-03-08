@@ -18,7 +18,7 @@ class TradeBidView: UIView, ViewRule {
   @IBOutlet weak var inputMarketName: UILabel!
   
   weak var reactor: CryptoDetailReactor? = nil
-  var callBack: ((BidResult) -> ())? = nil
+  var callBack: ((OrderResult) -> ())? = nil
   var disposeBag = DisposeBag()
   var cryptoInfo: CryptoCellInfo? = nil
   // 매수 수량
@@ -35,7 +35,7 @@ class TradeBidView: UIView, ViewRule {
   static func instanceFromNib(
 	reactor: CryptoDetailReactor,
 	disposeBag: DisposeBag,
-	callBack: @escaping (BidResult) -> ()
+	callBack: @escaping (OrderResult) -> ()
   ) -> TradeBidView {
 	
 	let selfView = UINib(
@@ -83,26 +83,31 @@ class TradeBidView: UIView, ViewRule {
 	inputAmount = (userBalance / currentPrice)
 	
 	let calcUtil = CalculationUtils(currentPrice: currentPrice, newHoldingQuantity: inputAmount)
-	let totalPrice = calcUtil.calcBuyAmount().formatDigits(digits: 0)
+	let totalPrice = calcUtil.calcBuyAmount().formatSignificantDigits()
 	self.inputTradeAmount.text = inputAmount.formatSignificantDigits()
 	self.totalPriceTextField.text = String(totalPrice)
   }
   
   @IBAction func tapOnBidButton(_ sender: UIButton) {
 	guard let marketName = self.cryptoInfo?.market,
+		  let userBalance = UserDataManager.userInformation?.userAvailableBalance,
 		  let totalPrice = self.totalPriceTextField.text,
 		  let doubleTotalPrice = Double(totalPrice.replacingOccurrences(
 			of: ",", with: ""
 		  ))
-	else { return }
+	else {
+	  callBack?(.alert(title: "알림", message: "매수 금액을 입력해주세요"))
+	  return
+	}
 	
-	if doubleTotalPrice > 0.0 {
+	if doubleTotalPrice > 0.0, userBalance > doubleTotalPrice {
 	  self.updateTransaction(marketName: marketName) {
+		self.initTextFieldValue()
 		self.callBack?(.alert(title: "알림", message: "매수 되었습니다."))
 		self.callBack?(.updateHistory)
 	  }
 	} else {
-	  callBack?(.alert(title: "알림", message: "매수 금액을 입력해주세요"))
+	  callBack?(.alert(title: "알림", message: "매수 금액을 확인해 주세요"))
 	}
   }
   
@@ -148,13 +153,14 @@ class TradeBidView: UIView, ViewRule {
 	  let profitRate = calcUtil.calcProfitRate()
 	  let evaluationProfitLoss = calcUtil.calcEvalProfitLoss()
 	  let evaluationPrice = calcUtil.calcEvalPrice()
-	  let buyAmount = calcUtil.calcBuyAmount()
+	  let currentBuyAmount = calcUtil.calcBuyAmount()
+	  let cumulBuyAmount = calcUtil.cumulCalcBuyAmount()
 	  let holdingQuantity = calcUtil.calcHoldingQuantity()
 	  let newTransactionInfo = CryptoTransaction.TransactionInfo(
 		executedDate: executedDate,
 		executedPrice: currentPrice,
 		executedQuantity: self.inputAmount,
-		executedAmount: buyAmount
+		executedAmount: currentBuyAmount
 	  )
 	  transactionList.append(newTransactionInfo)
 	  
@@ -165,7 +171,7 @@ class TradeBidView: UIView, ViewRule {
 		evaluationProfitLoss: evaluationProfitLoss,
 		evaluationPrice: evaluationPrice,
 		averageBuyPrice: averageBuyPrice,
-		buyAmount: buyAmount,
+		buyAmount: cumulBuyAmount,
 		transactionHistoryList: transactionList
 	  )
 	  
@@ -231,6 +237,11 @@ class TradeBidView: UIView, ViewRule {
 	)
   }
   
+  func initTextFieldValue() {
+	self.inputTradeAmount.text = nil
+	self.totalPriceTextField.text = nil
+  }
+  
   func bind(reactor: CryptoDetailReactor) {
 	
 	reactor.state.map { $0.cryptoInfo }
@@ -248,9 +259,7 @@ class TradeBidView: UIView, ViewRule {
 extension TradeBidView: UITextFieldDelegate {
   func textFieldDidChangeSelection(_ textField: UITextField) {
 	// TODO: 수량 및 총액 입력시, 같이 수정 되어야 함.
-	guard let currentPrice = self.cryptoInfo?.tradePrice,
-		  let userBalance = UserDataManager.userInformation?.userAvailableBalance
-	else { return }
+	guard let currentPrice = self.cryptoInfo?.tradePrice else { return }
 	
 	if textField == self.inputTradeAmount {
 	  self.inputAmount = Double(textField.text ?? "0") ?? 0
@@ -260,51 +269,6 @@ extension TradeBidView: UITextFieldDelegate {
 	  self.totalPriceTextField.text = totalPrice.formatSignificantDigits()
 	} else if textField == self.totalPriceTextField {
 	  
-	}
-  }
-}
-
-extension Double {
-  /// 자릿수 끊어내기
-  func formatDigits(digits: Int) -> Double {
-	let digitStandard = Double(Int(pow(10.0, Double(digits))))
-	let formattedValue = floor(self * digitStandard) / digitStandard
-	return formattedValue
-  }
-  
-  func formatSignificantDigits() -> String {
-	// 1. 최대 소수점 8자리까지만 유지 (반올림 없이 자르기)
-	let formattedValue = floor(self * 100_000_000) / 100_000_000
-	
-	// 2. 소수점 포함 숫자를 문자열로 변환
-	var formattedString = String(format: "%.\(8)f", formattedValue)
-	
-	// 3. 불필요한 소수점 이하 0 제거
-	while formattedString.last == "0" {
-	  formattedString.removeLast()
-	}
-	if formattedString.last == "." {
-	  formattedString.removeLast()
-	}
-	
-	// 4. 콤마 추가 (소수점 앞부분만)
-	if let dotIndex = formattedString.firstIndex(of: ".") {
-	  let integerPart = formattedString[..<dotIndex]
-	  let decimalPart = formattedString[dotIndex...]
-	  let formattedInteger = integerPart.replacingOccurrences(
-		of: "(?<=\\d)(?=(\\d{3})+(?!\\d))",
-		with: ",",
-		options: .regularExpression
-	  )
-	  return formattedInteger + decimalPart
-	  
-	} else {
-	  
-	  return formattedString.replacingOccurrences(
-		of: "(?<=\\d)(?=(\\d{3})+(?!\\d))",
-		with: ",",
-		options: .regularExpression
-	  )
 	}
   }
 }

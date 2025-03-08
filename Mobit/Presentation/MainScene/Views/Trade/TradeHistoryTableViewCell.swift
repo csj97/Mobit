@@ -26,9 +26,9 @@ class TradeHistoryTableViewCell: UITableViewCell {
   ) {
 	self.tradeDate.text = transactionInfo.executedDate
 	self.marketName.text = marketName
-	self.tradeCryptoPrice.text = String(transactionInfo.executedPrice)
-	self.tradeAmount.text = String(transactionInfo.executedQuantity.formatDigits(digits: 8))
-	self.tradeTotalPrice.text = String(transactionInfo.executedAmount)
+	self.tradeCryptoPrice.text = String(transactionInfo.executedPrice.formatSignificantDigits())
+	self.tradeAmount.text = String(transactionInfo.executedQuantity.formatSignificantDigits())
+	self.tradeTotalPrice.text = String(transactionInfo.executedAmount.formatSignificantDigits())
   }
   
   override func setSelected(_ selected: Bool, animated: Bool) {

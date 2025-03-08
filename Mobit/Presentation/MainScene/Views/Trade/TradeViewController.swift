@@ -81,6 +81,8 @@ class TradeViewController: UIViewController, ViewRule {
 	  switch orderResult {
 	  case .alert(let title, let message):
 		self.showDefaultAlert(title: title, message: message)
+	  default:
+		break
 	  }
 	}
 	chartView = TradeChartView.instanceFromNib(symbol: self.reactor.selectCrypto.market)

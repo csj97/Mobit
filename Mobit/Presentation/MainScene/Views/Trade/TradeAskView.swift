@@ -19,9 +19,13 @@ class TradeAskView: UIView, ViewRule {
   @IBOutlet weak var totalPriceTextField: UITextField!
   @IBOutlet weak var inputAmountTFView: UIView!
   
-  var disposeBag = DisposeBag()
   weak var reactor: CryptoDetailReactor? = nil
+  var callBack: ((OrderResult) -> ())? = nil
+  var disposeBag = DisposeBag()
+  var cryptoInfo: CryptoCellInfo? = nil
   var availableCryptoCount: Double = 0.0
+  // 매도 수량
+  var inputAmount: Double = 0.0
   
   deinit {
 	print("deinit : \(String(describing: type(of: self)))")
@@ -30,7 +34,7 @@ class TradeAskView: UIView, ViewRule {
   static func instanceFromNib(
 	reactor: CryptoDetailReactor,
 	disposeBag: DisposeBag,
-	result: @escaping () -> ()
+	callBack: @escaping (OrderResult) -> ()
   ) ->  TradeAskView {
 	
 	let selfView = UINib(
@@ -46,8 +50,10 @@ class TradeAskView: UIView, ViewRule {
 	
 	selfView.reactor = reactor
 	selfView.disposeBag = disposeBag
+	selfView.callBack = callBack
 	selfView.setUI()
 	selfView.setData()
+	selfView.bind(reactor: reactor)
 	
 	return selfView
   }
@@ -60,15 +66,16 @@ class TradeAskView: UIView, ViewRule {
   }
   
   func setData() {
+	self.inputTradeAmount.delegate = self
+	
 	guard let crypto = UserDataManager.bidCryptoList
 	  .compactMap({ $0 })
-	  .first(where: { $0.marketName == self.reactor?.selectCrypto.market }),
-		  let currentPrice = self.reactor?.selectCrypto.tradePrice?.formatDigits(digits: 8)
+	  .first(where: { $0.marketName == self.reactor?.selectCrypto.market })
 	else { return }
 	
 	let krwAvailablePrice = crypto.buyAmount.formatSignificantDigits()
 	self.availableCryptoCount = crypto.holdingQuantity
-	self.availableCrypto.text = String(self.availableCryptoCount)
+	self.availableCrypto.text = String(self.availableCryptoCount.formatSignificantDigits())
 	self.availableTradePrice.text = "≈ " + String(krwAvailablePrice)
   }
   
@@ -78,6 +85,49 @@ class TradeAskView: UIView, ViewRule {
   }
   
   @IBAction func tapOnAskButton(_ sender: UIButton) {
+	guard let crypto = UserDataManager.bidCryptoList
+	  .compactMap({ $0 })
+	  .first(where: { $0.marketName == self.reactor?.selectCrypto.market }),
+		  let totalPrice = self.totalPriceTextField.text,
+		  let doubleTotalPrice = Double(totalPrice.replacingOccurrences(
+			of: ",", with: ""
+		  ))
+	else { return }
+	
+	if inputAmount > 0, inputAmount <= crypto.holdingQuantity {
+	  self.callBack?(.alert(title: "알림", message: "매도 되었습니다."))
+	  self.callBack?(.updateHistory)
+	} else {
+	  self.callBack?(.alert(title: "알림", message: "주문 가능 수량이 부족합니다."))
+	}
   }
   
+  func bind(reactor: CryptoDetailReactor) {
+	
+	reactor.state.map { $0.cryptoInfo }
+	  .distinctUntilChanged()
+	  .observe(on: MainScheduler.instance)
+	  .subscribe(onNext: { [weak self] cellInfo in
+		guard let self = self else { return }
+		self.cryptoInfo = cellInfo
+		self.currentPrice.text = cellInfo?.tradePrice?.formatSignificantDigits()
+	  })
+	  .disposed(by: self.disposeBag)
+  }
+}
+
+extension TradeAskView: UITextFieldDelegate {
+  func textFieldDidChangeSelection(_ textField: UITextField) {
+	guard let currentPrice = self.cryptoInfo?.tradePrice else { return }
+	
+	if textField == self.inputTradeAmount {
+	  self.inputAmount = Double(textField.text ?? "0")?.formatDigits(digits: 8) ?? 0
+	  let totalPrice = floor(
+		currentPrice.formatDigits(digits: 8) * inputAmount.formatDigits(digits: 8)
+	  )
+	  self.totalPriceTextField.text = totalPrice.formatSignificantDigits()
+	} else if textField == self.totalPriceTextField {
+	  
+	}
+  }
 }

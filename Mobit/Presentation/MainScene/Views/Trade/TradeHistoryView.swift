@@ -69,6 +69,9 @@ class TradeHistoryView: UIView, ViewRule {
 	  historyTableView.isHidden = true
 	  return
 	}
+	
+	self.noHistoryView.isHidden = true
+	self.historyTableView.isHidden = false
 	self.transaction = transaction
 	self.historyTableView.reloadData()
   }

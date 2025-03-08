@@ -37,9 +37,9 @@ class OrderBookCell: UITableViewCell {
   let obSizeLabel: UILabel = UILabel().then {
     $0.text = "0.0"
     $0.textAlignment = .left
-    $0.font = UIFont.systemFont(ofSize: 12)
-    $0.adjustsFontSizeToFitWidth = true
-    $0.minimumScaleFactor = 0.5
+    $0.font = UIFont.systemFont(ofSize: 10)
+//    $0.adjustsFontSizeToFitWidth = true
+//    $0.minimumScaleFactor = 0.5
   }
   
   // 잔량 수에 따른 막대 바
@@ -105,7 +105,8 @@ class OrderBookCell: UITableViewCell {
           
           flex.addItem(self.obSizeLabel)
             .position(.absolute)
-        }.width(35%).paddingLeft(2)
+			.paddingLeft(4)
+        }.width(35%)
     }
   }
   
@@ -124,7 +125,7 @@ class OrderBookCell: UITableViewCell {
         from: NSNumber(value: obPrice)
       )
     }
-    self.obSizeLabel.text = String(obSize)
+	self.obSizeLabel.text = String(obSize.formatSignificantDigits(digits: 10))
     switch obType {
     case .ask:
       self.backgroundColor = .mobitColors(.askLightBlue)
