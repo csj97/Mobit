@@ -81,7 +81,13 @@ class TradeAskView: UIView, ViewRule {
   
   /// 최대 수량 버튼
   @IBAction func tapOnMaxAmount(_ sender: UIButton) {
-	self.inputTradeAmount.text = String(self.availableCryptoCount)
+	guard let availableCrypto = UserDataManager.bidCryptoList
+			.compactMap({ $0 })
+			.first(where: { $0.marketName == self.reactor?.selectCrypto.market })
+	else { return }
+	
+	self.inputTradeAmount.text = String(availableCrypto.holdingQuantity.formatSignificantDigits())
+	self.totalPriceTextField.text = String(availableCrypto.buyAmount.formatSignificantDigits())
   }
   
   @IBAction func tapOnAskButton(_ sender: UIButton) {
