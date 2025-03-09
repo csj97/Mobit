@@ -22,7 +22,11 @@ class TradeAskView: UIView, ViewRule {
   weak var reactor: CryptoDetailReactor? = nil
   var callBack: ((OrderResult) -> ())? = nil
   var disposeBag = DisposeBag()
-  var cryptoInfo: CryptoCellInfo? = nil
+  var cryptoInfo: CryptoCellInfo? = nil {
+	didSet {
+	  self.updateCryptoData()
+	}
+  }
   var availableCryptoCount: Double = 0.0
   // 매도 수량
   var inputAmount: Double = 0.0
@@ -67,16 +71,22 @@ class TradeAskView: UIView, ViewRule {
   
   func setData() {
 	self.inputTradeAmount.delegate = self
-	
+	self.totalPriceTextField.delegate = self
+	self.updateCryptoData()
+  }
+  
+  func updateCryptoData() {
 	guard let crypto = UserDataManager.bidCryptoList
 	  .compactMap({ $0 })
-	  .first(where: { $0.marketName == self.reactor?.selectCrypto.market })
+	  .first(where: { $0.marketName == self.reactor?.selectCrypto.market }),
+		  let currentPrice = self.cryptoInfo?.tradePrice
 	else { return }
 	
-	let krwAvailablePrice = crypto.buyAmount.formatSignificantDigits()
+	let krwAvailablePrice = crypto.averageBuyPrice - ((currentPrice - crypto.averageBuyPrice) * crypto.holdingQuantity)
+	
 	self.availableCryptoCount = crypto.holdingQuantity
 	self.availableCrypto.text = String(self.availableCryptoCount.formatSignificantDigits())
-	self.availableTradePrice.text = "≈ " + String(krwAvailablePrice)
+	self.availableTradePrice.text = "≈ " + String(krwAvailablePrice.formatSignificantDigits())
   }
   
   /// 최대 수량 버튼
@@ -109,7 +119,7 @@ class TradeAskView: UIView, ViewRule {
   }
   
   func bind(reactor: CryptoDetailReactor) {
-	
+	// TODO: reactor에서 값이 변경될 때마다 UserDataManager에 새로 계산해서 업데이트 해주기
 	reactor.state.map { $0.cryptoInfo }
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
@@ -133,7 +143,10 @@ extension TradeAskView: UITextFieldDelegate {
 	  )
 	  self.totalPriceTextField.text = totalPrice.formatSignificantDigits()
 	} else if textField == self.totalPriceTextField {
+	  let inputTotalPrice = Double(textField.text ?? "0")?.formatDigits(digits: 8) ?? 0
+	  let quantity = Double(inputTotalPrice / currentPrice).formatSignificantDigits()
 	  
+	  self.inputTradeAmount.text = quantity.addComma()
 	}
   }
 }
