@@ -57,6 +57,7 @@ class TradeChartView: UIView, WKScriptMessageHandler {
 	webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     webView.scrollView.contentInsetAdjustmentBehavior = .never
 	webView.scrollView.isScrollEnabled = false
+	webView.scrollView.delegate = self
     webView.navigationDelegate = self
     webView.uiDelegate = self
   }
@@ -130,5 +131,11 @@ extension TradeChartView: WKUIDelegate {
 	  webView.load(URLRequest(url: url))
 	}
 	return nil
+  }
+}
+
+extension TradeChartView: UIScrollViewDelegate {
+  func scrollViewWillBeginZooming(_ scrollView: UIScrollView, with view: UIView?) {
+	scrollView.pinchGestureRecognizer?.isEnabled = false
   }
 }

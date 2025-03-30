@@ -82,7 +82,7 @@ class TradeBidView: UIView, ViewRule {
 	
 	inputAmount = (userBalance / currentPrice)
 	
-	let calcUtil = CalculationUtils(currentPrice: currentPrice, newHoldingQuantity: inputAmount)
+	let calcUtil = CalculationUtil(currentPrice: currentPrice, newHoldingQuantity: inputAmount)
 	let totalPrice = calcUtil.calcBuyAmount().formatSignificantDigits()
 	self.inputTradeAmount.text = inputAmount.formatSignificantDigits()
 	self.totalPriceTextField.text = String(totalPrice)
@@ -124,39 +124,62 @@ class TradeBidView: UIView, ViewRule {
 	let executedDate = formatter.string(from: currentTime)
 	
 	var availableBalance: Double = userBalance
-	var bidCryptoList = UserDataManager.bidCryptoList
-	var newTransaction: CryptoTransaction? = nil
-	var postTransaction: CryptoTransaction? = nil
-	var transactionList: [CryptoTransaction.TransactionInfo?] = []
+	var userCryptoList = UserDataManager.userCryptoList
+	var newStaticTransaction: CryptoTransactionDataModel.CryptoTransactionStaticData? = nil
+	var postStaticTransaction: CryptoTransactionDataModel.CryptoTransactionStaticData? = nil
+	var newDynamicTransaction: CryptoTransactionDataModel.CryptoTransactionDynamicData? = nil
+	var transactionList: [CryptoTransactionDataModel.CryptoTransactionStaticData.TransactionInfo] = []
 	var transactionIndex: Int = 0
 	
-	if let matchedIndex = UserDataManager.bidCryptoList
-	  .compactMap({ $0 })
-	  .firstIndex(where: { $0.marketName == marketName }) {
-	  transactionList = UserDataManager.bidCryptoList[matchedIndex]?.transactionHistoryList ?? []
-	  postTransaction = UserDataManager.bidCryptoList[matchedIndex]
+	if let matchedIndex = userCryptoList?.compactMap({ $0 })
+	  .firstIndex(where: { $0.staticData.marketName == marketName }) {
+	  transactionList = UserDataManager.userCryptoList?[matchedIndex].staticData.transactionHistoryList ?? []
+	  postStaticTransaction = UserDataManager.userCryptoList?[matchedIndex].staticData
 	  transactionIndex = matchedIndex
 	}
 	
 	// 체결 내역은 말그대로 체결된 내역이 전부 보여야 한다.
 	// 매수 내역은 현재 가지고 있는 매매 기록에 대해서만 나와야한다.
-	if let postTransaction = postTransaction {
-	  let calcUtil = CalculationUtils(
+	if let postStaticTransaction = postStaticTransaction {
+	  let calcUtil = CalculationUtil(
 		currentPrice: currentPrice.formatDigits(digits: 8),
-		prevHoldingQuantity: postTransaction.holdingQuantity,
-		prevAverageBuyPrice: postTransaction.averageBuyPrice,
-		prevBuyAmount: postTransaction.buyAmount,
+		prevHoldingQuantity: postStaticTransaction.holdingQuantity,
+		prevAverageBuyPrice: postStaticTransaction.averageBuyPrice,
+		prevBuyAmount: postStaticTransaction.buyAmount,
 		newHoldingQuantity: self.inputAmount
 	  )
 	  
 	  let averageBuyPrice = calcUtil.calcAverBuyPrice()
-	  let profitRate = calcUtil.calcProfitRate()
-	  let evaluationProfitLoss = calcUtil.calcEvalProfitLoss()
-	  let evaluationPrice = calcUtil.calcEvalPrice()
 	  let currentBuyAmount = calcUtil.calcBuyAmount()
 	  let cumulBuyAmount = calcUtil.cumulCalcBuyAmount()
 	  let holdingQuantity = calcUtil.calcHoldingQuantity()
-	  let newTransactionInfo = CryptoTransaction.TransactionInfo(
+	  
+	  let profitRate = MarketDataServiceUtil.shared.fetchProfitRate(
+		for: marketName,
+		currentPrice: currentPrice,
+		averageBuyPrice: averageBuyPrice
+	  )
+	  let evaluationProfitLoss = MarketDataServiceUtil.shared.fetchEvalProfitLoss(
+		for: marketName,
+		currentPrice: currentPrice,
+		newHoldingQuantity: self.inputAmount,
+		averageBuyPrice: averageBuyPrice,
+		tradingFee: calcUtil.calcTradingFee(tradingPrice: currentPrice)	// tradingFee 평가손익에서 어떻게 처리할지 다시 생각해봐야할듯
+	  )
+	  let evaluationPrice = MarketDataServiceUtil.shared.fetchEvalPrice(
+		for: marketName,
+		currentPrice: currentPrice,
+		cumulHoldingQuantity: holdingQuantity
+	  )
+	  
+	  newDynamicTransaction = CryptoTransactionDataModel.CryptoTransactionDynamicData(
+		marketName: marketName,
+		profitRate: profitRate,
+		evaluationProfitLoss: evaluationProfitLoss,
+		evaluationPrice: evaluationPrice
+	  )
+	  
+	  let newTransactionInfo = CryptoTransactionDataModel.CryptoTransactionStaticData.TransactionInfo(
 		executedDate: executedDate,
 		executedPrice: currentPrice,
 		executedQuantity: self.inputAmount,
@@ -164,65 +187,87 @@ class TradeBidView: UIView, ViewRule {
 	  )
 	  transactionList.append(newTransactionInfo)
 	  
-	  newTransaction = CryptoTransaction(
+	  newStaticTransaction = CryptoTransactionDataModel.CryptoTransactionStaticData(
 		marketName: marketName,
 		holdingQuantity: holdingQuantity,
-		profitRate: profitRate,
-		evaluationProfitLoss: evaluationProfitLoss,
-		evaluationPrice: evaluationPrice,
 		averageBuyPrice: averageBuyPrice,
 		buyAmount: cumulBuyAmount,
 		transactionHistoryList: transactionList
 	  )
 	  
-	  guard let newTransaction = newTransaction else { return }
+	  guard let newStaticTransaction = newStaticTransaction,
+			let newDynamicTransaction = newDynamicTransaction else { return }
 	  print("매수 업데이트 완료!!")
-	  bidCryptoList[transactionIndex] = newTransaction
-	  UserDataManager.bidCryptoList = bidCryptoList
+	  userCryptoList?[transactionIndex].staticData = newStaticTransaction
+	  userCryptoList?[transactionIndex].dynamicData = newDynamicTransaction
+	  UserDataManager.userCryptoList = userCryptoList
 	  
-	  availableBalance = userBalance - newTransaction.buyAmount
+	  availableBalance = userBalance - newStaticTransaction.buyAmount
 	} else {
 	  
-	  let calcUtil = CalculationUtils(
+	  let calcUtil = CalculationUtil(
 		currentPrice: currentPrice,
 		newHoldingQuantity: self.inputAmount
 	  )
 	  
 	  // 이전 매수 기록 없음
 	  let averageBuyPrice = calcUtil.calcAverBuyPrice()
-	  let profitRate = calcUtil.calcProfitRate()
-	  let evaluationProfitLoss = calcUtil.calcEvalProfitLoss()
-	  let evaluationPrice = calcUtil.calcEvalPrice()
 	  let buyAmount = calcUtil.calcBuyAmount()
 	  let holdingQuantity = calcUtil.calcHoldingQuantity()
+	  let profitRate = MarketDataServiceUtil.shared.fetchProfitRate(
+		for: marketName,
+		currentPrice: currentPrice,
+		averageBuyPrice: averageBuyPrice
+	  )
+	  let evaluationProfitLoss = MarketDataServiceUtil.shared.fetchEvalProfitLoss(
+		for: marketName,
+		currentPrice: currentPrice,
+		newHoldingQuantity: self.inputAmount,
+		averageBuyPrice: averageBuyPrice,
+		tradingFee: calcUtil.calcTradingFee(tradingPrice: currentPrice)	// tradingFee 평가손익에서 어떻게 처리할지 다시 생각해봐야할듯
+	  )
+	  let evaluationPrice = MarketDataServiceUtil.shared.fetchEvalPrice(
+		for: marketName,
+		currentPrice: currentPrice,
+		cumulHoldingQuantity: holdingQuantity
+	  )
 	  
-	  let newTransactionInfo = CryptoTransaction.TransactionInfo(
+	  newDynamicTransaction = CryptoTransactionDataModel.CryptoTransactionDynamicData(
+		marketName: marketName,
+		profitRate: profitRate,
+		evaluationProfitLoss: evaluationProfitLoss,
+		evaluationPrice: evaluationPrice
+	  )
+	  
+	  let newTransactionInfo = CryptoTransactionDataModel.CryptoTransactionStaticData.TransactionInfo(
 		executedDate: executedDate,
 		executedPrice: currentPrice,
-		executedQuantity: holdingQuantity,
+		executedQuantity: self.inputAmount,
 		executedAmount: buyAmount
 	  )
 	  
 	  transactionList.append(newTransactionInfo)
 	  
-	  newTransaction = CryptoTransaction(
+	  newStaticTransaction = CryptoTransactionDataModel.CryptoTransactionStaticData(
 		marketName: marketName,
 		holdingQuantity: holdingQuantity,
-		profitRate: profitRate,
-		evaluationProfitLoss: evaluationProfitLoss,
-		evaluationPrice: evaluationPrice,
 		averageBuyPrice: averageBuyPrice,
 		buyAmount: buyAmount,
 		transactionHistoryList: transactionList
 	  )
 	  
-	  guard let newTransaction = newTransaction else { return }
+	  guard let newStaticTransaction = newStaticTransaction,
+			let newDynamicTransaction = newDynamicTransaction else { return }
 	  print("첫 매수 완료!!")
+	  userCryptoList?.append(
+		CryptoTransactionDataModel(
+		  staticData: newStaticTransaction,
+		  dynamicData: newDynamicTransaction
+		)
+	  )
+	  UserDataManager.userCryptoList = userCryptoList
 	  
-	  bidCryptoList.append(newTransaction)
-	  UserDataManager.bidCryptoList = bidCryptoList
-	  
-	  availableBalance = userBalance - newTransaction.buyAmount
+	  availableBalance = userBalance - newStaticTransaction.buyAmount
 	}
 	
 	self.availableTradePrice.text = availableBalance.formatSignificantDigits()

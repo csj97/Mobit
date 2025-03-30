@@ -84,6 +84,7 @@
 		99C20AB22C4F6A04009276E7 /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB12C4F6A04009276E7 /* Environment.swift */; };
 		99C20AB42C4F7177009276E7 /* CryptoSocketTicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB32C4F7177009276E7 /* CryptoSocketTicker.swift */; };
 		99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB72C4F775B009276E7 /* Crypto.swift */; };
+		C154CA192D97D63D006923BD /* MarketDataServiceUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */; };
 		C17424C42D4600A8009861CC /* UserDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17424C32D4600A8009861CC /* UserDataManager.swift */; };
 		C17424C62D460478009861CC /* MobitUserInformation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17424C52D460478009861CC /* MobitUserInformation.swift */; };
 		C17E08332D2A62BC0029A8D0 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C17E08322D2A62BC0029A8D0 /* Colors.xcassets */; };
@@ -94,8 +95,8 @@
 		C18EED552D55FE4D0038BBF7 /* TradeAskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED542D55FE4D0038BBF7 /* TradeAskView.swift */; };
 		C18EED572D55FE610038BBF7 /* TradeAskView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C18EED562D55FE610038BBF7 /* TradeAskView.xib */; };
 		C18FF26E2D5AEDF7003E95B0 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */; };
-		C190F29D2D65AD6A00895D9E /* BidCryptoInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C190F29C2D65AD6A00895D9E /* BidCryptoInfo.swift */; };
-		C1AEA1AF2D66E982001E2A9E /* CalculationUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1AEA1AE2D66E982001E2A9E /* CalculationUtils.swift */; };
+		C190F29D2D65AD6A00895D9E /* CryptoTransactionDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C190F29C2D65AD6A00895D9E /* CryptoTransactionDataModel.swift */; };
+		C1AEA1AF2D66E982001E2A9E /* CalculationUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */; };
 		C1E12D402D7C29AF003C76F0 /* DoubleExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */; };
 /* End PBXBuildFile section */
 
@@ -207,6 +208,7 @@
 		99C20AB12C4F6A04009276E7 /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
 		99C20AB32C4F7177009276E7 /* CryptoSocketTicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CryptoSocketTicker.swift; path = Mobit/Domain/Model/CryptoSocketTicker.swift; sourceTree = SOURCE_ROOT; };
 		99C20AB72C4F775B009276E7 /* Crypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Crypto.swift; sourceTree = "<group>"; };
+		C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketDataServiceUtil.swift; sourceTree = "<group>"; };
 		C17424C32D4600A8009861CC /* UserDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataManager.swift; sourceTree = "<group>"; };
 		C17424C52D460478009861CC /* MobitUserInformation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitUserInformation.swift; sourceTree = "<group>"; };
 		C17E08322D2A62BC0029A8D0 /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
@@ -217,8 +219,8 @@
 		C18EED542D55FE4D0038BBF7 /* TradeAskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeAskView.swift; sourceTree = "<group>"; };
 		C18EED562D55FE610038BBF7 /* TradeAskView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeAskView.xib; sourceTree = "<group>"; };
 		C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
-		C190F29C2D65AD6A00895D9E /* BidCryptoInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BidCryptoInfo.swift; sourceTree = "<group>"; };
-		C1AEA1AE2D66E982001E2A9E /* CalculationUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationUtils.swift; sourceTree = "<group>"; };
+		C190F29C2D65AD6A00895D9E /* CryptoTransactionDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTransactionDataModel.swift; sourceTree = "<group>"; };
+		C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationUtil.swift; sourceTree = "<group>"; };
 		C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoubleExtension.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -370,6 +372,7 @@
 		3133E25C2C3F6979000D4B1A /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				C154CA172D97D5F8006923BD /* Utils */,
 				31B742072D5A3BBB00706340 /* tradingview.html */,
 				C18EED4D2D55A81A0038BBF7 /* Extensions */,
 				31B741EE2D53A37600706340 /* ViewRule.swift */,
@@ -377,7 +380,6 @@
 				99C20AB12C4F6A04009276E7 /* Environment.swift */,
 				C17424C32D4600A8009861CC /* UserDataManager.swift */,
 				31B742092D5A46B300706340 /* LeakAvoider.swift */,
-				C1AEA1AE2D66E982001E2A9E /* CalculationUtils.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -620,10 +622,19 @@
 				998849E12C524AAA0073A27D /* CryptoCellInfo.swift */,
 				367271AC2C7B2DA600F9D86E /* OrderBookResponse.swift */,
 				31B742112D5B967F00706340 /* TradeHistoryInformation.swift */,
-				C190F29C2D65AD6A00895D9E /* BidCryptoInfo.swift */,
+				C190F29C2D65AD6A00895D9E /* CryptoTransactionDataModel.swift */,
 				C17424C52D460478009861CC /* MobitUserInformation.swift */,
 			);
 			path = Model;
+			sourceTree = "<group>";
+		};
+		C154CA172D97D5F8006923BD /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */,
+				C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */,
+			);
+			path = Utils;
 			sourceTree = "<group>";
 		};
 		C18EED4D2D55A81A0038BBF7 /* Extensions */ = {
@@ -823,6 +834,7 @@
 				998849E22C524AAA0073A27D /* CryptoCellInfo.swift in Sources */,
 				C18EED512D55FE3D0038BBF7 /* TradeBidView.swift in Sources */,
 				31E208072C4678B9000BFEBC /* MainCoordinator.swift in Sources */,
+				C154CA192D97D63D006923BD /* MarketDataServiceUtil.swift in Sources */,
 				31E208102C46C2FE000BFEBC /* InvestmentCoordinator.swift in Sources */,
 				31B742102D5B939000706340 /* TradeHistoryTableViewCell.swift in Sources */,
 				C17424C62D460478009861CC /* MobitUserInformation.swift in Sources */,
@@ -847,7 +859,7 @@
 				31D6444D2C72590C00C7F96D /* CryptoDetailUseCase.swift in Sources */,
 				31DC41E22CD9197700F0FFF2 /* NewWebSocketManager.swift in Sources */,
 				99C20A692C490326009276E7 /* MainNetworkService.swift in Sources */,
-				C190F29D2D65AD6A00895D9E /* BidCryptoInfo.swift in Sources */,
+				C190F29D2D65AD6A00895D9E /* CryptoTransactionDataModel.swift in Sources */,
 				311E33FA2C46068C0054C6BC /* ErrorType.swift in Sources */,
 				31E208042C4677CB000BFEBC /* AppTabBarCoordinator.swift in Sources */,
 				99C20A582C48D35C009276E7 /* DividerLineView.swift in Sources */,
@@ -870,7 +882,7 @@
 				99C20A832C4A2787009276E7 /* MainReactor.swift in Sources */,
 				367271AD2C7B2DA600F9D86E /* OrderBookResponse.swift in Sources */,
 				99C20A5D2C48DF11009276E7 /* CoinTableViewCell.swift in Sources */,
-				C1AEA1AF2D66E982001E2A9E /* CalculationUtils.swift in Sources */,
+				C1AEA1AF2D66E982001E2A9E /* CalculationUtil.swift in Sources */,
 				36E771932D75AF1E00739CDE /* MobitTextField.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

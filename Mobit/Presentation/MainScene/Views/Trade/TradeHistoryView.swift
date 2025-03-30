@@ -15,7 +15,7 @@ class TradeHistoryView: UIView, ViewRule {
   
   var disposeBag = DisposeBag()
   var reactor: CryptoDetailReactor? = nil
-  var transaction: CryptoTransaction? = nil
+  var transaction: [CryptoTransactionDataModel.CryptoTransactionStaticData.TransactionInfo]? = nil
   var callBack: (() -> ())? = nil
   
   deinit {
@@ -62,9 +62,10 @@ class TradeHistoryView: UIView, ViewRule {
   }
   
   func updateHistory() {
-	guard let transaction = UserDataManager.bidCryptoList.first(
-	  where: { $0?.marketName == self.reactor?.selectCrypto.market }
-	) else {
+	guard let transactionIndex = UserDataManager.userCryptoList?
+	  .firstIndex(where: { $0.staticData.marketName == self.reactor?.selectCrypto.market }),
+		  let transaction = UserDataManager.userCryptoList?[transactionIndex].staticData.transactionHistoryList
+	else {
 	  noHistoryView.isHidden = false
 	  historyTableView.isHidden = true
 	  return
@@ -84,7 +85,7 @@ class TradeHistoryView: UIView, ViewRule {
 // MARK: - UITableView Delegate, DataSource
 extension TradeHistoryView: UITableViewDelegate, UITableViewDataSource {
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-	return self.transaction?.transactionHistoryList.count ?? 0
+	return self.transaction?.count ?? 0
   }
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -93,7 +94,7 @@ extension TradeHistoryView: UITableViewDelegate, UITableViewDataSource {
 		for: indexPath
 	) as? TradeHistoryTableViewCell,
 		  let marketName = self.reactor?.selectCrypto.market,
-		  let transactionInfo = self.transaction?.transactionHistoryList[indexPath.row] else {
+		  let transactionInfo = self.transaction?[indexPath.row] else {
 		return UITableViewCell()
 	}
 	

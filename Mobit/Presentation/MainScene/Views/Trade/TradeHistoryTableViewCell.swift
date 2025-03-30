@@ -22,7 +22,7 @@ class TradeHistoryTableViewCell: UITableViewCell {
   
   func configure(
 	marketName: String,
-	transactionInfo: CryptoTransaction.TransactionInfo
+	transactionInfo: CryptoTransactionDataModel.CryptoTransactionStaticData.TransactionInfo
   ) {
 	self.tradeDate.text = transactionInfo.executedDate
 	self.marketName.text = marketName

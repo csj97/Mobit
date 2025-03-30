@@ -76,41 +76,45 @@ class TradeAskView: UIView, ViewRule {
   }
   
   func updateCryptoData() {
-	guard let crypto = UserDataManager.bidCryptoList
+	guard let crypto = UserDataManager.userCryptoList?
 	  .compactMap({ $0 })
-	  .first(where: { $0.marketName == self.reactor?.selectCrypto.market }),
+	  .first(where: { $0.staticData.marketName == self.reactor?.selectCrypto.market }),
 		  let currentPrice = self.cryptoInfo?.tradePrice
 	else { return }
 	
-	let krwAvailablePrice = crypto.averageBuyPrice - ((currentPrice - crypto.averageBuyPrice) * crypto.holdingQuantity)
-	
-	self.availableCryptoCount = crypto.holdingQuantity
+	let krwAvailablePrice = currentPrice * crypto.staticData.holdingQuantity
+	self.availableCryptoCount = crypto.staticData.holdingQuantity
 	self.availableCrypto.text = String(self.availableCryptoCount.formatSignificantDigits())
 	self.availableTradePrice.text = "≈ " + String(krwAvailablePrice.formatSignificantDigits())
   }
   
+  func updateCalcUtil(updateCrypto: CryptoCellInfo?) {
+	guard let currentPrice = updateCrypto?.tradePrice else { return }
+	
+  }
+  
   /// 최대 수량 버튼
   @IBAction func tapOnMaxAmount(_ sender: UIButton) {
-	guard let availableCrypto = UserDataManager.bidCryptoList
+	guard let availableCrypto = UserDataManager.userCryptoList?
 			.compactMap({ $0 })
-			.first(where: { $0.marketName == self.reactor?.selectCrypto.market })
+			.first(where: { $0.staticData.marketName == self.reactor?.selectCrypto.market })
 	else { return }
 	
-	self.inputTradeAmount.text = String(availableCrypto.holdingQuantity.formatSignificantDigits())
-	self.totalPriceTextField.text = String(availableCrypto.buyAmount.formatSignificantDigits())
+	self.inputTradeAmount.text = String(availableCrypto.staticData.holdingQuantity.formatSignificantDigits())
+	self.totalPriceTextField.text = String(availableCrypto.staticData.buyAmount.formatSignificantDigits())
   }
   
   @IBAction func tapOnAskButton(_ sender: UIButton) {
-	guard let crypto = UserDataManager.bidCryptoList
+	guard let crypto = UserDataManager.userCryptoList?
 	  .compactMap({ $0 })
-	  .first(where: { $0.marketName == self.reactor?.selectCrypto.market }),
+	  .first(where: { $0.staticData.marketName == self.reactor?.selectCrypto.market }),
 		  let totalPrice = self.totalPriceTextField.text,
 		  let doubleTotalPrice = Double(totalPrice.replacingOccurrences(
 			of: ",", with: ""
 		  ))
 	else { return }
 	
-	if inputAmount > 0, inputAmount <= crypto.holdingQuantity {
+	if inputAmount > 0, inputAmount <= crypto.staticData.holdingQuantity {
 	  self.callBack?(.alert(title: "알림", message: "매도 되었습니다."))
 	  self.callBack?(.updateHistory)
 	} else {
