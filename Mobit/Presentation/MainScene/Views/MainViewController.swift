@@ -192,17 +192,39 @@ class MainViewController: UIViewController {
     self.tableView.delegate = self
   }
   
-  func applySnapshot(cellInfo: [CryptoCellInfo]?) {
+  func applySnapshot(cellInfos: [CryptoCellInfo]?) {
     // tableview에 들어가는 section, item 초기화
     var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, CryptoCellInfo>()
     snapshot.appendSections([.main])
-    if let cellInfo = cellInfo, !cellInfo.isEmpty {
-      snapshot.appendItems(cellInfo, toSection: .main)
+    if let cellInfos = cellInfos, !cellInfos.isEmpty {
+      snapshot.appendItems(cellInfos, toSection: .main)
     } else {
       snapshot.appendItems([])
     }
-    
+	
+	guard let userCryptoList = UserDataManager.userCryptoList else { return }
+	let userMarketNames = userCryptoList.map { $0.staticData.marketName }
+	let filteredCellInfos = cellInfos?.filter {
+	  userMarketNames.contains($0.cryptoName)
+	}
+	
     self.dataSource?.apply(snapshot, animatingDifferences: false)
+  }
+  
+  /// crypto socket 업데이트 될 떄, 매수 목록 fetch
+  func fetchBidCryptoList(
+	marketName: String,
+	currentPrice: Double,
+	averageBuyPrice: Double
+  ) {
+	guard let updateCryptoIndex = UserDataManager.userCryptoList?
+	  .firstIndex(where: { $0.staticData.marketName == marketName }) else { return }
+	
+	UserDataManager.userCryptoList?[updateCryptoIndex].dynamicData.profitRate = MarketDataServiceUtil.shared.fetchProfitRate(
+	  for: marketName,
+	  currentPrice: currentPrice,
+	  averageBuyPrice: averageBuyPrice
+	)
   }
   
   func setButtonGesture() {
@@ -280,14 +302,14 @@ class MainViewController: UIViewController {
     case 0:
       self.selectedTab = .krw
       self.reactor.action.onNext(.loadCrypto(selectedTab: .krw))
-      self.applySnapshot(cellInfo: reactor.currentState.cryptoCellInfo)
+      self.applySnapshot(cellInfos: reactor.currentState.cryptoCellInfo)
     case 1:
       self.selectedTab = .btc
       self.reactor.action.onNext(.loadCrypto(selectedTab: .btc))
-      self.applySnapshot(cellInfo: reactor.currentState.cryptoCellInfo)
+      self.applySnapshot(cellInfos: reactor.currentState.cryptoCellInfo)
     case 2:
       self.selectedTab = .favorite
-      self.applySnapshot(cellInfo: [])
+      self.applySnapshot(cellInfos: [])
     default:
       break
     }
@@ -368,9 +390,9 @@ extension MainViewController: View {
         if self.isSocketUpdating == false {
 		  if let searchText = self.searchBar.text, !searchText.isEmpty {
 			let filteredArray = cellInfos.filter { $0.cryptoName.contains(searchText) }
-			self.applySnapshot(cellInfo: filteredArray)
+			self.applySnapshot(cellInfos: filteredArray)
 		  } else {
-			self.applySnapshot(cellInfo: cellInfos)
+			self.applySnapshot(cellInfos: cellInfos)
 		  }
         }
       })
@@ -408,10 +430,10 @@ extension MainViewController: UISearchBarDelegate {
   func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
 	let cellInfos = self.reactor.currentState.cryptoCellInfo
 	if searchText.isEmpty {
-	  self.applySnapshot(cellInfo: cellInfos)
+	  self.applySnapshot(cellInfos: cellInfos)
 	} else {
 	  let filteredArray = cellInfos.filter { $0.cryptoName.contains(searchText) }
-	  self.applySnapshot(cellInfo: filteredArray)
+	  self.applySnapshot(cellInfos: filteredArray)
 	}
   }
   
@@ -419,6 +441,6 @@ extension MainViewController: UISearchBarDelegate {
 	let cellInfos = self.reactor.currentState.cryptoCellInfo
 	searchBar.text = nil
 	searchBar.resignFirstResponder() // 키보드 내림
-	self.applySnapshot(cellInfo: cellInfos)
+	self.applySnapshot(cellInfos: cellInfos)
   }
 }
