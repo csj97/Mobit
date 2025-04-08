@@ -50,7 +50,6 @@
 		31E208072C4678B9000BFEBC /* MainCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208062C4678B9000BFEBC /* MainCoordinator.swift */; };
 		31E208092C46BF6B000BFEBC /* MainTabBarCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208082C46BF6B000BFEBC /* MainTabBarCoordinator.swift */; };
 		31E208102C46C2FE000BFEBC /* InvestmentCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E2080F2C46C2FE000BFEBC /* InvestmentCoordinator.swift */; };
-		31E208122C46C323000BFEBC /* InvestmentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208112C46C323000BFEBC /* InvestmentViewController.swift */; };
 		31E208172C46C441000BFEBC /* MoreCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208162C46C441000BFEBC /* MoreCoordinator.swift */; };
 		31E208192C46C448000BFEBC /* MoreViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208182C46C448000BFEBC /* MoreViewController.swift */; };
 		31E208432C46CB47000BFEBC /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 31E208422C46CB47000BFEBC /* Then */; };
@@ -87,6 +86,9 @@
 		C154CA192D97D63D006923BD /* MarketDataServiceUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */; };
 		C17424C42D4600A8009861CC /* UserDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17424C32D4600A8009861CC /* UserDataManager.swift */; };
 		C17424C62D460478009861CC /* MobitUserInformation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17424C52D460478009861CC /* MobitUserInformation.swift */; };
+		C17CF49C2DA4DAE900CDF76D /* InvestmentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17CF49A2DA4DAE900CDF76D /* InvestmentViewController.swift */; };
+		C17CF49D2DA4DAE900CDF76D /* InvestmentViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C17CF49B2DA4DAE900CDF76D /* InvestmentViewController.xib */; };
+		C17CF4A02DA4DD6500CDF76D /* InvestReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17CF49F2DA4DD6500CDF76D /* InvestReactor.swift */; };
 		C17E08332D2A62BC0029A8D0 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C17E08322D2A62BC0029A8D0 /* Colors.xcassets */; };
 		C17E08352D2A64EE0029A8D0 /* ColorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */; };
 		C18EED4F2D55A82B0038BBF7 /* MobitSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */; };
@@ -184,7 +186,6 @@
 		31E208062C4678B9000BFEBC /* MainCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCoordinator.swift; sourceTree = "<group>"; };
 		31E208082C46BF6B000BFEBC /* MainTabBarCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabBarCoordinator.swift; sourceTree = "<group>"; };
 		31E2080F2C46C2FE000BFEBC /* InvestmentCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestmentCoordinator.swift; sourceTree = "<group>"; };
-		31E208112C46C323000BFEBC /* InvestmentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestmentViewController.swift; sourceTree = "<group>"; };
 		31E208162C46C441000BFEBC /* MoreCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreCoordinator.swift; sourceTree = "<group>"; };
 		31E208182C46C448000BFEBC /* MoreViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreViewController.swift; sourceTree = "<group>"; };
 		31E208532C46CD9F000BFEBC /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/iPhoneOS.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
@@ -211,6 +212,9 @@
 		C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketDataServiceUtil.swift; sourceTree = "<group>"; };
 		C17424C32D4600A8009861CC /* UserDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataManager.swift; sourceTree = "<group>"; };
 		C17424C52D460478009861CC /* MobitUserInformation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitUserInformation.swift; sourceTree = "<group>"; };
+		C17CF49A2DA4DAE900CDF76D /* InvestmentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestmentViewController.swift; sourceTree = "<group>"; };
+		C17CF49B2DA4DAE900CDF76D /* InvestmentViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = InvestmentViewController.xib; sourceTree = "<group>"; };
+		C17CF49F2DA4DD6500CDF76D /* InvestReactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestReactor.swift; sourceTree = "<group>"; };
 		C17E08322D2A62BC0029A8D0 /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
 		C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtension.swift; sourceTree = "<group>"; };
 		C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitSegmentedControl.swift; sourceTree = "<group>"; };
@@ -476,6 +480,7 @@
 			children = (
 				31E2080C2C46C2B8000BFEBC /* Coordinator */,
 				31E2080D2C46C2BE000BFEBC /* Views */,
+				C17CF49E2DA4DD1C00CDF76D /* Reactors */,
 			);
 			path = InvestmentScene;
 			sourceTree = "<group>";
@@ -491,7 +496,8 @@
 		31E2080D2C46C2BE000BFEBC /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				31E208112C46C323000BFEBC /* InvestmentViewController.swift */,
+				C17CF49A2DA4DAE900CDF76D /* InvestmentViewController.swift */,
+				C17CF49B2DA4DAE900CDF76D /* InvestmentViewController.xib */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -635,6 +641,14 @@
 				C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */,
 			);
 			path = Utils;
+			sourceTree = "<group>";
+		};
+		C17CF49E2DA4DD1C00CDF76D /* Reactors */ = {
+			isa = PBXGroup;
+			children = (
+				C17CF49F2DA4DD6500CDF76D /* InvestReactor.swift */,
+			);
+			path = Reactors;
 			sourceTree = "<group>";
 		};
 		C18EED4D2D55A81A0038BBF7 /* Extensions */ = {
@@ -789,6 +803,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C17E08332D2A62BC0029A8D0 /* Colors.xcassets in Resources */,
+				C17CF49D2DA4DAE900CDF76D /* InvestmentViewController.xib in Resources */,
 				31B741FF2D58D67800706340 /* TradeHistoryView.xib in Resources */,
 				31B741F72D53AA7600706340 /* TradeOrderView.xib in Resources */,
 				31B741F92D53AAAC00706340 /* TradeChartView.xib in Resources */,
@@ -845,7 +860,6 @@
 				C17E08352D2A64EE0029A8D0 /* ColorExtension.swift in Sources */,
 				31B742012D5A2AC400706340 /* ButtonExtension.swift in Sources */,
 				369E877F2C7D955E0020A0B3 /* OrderBookResponseDTO.swift in Sources */,
-				31E208122C46C323000BFEBC /* InvestmentViewController.swift in Sources */,
 				998849E42C5378CD0073A27D /* CryptoTickerDTO.swift in Sources */,
 				31B741FB2D53AAD800706340 /* TradeChartView.swift in Sources */,
 				31E208172C46C441000BFEBC /* MoreCoordinator.swift in Sources */,
@@ -856,6 +870,7 @@
 				99C20AAE2C4F63E4009276E7 /* WebSocketManager.swift in Sources */,
 				31B741EC2D524F7000706340 /* TradeViewController.swift in Sources */,
 				99C20AAC2C4F458C009276E7 /* CryptoSocketTickerDTO.swift in Sources */,
+				C17CF49C2DA4DAE900CDF76D /* InvestmentViewController.swift in Sources */,
 				31D6444D2C72590C00C7F96D /* CryptoDetailUseCase.swift in Sources */,
 				31DC41E22CD9197700F0FFF2 /* NewWebSocketManager.swift in Sources */,
 				99C20A692C490326009276E7 /* MainNetworkService.swift in Sources */,
@@ -868,6 +883,7 @@
 				31B742122D5B967F00706340 /* TradeHistoryInformation.swift in Sources */,
 				3133E2282C3E2355000D4B1A /* AppDelegate.swift in Sources */,
 				31B7420A2D5A46B300706340 /* LeakAvoider.swift in Sources */,
+				C17CF4A02DA4DD6500CDF76D /* InvestReactor.swift in Sources */,
 				99C20AB22C4F6A04009276E7 /* Environment.swift in Sources */,
 				31D6444A2C72587B00C7F96D /* CryptoDetailReactor.swift in Sources */,
 				3133E22A2C3E2355000D4B1A /* SceneDelegate.swift in Sources */,

@@ -205,8 +205,15 @@ class MainViewController: UIViewController {
 	guard let userCryptoList = UserDataManager.userCryptoList else { return }
 	let userMarketNames = userCryptoList.map { $0.staticData.marketName }
 	let filteredCellInfos = cellInfos?.filter {
-	  userMarketNames.contains($0.cryptoName)
+	  userMarketNames.contains($0.market)
 	}
+	
+	filteredCellInfos?.forEach({ cellInfo in
+	  fetchBidCryptoList(
+		marketName: cellInfo.market,
+		currentPrice: cellInfo.tradePrice
+	  )
+	})
 	
     self.dataSource?.apply(snapshot, animatingDifferences: false)
   }
@@ -214,15 +221,29 @@ class MainViewController: UIViewController {
   /// crypto socket 업데이트 될 떄, 매수 목록 fetch
   func fetchBidCryptoList(
 	marketName: String,
-	currentPrice: Double,
-	averageBuyPrice: Double
+	currentPrice: Double?
   ) {
 	guard let updateCryptoIndex = UserDataManager.userCryptoList?
-	  .firstIndex(where: { $0.staticData.marketName == marketName }) else { return }
+	  .firstIndex(where: { $0.staticData.marketName == marketName }),
+		  let currentPrice = currentPrice,
+		  let averageBuyPrice = UserDataManager.userCryptoList?[updateCryptoIndex].staticData.averageBuyPrice,
+		  let cumulHoldingQunatity = UserDataManager.userCryptoList?[updateCryptoIndex].staticData.holdingQuantity
+	else { return }
 	
 	UserDataManager.userCryptoList?[updateCryptoIndex].dynamicData.profitRate = MarketDataServiceUtil.shared.fetchProfitRate(
 	  for: marketName,
 	  currentPrice: currentPrice,
+	  averageBuyPrice: averageBuyPrice
+	)
+	UserDataManager.userCryptoList?[updateCryptoIndex].dynamicData.evaluationPrice = MarketDataServiceUtil.shared.fetchEvalPrice(
+	  for: marketName,
+	  currentPrice: currentPrice,
+	  cumulHoldingQuantity: cumulHoldingQunatity
+	)
+	UserDataManager.userCryptoList?[updateCryptoIndex].dynamicData.evaluationProfitLoss = MarketDataServiceUtil.shared.fetchEvalProfitLoss(
+	  for: marketName,
+	  currentPrice: currentPrice,
+	  cumulHoldingQuantity: cumulHoldingQunatity,
 	  averageBuyPrice: averageBuyPrice
 	)
   }

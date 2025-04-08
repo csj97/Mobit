@@ -36,13 +36,13 @@ class MarketDataServiceUtil {
   func fetchEvalProfitLoss(
 	for marketName: String,
 	currentPrice: Double,
-	newHoldingQuantity: Double,
+	cumulHoldingQuantity: Double,
 	averageBuyPrice: Double,
-	tradingFee: Double
+	tradingFee: Double = 0.05
   ) -> Double {
-	let newBuyAmount = floor(currentPrice * newHoldingQuantity).formatDigits(digits: 2)
-	
-	let profitLoss = ((currentPrice - averageBuyPrice) * newHoldingQuantity) - tradingFee
+//	let newBuyAmount = floor(currentPrice * newHoldingQuantity).formatDigits(digits: 2)
+	let tradingFee = (tradingFee * (averageBuyPrice * cumulHoldingQuantity)).formatDigits(digits: 2)
+	let profitLoss = ((currentPrice - averageBuyPrice) * cumulHoldingQuantity) - tradingFee
 	if var userCryptoList = userCryptoList,
 	   let index = userCryptoList.firstIndex(where: { $0.dynamicData.marketName == marketName }) {
 	  userCryptoList[index].dynamicData.evaluationProfitLoss = profitLoss

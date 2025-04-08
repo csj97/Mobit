@@ -16,7 +16,8 @@ class InvestmentCoordinator: BaseCoordinator {
   }
   
   func start() {
-    let investmentVC = InvestmentViewController()
+	let reactor = InvestReactor()
+	let investmentVC = InvestmentViewController(reactor: reactor)
     investmentVC.coordinator = self
     self.navigationController.viewControllers = [investmentVC]
   }

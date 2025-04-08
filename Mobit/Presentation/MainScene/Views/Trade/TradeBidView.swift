@@ -154,30 +154,30 @@ class TradeBidView: UIView, ViewRule {
 	  let cumulBuyAmount = calcUtil.cumulCalcBuyAmount()
 	  let holdingQuantity = calcUtil.calcHoldingQuantity()
 	  
-	  let profitRate = MarketDataServiceUtil.shared.fetchProfitRate(
-		for: marketName,
-		currentPrice: currentPrice,
-		averageBuyPrice: averageBuyPrice
-	  )
-	  let evaluationProfitLoss = MarketDataServiceUtil.shared.fetchEvalProfitLoss(
-		for: marketName,
-		currentPrice: currentPrice,
-		newHoldingQuantity: self.inputAmount,
-		averageBuyPrice: averageBuyPrice,
-		tradingFee: calcUtil.calcTradingFee(tradingPrice: currentPrice)	// tradingFee 평가손익에서 어떻게 처리할지 다시 생각해봐야할듯
-	  )
-	  let evaluationPrice = MarketDataServiceUtil.shared.fetchEvalPrice(
-		for: marketName,
-		currentPrice: currentPrice,
-		cumulHoldingQuantity: holdingQuantity
-	  )
-	  
-	  newDynamicTransaction = CryptoTransactionDataModel.CryptoTransactionDynamicData(
-		marketName: marketName,
-		profitRate: profitRate,
-		evaluationProfitLoss: evaluationProfitLoss,
-		evaluationPrice: evaluationPrice
-	  )
+//	  let profitRate = MarketDataServiceUtil.shared.fetchProfitRate(
+//		for: marketName,
+//		currentPrice: currentPrice,
+//		averageBuyPrice: averageBuyPrice
+//	  )
+//	  let evaluationProfitLoss = MarketDataServiceUtil.shared.fetchEvalProfitLoss(
+//		for: marketName,
+//		currentPrice: currentPrice,
+//		newHoldingQuantity: self.inputAmount,
+//		averageBuyPrice: averageBuyPrice,
+//		tradingFee: calcUtil.calcTradingFee(tradingPrice: currentPrice)	// tradingFee 평가손익에서 어떻게 처리할지 다시 생각해봐야할듯
+//	  )
+//	  let evaluationPrice = MarketDataServiceUtil.shared.fetchEvalPrice(
+//		for: marketName,
+//		currentPrice: currentPrice,
+//		cumulHoldingQuantity: holdingQuantity
+//	  )
+//	  
+//	  newDynamicTransaction = CryptoTransactionDataModel.CryptoTransactionDynamicData(
+//		marketName: marketName,
+//		profitRate: profitRate,
+//		evaluationProfitLoss: evaluationProfitLoss,
+//		evaluationPrice: evaluationPrice
+//	  )
 	  
 	  let newTransactionInfo = CryptoTransactionDataModel.CryptoTransactionStaticData.TransactionInfo(
 		executedDate: executedDate,
@@ -199,7 +199,7 @@ class TradeBidView: UIView, ViewRule {
 			let newDynamicTransaction = newDynamicTransaction else { return }
 	  print("매수 업데이트 완료!!")
 	  userCryptoList?[transactionIndex].staticData = newStaticTransaction
-	  userCryptoList?[transactionIndex].dynamicData = newDynamicTransaction
+//	  userCryptoList?[transactionIndex].dynamicData = newDynamicTransaction
 	  UserDataManager.userCryptoList = userCryptoList
 	  
 	  availableBalance = userBalance - newStaticTransaction.buyAmount
@@ -222,9 +222,8 @@ class TradeBidView: UIView, ViewRule {
 	  let evaluationProfitLoss = MarketDataServiceUtil.shared.fetchEvalProfitLoss(
 		for: marketName,
 		currentPrice: currentPrice,
-		newHoldingQuantity: self.inputAmount,
-		averageBuyPrice: averageBuyPrice,
-		tradingFee: calcUtil.calcTradingFee(tradingPrice: currentPrice)	// tradingFee 평가손익에서 어떻게 처리할지 다시 생각해봐야할듯
+		cumulHoldingQuantity: self.inputAmount,
+		averageBuyPrice: averageBuyPrice
 	  )
 	  let evaluationPrice = MarketDataServiceUtil.shared.fetchEvalPrice(
 		for: marketName,

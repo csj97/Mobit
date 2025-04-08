@@ -6,9 +6,15 @@
 //
 
 import Foundation
+import RxSwift
 
 class UserDataManager: NSObject {
+  private static let userCryptoListSubject = BehaviorSubject<[CryptoTransactionDataModel]?>(value: [])
   
+  static var userCryptoListObservable: Observable<[CryptoTransactionDataModel]?> {
+	return userCryptoListSubject.asObservable()
+  }
+
   /// 앱 설치 후, 첫 실행 여부
   static var isFirstLaunch: Bool {
     get {
@@ -52,6 +58,7 @@ class UserDataManager: NSObject {
 	  } else {
 		defaults.removeObject(forKey: "user-crypto-list")
 	  }
+	  userCryptoListSubject.onNext(newValue)
     }
   }
   
