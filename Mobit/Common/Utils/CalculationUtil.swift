@@ -35,7 +35,7 @@ class CalculationUtil {
 	return prevHoldingQuantity + newHoldingQuantity
   }
   
-  /// 평단가 계산
+  /// 평단가 계산 *** 매수 금액에 따라 평단가가 달라질 수 있음
   /// 평균 매수가 = (기존 보유 코인 × 기존 평균 매수가 + 새 매수 금액) ÷ (기존 보유 코인 + 새 매수 수량)
   func calcAverBuyPrice() -> Double {
 	if prevAverageBuyPrice == 0 {
@@ -50,7 +50,7 @@ class CalculationUtil {
   func calcBuyAmount() -> Double {
 	let newBuyAmount = floor(currentPrice * newHoldingQuantity)
 	let fee = calcTradingFee(tradingPrice: newBuyAmount)
-	let amount = newBuyAmount - fee
+	let amount = newBuyAmount
 	
 	return amount
   }

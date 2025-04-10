@@ -19,6 +19,9 @@ class MarketDataServiceUtil {
 	currentPrice: Double,
 	averageBuyPrice: Double
   ) -> Double {
+	// 0으로 나누기 방지
+	guard averageBuyPrice != 0 else { return 0 }
+	
 	let profitRate = (((currentPrice - averageBuyPrice) / averageBuyPrice) * 100).formatDigits(digits: 2)
 	
 	if var userCryptoList = userCryptoList,
@@ -42,7 +45,7 @@ class MarketDataServiceUtil {
   ) -> Double {
 //	let newBuyAmount = floor(currentPrice * newHoldingQuantity).formatDigits(digits: 2)
 	let tradingFee = (tradingFee * (averageBuyPrice * cumulHoldingQuantity)).formatDigits(digits: 2)
-	let profitLoss = ((currentPrice - averageBuyPrice) * cumulHoldingQuantity) - tradingFee
+	let profitLoss = ((currentPrice - averageBuyPrice) * cumulHoldingQuantity)
 	if var userCryptoList = userCryptoList,
 	   let index = userCryptoList.firstIndex(where: { $0.dynamicData.marketName == marketName }) {
 	  userCryptoList[index].dynamicData.evaluationProfitLoss = profitLoss
@@ -59,6 +62,11 @@ class MarketDataServiceUtil {
 	currentPrice: Double,
 	cumulHoldingQuantity: Double
   ) -> Double {
+	// 보유 수량이 음수일 경우 방지
+	guard cumulHoldingQuantity >= 0 else {
+	  return 0
+	}
+	
 	let evalPrice = (currentPrice * cumulHoldingQuantity).formatDigits(digits: 8)
 	
 	if var userCryptoList = userCryptoList,

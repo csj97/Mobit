@@ -12,14 +12,15 @@ import PinLayout
 import ReactorKit
 import UIKit
 
-class InvestmentViewController: UIViewController {
-  @IBOutlet weak var label1: UILabel!
-  @IBOutlet weak var label2: UILabel!
-  @IBOutlet weak var label3: UILabel!
-  
+class InvestmentViewController: UIViewController, ViewRule {
+  @IBOutlet weak var transactionTableview: UITableView!
+    
   weak var coordinator: InvestmentCoordinator?
   var disposeBag = DisposeBag()
   var reactor: InvestReactor
+  var cryptos: [CryptoTransactionDataModel] = []
+  var pendingUpdate: [CryptoTransactionDataModel]?
+  private var isScrolling = false
   
   init(reactor: InvestReactor) {
 	self.reactor = reactor
@@ -32,19 +33,27 @@ class InvestmentViewController: UIViewController {
   
   override func viewDidLoad() {
 	super.viewDidLoad()
-//	self.view.backgroundColor = .yellow
-	self.bind(reactor: self.reactor)
-	self.reactor.action.onNext(.loadTransactions)
+	setUI()
+	setData()
   }
   
   override func viewDidLayoutSubviews() {
 	super.viewDidLayoutSubviews()
   }
   
-  func updateLabels(crypto: CryptoTransactionDataModel) {
-	self.label1.text = "\(crypto.dynamicData.profitRate)"
-	self.label2.text = "\(crypto.dynamicData.evaluationPrice)"
-	self.label3.text = "\(crypto.dynamicData.evaluationProfitLoss)"
+  func setUI() {
+	self.transactionTableview.delegate = self
+	self.transactionTableview.dataSource = self
+	
+	self.transactionTableview.register(
+	  UINib(nibName: "InvestmentTableViewCell", bundle: nil),
+	  forCellReuseIdentifier: "InvestmentTableViewCell"
+	)
+  }
+  
+  func setData() {
+	self.bind(reactor: self.reactor)
+	self.reactor.action.onNext(.loadTransactions)
   }
 }
 
@@ -53,12 +62,58 @@ extension InvestmentViewController: View {
   func bind(reactor: InvestReactor) {
 	reactor.state.map { $0.crypto }
 	  .compactMap { $0 }
+	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
-	  .subscribe(onNext: { crypto in
-		guard let crypto = crypto.first else { return }
-		self.updateLabels(crypto: crypto)
-		print(crypto)
+	  .subscribe(onNext: { [weak self] cryptos in
+		guard let self else { return }
+
+		if self.isScrolling {
+			self.pendingUpdate = cryptos
+		} else {
+			self.cryptos = cryptos
+			self.transactionTableview.reloadData()
+		}
 	  })
 	  .disposed(by: self.disposeBag)
+  }
+}
+
+extension InvestmentViewController: UITableViewDataSource, UITableViewDelegate {
+  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+	return self.cryptos.count
+  }
+  
+  func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+	guard let cell = tableView.dequeueReusableCell(
+	  withIdentifier: "InvestmentTableViewCell",
+		for: indexPath
+	) as? InvestmentTableViewCell else {
+		return UITableViewCell()
+	}
+	
+	let crypto = self.cryptos[indexPath.row]
+	cell.configure(crypto: crypto)
+	cell.selectionStyle = .none
+	
+	return cell
+  }
+  
+  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+	
+  }
+}
+
+extension InvestmentViewController {
+  func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+	  isScrolling = true
+  }
+
+  func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+	  isScrolling = false
+	  if let update = pendingUpdate {
+		  self.cryptos = update
+		  self.transactionTableview.reloadData()
+		  pendingUpdate = nil
+	  }
   }
 }

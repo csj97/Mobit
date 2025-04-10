@@ -9,6 +9,11 @@ import Foundation
 import Starscream
 import RxSwift
 
+protocol SocketControllable {
+  func pauseSocket()
+  func resumeSocket()
+}
+
 enum SocketType: String {
   case ticker = "ticker"
   case orderbook = "orderbook"
@@ -24,6 +29,8 @@ class NewWebSocketManager: WebSocketDelegate {
   var sockets: [String: WebSocket] = [:]
   // 각 URL에 대한 메시지 큐 저장
   private var messageQueue: [String: [String]] = [:]
+  // 사용자가 의도적으로 연결을 끊은 것인지 파악하기 위함
+  private var isManuallyDisconnected = false
   private let queue = DispatchQueue(
     label: "WebSocket Queue",
     attributes: .concurrent
@@ -50,8 +57,15 @@ class NewWebSocketManager: WebSocketDelegate {
     socket.connect()
   }
   
-  func disconnect() {
+  func disconnect(manual: Bool = false) {
+	isManuallyDisconnected = manual
     socket.disconnect()
+	socket = nil
+  }
+  
+  func reconnectIfNeeded() {
+	guard !isManuallyDisconnected else { return }
+	self.connect()
   }
   
   /// Message 전송
