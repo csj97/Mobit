@@ -711,3 +711,16 @@ extension CryptoDetailViewController: UITableViewDelegate {
     print("orderbook cell click : \(indexPath.row)")
   }
 }
+
+// MARK: - WebSocket Pause & Resume
+extension CryptoDetailViewController: SocketControllable {
+  func pauseSocket() {
+	self.reactor.tickerSocketManager.disconnect(manual: false)
+	self.reactor.orderBookSocketManager.disconnect(manual: false)
+  }
+  
+  func resumeSocket() {
+	self.reactor.tickerSocketManager.reconnectIfNeeded()
+	self.reactor.orderBookSocketManager.reconnectIfNeeded()
+  }
+}

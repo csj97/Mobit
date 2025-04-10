@@ -89,6 +89,8 @@
 		C17CF49C2DA4DAE900CDF76D /* InvestmentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17CF49A2DA4DAE900CDF76D /* InvestmentViewController.swift */; };
 		C17CF49D2DA4DAE900CDF76D /* InvestmentViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C17CF49B2DA4DAE900CDF76D /* InvestmentViewController.xib */; };
 		C17CF4A02DA4DD6500CDF76D /* InvestReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17CF49F2DA4DD6500CDF76D /* InvestReactor.swift */; };
+		C17DB9722DA5FAF000DA673A /* InvestmentTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17DB9702DA5FAF000DA673A /* InvestmentTableViewCell.swift */; };
+		C17DB9732DA5FAF000DA673A /* InvestmentTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = C17DB9712DA5FAF000DA673A /* InvestmentTableViewCell.xib */; };
 		C17E08332D2A62BC0029A8D0 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C17E08322D2A62BC0029A8D0 /* Colors.xcassets */; };
 		C17E08352D2A64EE0029A8D0 /* ColorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */; };
 		C18EED4F2D55A82B0038BBF7 /* MobitSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */; };
@@ -98,6 +100,7 @@
 		C18EED572D55FE610038BBF7 /* TradeAskView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C18EED562D55FE610038BBF7 /* TradeAskView.xib */; };
 		C18FF26E2D5AEDF7003E95B0 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */; };
 		C190F29D2D65AD6A00895D9E /* CryptoTransactionDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C190F29C2D65AD6A00895D9E /* CryptoTransactionDataModel.swift */; };
+		C191ECCE2DA79A6700BBA5EB /* CustomWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C191ECCD2DA79A6700BBA5EB /* CustomWindow.swift */; };
 		C1AEA1AF2D66E982001E2A9E /* CalculationUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */; };
 		C1E12D402D7C29AF003C76F0 /* DoubleExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */; };
 /* End PBXBuildFile section */
@@ -215,6 +218,8 @@
 		C17CF49A2DA4DAE900CDF76D /* InvestmentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestmentViewController.swift; sourceTree = "<group>"; };
 		C17CF49B2DA4DAE900CDF76D /* InvestmentViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = InvestmentViewController.xib; sourceTree = "<group>"; };
 		C17CF49F2DA4DD6500CDF76D /* InvestReactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestReactor.swift; sourceTree = "<group>"; };
+		C17DB9702DA5FAF000DA673A /* InvestmentTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestmentTableViewCell.swift; sourceTree = "<group>"; };
+		C17DB9712DA5FAF000DA673A /* InvestmentTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = InvestmentTableViewCell.xib; sourceTree = "<group>"; };
 		C17E08322D2A62BC0029A8D0 /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
 		C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtension.swift; sourceTree = "<group>"; };
 		C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitSegmentedControl.swift; sourceTree = "<group>"; };
@@ -224,6 +229,7 @@
 		C18EED562D55FE610038BBF7 /* TradeAskView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeAskView.xib; sourceTree = "<group>"; };
 		C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		C190F29C2D65AD6A00895D9E /* CryptoTransactionDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTransactionDataModel.swift; sourceTree = "<group>"; };
+		C191ECCD2DA79A6700BBA5EB /* CustomWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomWindow.swift; sourceTree = "<group>"; };
 		C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationUtil.swift; sourceTree = "<group>"; };
 		C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoubleExtension.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -369,6 +375,7 @@
 			children = (
 				3133E2272C3E2355000D4B1A /* AppDelegate.swift */,
 				3133E2292C3E2355000D4B1A /* SceneDelegate.swift */,
+				C191ECCD2DA79A6700BBA5EB /* CustomWindow.swift */,
 			);
 			path = Application;
 			sourceTree = "<group>";
@@ -498,6 +505,8 @@
 			children = (
 				C17CF49A2DA4DAE900CDF76D /* InvestmentViewController.swift */,
 				C17CF49B2DA4DAE900CDF76D /* InvestmentViewController.xib */,
+				C17DB9702DA5FAF000DA673A /* InvestmentTableViewCell.swift */,
+				C17DB9712DA5FAF000DA673A /* InvestmentTableViewCell.xib */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -805,6 +814,7 @@
 				C17E08332D2A62BC0029A8D0 /* Colors.xcassets in Resources */,
 				C17CF49D2DA4DAE900CDF76D /* InvestmentViewController.xib in Resources */,
 				31B741FF2D58D67800706340 /* TradeHistoryView.xib in Resources */,
+				C17DB9732DA5FAF000DA673A /* InvestmentTableViewCell.xib in Resources */,
 				31B741F72D53AA7600706340 /* TradeOrderView.xib in Resources */,
 				31B741F92D53AAAC00706340 /* TradeChartView.xib in Resources */,
 				C18EED572D55FE610038BBF7 /* TradeAskView.xib in Resources */,
@@ -848,6 +858,7 @@
 				31D644482C7257F900C7F96D /* CryptoDetailCoordinator.swift in Sources */,
 				998849E22C524AAA0073A27D /* CryptoCellInfo.swift in Sources */,
 				C18EED512D55FE3D0038BBF7 /* TradeBidView.swift in Sources */,
+				C17DB9722DA5FAF000DA673A /* InvestmentTableViewCell.swift in Sources */,
 				31E208072C4678B9000BFEBC /* MainCoordinator.swift in Sources */,
 				C154CA192D97D63D006923BD /* MarketDataServiceUtil.swift in Sources */,
 				31E208102C46C2FE000BFEBC /* InvestmentCoordinator.swift in Sources */,
@@ -869,6 +880,7 @@
 				31B741EF2D53A37E00706340 /* ViewRule.swift in Sources */,
 				99C20AAE2C4F63E4009276E7 /* WebSocketManager.swift in Sources */,
 				31B741EC2D524F7000706340 /* TradeViewController.swift in Sources */,
+				C191ECCE2DA79A6700BBA5EB /* CustomWindow.swift in Sources */,
 				99C20AAC2C4F458C009276E7 /* CryptoSocketTickerDTO.swift in Sources */,
 				C17CF49C2DA4DAE900CDF76D /* InvestmentViewController.swift in Sources */,
 				31D6444D2C72590C00C7F96D /* CryptoDetailUseCase.swift in Sources */,

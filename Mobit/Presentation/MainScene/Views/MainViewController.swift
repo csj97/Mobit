@@ -465,3 +465,14 @@ extension MainViewController: UISearchBarDelegate {
 	self.applySnapshot(cellInfos: cellInfos)
   }
 }
+
+// MARK: - WebSocket Pause & Resume
+extension MainViewController: SocketControllable {
+  func pauseSocket() {
+	self.reactor.socketManager.disconnect(manual: false)
+  }
+  
+  func resumeSocket() {
+	self.reactor.socketManager.reconnectIfNeeded()
+  }
+}
