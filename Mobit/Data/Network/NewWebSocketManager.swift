@@ -54,10 +54,12 @@ class NewWebSocketManager: WebSocketDelegate {
   }
   
   func connect() {
+	guard socket != nil else { return }
     socket.connect()
   }
   
   func disconnect(manual: Bool = false) {
+	guard socket != nil else { return }
 	isManuallyDisconnected = manual
     socket.disconnect()
 	socket = nil
@@ -70,7 +72,7 @@ class NewWebSocketManager: WebSocketDelegate {
   
   /// Message 전송
   func sendMessage(codes: [String], socketType: SocketType) {
-    guard isConnected else {
+	guard isConnected, socket != nil else {
       print("WebSocket is not connected")
       
       return

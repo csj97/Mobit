@@ -48,7 +48,7 @@ class CalculationUtil {
   /// 매수 예정) 총 매수금액 계산
   /// 현재 매수하려는 총 금액 * tradingFee
   func calcBuyAmount() -> Double {
-	let newBuyAmount = floor(currentPrice * newHoldingQuantity)
+	let newBuyAmount = floor(currentPrice * calcHoldingQuantity())
 	let fee = calcTradingFee(tradingPrice: newBuyAmount)
 	let amount = newBuyAmount
 	

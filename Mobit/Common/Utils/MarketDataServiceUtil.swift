@@ -43,9 +43,15 @@ class MarketDataServiceUtil {
 	averageBuyPrice: Double,
 	tradingFee: Double = 0.05
   ) -> Double {
+	// 평가 금액
+	let evalPrice = (currentPrice * cumulHoldingQuantity).formatDigits(digits: 8)
+	// 매수 금액
+	let averagePrice = (averageBuyPrice * cumulHoldingQuantity).formatDigits(digits: 8)
+	
 //	let newBuyAmount = floor(currentPrice * newHoldingQuantity).formatDigits(digits: 2)
 	let tradingFee = (tradingFee * (averageBuyPrice * cumulHoldingQuantity)).formatDigits(digits: 2)
-	let profitLoss = ((currentPrice - averageBuyPrice) * cumulHoldingQuantity)
+//	let profitLoss = ((currentPrice - averageBuyPrice) * cumulHoldingQuantity)
+	let profitLoss = evalPrice - averagePrice
 	if var userCryptoList = userCryptoList,
 	   let index = userCryptoList.firstIndex(where: { $0.dynamicData.marketName == marketName }) {
 	  userCryptoList[index].dynamicData.evaluationProfitLoss = profitLoss
