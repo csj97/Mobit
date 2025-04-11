@@ -39,6 +39,9 @@ class InvestmentTableViewCell: UITableViewCell {
 	self.cryptoEvalLoss.text = "\(crypto.dynamicData.evaluationProfitLoss)".addComma()
 	self.cryptoProfitRate.text = "\(crypto.dynamicData.profitRate)".addComma()
 	
+	self.bgView.layer.borderWidth = 0.5
+	self.bgView.layer.borderColor = UIColor.mobitColors(.lineLightGray).cgColor
+	
 	if crypto.dynamicData.profitRate > 0 {
 	  self.bgView.backgroundColor = .systemGreen.withAlphaComponent(0.05)
 	} else if crypto.dynamicData.profitRate == 0 {
