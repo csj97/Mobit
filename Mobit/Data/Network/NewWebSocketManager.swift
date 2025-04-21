@@ -62,7 +62,6 @@ class NewWebSocketManager: WebSocketDelegate {
 	guard socket != nil else { return }
 	isManuallyDisconnected = manual
     socket.disconnect()
-	socket = nil
   }
   
   func reconnectIfNeeded() {

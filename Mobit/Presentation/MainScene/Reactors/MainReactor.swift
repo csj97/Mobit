@@ -101,7 +101,9 @@ extension MainReactor {
       .flatMap { cryptoList -> Observable<MainMutation> in
         
         var observableConcat: [Observable<MainMutation>] = []
-        
+		
+		self.socketManager.connect()
+		
         switch selectedTab {
         case .krw:
           let krwCryptoList = cryptoList.filter { $0.market.contains("KRW-") }
@@ -334,14 +336,13 @@ extension MainReactor {
     let cryptoJoined = cryptoList.map { $0.market }
     
     let socketObservable = Observable<MainMutation>.create { observer in
-      self.socketManager.connect()
       
-      DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
-        self.socketManager.sendMessage(
-          codes: cryptoJoined,
-          socketType: .ticker
-        )
-      })
+	  self.socketManager.callBack = {
+		self.socketManager.sendMessage(
+		  codes: cryptoJoined,
+		  socketType: .ticker
+		)
+	  }
       
       self.socketManager.tickerDataSubject
         .observe(on: MainScheduler.instance)
