@@ -16,13 +16,21 @@ extension Double {
   
   func formatSignificantDigits(digits: Int = 8) -> String {
 	// 1. 최대 소수점 digits자리까지만 유지 (반올림 없이 자르기)
-	let digitStandard = Double(Int(pow(10.0, Double(digits))))
+	guard digits >= 0 else { return "0" }
+	
+	let digitStandard = pow(10.0, Double(digits))
 	let formattedValue = floor(self * digitStandard) / digitStandard
 	
 	// 1000 이상이면 무조건 정수로 변환
 	if formattedValue >= 1000 {
-	  return String(format: "%.0f", formattedValue)
-		.replacingOccurrences(of: "(?<=\\d)(?=(\\d{3})+(?!\\d))", with: ",", options: .regularExpression)
+	  let stringValue = String(format: "%.0f", formattedValue)
+		.replacingOccurrences(
+		  of: "(?<=\\d)(?=(\\d{3})+(?!\\d))",
+		  with: ",",
+		  options: .regularExpression
+		)
+	  
+	  return stringValue
 	}
 	
 	// 2. 소수점 포함 숫자를 문자열로 변환

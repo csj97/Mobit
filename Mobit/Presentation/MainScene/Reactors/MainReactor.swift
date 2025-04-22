@@ -337,7 +337,7 @@ extension MainReactor {
     
     let socketObservable = Observable<MainMutation>.create { observer in
       
-	  self.socketManager.callBack = {
+	  self.socketManager.onConnected = {
 		self.socketManager.sendMessage(
 		  codes: cryptoJoined,
 		  socketType: .ticker

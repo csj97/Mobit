@@ -78,7 +78,7 @@ extension CryptoDetailReactor {
     
     let socketObservable = Observable<CryptoDetailMutation>.create { observer in
       self.tickerSocketManager.connect()
-      self.tickerSocketManager.callBack = {
+	  self.tickerSocketManager.onConnected = {
         self.tickerSocketManager.sendMessage(
           codes: [self.transformMarketForm(market: crypto.market)],
           socketType: .ticker
@@ -123,7 +123,7 @@ extension CryptoDetailReactor {
   private func connectOrderBookTicker(crypto: CryptoCellInfo) -> Observable<CryptoDetailMutation> {
     let socketObservable = Observable<CryptoDetailMutation>.create { observer in
       self.orderBookSocketManager.connect()
-      self.orderBookSocketManager.callBack = {
+	  self.orderBookSocketManager.onConnected = {
         self.orderBookSocketManager.sendMessage(
           codes: [
             self.transformMarketForm(

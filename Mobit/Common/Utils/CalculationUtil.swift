@@ -37,12 +37,22 @@ class CalculationUtil {
   
   /// 평단가 계산 *** 매수 금액에 따라 평단가가 달라질 수 있음
   /// 평균 매수가 = (기존 보유 코인 × 기존 평균 매수가 + 새 매수 금액) ÷ (기존 보유 코인 + 새 매수 수량)
+//  func calcAverBuyPrice() -> Double {
+//	if prevAverageBuyPrice == 0 {
+//	  return currentPrice
+//	} else {
+//	  return (prevAverageBuyPrice + currentPrice) / 2
+//	}
+//  }
+  
+  /// 평단가 계산: 매수 금액과 수량에 따라 평단가 계산
   func calcAverBuyPrice() -> Double {
-	if prevAverageBuyPrice == 0 {
-	  return currentPrice
-	} else {
-	  return (prevAverageBuyPrice + currentPrice) / 2
-	}
+	let totalCost = (prevAverageBuyPrice * prevHoldingQuantity) + (currentPrice * newHoldingQuantity)
+	let totalAmount = prevHoldingQuantity + newHoldingQuantity
+	
+	guard totalAmount != 0 else { return 0 }  // 수량 0일 경우 방어
+	
+	return totalCost / totalAmount
   }
   
   /// 매수 예정) 총 매수금액 계산

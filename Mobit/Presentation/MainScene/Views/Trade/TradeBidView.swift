@@ -195,8 +195,7 @@ class TradeBidView: UIView, ViewRule {
 		transactionHistoryList: transactionList
 	  )
 	  
-	  guard let newStaticTransaction = newStaticTransaction,
-			let newDynamicTransaction = newDynamicTransaction else { return }
+	  guard let newStaticTransaction = newStaticTransaction else { return }
 	  print("매수 업데이트 완료!!")
 	  userCryptoList?[transactionIndex].staticData = newStaticTransaction
 //	  userCryptoList?[transactionIndex].dynamicData = newDynamicTransaction

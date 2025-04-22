@@ -31,13 +31,13 @@ class InvestmentTableViewCell: UITableViewCell {
   
   func configure(crypto: CryptoTransactionDataModel) {
 	self.cryptoName.text = "\(crypto.staticData.marketName)"
-	self.cryptoAmount.text = "\(crypto.staticData.holdingQuantity)".addComma()
-	self.cryptoAveragePrice.text = "\(crypto.staticData.averageBuyPrice)".addComma()
-	self.cryptoBuyPrice.text = "\(crypto.staticData.buyAmount)".addComma()
+	self.cryptoAmount.text = "\(crypto.staticData.holdingQuantity.formatSignificantDigits())"
+	self.cryptoAveragePrice.text = "\(crypto.staticData.averageBuyPrice.formatSignificantDigits(digits: 4))"
+	self.cryptoBuyPrice.text = "\(crypto.staticData.buyAmount.formatSignificantDigits())"
 	
-	self.cryptoEvalPrice.text = "\(crypto.dynamicData.evaluationPrice)".addComma()
-	self.cryptoEvalLoss.text = "\(crypto.dynamicData.evaluationProfitLoss)".addComma()
-	self.cryptoProfitRate.text = "\(crypto.dynamicData.profitRate)".addComma()
+	self.cryptoEvalPrice.text = "\(crypto.dynamicData.evaluationPrice.formatSignificantDigits())"
+	self.cryptoEvalLoss.text = "\(crypto.dynamicData.evaluationProfitLoss.formatSignificantDigits())"
+	self.cryptoProfitRate.text = "\(crypto.dynamicData.profitRate.formatSignificantDigits())"
 	
 	self.bgView.layer.borderWidth = 0.5
 	self.bgView.layer.borderColor = UIColor.mobitColors(.lineLightGray).cgColor

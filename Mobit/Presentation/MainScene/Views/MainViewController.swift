@@ -434,6 +434,11 @@ extension MainViewController: UITableViewDelegate {
     self.coordinator?.pushCryptoDetailVC(
       selectCrypto: cryptoCellInfo[indexPath.row]
     )
+	
+	if let searchText = self.searchBar.text, !searchText.isEmpty {
+	  self.searchBar.text = ""
+	  self.searchBar.resignFirstResponder()
+	}
   }
   
   /// 스크롤 시작되면 소켓 업데이트 일시정지

@@ -23,7 +23,7 @@ class NewWebSocketManager: WebSocketDelegate {
 
   static let shared = NewWebSocketManager()
   
-  var callBack: (() -> ())? = nil
+  var onConnected: (() -> ())? = nil
   let tickerDataSubject = PublishSubject<Data>()
   let orderBookDataSubject = PublishSubject<Data>()
   var sockets: [String: WebSocket] = [:]
@@ -103,7 +103,7 @@ class NewWebSocketManager: WebSocketDelegate {
     switch event {
     case .connected:
       isConnected = true
-      callBack?()
+	  onConnected?()
       print("WebSocket connected")
       
     case .disconnected(let reason, let code):
