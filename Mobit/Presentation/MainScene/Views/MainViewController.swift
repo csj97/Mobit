@@ -409,8 +409,11 @@ extension MainViewController: View {
       .observe(on: MainScheduler.instance)
       .subscribe(onNext: { cellInfos in
         if self.isSocketUpdating == false {
-		  if let searchText = self.searchBar.text, !searchText.isEmpty {
-			let filteredArray = cellInfos.filter { $0.cryptoName.contains(searchText) }
+		  if let searchText = self.searchBar.text?.lowercased(), !searchText.isEmpty {
+			let filteredArray = cellInfos.filter {
+			  $0.market.lowercased().contains(searchText) ||
+			  $0.cryptoName.lowercased().contains(searchText.lowercased())
+			}
 			self.applySnapshot(cellInfos: filteredArray)
 		  } else {
 			self.applySnapshot(cellInfos: cellInfos)
