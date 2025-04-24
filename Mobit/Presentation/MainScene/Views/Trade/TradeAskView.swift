@@ -30,6 +30,7 @@ class TradeAskView: UIView, ViewRule {
   var availableCryptoCount: Double = 0.0
   // 매도 수량
   var inputAmount: Double = 0.0
+  var askCryptoIndex: Int? = nil
   
   deinit {
 	print("deinit : \(String(describing: type(of: self)))")
@@ -101,6 +102,7 @@ class TradeAskView: UIView, ViewRule {
 	else { return }
 	
 	self.inputTradeAmount.text = String(availableCrypto.staticData.holdingQuantity.formatSignificantDigits())
+	self.inputAmount = availableCrypto.staticData.holdingQuantity
 	self.totalPriceTextField.text = String(availableCrypto.staticData.buyAmount.formatSignificantDigits())
   }
   
@@ -112,10 +114,19 @@ class TradeAskView: UIView, ViewRule {
 		  let doubleTotalPrice = Double(totalPrice.replacingOccurrences(
 			of: ",", with: ""
 		  ))
-	else { return }
+	else {
+	  self.callBack?(.alert(title: "알림", message: "매도 수량을 확인 해주세요."))
+	  return
+	}
 	
 	if inputAmount > 0, inputAmount <= crypto.staticData.holdingQuantity {
+	  UserDataManager.userAvailableBalance += crypto.dynamicData.evaluationPrice
+	  
 	  self.callBack?(.alert(title: "알림", message: "매도 되었습니다."))
+	  crypto.dynamicData
+	  UserDataManager.userCryptoList?.map {
+		  $0.staticData.marketName == self.reactor?.selectCrypto.market
+	  }
 	  self.callBack?(.updateHistory)
 	} else {
 	  self.callBack?(.alert(title: "알림", message: "주문 가능 수량이 부족합니다."))
