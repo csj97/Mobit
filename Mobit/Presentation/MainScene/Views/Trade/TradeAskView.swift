@@ -107,29 +107,71 @@ class TradeAskView: UIView, ViewRule {
   }
   
   @IBAction func tapOnAskButton(_ sender: UIButton) {
-	guard let crypto = UserDataManager.userCryptoList?
-	  .compactMap({ $0 })
-	  .first(where: { $0.staticData.marketName == self.reactor?.selectCrypto.market }),
-		  let totalPrice = self.totalPriceTextField.text,
-		  let doubleTotalPrice = Double(totalPrice.replacingOccurrences(
-			of: ",", with: ""
-		  ))
+	guard let totalPrice = self.totalPriceTextField.text,
+		  let doubleTotalPrice = Double(totalPrice.replacingOccurrences(of: ",", with: "")),
+		  let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
+		  let crypto = UserDataManager.userCryptoList?.compactMap({ $0 }).first(
+			where: { $0.staticData.marketName == self.reactor?.selectCrypto.market }
+		  )
 	else {
 	  self.callBack?(.alert(title: "알림", message: "매도 수량을 확인 해주세요."))
 	  return
 	}
 	
-	if inputAmount > 0, inputAmount <= crypto.staticData.holdingQuantity {
-	  UserDataManager.userAvailableBalance += crypto.dynamicData.evaluationPrice
-	  
-	  self.callBack?(.alert(title: "알림", message: "매도 되었습니다."))
-	  crypto.dynamicData
-	  UserDataManager.userCryptoList?.map {
-		  $0.staticData.marketName == self.reactor?.selectCrypto.market
+	var userCryptoList = UserDataManager.userCryptoList
+	var postStaticTransaction: CryptoTransactionDataModel.CryptoTransactionStaticData? = nil
+	var transactionIndex: Int = 0
+	
+	if let matchedIndex = userCryptoList?.compactMap({ $0 }).firstIndex(
+	  where: { $0.staticData.marketName == crypto.staticData.marketName }
+	) {
+	  postStaticTransaction = UserDataManager.userCryptoList?[matchedIndex].staticData
+	  transactionIndex = matchedIndex
+	}
+  
+	// 체결 내역은 말그대로 체결된 내역이 전부 보여야 한다.
+	// 매수 내역은 현재 가지고 있는 매매 기록에 대해서만 나와야한다.
+	if let postStaticTransaction = postStaticTransaction {
+	  if inputAmount > 0, inputAmount <= crypto.staticData.holdingQuantity {
+		let calcUtil = CalculationUtil(
+		  currentPrice: currentPrice.formatDigits(digits: 8),
+		  prevHoldingQuantity: postStaticTransaction.holdingQuantity,
+		  prevAverageBuyPrice: postStaticTransaction.averageBuyPrice,
+		  prevBuyAmount: postStaticTransaction.buyAmount,
+		  newHoldingQuantity: self.inputAmount
+		)
+		
+		let averageBuyPrice = calcUtil.calcAverBuyPrice()
+		let currentBuyAmount = calcUtil.calcBuyAmount()
+		let cumulBuyAmount = calcUtil.cumulCalcBuyAmount()
+		let holdingQuantity = calcUtil.calcHoldingQuantity()
+		
+		let formatter = DateFormatter()
+		formatter.dateFormat = "MM.dd HH:mm"
+		formatter.locale = Locale(identifier: "ko_KR") // 한국 시간 기준
+		let currentTime = Date()
+		let executedDate = formatter.string(from: currentTime)
+		
+		self.callBack?(.alert(title: "알림", message: "매도 되었습니다."))
+		let newTransaction: TransactionInfo = TransactionInfo(
+		  marketName: crypto.staticData.marketName,
+		  orderType: .ask,
+		  executedDate: executedDate,
+		  executedPrice: currentPrice,
+		  executedQuantity: self.inputAmount,
+		  executedAmount: currentPrice * self.inputAmount
+		)
+		
+		// 사용자 계좌 반영
+		UserDataManager.userAvailableBalance += crypto.dynamicData.evaluationProfitLoss
+		UserDataManager.userTransactionList?.append(newTransaction)
+		UserDataManager.userCryptoList?.remove(at: transactionIndex)
+		
+		self.callBack?(.updateHistory)
+		
+	  } else {
+		self.callBack?(.alert(title: "알림", message: "주문 가능 수량이 부족합니다."))
 	  }
-	  self.callBack?(.updateHistory)
-	} else {
-	  self.callBack?(.alert(title: "알림", message: "주문 가능 수량이 부족합니다."))
 	}
   }
   

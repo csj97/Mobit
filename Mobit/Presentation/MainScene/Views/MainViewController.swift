@@ -139,6 +139,25 @@ class MainViewController: UIViewController {
     self.setUpFlexItems()
     
     self.bind(reactor: self.reactor)
+	
+//	let userCryptoList = UserDataManager.userCryptoList ?? []
+//	
+//	userCryptoList.forEach { item in
+//	  let itemTransaction = item.staticData.transactionHistoryList
+//	  itemTransaction.forEach { transaction in
+//		let tempTransaction: TransactionInfo = TransactionInfo(
+//		  marketName: item.staticData.marketName,
+//		  executedDate: transaction.executedDate,
+//		  executedPrice: transaction.executedPrice,
+//		  executedQuantity: transaction.executedQuantity,
+//		  executedAmount: transaction.executedAmount
+//		)
+//		UserDataManager.userTransactionList?.append(tempTransaction)
+//	  }
+//	}
+	
+	guard let transactionHistory = UserDataManager.userTransactionList else { return }
+	print(transactionHistory)
   }
   
   override func viewDidLayoutSubviews() {
@@ -337,7 +356,11 @@ class MainViewController: UIViewController {
   }
   
   /// 특정 텍스트만 색상 변경
-  func setUniqueTextColor(preTitle: String, title: String, targetText: String) -> NSAttributedString {
+  func setUniqueTextColor(
+	preTitle: String,
+	title: String,
+	targetText: String
+  ) -> NSAttributedString {
     let attributedTitle = NSMutableAttributedString(string: title)
     
     // 맨 앞 title

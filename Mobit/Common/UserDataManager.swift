@@ -41,6 +41,26 @@ class UserDataManager: NSObject {
     }
   }
   
+  /// 거래내역만 저장
+  static var userTransactionList: [TransactionInfo]? {
+	get {
+	  let defaults = UserDefaults.standard
+	  if let data = defaults.data(forKey: "user-transaction-list") {
+		let decodedData = try? JSONDecoder().decode([TransactionInfo].self, from: data)
+		return decodedData
+	  }
+	  return []
+	}
+	set {
+	  let defaults = UserDefaults.standard
+	  if let encodedData = try? JSONEncoder().encode(newValue) {
+		defaults.set(encodedData, forKey: "user-transaction-list")
+	  } else {
+		defaults.removeObject(forKey: "user-transaction-list")
+	  }
+	}
+  }
+  
   /// 사용자가 매수한 코인 정보
   static var userCryptoList: [CryptoTransactionDataModel]? {
     get {

@@ -9,6 +9,7 @@ import UIKit
 
 class TradeHistoryTableViewCell: UITableViewCell {
   
+  @IBOutlet weak var orderTypeLabel: UILabel!	// 매수 or 매도
   @IBOutlet weak var tradeDate: UILabel!        // 거래일자
   @IBOutlet weak var marketName: UILabel!       // 마켓명
   @IBOutlet weak var tradeCryptoPrice: UILabel! //  체결가격
@@ -22,8 +23,15 @@ class TradeHistoryTableViewCell: UITableViewCell {
   
   func configure(
 	marketName: String,
-	transactionInfo: CryptoTransactionDataModel.CryptoTransactionStaticData.TransactionInfo
+	transactionInfo: TransactionInfo
   ) {
+	if transactionInfo.orderType == .ask {
+	  self.orderTypeLabel.text = "매도"
+	  self.orderTypeLabel.textColor = .mobitColors(.askDeepBlue)
+	} else {
+	  self.orderTypeLabel.text = "매수"
+	  self.orderTypeLabel.textColor = .mobitColors(.bidDeepRed)
+	}
 	self.tradeDate.text = transactionInfo.executedDate
 	self.marketName.text = marketName
 	self.tradeCryptoPrice.text = String(transactionInfo.executedPrice.formatSignificantDigits())

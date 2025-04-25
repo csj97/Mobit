@@ -18,7 +18,7 @@ struct OrderUnit: Hashable {
 }
 
 /// 매수, 매도 타입
-enum OrderType {
+enum OrderType: Codable, Equatable {
   case ask
   case bid
 }

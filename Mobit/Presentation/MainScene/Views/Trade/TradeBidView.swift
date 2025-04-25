@@ -128,12 +128,12 @@ class TradeBidView: UIView, ViewRule {
 	var newStaticTransaction: CryptoTransactionDataModel.CryptoTransactionStaticData? = nil
 	var postStaticTransaction: CryptoTransactionDataModel.CryptoTransactionStaticData? = nil
 	var newDynamicTransaction: CryptoTransactionDataModel.CryptoTransactionDynamicData? = nil
-	var transactionList: [CryptoTransactionDataModel.CryptoTransactionStaticData.TransactionInfo] = []
+	var transactionList: [TransactionInfo] = []
 	var transactionIndex: Int = 0
 	
 	if let matchedIndex = userCryptoList?.compactMap({ $0 })
 	  .firstIndex(where: { $0.staticData.marketName == marketName }) {
-	  transactionList = UserDataManager.userCryptoList?[matchedIndex].staticData.transactionHistoryList ?? []
+	  transactionList = UserDataManager.userTransactionList ?? []
 	  postStaticTransaction = UserDataManager.userCryptoList?[matchedIndex].staticData
 	  transactionIndex = matchedIndex
 	}
@@ -179,7 +179,9 @@ class TradeBidView: UIView, ViewRule {
 //		evaluationPrice: evaluationPrice
 //	  )
 	  
-	  let newTransactionInfo = CryptoTransactionDataModel.CryptoTransactionStaticData.TransactionInfo(
+	  let newTransactionInfo = TransactionInfo(
+		marketName: marketName,
+		orderType: .bid,
 		executedDate: executedDate,
 		executedPrice: currentPrice,
 		executedQuantity: self.inputAmount,
@@ -191,8 +193,7 @@ class TradeBidView: UIView, ViewRule {
 		marketName: marketName,
 		holdingQuantity: holdingQuantity,
 		averageBuyPrice: averageBuyPrice,
-		buyAmount: cumulBuyAmount,
-		transactionHistoryList: transactionList
+		buyAmount: cumulBuyAmount
 	  )
 	  
 	  guard let newStaticTransaction = newStaticTransaction else { return }
@@ -200,6 +201,7 @@ class TradeBidView: UIView, ViewRule {
 	  userCryptoList?[transactionIndex].staticData = newStaticTransaction
 //	  userCryptoList?[transactionIndex].dynamicData = newDynamicTransaction
 	  UserDataManager.userCryptoList = userCryptoList
+	  UserDataManager.userTransactionList = transactionList
 	  
 	  availableBalance = userBalance - newStaticTransaction.buyAmount
 	} else {
@@ -237,7 +239,9 @@ class TradeBidView: UIView, ViewRule {
 		evaluationPrice: evaluationPrice
 	  )
 	  
-	  let newTransactionInfo = CryptoTransactionDataModel.CryptoTransactionStaticData.TransactionInfo(
+	  let newTransactionInfo = TransactionInfo(
+		marketName: marketName,
+		orderType: .bid,
 		executedDate: executedDate,
 		executedPrice: currentPrice,
 		executedQuantity: self.inputAmount,
@@ -250,8 +254,7 @@ class TradeBidView: UIView, ViewRule {
 		marketName: marketName,
 		holdingQuantity: holdingQuantity,
 		averageBuyPrice: averageBuyPrice,
-		buyAmount: buyAmount,
-		transactionHistoryList: transactionList
+		buyAmount: buyAmount
 	  )
 	  
 	  guard let newStaticTransaction = newStaticTransaction,
@@ -264,6 +267,7 @@ class TradeBidView: UIView, ViewRule {
 		)
 	  )
 	  UserDataManager.userCryptoList = userCryptoList
+	  UserDataManager.userTransactionList = transactionList
 	  
 	  availableBalance = userBalance - newStaticTransaction.buyAmount
 	}
