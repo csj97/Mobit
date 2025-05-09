@@ -150,8 +150,7 @@ class TradeBidView: UIView, ViewRule {
 	  )
 	  
 	  let averageBuyPrice = calcUtil.calcAverBuyPrice()
-	  let currentBuyAmount = calcUtil.calcBuyAmount()
-	  let cumulBuyAmount = calcUtil.cumulCalcBuyAmount()
+	  let buyAmount = calcUtil.calcBuyAmount()
 	  let holdingQuantity = calcUtil.calcHoldingQuantity()
 	  
 //	  let profitRate = MarketDataServiceUtil.shared.fetchProfitRate(
@@ -185,7 +184,7 @@ class TradeBidView: UIView, ViewRule {
 		executedDate: executedDate,
 		executedPrice: currentPrice,
 		executedQuantity: self.inputAmount,
-		executedAmount: currentBuyAmount
+		executedAmount: currentPrice * self.inputAmount
 	  )
 	  transactionList.append(newTransactionInfo)
 	  
@@ -193,7 +192,7 @@ class TradeBidView: UIView, ViewRule {
 		marketName: marketName,
 		holdingQuantity: holdingQuantity,
 		averageBuyPrice: averageBuyPrice,
-		buyAmount: cumulBuyAmount
+		buyAmount: buyAmount
 	  )
 	  
 	  guard let newStaticTransaction = newStaticTransaction else { return }

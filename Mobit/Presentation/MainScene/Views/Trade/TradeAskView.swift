@@ -120,12 +120,14 @@ class TradeAskView: UIView, ViewRule {
 	
 	var userCryptoList = UserDataManager.userCryptoList
 	var postStaticTransaction: CryptoTransactionDataModel.CryptoTransactionStaticData? = nil
+	var postDynamicTransaction: CryptoTransactionDataModel.CryptoTransactionDynamicData? = nil
 	var transactionIndex: Int = 0
 	
 	if let matchedIndex = userCryptoList?.compactMap({ $0 }).firstIndex(
 	  where: { $0.staticData.marketName == crypto.staticData.marketName }
 	) {
 	  postStaticTransaction = UserDataManager.userCryptoList?[matchedIndex].staticData
+	  postDynamicTransaction = UserDataManager.userCryptoList?[matchedIndex].dynamicData
 	  transactionIndex = matchedIndex
 	}
   
@@ -133,19 +135,6 @@ class TradeAskView: UIView, ViewRule {
 	// 매수 내역은 현재 가지고 있는 매매 기록에 대해서만 나와야한다.
 	if let postStaticTransaction = postStaticTransaction {
 	  if inputAmount > 0, inputAmount <= crypto.staticData.holdingQuantity {
-		let calcUtil = CalculationUtil(
-		  currentPrice: currentPrice.formatDigits(digits: 8),
-		  prevHoldingQuantity: postStaticTransaction.holdingQuantity,
-		  prevAverageBuyPrice: postStaticTransaction.averageBuyPrice,
-		  prevBuyAmount: postStaticTransaction.buyAmount,
-		  newHoldingQuantity: self.inputAmount
-		)
-		
-		let averageBuyPrice = calcUtil.calcAverBuyPrice()
-		let currentBuyAmount = calcUtil.calcBuyAmount()
-		let cumulBuyAmount = calcUtil.cumulCalcBuyAmount()
-		let holdingQuantity = calcUtil.calcHoldingQuantity()
-		
 		let formatter = DateFormatter()
 		formatter.dateFormat = "MM.dd HH:mm"
 		formatter.locale = Locale(identifier: "ko_KR") // 한국 시간 기준
@@ -153,6 +142,7 @@ class TradeAskView: UIView, ViewRule {
 		let executedDate = formatter.string(from: currentTime)
 		
 		self.callBack?(.alert(title: "알림", message: "매도 되었습니다."))
+		
 		let newTransaction: TransactionInfo = TransactionInfo(
 		  marketName: crypto.staticData.marketName,
 		  orderType: .ask,
@@ -162,15 +152,36 @@ class TradeAskView: UIView, ViewRule {
 		  executedAmount: currentPrice * self.inputAmount
 		)
 		
-		// 사용자 계좌 반영
-		UserDataManager.userAvailableBalance += crypto.dynamicData.evaluationProfitLoss
+		print("팔기 전")
+		print(crypto.dynamicData.evaluationProfitLoss)
 		UserDataManager.userTransactionList?.append(newTransaction)
-		UserDataManager.userCryptoList?.remove(at: transactionIndex)
+		
+		if self.inputAmount < postStaticTransaction.holdingQuantity {
+		  let newHoldingQuantity = postStaticTransaction.holdingQuantity - self.inputAmount
+		  let newBuyAmount = postStaticTransaction.buyAmount - (currentPrice * self.inputAmount)
+		
+		  let newCryptoStaticData: CryptoTransactionDataModel.CryptoTransactionStaticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
+			marketName: crypto.staticData.marketName,
+			holdingQuantity: newHoldingQuantity,
+			averageBuyPrice: postStaticTransaction.averageBuyPrice,
+			buyAmount: newBuyAmount
+		  )
+		  
+		  UserDataManager.userCryptoList?[transactionIndex].staticData = newCryptoStaticData
+		  
+		  // 사용자 계좌 반영
+		  print("-----------매도 후-------------")
+		  print(crypto.dynamicData.evaluationProfitLoss)
+//		  UserDataManager.userAvailableBalance += crypto.dynamicData.evaluationProfitLoss
+		} else {
+		  // 전량 매도
+		  UserDataManager.userCryptoList?.remove(at: transactionIndex)
+		}
 		
 		self.callBack?(.updateHistory)
 		
 	  } else {
-		self.callBack?(.alert(title: "알림", message: "주문 가능 수량이 부족합니다."))
+		self.callBack?(.alert(title: "알림", message: "주문 수량을 재설정 해주세요."))
 	  }
 	}
   }
