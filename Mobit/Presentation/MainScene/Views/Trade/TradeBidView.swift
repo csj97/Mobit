@@ -222,13 +222,13 @@ class TradeBidView: UIView, ViewRule {
 	  let evaluationProfitLoss = MarketDataServiceUtil.shared.fetchEvalProfitLoss(
 		for: marketName,
 		currentPrice: currentPrice,
-		cumulHoldingQuantity: self.inputAmount,
+		holdingQuantity: self.inputAmount,
 		averageBuyPrice: averageBuyPrice
 	  )
 	  let evaluationPrice = MarketDataServiceUtil.shared.fetchEvalPrice(
 		for: marketName,
 		currentPrice: currentPrice,
-		cumulHoldingQuantity: holdingQuantity
+		holdingQuantity: holdingQuantity
 	  )
 	  
 	  newDynamicTransaction = CryptoTransactionDataModel.CryptoTransactionDynamicData(

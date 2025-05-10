@@ -118,7 +118,7 @@ class TradeAskView: UIView, ViewRule {
 	  return
 	}
 	
-	var userCryptoList = UserDataManager.userCryptoList
+	let userCryptoList = UserDataManager.userCryptoList
 	var postStaticTransaction: CryptoTransactionDataModel.CryptoTransactionStaticData? = nil
 	var postDynamicTransaction: CryptoTransactionDataModel.CryptoTransactionDynamicData? = nil
 	var transactionIndex: Int = 0
@@ -158,16 +158,20 @@ class TradeAskView: UIView, ViewRule {
 		
 		if self.inputAmount < postStaticTransaction.holdingQuantity {
 		  let newHoldingQuantity = postStaticTransaction.holdingQuantity - self.inputAmount
-		  let newBuyAmount = postStaticTransaction.buyAmount - (currentPrice * self.inputAmount)
+		  let newBuyAmount = newHoldingQuantity * postStaticTransaction.averageBuyPrice
 		
-		  let newCryptoStaticData: CryptoTransactionDataModel.CryptoTransactionStaticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
+		  let newCryptoStaticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
 			marketName: crypto.staticData.marketName,
 			holdingQuantity: newHoldingQuantity,
 			averageBuyPrice: postStaticTransaction.averageBuyPrice,
 			buyAmount: newBuyAmount
 		  )
 		  
-		  UserDataManager.userCryptoList?[transactionIndex].staticData = newCryptoStaticData
+		  // 매도 후, 보유하고 있는 코인 매매정보 업데이트
+		  MarketDataServiceUtil.shared.fetchData(
+			data: newCryptoStaticData,
+			currentPrice: currentPrice
+		  )
 		  
 		  // 사용자 계좌 반영
 		  print("-----------매도 후-------------")

@@ -246,7 +246,7 @@ class MainViewController: UIViewController {
 	  .firstIndex(where: { $0.staticData.marketName == marketName }),
 		  let currentPrice = currentPrice,
 		  let averageBuyPrice = UserDataManager.userCryptoList?[updateCryptoIndex].staticData.averageBuyPrice,
-		  let cumulHoldingQunatity = UserDataManager.userCryptoList?[updateCryptoIndex].staticData.holdingQuantity
+		  let holdingQuantity = UserDataManager.userCryptoList?[updateCryptoIndex].staticData.holdingQuantity
 	else { return }
 	
 	UserDataManager.userCryptoList?[updateCryptoIndex].dynamicData.profitRate = MarketDataServiceUtil.shared.fetchProfitRate(
@@ -257,12 +257,12 @@ class MainViewController: UIViewController {
 	UserDataManager.userCryptoList?[updateCryptoIndex].dynamicData.evaluationPrice = MarketDataServiceUtil.shared.fetchEvalPrice(
 	  for: marketName,
 	  currentPrice: currentPrice,
-	  cumulHoldingQuantity: cumulHoldingQunatity
+	  holdingQuantity: holdingQuantity
 	)
 	UserDataManager.userCryptoList?[updateCryptoIndex].dynamicData.evaluationProfitLoss = MarketDataServiceUtil.shared.fetchEvalProfitLoss(
 	  for: marketName,
 	  currentPrice: currentPrice,
-	  cumulHoldingQuantity: cumulHoldingQunatity,
+	  holdingQuantity: holdingQuantity,
 	  averageBuyPrice: averageBuyPrice
 	)
   }

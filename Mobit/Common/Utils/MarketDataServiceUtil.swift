@@ -12,6 +12,70 @@ class MarketDataServiceUtil {
   static let shared = MarketDataServiceUtil()
   var userCryptoList: [CryptoTransactionDataModel]? = UserDataManager.userCryptoList
   
+  func fetchData(data: CryptoTransactionDataModel.CryptoTransactionStaticData, currentPrice: Double) {
+	fetchAll(
+	  for: data.marketName,
+	  currentPrice: currentPrice,
+	  holdingQuantity: data.holdingQuantity,
+	  averageBuyPrice: data.averageBuyPrice,
+	  buyAmount: data.buyAmount
+	)
+  }
+  
+  func fetchAll(
+	for marketName: String,
+	currentPrice: Double,
+	holdingQuantity: Double,
+	averageBuyPrice: Double,
+	buyAmount: Double
+  ) {
+	// 매수금액 업데이트
+	fetchStaticData(
+	  for: marketName,
+	  averageBuyAmount: averageBuyPrice,
+	  holdingQuantity: holdingQuantity,
+	  buyAmount: buyAmount
+	)
+	// 수익률
+	let _ = fetchProfitRate(
+	  for: marketName,
+	  currentPrice: currentPrice,
+	  averageBuyPrice: averageBuyPrice
+	)
+	// 평가손익
+	let _ = fetchEvalProfitLoss(
+	  for: marketName,
+	  currentPrice: currentPrice,
+	  holdingQuantity: holdingQuantity,
+	  averageBuyPrice: averageBuyPrice
+	)
+	// 평가금액
+	let _ = fetchEvalPrice(
+	  for: marketName,
+	  currentPrice: currentPrice,
+	  holdingQuantity: holdingQuantity
+	)
+  }
+  
+  // 정적 데이터 업데이트 (평균매수가, 개수, 매수금액)
+  func fetchStaticData(
+	for marketName: String,
+	averageBuyAmount: Double,
+	holdingQuantity: Double,
+	buyAmount: Double
+  ) {
+	if var userCryptoList = userCryptoList,
+	   let index = userCryptoList.firstIndex(where: { $0.staticData.marketName == marketName }) {
+	  
+	  userCryptoList[index].staticData.averageBuyPrice = averageBuyAmount
+	  userCryptoList[index].staticData.holdingQuantity = holdingQuantity
+	  userCryptoList[index].staticData.buyAmount = buyAmount
+	  
+	  self.userCryptoList = userCryptoList
+	  UserDataManager.userCryptoList = userCryptoList
+	}
+  }
+  
   /// 수익률 계산
   /// 수익률 (%) = [(현재 가격 - 평균 매수가) ÷ 평균 매수가] × 100
   func fetchProfitRate(
@@ -25,7 +89,7 @@ class MarketDataServiceUtil {
 	let profitRate = (((currentPrice - averageBuyPrice) / averageBuyPrice) * 100).formatDigits(digits: 2)
 	
 	if var userCryptoList = userCryptoList,
-	   let index = userCryptoList.firstIndex(where: { $0.dynamicData.marketName == marketName }) {
+	   let index = userCryptoList.firstIndex(where: { $0.staticData.marketName == marketName }) {
 	  userCryptoList[index].dynamicData.profitRate = profitRate
 	  self.userCryptoList = userCryptoList
 	}
@@ -39,21 +103,21 @@ class MarketDataServiceUtil {
   func fetchEvalProfitLoss(
 	for marketName: String,
 	currentPrice: Double,
-	cumulHoldingQuantity: Double,
+	holdingQuantity: Double,
 	averageBuyPrice: Double,
 	tradingFee: Double = 0.05
   ) -> Double {
 	// 평가 금액
-	let evalPrice = (currentPrice * cumulHoldingQuantity).formatDigits(digits: 8)
+	let evalPrice = (currentPrice * holdingQuantity).formatDigits(digits: 8)
 	// 매수 금액
-	let averagePrice = (averageBuyPrice * cumulHoldingQuantity).formatDigits(digits: 8)
+	let averagePrice = (averageBuyPrice * holdingQuantity).formatDigits(digits: 8)
 	
 //	let newBuyAmount = floor(currentPrice * newHoldingQuantity).formatDigits(digits: 2)
-	let tradingFee = (tradingFee * (averageBuyPrice * cumulHoldingQuantity)).formatDigits(digits: 2)
+//	let tradingFee = (tradingFee * (averageBuyPrice * cumulHoldingQuantity)).formatDigits(digits: 2)
 //	let profitLoss = ((currentPrice - averageBuyPrice) * cumulHoldingQuantity)
 	let profitLoss = evalPrice - averagePrice
 	if var userCryptoList = userCryptoList,
-	   let index = userCryptoList.firstIndex(where: { $0.dynamicData.marketName == marketName }) {
+	   let index = userCryptoList.firstIndex(where: { $0.staticData.marketName == marketName }) {
 	  userCryptoList[index].dynamicData.evaluationProfitLoss = profitLoss
 	  self.userCryptoList = userCryptoList
 	}
@@ -66,17 +130,17 @@ class MarketDataServiceUtil {
   func fetchEvalPrice(
 	for marketName: String,
 	currentPrice: Double,
-	cumulHoldingQuantity: Double
+	holdingQuantity: Double
   ) -> Double {
 	// 보유 수량이 음수일 경우 방지
-	guard cumulHoldingQuantity >= 0 else {
+	guard holdingQuantity >= 0 else {
 	  return 0
 	}
 	
-	let evalPrice = (currentPrice * cumulHoldingQuantity).formatDigits(digits: 8)
+	let evalPrice = (currentPrice * holdingQuantity).formatDigits(digits: 8)
 	
 	if var userCryptoList = userCryptoList,
-	   let index = userCryptoList.firstIndex(where: { $0.dynamicData.marketName == marketName }) {
+	   let index = userCryptoList.firstIndex(where: { $0.staticData.marketName == marketName }) {
 	  userCryptoList[index].dynamicData.evaluationPrice = evalPrice
 	  self.userCryptoList = userCryptoList
 	}
