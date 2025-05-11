@@ -10,8 +10,7 @@ import Foundation
 /// 실시간 데이터 관리
 class MarketDataServiceUtil {
   static let shared = MarketDataServiceUtil()
-//  var userCryptoList: [CryptoTransactionDataModel]? = UserDataManager.userCryptoList
-  
+
   func fetchData(
 	data: CryptoTransactionDataModel.CryptoTransactionStaticData,
 	currentPrice: Double
@@ -25,7 +24,7 @@ class MarketDataServiceUtil {
 	)
   }
   
-  // 기존 매매내역이 없을 때, 추가
+  /// 기존 매매내역이 없을 때, 추가
   func addCryptoFirstData(
 	for marketName: String,
 	staticData: CryptoTransactionDataModel.CryptoTransactionStaticData,
@@ -65,7 +64,7 @@ class MarketDataServiceUtil {
 	UserDataManager.userCryptoList?.append(newCrypto)
   }
   
-  // Static & Dynamic Data Fetch
+  /// Static & Dynamic Data Fetch
   func fetchAll(
 	for marketName: String,
 	currentPrice: Double,
@@ -101,7 +100,7 @@ class MarketDataServiceUtil {
 	)
   }
   
-  // 정적 데이터 업데이트 (평균매수가, 개수, 매수금액)
+  /// 정적 데이터 업데이트 (평균매수가, 개수, 매수금액)
   func fetchStaticData(
 	for marketName: String,
 	averageBuyAmount: Double,
@@ -119,7 +118,7 @@ class MarketDataServiceUtil {
 	}
   }
   
-  // 거래내역 추가
+  /// 거래내역 추가
   func addTransactionData(
 	postTransactionList: [TransactionInfo]?,
 	data: TransactionInfo
@@ -130,7 +129,7 @@ class MarketDataServiceUtil {
 	UserDataManager.userTransactionList = newTransactionList
   }
   
-  // 매수&매도 시, 사용자 잔고 업데이트
+  /// 매수&매도 시, 사용자 잔고 업데이트
   func fetchUserAvailableBalance(
 	orderType: OrderType,
 	balance: Double,
@@ -146,7 +145,6 @@ class MarketDataServiceUtil {
 	  newBalance += newBuyAmount
 	}
 	
-//	UserDataManager.userAvailableBalance = newBalance
 	UserDataManager.userInformation = MobitUserInformation(
 	  userAvailableBalance: newBalance
 	)
