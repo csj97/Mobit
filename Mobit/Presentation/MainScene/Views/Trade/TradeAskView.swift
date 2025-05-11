@@ -151,9 +151,6 @@ class TradeAskView: UIView, ViewRule {
 		  executedQuantity: self.inputAmount,
 		  executedAmount: currentPrice * self.inputAmount
 		)
-		
-		print("팔기 전")
-		print(crypto.dynamicData.evaluationProfitLoss)
 		UserDataManager.userTransactionList?.append(newTransaction)
 		
 		if self.inputAmount < postStaticTransaction.holdingQuantity {
@@ -174,8 +171,6 @@ class TradeAskView: UIView, ViewRule {
 		  )
 		  
 		  // 사용자 계좌 반영
-		  print("-----------매도 후-------------")
-		  print(crypto.dynamicData.evaluationProfitLoss)
 //		  UserDataManager.userAvailableBalance += crypto.dynamicData.evaluationProfitLoss
 		} else {
 		  // 전량 매도

@@ -124,23 +124,18 @@ class TradeBidView: UIView, ViewRule {
 	let executedDate = formatter.string(from: currentTime)
 	
 	var availableBalance: Double = userBalance
-	var userCryptoList = UserDataManager.userCryptoList
-	var newStaticTransaction: CryptoTransactionDataModel.CryptoTransactionStaticData? = nil
 	var postStaticTransaction: CryptoTransactionDataModel.CryptoTransactionStaticData? = nil
-	var newDynamicTransaction: CryptoTransactionDataModel.CryptoTransactionDynamicData? = nil
-	var transactionList: [TransactionInfo] = []
-	var transactionIndex: Int = 0
 	
-	if let matchedIndex = userCryptoList?.compactMap({ $0 })
+	if let matchedIndex = UserDataManager.userCryptoList?.compactMap({ $0 })
 	  .firstIndex(where: { $0.staticData.marketName == marketName }) {
-	  transactionList = UserDataManager.userTransactionList ?? []
 	  postStaticTransaction = UserDataManager.userCryptoList?[matchedIndex].staticData
-	  transactionIndex = matchedIndex
 	}
 	
 	// 체결 내역은 말그대로 체결된 내역이 전부 보여야 한다.
 	// 매수 내역은 현재 가지고 있는 매매 기록에 대해서만 나와야한다.
 	if let postStaticTransaction = postStaticTransaction {
+	  
+	  // *****기존 매수 내역이 있는 상태*****
 	  let calcUtil = CalculationUtil(
 		currentPrice: currentPrice.formatDigits(digits: 8),
 		prevHoldingQuantity: postStaticTransaction.holdingQuantity,
@@ -149,35 +144,7 @@ class TradeBidView: UIView, ViewRule {
 		newHoldingQuantity: self.inputAmount
 	  )
 	  
-	  let averageBuyPrice = calcUtil.calcAverBuyPrice()
-	  let buyAmount = calcUtil.calcBuyAmount()
-	  let holdingQuantity = calcUtil.calcHoldingQuantity()
-	  
-//	  let profitRate = MarketDataServiceUtil.shared.fetchProfitRate(
-//		for: marketName,
-//		currentPrice: currentPrice,
-//		averageBuyPrice: averageBuyPrice
-//	  )
-//	  let evaluationProfitLoss = MarketDataServiceUtil.shared.fetchEvalProfitLoss(
-//		for: marketName,
-//		currentPrice: currentPrice,
-//		newHoldingQuantity: self.inputAmount,
-//		averageBuyPrice: averageBuyPrice,
-//		tradingFee: calcUtil.calcTradingFee(tradingPrice: currentPrice)	// tradingFee 평가손익에서 어떻게 처리할지 다시 생각해봐야할듯
-//	  )
-//	  let evaluationPrice = MarketDataServiceUtil.shared.fetchEvalPrice(
-//		for: marketName,
-//		currentPrice: currentPrice,
-//		cumulHoldingQuantity: holdingQuantity
-//	  )
-//	  
-//	  newDynamicTransaction = CryptoTransactionDataModel.CryptoTransactionDynamicData(
-//		marketName: marketName,
-//		profitRate: profitRate,
-//		evaluationProfitLoss: evaluationProfitLoss,
-//		evaluationPrice: evaluationPrice
-//	  )
-	  
+	  // 새 매수 거래내역
 	  let newTransactionInfo = TransactionInfo(
 		marketName: marketName,
 		orderType: .bid,
@@ -186,93 +153,88 @@ class TradeBidView: UIView, ViewRule {
 		executedQuantity: self.inputAmount,
 		executedAmount: currentPrice * self.inputAmount
 	  )
-	  transactionList.append(newTransactionInfo)
 	  
-	  newStaticTransaction = CryptoTransactionDataModel.CryptoTransactionStaticData(
+	  // 기존 매수 내역의 (평균매수가, 매수금액, 보유수량)
+	  let averageBuyPrice = calcUtil.calcAverBuyPrice()
+	  let buyAmount = calcUtil.calcBuyAmount()
+	  let holdingQuantity = calcUtil.calcHoldingQuantity()
+	  let newBuyAmount = floor(currentPrice * self.inputAmount)
+	  
+	  // 새 정적 데이터
+	  let newCryptoStaticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
 		marketName: marketName,
 		holdingQuantity: holdingQuantity,
 		averageBuyPrice: averageBuyPrice,
 		buyAmount: buyAmount
 	  )
 	  
-	  guard let newStaticTransaction = newStaticTransaction else { return }
-	  print("매수 업데이트 완료!!")
-	  userCryptoList?[transactionIndex].staticData = newStaticTransaction
-//	  userCryptoList?[transactionIndex].dynamicData = newDynamicTransaction
-	  UserDataManager.userCryptoList = userCryptoList
-	  UserDataManager.userTransactionList = transactionList
+	  // 새 매수 거래내역 추가
+	  MarketDataServiceUtil.shared.addTransactionData(
+		postTransactionList: UserDataManager.userTransactionList,
+		data: newTransactionInfo
+	  )
 	  
-	  availableBalance = userBalance - newStaticTransaction.buyAmount
+	  // 새 데이터 업데이트
+	  MarketDataServiceUtil.shared.fetchData(
+		data: newCryptoStaticData,
+		currentPrice: currentPrice
+	  )
+	  
+	  // 사용자 거래 가능 금액 업데이트
+	  MarketDataServiceUtil.shared.fetchUserAvailableBalance(
+		orderType: .bid,
+		balance: availableBalance,
+		newBuyAmount: newBuyAmount
+	  )
+	  
+	  availableBalance -= newBuyAmount
+	  
 	} else {
-	  
-	  let calcUtil = CalculationUtil(
-		currentPrice: currentPrice,
-		newHoldingQuantity: self.inputAmount
-	  )
-	  
-	  // 이전 매수 기록 없음
-	  let averageBuyPrice = calcUtil.calcAverBuyPrice()
-	  let buyAmount = calcUtil.calcBuyAmount()
-	  let holdingQuantity = calcUtil.calcHoldingQuantity()
-	  let profitRate = MarketDataServiceUtil.shared.fetchProfitRate(
-		for: marketName,
-		currentPrice: currentPrice,
-		averageBuyPrice: averageBuyPrice
-	  )
-	  let evaluationProfitLoss = MarketDataServiceUtil.shared.fetchEvalProfitLoss(
-		for: marketName,
-		currentPrice: currentPrice,
-		holdingQuantity: self.inputAmount,
-		averageBuyPrice: averageBuyPrice
-	  )
-	  let evaluationPrice = MarketDataServiceUtil.shared.fetchEvalPrice(
-		for: marketName,
-		currentPrice: currentPrice,
-		holdingQuantity: holdingQuantity
-	  )
-	  
-	  newDynamicTransaction = CryptoTransactionDataModel.CryptoTransactionDynamicData(
-		marketName: marketName,
-		profitRate: profitRate,
-		evaluationProfitLoss: evaluationProfitLoss,
-		evaluationPrice: evaluationPrice
-	  )
+	  // *****이전 매수 기록 없음*****
+	  let averageBuyPrice = currentPrice
+	  let buyAmount = floor(currentPrice * self.inputAmount)
+	  let holdingQuantity = self.inputAmount
 	  
 	  let newTransactionInfo = TransactionInfo(
 		marketName: marketName,
 		orderType: .bid,
 		executedDate: executedDate,
 		executedPrice: currentPrice,
-		executedQuantity: self.inputAmount,
+		executedQuantity: holdingQuantity,
 		executedAmount: buyAmount
 	  )
 	  
-	  transactionList.append(newTransactionInfo)
-	  
-	  newStaticTransaction = CryptoTransactionDataModel.CryptoTransactionStaticData(
+	  let newCryptoStaticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
 		marketName: marketName,
 		holdingQuantity: holdingQuantity,
 		averageBuyPrice: averageBuyPrice,
 		buyAmount: buyAmount
 	  )
 	  
-	  guard let newStaticTransaction = newStaticTransaction,
-			let newDynamicTransaction = newDynamicTransaction else { return }
-	  print("첫 매수 완료!!")
-	  userCryptoList?.append(
-		CryptoTransactionDataModel(
-		  staticData: newStaticTransaction,
-		  dynamicData: newDynamicTransaction
-		)
+	  // 새 거래내역 추가
+	  MarketDataServiceUtil.shared.addTransactionData(
+		postTransactionList: UserDataManager.userTransactionList,
+		data: newTransactionInfo
 	  )
-	  UserDataManager.userCryptoList = userCryptoList
-	  UserDataManager.userTransactionList = transactionList
 	  
-	  availableBalance = userBalance - newStaticTransaction.buyAmount
+	  // 이전 매매기록 없는 상황에서, 첫 데이터 등록
+	  MarketDataServiceUtil.shared.addCryptoFirstData(
+		for: marketName,
+		staticData: newCryptoStaticData,
+		currentPrice: currentPrice
+	  )
+	  
+	  // 사용자 거래 가능 금액 업데이트
+	  MarketDataServiceUtil.shared.fetchUserAvailableBalance(
+		orderType: .bid,
+		balance: availableBalance,
+		newBuyAmount: buyAmount
+	  )
+	  
+	  availableBalance -= buyAmount
 	}
 	
 	self.availableTradePrice.text = availableBalance.formatSignificantDigits()
-	updateUserInformation(availableBalance: availableBalance)
 	
 	completion()
   }
