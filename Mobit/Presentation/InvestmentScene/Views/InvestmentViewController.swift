@@ -99,7 +99,12 @@ extension InvestmentViewController: UITableViewDataSource, UITableViewDelegate {
   }
   
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-	
+	let userValidTransactionList = UserDataManager.userValidTransactionList
+	let selectedCrypto = self.cryptos[indexPath.row].staticData.marketName
+	let selectedValidTransaction = userValidTransactionList?.first { $0.marketName == selectedCrypto }
+	print("===========================")
+	print(selectedValidTransaction?.transaction)
+	print("===========================")
   }
 }
 

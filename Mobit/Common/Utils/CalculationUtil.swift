@@ -46,13 +46,20 @@ class CalculationUtil {
 //  }
   
   /// 평단가 계산: 매수 금액과 수량에 따라 평단가 계산
-  func calcAverBuyPrice() -> Double {
-	let totalCost = (prevAverageBuyPrice * prevHoldingQuantity) + (currentPrice * newHoldingQuantity)
-	let totalAmount = prevHoldingQuantity + newHoldingQuantity
+  func calcAverBuyPrice(for marketName: String) -> Double {
+	let userValidTransactionList = UserDataManager.userValidTransactionList
+	let validTransactionData = userValidTransactionList?.first { $0.marketName == marketName }
 	
-	guard totalAmount != 0 else { return 0 }  // 수량 0일 경우 방어
+	let averageBuyPrice = validTransactionData?.averageBuyPrice
 	
-	return totalCost / totalAmount
+	return averageBuyPrice ?? 0
+	
+//	let totalCost = (prevAverageBuyPrice * prevHoldingQuantity) + (currentPrice * newHoldingQuantity)
+//	let totalAmount = prevHoldingQuantity + newHoldingQuantity
+//	
+//	guard totalAmount != 0 else { return 0 } 	 // 수량 0일 경우 방어
+//	
+//	return totalCost / totalAmount
   }
   
   /// 매수 예정) 총 매수금액 계산

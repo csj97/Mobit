@@ -129,6 +129,39 @@ class MarketDataServiceUtil {
 	UserDataManager.userTransactionList = newTransactionList
   }
   
+  func addValidTransactionData(
+	for marketName: String,
+	orderType: OrderType,
+	postValidTransactionList: [ValidTransactionInfo]?,
+	newValidTransactionData: ValidTransactionInfo.Transaction
+  ) {
+	var validTransactionData = postValidTransactionList?.first { $0.marketName == marketName }
+	
+	if validTransactionData == nil {
+	  // 아직 유효한 매매 내역이 없는 상태
+	  if orderType == .bid {
+		let newValidTransaction = ValidTransactionInfo(
+		  marketName: marketName,
+		  transaction: [newValidTransactionData]
+		)
+		UserDataManager.userValidTransactionList?.append(newValidTransaction)
+	  } else {
+		// 유효한 이전 데이터가 없는 상태에선 매도할 수 없음
+	  }
+	} else {
+	  validTransactionData?.transaction.append(newValidTransactionData)
+	  guard let validTransactionData = validTransactionData else { return }
+	  
+	  if let index = UserDataManager.userValidTransactionList?.firstIndex(where: { $0.marketName == validTransactionData.marketName }) {
+		  // 이미 존재하는 marketName이면 해당 트랜잭션에 append
+		UserDataManager.userValidTransactionList?[index].transaction.append(contentsOf: validTransactionData.transaction)
+	  } else {
+		  // 없으면 새로 추가
+		  UserDataManager.userValidTransactionList?.append(validTransactionData)
+	  }
+	}
+  }
+  
   /// 매수&매도 시, 사용자 잔고 업데이트
   func fetchUserAvailableBalance(
 	orderType: OrderType,

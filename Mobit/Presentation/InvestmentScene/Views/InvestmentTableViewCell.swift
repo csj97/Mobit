@@ -16,7 +16,7 @@ class InvestmentTableViewCell: UITableViewCell {
   @IBOutlet weak var cryptoAveragePrice: UILabel!
   @IBOutlet weak var cryptoBuyPrice: UILabel!
   @IBOutlet weak var cryptoProfitRate: UILabel!
-    @IBOutlet weak var bgView: UIView!
+  @IBOutlet weak var bgView: UIView!
     
   override func awakeFromNib() {
 	super.awakeFromNib()

@@ -61,6 +61,26 @@ class UserDataManager: NSObject {
 	}
   }
   
+  /// 유효한 거래내역만 저장 (보유하고 있는 매수 & 매도 내역에 대해서만)
+  static var userValidTransactionList: [ValidTransactionInfo]? {
+	get {
+	  let defaults = UserDefaults.standard
+	  if let data = defaults.data(forKey: "user-valid-transaction-list") {
+		let decodedData = try? JSONDecoder().decode([ValidTransactionInfo].self, from: data)
+		return decodedData
+	  }
+	  return []
+	}
+	set {
+	  let defaults = UserDefaults.standard
+	  if let encodedData = try? JSONEncoder().encode(newValue) {
+		defaults.set(encodedData, forKey: "user-valid-transaction-list")
+	  } else {
+		defaults.removeObject(forKey: "user-valid-transaction-list")
+	  }
+	}
+  }
+  
   /// 사용자가 매수한 코인 정보
   static var userCryptoList: [CryptoTransactionDataModel]? {
     get {

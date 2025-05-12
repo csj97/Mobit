@@ -155,7 +155,7 @@ class TradeBidView: UIView, ViewRule {
 	  )
 	  
 	  // 기존 매수 내역의 (평균매수가, 매수금액, 보유수량)
-	  let averageBuyPrice = calcUtil.calcAverBuyPrice()
+	  let averageBuyPrice = calcUtil.calcAverBuyPrice(for: marketName)
 	  let buyAmount = calcUtil.calcBuyAmount()
 	  let holdingQuantity = calcUtil.calcHoldingQuantity()
 	  let newBuyAmount = floor(currentPrice * self.inputAmount)
@@ -166,6 +166,19 @@ class TradeBidView: UIView, ViewRule {
 		holdingQuantity: holdingQuantity,
 		averageBuyPrice: averageBuyPrice,
 		buyAmount: buyAmount
+	  )
+	  
+	  let newValidTransactionData = ValidTransactionInfo.Transaction(
+		orderType: .bid,
+		quantity: self.inputAmount,
+		buyPrice: currentPrice
+	  )
+	  
+	  MarketDataServiceUtil.shared.addValidTransactionData(
+		for: marketName,
+		orderType: .bid,
+		postValidTransactionList: UserDataManager.userValidTransactionList,
+		newValidTransactionData: newValidTransactionData
 	  )
 	  
 	  // 새 매수 거래내역 추가
@@ -209,6 +222,19 @@ class TradeBidView: UIView, ViewRule {
 		holdingQuantity: holdingQuantity,
 		averageBuyPrice: averageBuyPrice,
 		buyAmount: buyAmount
+	  )
+	  
+	  let newValidTransactionData = ValidTransactionInfo.Transaction(
+		orderType: .bid,
+		quantity: holdingQuantity,
+		buyPrice: currentPrice
+	  )
+	  
+	  MarketDataServiceUtil.shared.addValidTransactionData(
+		for: marketName,
+		orderType: .bid,
+		postValidTransactionList: UserDataManager.userValidTransactionList,
+		newValidTransactionData: newValidTransactionData
 	  )
 	  
 	  // 새 거래내역 추가
