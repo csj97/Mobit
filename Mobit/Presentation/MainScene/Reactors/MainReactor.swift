@@ -19,7 +19,8 @@ class MainReactor: Reactor {
   private let mainUseCase: MainUseCase
   private let disposeBag = DisposeBag()
   private var sortedCryptoPosition: [String: Int] = [:]
-  let socketManager: NewWebSocketManager = NewWebSocketManager()
+//  let socketManager: NewWebSocketManager = NewWebSocketManager()
+  var socketManager: NewWebSocketManager? = nil
   let initialState: MainReactorState = MainReactorState()
   
   init(mainUseCase: MainUseCase) {
@@ -102,7 +103,9 @@ extension MainReactor {
         
         var observableConcat: [Observable<MainMutation>] = []
 		
-		self.socketManager.connect()
+		self.socketManager = NewWebSocketManager()
+		guard let socketManager = self.socketManager else { return Observable.empty() }
+		socketManager.connect()
 		
         switch selectedTab {
         case .krw:
@@ -337,14 +340,20 @@ extension MainReactor {
     
     let socketObservable = Observable<MainMutation>.create { observer in
       
-	  self.socketManager.onConnected = {
-		self.socketManager.sendMessage(
+	  guard let socketManager = self.socketManager else {
+		return Disposables.create {
+		  self.socketManager?.disconnect()
+		}
+	  }
+	  
+	  socketManager.onConnected = {
+		socketManager.sendMessage(
 		  codes: cryptoJoined,
 		  socketType: .ticker
 		)
 	  }
       
-      self.socketManager.tickerDataSubject
+      socketManager.tickerDataSubject
         .observe(on: MainScheduler.instance)
         .subscribe { [weak self] data in
           guard let self = self else { return }
@@ -397,7 +406,7 @@ extension MainReactor {
         }.disposed(by: self.disposeBag)
       
       return Disposables.create {
-        self.socketManager.disconnect()
+        socketManager.disconnect()
       }
     }
     
@@ -406,8 +415,10 @@ extension MainReactor {
   
   /// SocketManager Disconnect
   private func disconnectSocket() -> Observable<MainMutation> {
-    self.socketManager.disconnect()
-    return .empty() 
+	guard let socketManager = self.socketManager else { return .empty() }
+    socketManager.disconnect()
+	self.socketManager = nil
+    return .empty()
   }
   
   /// Sort Type Setting

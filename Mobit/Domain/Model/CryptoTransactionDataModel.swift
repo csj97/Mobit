@@ -40,8 +40,6 @@ struct TransactionInfo: Codable, Equatable {
 /// 유효한 거래내역 (현재 보유하고 있는 건에 대한 매수 내역, 총보유수량이 0이 되면 해당 코인 내역 통으로 날림)
 struct ValidTransactionInfo: Codable, Equatable {
   let marketName: String
-//  var validTotalHoldingQuantity: Double
-//  var validAverageBuyPrice: Double
   var transaction: [Transaction]
   
   // 매수 & 매도 +- 계산해서 토탈 0이 되면 통으로 삭제

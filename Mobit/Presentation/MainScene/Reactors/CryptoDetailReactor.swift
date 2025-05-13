@@ -17,8 +17,10 @@ class CryptoDetailReactor: Reactor {
   private let disposeBag = DisposeBag()
   
   let initialState: CryptoDetailState = CryptoDetailState()
-  let tickerSocketManager: NewWebSocketManager = NewWebSocketManager(socketType: .ticker)
-  let orderBookSocketManager: NewWebSocketManager = NewWebSocketManager(socketType: .orderbook)
+//  let tickerSocketManager: NewWebSocketManager = NewWebSocketManager(socketType: .ticker)
+//  let orderBookSocketManager: NewWebSocketManager = NewWebSocketManager(socketType: .orderbook)
+  let tickerSocketManager: NewWebSocketManager? = nil
+  let orderBookSocketManager: NewWebSocketManager? = nil
   
   init(
     selectCrypto: CryptoCellInfo,
@@ -113,6 +115,7 @@ extension CryptoDetailReactor {
       
       return Disposables.create {
         self.tickerSocketManager.disconnect()
+		self.tickerSocketManager = nil
       }
     }
     

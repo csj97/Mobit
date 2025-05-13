@@ -66,12 +66,13 @@ extension InvestmentViewController: View {
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] cryptos in
 		guard let self else { return }
-
+		
 		if self.isScrolling {
-			self.pendingUpdate = cryptos
+		  self.pendingUpdate = cryptos
 		} else {
-			self.cryptos = cryptos
-			self.transactionTableview.reloadData()
+		  self.pendingUpdate = nil
+		  self.cryptos = cryptos
+		  self.transactionTableview.reloadData()
 		}
 	  })
 	  .disposed(by: self.disposeBag)
@@ -101,9 +102,9 @@ extension InvestmentViewController: UITableViewDataSource, UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 	let userValidTransactionList = UserDataManager.userValidTransactionList
 	let selectedCrypto = self.cryptos[indexPath.row].staticData.marketName
-	let selectedValidTransaction = userValidTransactionList?.first { $0.marketName == selectedCrypto }
+	let selectedValidTransaction = userValidTransactionList?.filter { $0.marketName == selectedCrypto }
 	print("===========================")
-	print(selectedValidTransaction?.transaction)
+	print(selectedValidTransaction)
 	print("===========================")
   }
 }

@@ -11,6 +11,7 @@ enum ErrorType: Error {
   case badRequest
   case unknownError
   case dataMappingError
+  case socketError
 }
 
 extension ErrorType: LocalizedError {
