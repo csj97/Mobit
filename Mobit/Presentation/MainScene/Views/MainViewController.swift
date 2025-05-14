@@ -66,16 +66,16 @@ class MainViewController: UIViewController {
     $0.tag = 0
   }
   // BTC 버튼
-  let btcButton: UIButton = UIButton().then {
-    $0.setTitle("BTC", for: .normal)
-    $0.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
-    $0.setTitleColor(.black, for: .normal)
-    $0.setTitleColor(.blue, for: .selected)
-    $0.tag = 1
-  }
+//  let btcButton: UIButton = UIButton().then {
+//    $0.setTitle("BTC", for: .normal)
+//    $0.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
+//    $0.setTitleColor(.black, for: .normal)
+//    $0.setTitleColor(.blue, for: .selected)
+//    $0.tag = 1
+//  }
   // 관심 버튼
   let favoriteButton: UIButton = UIButton().then {
-    $0.setTitle("관심", for: .normal)
+    $0.setTitle("즐겨찾기", for: .normal)
     $0.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
     $0.setTitleColor(.black, for: .normal)
     $0.setTitleColor(.blue, for: .selected)
@@ -172,7 +172,7 @@ class MainViewController: UIViewController {
     self.view.addSubview(self.rootContainer)
     self.rootContainer.addSubview(self.searchBar)
     self.rootContainer.addSubview(self.krwButton)
-    self.rootContainer.addSubview(self.btcButton)
+//    self.rootContainer.addSubview(self.btcButton)
     self.rootContainer.addSubview(self.favoriteButton)
     self.rootContainer.addSubview(self.currentPriceButton)
     self.rootContainer.addSubview(self.previousDayButton)
@@ -322,9 +322,9 @@ class MainViewController: UIViewController {
     self.krwButton.addTarget(
       self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside
     )
-    self.btcButton.addTarget(
-      self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside
-    )
+//    self.btcButton.addTarget(
+//      self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside
+//    )
     self.favoriteButton.addTarget(
       self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside
     )
@@ -333,20 +333,22 @@ class MainViewController: UIViewController {
   @objc private func tapOnTabButton(_ sender: UIButton) {
     // 모든 버튼의 선택 상태를 해제
     self.krwButton.isSelected = false
-    self.btcButton.isSelected = false
+//    self.btcButton.isSelected = false
     self.favoriteButton.isSelected = false
     
     sender.isSelected = true
     
+	if sender.tag == self.selectedTab.rawValue { return }
+	
     switch sender.tag {
     case 0:
       self.selectedTab = .krw
       self.reactor.action.onNext(.loadCrypto(selectedTab: .krw))
       self.applySnapshot(cellInfos: reactor.currentState.cryptoCellInfo)
-    case 1:
-      self.selectedTab = .btc
-      self.reactor.action.onNext(.loadCrypto(selectedTab: .btc))
-      self.applySnapshot(cellInfos: reactor.currentState.cryptoCellInfo)
+//    case 1:
+//      self.selectedTab = .btc
+//      self.reactor.action.onNext(.loadCrypto(selectedTab: .btc))
+//      self.applySnapshot(cellInfos: reactor.currentState.cryptoCellInfo)
     case 2:
       self.selectedTab = .favorite
       self.applySnapshot(cellInfos: [])
@@ -408,8 +410,9 @@ class MainViewController: UIViewController {
         // KRW, BTC, 관심
         flex.addItem().direction(.row).define { flex in
           flex.addItem(self.krwButton).width(25%)
-          flex.addItem(self.btcButton).width(25%)
+//          flex.addItem(self.btcButton).width(25%)
           flex.addItem(self.favoriteButton).width(25%)
+		  flex.addItem(UIView()).width(25%)
         }.height(40)
         flex.addItem(DividerLineView()).height(1)
         flex.addItem().direction(.row).justifyContent(.end).define { flex in

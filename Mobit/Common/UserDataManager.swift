@@ -41,6 +41,20 @@ class UserDataManager: NSObject {
     }
   }
   
+  /// 사용자 즐겨찾기 (marketName을 String 배열로 저장)
+  static var userFavoriteList: [String] {
+	get {
+	  let defaults = UserDefaults.standard
+	  if let data = defaults.stringArray(forKey: "user-favorite-list") {
+		return data
+	  }
+	  return []
+	}
+	set {
+	  UserDefaults.standard.set(newValue, forKey: "user-favorite-list")
+	}
+  }
+  
   /// 거래내역만 저장
   static var userTransactionList: [TransactionInfo]? {
 	get {
@@ -55,8 +69,6 @@ class UserDataManager: NSObject {
 	  let defaults = UserDefaults.standard
 	  if let encodedData = try? JSONEncoder().encode(newValue) {
 		defaults.set(encodedData, forKey: "user-transaction-list")
-	  } else {
-		defaults.removeObject(forKey: "user-transaction-list")
 	  }
 	}
   }
@@ -75,8 +87,6 @@ class UserDataManager: NSObject {
 	  let defaults = UserDefaults.standard
 	  if let encodedData = try? JSONEncoder().encode(newValue) {
 		defaults.set(encodedData, forKey: "user-valid-transaction-list")
-	  } else {
-		defaults.removeObject(forKey: "user-valid-transaction-list")
 	  }
 	}
   }
@@ -95,8 +105,6 @@ class UserDataManager: NSObject {
 	  let defaults = UserDefaults.standard
 	  if let encodedData = try? JSONEncoder().encode(newValue) {
 		defaults.set(encodedData, forKey: "user-crypto-list")
-	  } else {
-		defaults.removeObject(forKey: "user-crypto-list")
 	  }
 	  userCryptoListSubject.onNext(newValue)
     }
@@ -115,8 +123,6 @@ class UserDataManager: NSObject {
       let defaults = UserDefaults.standard
       if let encodedData = try? JSONEncoder().encode(newValue) {
         defaults.set(encodedData, forKey: "user-information")
-      } else {
-        defaults.removeObject(forKey: "user-information")
       }
     }
   }
@@ -136,32 +142,7 @@ class UserDataManager: NSObject {
 	  let defaults = UserDefaults.standard
 	  if let encodedData = try? JSONEncoder().encode(newValue) {
 		defaults.set(encodedData, forKey: "mobit-crypto-bid-transaction")
-	  } else {
-		defaults.removeObject(forKey: "mobit-crypto-bid-transaction")
 	  }
 	}
   }
-  
-  /// 매도한 코인 목록
-//  static var askCryptoList: [CryptoTransaction?] {
-//	get {
-//	  let defaults = UserDefaults.standard
-//	  if let data = defaults.data(forKey: "mobit-crypto-ask-transaction") {
-//		// TODO: 이미 같은 코인 매도 히스토리가 있다면, 평균 금액을 산정해서 업데이트 필요
-//		let decodedData = try? JSONDecoder().decode([CryptoTransaction?].self, from: data)
-//		return decodedData ?? []
-//	  }
-//	  return []
-//	}
-//	set {
-//	  let defaults = UserDefaults.standard
-//	  if let encodedData = try? JSONEncoder().encode(newValue) {
-//		defaults.set(encodedData, forKey: "mobit-crypto-ask-transaction")
-//	  } else {
-//		defaults.removeObject(forKey: "mobit-crypto-ask-transaction")
-//	  }
-//	}
-//  }
-  
-  // TODO: 매도를 하고 나면, bidCryptoList에서 제거하고 History에 따로 담기 (최종 투자 내역)
 }

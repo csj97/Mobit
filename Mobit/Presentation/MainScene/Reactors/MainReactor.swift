@@ -11,8 +11,9 @@ import RxSwift
 import ReactorKit
 import RxRelay
 
-enum SelectedTab {
-  case krw, btc, favorite
+enum SelectedTab: Int {
+//  case krw, btc, favorite
+  case krw, favorite
 }
 
 class MainReactor: Reactor {
@@ -122,19 +123,19 @@ extension MainReactor {
           )
           observableConcat = [setKRWCryptoMutation, tickerObservable]
           
-        case .btc:
-          let btcCryptoList = cryptoList.filter { $0.market.contains("BTC-") }
-          let btcMarkets = btcCryptoList.map { $0.market }
-
-          let setBTCCryptoMutation = Observable.just(
-            MainMutation.setTabCryptoList(cryptoList: btcCryptoList)
-          )
-          let tickerObservable = self.loadTicker(
-            selectedTab: selectedTab,
-            cryptoList: btcCryptoList,
-            markets: btcMarkets
-          )
-          observableConcat = [setBTCCryptoMutation, tickerObservable]
+//        case .btc:
+//          let btcCryptoList = cryptoList.filter { $0.market.contains("BTC-") }
+//          let btcMarkets = btcCryptoList.map { $0.market }
+//
+//          let setBTCCryptoMutation = Observable.just(
+//            MainMutation.setTabCryptoList(cryptoList: btcCryptoList)
+//          )
+//          let tickerObservable = self.loadTicker(
+//            selectedTab: selectedTab,
+//            cryptoList: btcCryptoList,
+//            markets: btcMarkets
+//          )
+//          observableConcat = [setBTCCryptoMutation, tickerObservable]
           
         case .favorite:
           break
@@ -231,8 +232,8 @@ extension MainReactor {
     case .krw:
       filteredCryptoList = cryptoList.filter { $0.market.contains("KRW-") }
       
-    case .btc:
-      filteredCryptoList = cryptoList.filter { $0.market.contains("BTC-") }
+//    case .btc:
+//      filteredCryptoList = cryptoList.filter { $0.market.contains("BTC-") }
       
     case .favorite:
       break
@@ -281,8 +282,8 @@ extension MainReactor {
     case .krw:
       filteredCryptoList = cryptoList.filter { $0.market.contains("KRW-") }
       
-    case .btc:
-      filteredCryptoList = cryptoList.filter { $0.market.contains("BTC-") }
+//    case .btc:
+//      filteredCryptoList = cryptoList.filter { $0.market.contains("BTC-") }
       
     case .favorite:
       break

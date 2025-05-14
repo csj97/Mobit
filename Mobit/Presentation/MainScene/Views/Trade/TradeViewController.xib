@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="22505" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22504"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -16,6 +16,7 @@
                 <outlet property="cryptoMarketName" destination="Xb2-df-6RC" id="mgk-UI-kCz"/>
                 <outlet property="cryptoPrice" destination="YAR-Rz-3PG" id="nZm-Ew-rxb"/>
                 <outlet property="cryptoUpDownArrowImageView" destination="BzX-h7-aIN" id="zWc-MI-LFQ"/>
+                <outlet property="favoriteButton" destination="EI6-Qj-2rT" id="MdS-sQ-AI4"/>
                 <outlet property="informationView" destination="Aly-Ii-uTJ" id="meB-T2-t6u"/>
                 <outlet property="segmentedContainerView" destination="om4-Hj-cJa" id="7MX-53-aZo"/>
                 <outlet property="segmentedControl" destination="FD0-zH-lWO" id="YeN-kZ-msO"/>
@@ -60,6 +61,9 @@
                             <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                             <state key="normal" image="star" catalog="system"/>
+                            <connections>
+                                <action selector="tapOnFavoriteButton:" destination="-1" eventType="touchUpInside" id="iP5-Zd-dTs"/>
+                            </connections>
                         </button>
                     </subviews>
                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>

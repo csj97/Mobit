@@ -30,6 +30,7 @@ class TradeViewController: UIViewController, ViewRule {
   @IBOutlet weak var cryptoChangedRate: UILabel!
   @IBOutlet weak var cryptoChangedPrice: UILabel!
   @IBOutlet weak var cryptoUpDownArrowImageView: UIImageView!
+  @IBOutlet weak var favoriteButton: UIButton!
   @IBOutlet weak var segmentedControl: MobitSegmentedControl!
   @IBOutlet weak var segmentedContainerView: UIView!
   @IBOutlet weak var informationView: UIView!
@@ -74,6 +75,7 @@ class TradeViewController: UIViewController, ViewRule {
   }
   
   func setUI() {
+	setFavoriteButton()
 	orderView = TradeOrderView.instanceFromNib(
 	  reactor: self.reactor
 	) { [weak self] orderResult in
@@ -175,6 +177,17 @@ class TradeViewController: UIViewController, ViewRule {
   func setData() {
   }
   
+  func setFavoriteButton() {
+	let emptyStar = UIImage(systemName: "star")
+	let fillStar = UIImage(systemName: "star.fill")?.withTintColor(.systemYellow)
+	let isFavorite = UserDataManager.userFavoriteList.contains(
+	  where: { $0 == self.reactor.selectCrypto.market }
+	)
+	let starImage = isFavorite ? fillStar : emptyStar
+	
+	self.favoriteButton.setImage(starImage, for: .normal)
+  }
+  
   @IBAction func tapOnSegmentedControl(_ sender: UISegmentedControl) {
 	switch sender.selectedSegmentIndex {
 	case 0:
@@ -193,6 +206,21 @@ class TradeViewController: UIViewController, ViewRule {
 	default:
 	  break
 	}
+  }
+  
+  @IBAction func tapOnFavoriteButton(_ sender: UIButton) {
+	let isFavorite = UserDataManager.userFavoriteList.contains(
+	  where: { $0 == self.reactor.selectCrypto.market }
+	)
+	
+	if !isFavorite {
+	  UserDataManager.userFavoriteList.append(self.reactor.selectCrypto.market)
+	} else {
+	  UserDataManager.userFavoriteList.removeAll(
+		where: { $0 == self.reactor.selectCrypto.market }
+	  )
+	}
+	setFavoriteButton()
   }
   
   @IBAction func tapOnNavigationBack(_ sender: UIButton) {
