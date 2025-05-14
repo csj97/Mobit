@@ -61,11 +61,13 @@ class NewWebSocketManager: WebSocketDelegate {
   func disconnect(manual: Bool = false) {
 	guard socket != nil else { return }
 	isManuallyDisconnected = manual
+	print("Disconnecting...")
     socket.disconnect()
   }
   
   func reconnectIfNeeded() {
 	guard !isManuallyDisconnected else { return }
+	print("ReConnecting...")
 	self.connect()
   }
   

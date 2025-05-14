@@ -197,8 +197,17 @@ class TradeViewController: UIViewController, ViewRule {
   
   @IBAction func tapOnNavigationBack(_ sender: UIButton) {
 	self.coordinator?.navigationController.popViewController(animated: true)
-	self.reactor.tickerSocketManager.disconnect()
-	self.reactor.orderBookSocketManager.disconnect()
+	
+	guard let tickerSocketManager = reactor.tickerSocketManager,
+		  let orderbookSocketManager = reactor.orderBookSocketManager
+	else {
+	  reactor.tickerSocketManager = nil
+	  reactor.orderBookSocketManager = nil
+	  return
+	}
+	
+	tickerSocketManager.disconnect()
+	orderbookSocketManager.disconnect()
   }
   
   /// price format
@@ -231,5 +240,30 @@ extension TradeViewController {
 		self.setCrypto(crypto: cellInfo)
 	  })
 	  .disposed(by: self.disposeBag)
+  }
+}
+
+// MARK: - WebSocket Pause & Resume
+extension TradeViewController: SocketControllable {
+  func pauseSocket() {
+	guard let tickerSocketManager = self.reactor.tickerSocketManager,
+		  let orderBookSocketManager = self.reactor.orderBookSocketManager
+	else { return }
+	
+	tickerSocketManager.disconnect(manual: false)
+	orderBookSocketManager.disconnect(manual: false)
+  }
+  
+  func resumeSocket() {
+	guard let tickerSocketManager = self.reactor.tickerSocketManager,
+		  let orderBookSocketManager = self.reactor.orderBookSocketManager
+	else {
+	  self.reactor.action.onNext(.connectTickerSocket)
+	  self.reactor.action.onNext(.connectOrderBookSocket)
+	  return
+	}
+	
+	tickerSocketManager.reconnectIfNeeded()
+	orderBookSocketManager.reconnectIfNeeded()
   }
 }

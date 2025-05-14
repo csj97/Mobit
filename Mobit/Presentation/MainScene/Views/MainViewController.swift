@@ -500,10 +500,18 @@ extension MainViewController: UISearchBarDelegate {
 // MARK: - WebSocket Pause & Resume
 extension MainViewController: SocketControllable {
   func pauseSocket() {
-	self.reactor.socketManager.disconnect(manual: false)
+	guard let socketManager = self.reactor?.socketManager else { return }
+	
+	socketManager.disconnect(manual: false)
   }
   
   func resumeSocket() {
-	self.reactor.socketManager.reconnectIfNeeded()
+	guard let socketManager = self.reactor?.socketManager
+	else {
+	  self.reactor.action.onNext(.loadCrypto(selectedTab: self.selectedTab))
+	  return
+	}
+	
+	socketManager.reconnectIfNeeded()
   }
 }

@@ -19,8 +19,8 @@ class CryptoDetailReactor: Reactor {
   let initialState: CryptoDetailState = CryptoDetailState()
 //  let tickerSocketManager: NewWebSocketManager = NewWebSocketManager(socketType: .ticker)
 //  let orderBookSocketManager: NewWebSocketManager = NewWebSocketManager(socketType: .orderbook)
-  let tickerSocketManager: NewWebSocketManager? = nil
-  let orderBookSocketManager: NewWebSocketManager? = nil
+  var tickerSocketManager: NewWebSocketManager? = nil
+  var orderBookSocketManager: NewWebSocketManager? = nil
   
   init(
     selectCrypto: CryptoCellInfo,
@@ -79,15 +79,23 @@ extension CryptoDetailReactor {
   private func connectTickerSocket(crypto: CryptoCellInfo) -> Observable<CryptoDetailMutation> {
     
     let socketObservable = Observable<CryptoDetailMutation>.create { observer in
-      self.tickerSocketManager.connect()
-	  self.tickerSocketManager.onConnected = {
-        self.tickerSocketManager.sendMessage(
+	  
+	  self.tickerSocketManager = NewWebSocketManager(socketType: .ticker)
+	  guard let tickerSocketManager = self.tickerSocketManager else {
+		return Disposables.create {
+		  self.tickerSocketManager?.disconnect()
+		  self.tickerSocketManager = nil
+		}
+	  }
+	  tickerSocketManager.connect()
+	  tickerSocketManager.onConnected = {
+		tickerSocketManager.sendMessage(
           codes: [self.transformMarketForm(market: crypto.market)],
           socketType: .ticker
         )
       }
       
-      self.tickerSocketManager.observeReceivedData()
+	  tickerSocketManager.observeReceivedData()
         .observe(on: MainScheduler.instance)
         .subscribe { [weak self] data in
           guard let self = self else { return }
@@ -114,7 +122,7 @@ extension CryptoDetailReactor {
         }.disposed(by: self.disposeBag)
       
       return Disposables.create {
-        self.tickerSocketManager.disconnect()
+        self.tickerSocketManager?.disconnect()
 		self.tickerSocketManager = nil
       }
     }
@@ -125,9 +133,19 @@ extension CryptoDetailReactor {
   // 호가창 WebSocket 통신
   private func connectOrderBookTicker(crypto: CryptoCellInfo) -> Observable<CryptoDetailMutation> {
     let socketObservable = Observable<CryptoDetailMutation>.create { observer in
-      self.orderBookSocketManager.connect()
-	  self.orderBookSocketManager.onConnected = {
-        self.orderBookSocketManager.sendMessage(
+	  
+	  self.orderBookSocketManager = NewWebSocketManager(socketType: .orderbook)
+	  
+	  guard let orderBookSocketManager = self.orderBookSocketManager else {
+		return Disposables.create {
+		  self.orderBookSocketManager?.disconnect()
+		  self.orderBookSocketManager = nil
+		}
+	  }
+	  
+      orderBookSocketManager.connect()
+	  orderBookSocketManager.onConnected = {
+        orderBookSocketManager.sendMessage(
           codes: [
             self.transformMarketForm(
               market: self.selectCrypto.market
@@ -137,7 +155,7 @@ extension CryptoDetailReactor {
         )
       }
       
-      self.orderBookSocketManager.observeReceivedData()
+      orderBookSocketManager.observeReceivedData()
         .observe(on: MainScheduler.instance)
 		.subscribe { [weak self] data in
 		  guard let self = self else { return }
@@ -157,7 +175,8 @@ extension CryptoDetailReactor {
         }.disposed(by: self.disposeBag)
       
       return Disposables.create {
-        self.orderBookSocketManager.disconnect()
+        self.orderBookSocketManager?.disconnect()
+		self.orderBookSocketManager = nil
       }
     }
     

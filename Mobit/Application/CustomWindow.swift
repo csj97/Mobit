@@ -40,19 +40,57 @@ class CustomWindow: UIWindow {
   
   // 앱이 Foreground로 돌아올 때
   @objc private func appDidBecomeActive() {
-	getVisibleController()?.resumeSocket()
+	DispatchQueue.main.async {
+	  guard let controllable = self.getSocketControllableController() else { return }
+	  controllable.resumeSocket()
+	}
+//	getVisibleController()?.resumeSocket()
   }
   
   // 앱이 백그라운드로 전환될 때
   @objc private func appWillResignActive() {
-	getVisibleController()?.pauseSocket()
+	DispatchQueue.main.async {
+	  guard let controllable = self.getSocketControllableController() else { return }
+	  controllable.pauseSocket()
+	}
+//	getVisibleController()?.pauseSocket()
   }
   
-  private func getVisibleController() -> SocketControllable? {
-	var vc = rootViewController
-	while let presented = vc?.presentedViewController {
-	  vc = presented
+//  private func getVisibleController() -> SocketControllable? {
+//	guard let rootVC = UIApplication.shared.connectedScenes
+//		.compactMap({ $0 as? UIWindowScene })
+//		.flatMap({ $0.windows })
+//		.first(where: { $0.isKeyWindow })?.rootViewController else {
+//		return nil
+//	}
+//
+//	var vc: UIViewController? = rootVC
+//	while let presented = vc?.presentedViewController {
+//	  vc = presented
+//	}
+//	return vc as? SocketControllable
+//  }
+  private func getVisibleController(from vc: UIViewController?) -> UIViewController? {
+	if let nav = vc as? UINavigationController {
+	  return getVisibleController(from: nav.visibleViewController)
+	} else if let tab = vc as? UITabBarController {
+	  return getVisibleController(from: tab.selectedViewController)
+	} else if let presented = vc?.presentedViewController {
+	  return getVisibleController(from: presented)
+	} else {
+	  return vc
 	}
-	return vc as? SocketControllable
+  }
+  
+  private func getSocketControllableController() -> SocketControllable? {
+	  guard let rootVC = UIApplication.shared.connectedScenes
+		  .compactMap({ $0 as? UIWindowScene })
+		  .flatMap({ $0.windows })
+		  .first(where: { $0.isKeyWindow })?.rootViewController else {
+		  return nil
+	  }
+
+	  let visibleVC = getVisibleController(from: rootVC)
+	  return visibleVC as? SocketControllable
   }
 }

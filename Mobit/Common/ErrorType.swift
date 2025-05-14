@@ -23,6 +23,8 @@ extension ErrorType: LocalizedError {
       return "Data의 맵핑이 잘못됐습니다."
     case .unknownError:
       return "알 수 없는 오류가 발생하였습니다."
+	case .socketError:
+	  return "소켓(실시간 통신) 에러가 발생하였습니다."
     }
   }
 }

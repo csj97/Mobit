@@ -586,8 +586,8 @@ extension CryptoDetailViewController {
   
   @objc private func tapOnBackButton(_ sender: UIButton) {
     self.coordinator?.navigationController.popViewController(animated: true)
-    self.reactor.tickerSocketManager.disconnect()
-    self.reactor.orderBookSocketManager.disconnect()
+    self.reactor.tickerSocketManager?.disconnect()
+    self.reactor.orderBookSocketManager?.disconnect()
   }
   
   /// 매수, 매도, 거래내역 버튼 터치
@@ -709,18 +709,5 @@ extension CryptoDetailViewController {
 extension CryptoDetailViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     print("orderbook cell click : \(indexPath.row)")
-  }
-}
-
-// MARK: - WebSocket Pause & Resume
-extension CryptoDetailViewController: SocketControllable {
-  func pauseSocket() {
-	self.reactor.tickerSocketManager.disconnect(manual: false)
-	self.reactor.orderBookSocketManager.disconnect(manual: false)
-  }
-  
-  func resumeSocket() {
-	self.reactor.tickerSocketManager.reconnectIfNeeded()
-	self.reactor.orderBookSocketManager.reconnectIfNeeded()
   }
 }
