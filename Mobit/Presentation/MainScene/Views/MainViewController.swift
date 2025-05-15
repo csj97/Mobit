@@ -351,7 +351,11 @@ class MainViewController: UIViewController {
 //      self.applySnapshot(cellInfos: reactor.currentState.cryptoCellInfo)
     case 2:
       self.selectedTab = .favorite
-      self.applySnapshot(cellInfos: [])
+	  let favoriteMarketNames = UserDataManager.userFavoriteList
+	  let favoriteCellInfos = self.reactor.currentState.cryptoCellInfo.filter {
+		favoriteMarketNames.contains($0.market)
+	  }
+	  self.applySnapshot(cellInfos: favoriteCellInfos)
     default:
       break
     }
@@ -436,13 +440,33 @@ extension MainViewController: View {
       .subscribe(onNext: { cellInfos in
         if self.isSocketUpdating == false {
 		  if let searchText = self.searchBar.text?.lowercased(), !searchText.isEmpty {
-			let filteredArray = cellInfos.filter {
-			  $0.market.lowercased().contains(searchText) ||
-			  $0.cryptoName.lowercased().contains(searchText.lowercased())
+			if self.selectedTab == .krw {
+			  let filteredArray = cellInfos.filter {
+				$0.market.lowercased().contains(searchText) ||
+				$0.cryptoName.lowercased().contains(searchText.lowercased())
+			  }
+			  self.applySnapshot(cellInfos: filteredArray)
+			} else if self.selectedTab == .favorite {
+			  let favoriteMarketNames = UserDataManager.userFavoriteList
+			  let favoriteCellInfos = self.reactor.currentState.cryptoCellInfo.filter {
+				favoriteMarketNames.contains($0.market)
+			  }
+			  let filteredArray = favoriteCellInfos.filter {
+				$0.market.lowercased().contains(searchText) ||
+				$0.cryptoName.lowercased().contains(searchText.lowercased())
+			  }
+			  self.applySnapshot(cellInfos: filteredArray)
 			}
-			self.applySnapshot(cellInfos: filteredArray)
 		  } else {
-			self.applySnapshot(cellInfos: cellInfos)
+			if self.selectedTab == .krw {
+			  self.applySnapshot(cellInfos: cellInfos)
+			} else if self.selectedTab == .favorite {
+			  let favoriteMarketNames = UserDataManager.userFavoriteList
+			  let favoriteCellInfos = self.reactor.currentState.cryptoCellInfo.filter {
+				favoriteMarketNames.contains($0.market)
+			  }
+			  self.applySnapshot(cellInfos: favoriteCellInfos)
+			}
 		  }
         }
       })
@@ -456,6 +480,11 @@ extension MainViewController: UITableViewDelegate {
 	self.reactor.action.onNext(.disconnectSocket)
 	
 	var cryptoCellInfo = reactor.currentState.cryptoCellInfo
+	
+	if self.selectedTab == .favorite {
+	  let favoriteMarketNames = UserDataManager.userFavoriteList
+	  cryptoCellInfo = cryptoCellInfo.filter { favoriteMarketNames.contains($0.market) }
+	}
 	
 	if let searchText = self.searchBar.text, !searchText.isEmpty {
 	  cryptoCellInfo = cryptoCellInfo.filter { $0.cryptoName.contains(searchText) }
