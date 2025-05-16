@@ -56,20 +56,6 @@ class CustomWindow: UIWindow {
 //	getVisibleController()?.pauseSocket()
   }
   
-//  private func getVisibleController() -> SocketControllable? {
-//	guard let rootVC = UIApplication.shared.connectedScenes
-//		.compactMap({ $0 as? UIWindowScene })
-//		.flatMap({ $0.windows })
-//		.first(where: { $0.isKeyWindow })?.rootViewController else {
-//		return nil
-//	}
-//
-//	var vc: UIViewController? = rootVC
-//	while let presented = vc?.presentedViewController {
-//	  vc = presented
-//	}
-//	return vc as? SocketControllable
-//  }
   private func getVisibleController(from vc: UIViewController?) -> UIViewController? {
 	if let nav = vc as? UINavigationController {
 	  return getVisibleController(from: nav.visibleViewController)

@@ -38,8 +38,8 @@ class OrderBookCell: UITableViewCell {
     $0.text = "0.0"
     $0.textAlignment = .left
     $0.font = UIFont.systemFont(ofSize: 10)
-//    $0.adjustsFontSizeToFitWidth = true
-//    $0.minimumScaleFactor = 0.5
+    $0.adjustsFontSizeToFitWidth = true
+    $0.minimumScaleFactor = 0.5
   }
   
   // 잔량 수에 따른 막대 바

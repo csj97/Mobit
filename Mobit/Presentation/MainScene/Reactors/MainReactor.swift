@@ -104,9 +104,12 @@ extension MainReactor {
         
         var observableConcat: [Observable<MainMutation>] = []
 		
-		self.socketManager = NewWebSocketManager()
-		guard let socketManager = self.socketManager else { return Observable.empty() }
-		socketManager.connect()
+		if let socketManager = self.socketManager {
+		  // socketManager 있으면 그냥 진행
+		} else {
+		  self.socketManager = NewWebSocketManager()
+		  self.socketManager?.connect()
+		}
 		
         switch selectedTab {
         case .krw:

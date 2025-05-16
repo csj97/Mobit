@@ -106,12 +106,28 @@ class NewWebSocketManager: WebSocketDelegate {
     case .connected:
       isConnected = true
 	  onConnected?()
+	  
+	  let dateFormatter = DateFormatter()
+	  dateFormatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+	  dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+
+	  let koreaTimeString = dateFormatter.string(from: Date())
+	  print("------------------------------------------------------")
+	  print("현재시간 : \(koreaTimeString)")
       print("WebSocket connected")
-      
+	  print("------------------------------------------------------")
     case .disconnected(let reason, let code):
       isConnected = false
+	  
+	  let dateFormatter = DateFormatter()
+	  dateFormatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+	  dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+
+	  let koreaTimeString = dateFormatter.string(from: Date())
+	  print("------------------------------------------------------")
+	  print("현재시간 : \(koreaTimeString)")
       print("WebSocket disconnected: \(reason) with code: \(code)")
-      
+	  print("------------------------------------------------------")
     case .text(let text):
       print("Received text: \(text)")
       
@@ -130,7 +146,18 @@ class NewWebSocketManager: WebSocketDelegate {
       
     case .cancelled:
       isConnected = false
-      print("WebSocket connection cancelled")
+	  
+	  let dateFormatter = DateFormatter()
+	  dateFormatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+	  dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+
+	  let koreaTimeString = dateFormatter.string(from: Date())
+	  print("------------------------------------------------------")
+	  print("현재시간 : \(koreaTimeString)")
+	  print("WebSocket connection cancelled")
+	  print("------------------------------------------------------")
+	  
+      
       
     case .ping, .pong:
       break // Ping/Pong 이벤트는 보통 생략 가능

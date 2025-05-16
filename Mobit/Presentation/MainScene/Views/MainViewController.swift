@@ -167,6 +167,16 @@ class MainViewController: UIViewController {
     rootContainer.flex.layout()
   }
   
+//  override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+//	super.touchesMoved(touches, with: event)
+//	self.isSocketUpdating = false
+//  }
+  
+//  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+//	super.touchesBegan(touches, with: event)
+//	self.view.endEditing(true)
+//  }
+  
   // MARK: Sub Methods
   func addViews() {
     self.view.addSubview(self.rootContainer)
@@ -212,29 +222,31 @@ class MainViewController: UIViewController {
   }
   
   func applySnapshot(cellInfos: [CryptoCellInfo]?) {
-    // tableview에 들어가는 section, item 초기화
-    var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, CryptoCellInfo>()
-    snapshot.appendSections([.main])
-    if let cellInfos = cellInfos, !cellInfos.isEmpty {
-      snapshot.appendItems(cellInfos, toSection: .main)
-    } else {
-      snapshot.appendItems([])
-    }
-	
-	guard let userCryptoList = UserDataManager.userCryptoList else { return }
-	let userMarketNames = userCryptoList.map { $0.staticData.marketName }
-	let filteredCellInfos = cellInfos?.filter {
-	  userMarketNames.contains($0.market)
+	DispatchQueue.main.async {
+	  // tableview에 들어가는 section, item 초기화
+	  var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, CryptoCellInfo>()
+	  snapshot.appendSections([.main])
+	  if let cellInfos = cellInfos, !cellInfos.isEmpty {
+		snapshot.appendItems(cellInfos, toSection: .main)
+	  } else {
+		snapshot.appendItems([])
+	  }
+	  
+	  guard let userCryptoList = UserDataManager.userCryptoList else { return }
+	  let userMarketNames = userCryptoList.map { $0.staticData.marketName }
+	  let filteredCellInfos = cellInfos?.filter {
+		userMarketNames.contains($0.market)
+	  }
+	  
+	  filteredCellInfos?.forEach({ cellInfo in
+		self.fetchBidCryptoList(
+		  marketName: cellInfo.market,
+		  currentPrice: cellInfo.tradePrice
+		)
+	  })
+	  
+	  self.dataSource?.apply(snapshot, animatingDifferences: false)
 	}
-	
-	filteredCellInfos?.forEach({ cellInfo in
-	  fetchBidCryptoList(
-		marketName: cellInfo.market,
-		currentPrice: cellInfo.tradePrice
-	  )
-	})
-	
-    self.dataSource?.apply(snapshot, animatingDifferences: false)
   }
   
   /// crypto socket 업데이트 될 떄, 매수 목록 fetch
@@ -438,37 +450,34 @@ extension MainViewController: View {
       .distinctUntilChanged()
       .observe(on: MainScheduler.instance)
       .subscribe(onNext: { cellInfos in
-        if self.isSocketUpdating == false {
-		  if let searchText = self.searchBar.text?.lowercased(), !searchText.isEmpty {
-			if self.selectedTab == .krw {
-			  let filteredArray = cellInfos.filter {
-				$0.market.lowercased().contains(searchText) ||
-				$0.cryptoName.lowercased().contains(searchText.lowercased())
-			  }
-			  self.applySnapshot(cellInfos: filteredArray)
-			} else if self.selectedTab == .favorite {
-			  let favoriteMarketNames = UserDataManager.userFavoriteList
-			  let favoriteCellInfos = self.reactor.currentState.cryptoCellInfo.filter {
-				favoriteMarketNames.contains($0.market)
-			  }
-			  let filteredArray = favoriteCellInfos.filter {
-				$0.market.lowercased().contains(searchText) ||
-				$0.cryptoName.lowercased().contains(searchText.lowercased())
-			  }
-			  self.applySnapshot(cellInfos: filteredArray)
-			}
-		  } else {
-			if self.selectedTab == .krw {
-			  self.applySnapshot(cellInfos: cellInfos)
-			} else if self.selectedTab == .favorite {
-			  let favoriteMarketNames = UserDataManager.userFavoriteList
-			  let favoriteCellInfos = self.reactor.currentState.cryptoCellInfo.filter {
-				favoriteMarketNames.contains($0.market)
-			  }
-			  self.applySnapshot(cellInfos: favoriteCellInfos)
-			}
+		guard !self.isSocketUpdating else { return }
+		let searchText = self.searchBar.text?.lowercased() ?? ""
+		let isSearching = !searchText.isEmpty
+		let favoriteMarketNames = UserDataManager.userFavoriteList
+		let favoriteCellInfos = reactor.currentState.cryptoCellInfo.filter {
+		  favoriteMarketNames.contains($0.market)
+		}
+		
+		var baseArray: [CryptoCellInfo]
+		switch self.selectedTab {
+		case .krw:
+			baseArray = cellInfos
+		case .favorite:
+			baseArray = favoriteCellInfos
+		}
+
+		var finalArray: [CryptoCellInfo]
+		if isSearching {
+		  finalArray = baseArray.filter {
+			$0.market.lowercased().contains(searchText) ||
+			$0.cryptoName.lowercased().contains(searchText)
 		  }
-        }
+		} else {
+		  finalArray = baseArray
+		}
+
+		self.applySnapshot(cellInfos: finalArray)
+
       })
       .disposed(by: self.disposeBag)
   }
@@ -532,13 +541,16 @@ extension MainViewController: UISearchBarDelegate {
 // MARK: - WebSocket Pause & Resume
 extension MainViewController: SocketControllable {
   func pauseSocket() {
-	guard let socketManager = self.reactor?.socketManager else { return }
+	guard let socketManager = self.reactor.socketManager else {
+	  self.reactor.socketManager?.disconnect()
+	  return
+	}
 	
 	socketManager.disconnect(manual: false)
   }
   
   func resumeSocket() {
-	guard let socketManager = self.reactor?.socketManager
+	guard let socketManager = self.reactor.socketManager
 	else {
 	  self.reactor.action.onNext(.loadCrypto(selectedTab: self.selectedTab))
 	  return

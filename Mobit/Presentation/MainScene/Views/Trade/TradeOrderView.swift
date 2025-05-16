@@ -122,6 +122,7 @@ class TradeOrderView: UIView, ViewRule {
   func setData() {
 	guard let reactor = self.reactor else { return }
 	self.bind(reactor: reactor)
+	self.prevClosingPrice = self.reactor?.selectCrypto.prevPrice
 	
 	self.orderbookTableView.register(
 	  OrderBookCell.self,
@@ -191,23 +192,22 @@ class TradeOrderView: UIView, ViewRule {
 	// tableview에 들어가는 section, item 초기화
 	var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, OrderUnit>()
 	snapshot.appendSections([.main])
-	if let orderDatas = orderDatas {
-	  snapshot.appendItems(orderDatas, toSection: .main)
-	} else {
-	  snapshot.appendItems([])
-	}
+	snapshot.appendItems(orderDatas ?? [], toSection: .main)
 	
-	self.dataSource?.apply(snapshot, animatingDifferences: false, completion: {
-	  if self.isFirstInput == false {
-		DispatchQueue.main.async {
-		  self.isFirstInput = true
-		  let indexPath = IndexPath(row: 16, section: 0)
-		  self.orderbookTableView.scrollToRow(
-			at: indexPath,
-			at: .middle,
-			animated: false
-		  )
-		}
+	dataSource?.apply(snapshot, animatingDifferences: false, completion: { [weak self] in
+	  guard let self = self else { return }
+	  guard !self.isFirstInput, let orderDatas, !orderDatas.isEmpty else { return }
+	  
+	  self.isFirstInput = true
+	  let targetIndexPath = IndexPath(row: orderDatas.count / 2, section: 0)
+	  
+	  DispatchQueue.main.async {
+		
+		self.orderbookTableView.scrollToRow(
+		  at: targetIndexPath,
+		  at: .middle,
+		  animated: false
+		)
 	  }
 	})
   }
@@ -222,8 +222,9 @@ class TradeOrderView: UIView, ViewRule {
 	if prevClosingPrice == 0 {
 	  return 1
 	} else {
-	  let fluctuation = ceil((obPrice / prevClosingPrice) * 100) / 100
-	  return fluctuation
+//	  let fluctuation = ceil((obPrice / prevClosingPrice) * 100) / 100
+	  let fluctuation = ((obPrice - prevClosingPrice) / prevClosingPrice) * 100
+	  return fluctuation.formatDigits(digits: 2)
 	}
   }
 }
