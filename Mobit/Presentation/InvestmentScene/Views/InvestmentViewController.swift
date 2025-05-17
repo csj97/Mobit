@@ -14,6 +14,11 @@ import UIKit
 
 class InvestmentViewController: UIViewController, ViewRule {
   @IBOutlet weak var transactionTableview: UITableView!
+    @IBOutlet weak var totalUserBalance: UILabel!
+    @IBOutlet weak var totalEvalProfitLoss: UILabel!
+    @IBOutlet weak var totalProfitRate: UILabel!
+    @IBOutlet weak var totalBuyPrice: UILabel!
+    @IBOutlet weak var availableUserBalance: UILabel!
     
   weak var coordinator: InvestmentCoordinator?
   var disposeBag = DisposeBag()
@@ -29,6 +34,12 @@ class InvestmentViewController: UIViewController, ViewRule {
   
   required init?(coder: NSCoder) {
 	fatalError("init(coder:) has not been implemented")
+  }
+  
+  override func viewWillAppear(_ animated: Bool) {
+	super.viewWillAppear(animated)
+	
+	self.navigationController?.navigationBar.isHidden = true
   }
   
   override func viewDidLoad() {
@@ -55,12 +66,42 @@ class InvestmentViewController: UIViewController, ViewRule {
 	self.bind(reactor: self.reactor)
 	self.reactor.action.onNext(.loadTransactions)
   }
+  
+  func updateTotalDatas(cryptos: [CryptoTransactionDataModel]) {
+	guard let availableUserBalance = UserDataManager.userInformation?.userAvailableBalance else { return }
+	// 총 보유자산
+	let totalUserBalance = availableUserBalance + cryptos.reduce(0) {
+	  $0 + $1.self.dynamicData.evaluationPrice
+	}
+	// 평가손익
+	let totalProfitLoss = cryptos.reduce(0) {
+	  $0 + $1.dynamicData.evaluationProfitLoss
+	}
+	// 수익률
+	let totalProfitRate = (totalProfitLoss / totalUserBalance) * 100
+	
+	// 총 매수
+	let totalBuyPrice = cryptos.reduce(0) {
+	  $0 + $1.self.staticData.buyAmount
+	}
+
+	self.availableUserBalance.text = availableUserBalance.formatSignificantDigits() + " 원"
+	self.totalUserBalance.text = totalUserBalance.formatSignificantDigits(digits: 0) + " 원"
+	self.totalProfitRate.text = totalProfitRate.formatSignificantDigits(digits: 2) + " %"
+	if totalProfitRate < 0 {
+	  self.totalProfitRate.textColor = .blue
+	} else {
+	  self.totalProfitRate.textColor = .red
+	}
+	self.totalEvalProfitLoss.text = totalProfitLoss.formatSignificantDigits(digits: 0) + " 원"
+	self.totalBuyPrice.text = totalBuyPrice.formatSignificantDigits(digits: 0) + " 원"
+  }
 }
 
 // MARK: Reactor - View
 extension InvestmentViewController: View {
   func bind(reactor: InvestReactor) {
-	reactor.state.map { $0.crypto }
+	reactor.state.map { $0.cryptos }
 	  .compactMap { $0 }
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
@@ -72,6 +113,7 @@ extension InvestmentViewController: View {
 		} else {
 		  self.pendingUpdate = nil
 		  self.cryptos = cryptos
+		  self.updateTotalDatas(cryptos: cryptos)
 		  self.transactionTableview.reloadData()
 		}
 	  })

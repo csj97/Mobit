@@ -32,4 +32,10 @@ extension String {
 	  let result = numberFormatter.string(from: NSNumber(value: Double(self) ?? 0)) ?? ""
 	  return result
   }
+  
+  /// 숫자만 거르기
+  var digitsOnlyDouble: Double {
+	let filtered = self.filter { "0123456789.".contains($0) }
+	return Double(filtered) ?? 0
+  }
 }
