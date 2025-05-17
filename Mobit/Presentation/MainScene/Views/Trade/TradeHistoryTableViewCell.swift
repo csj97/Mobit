@@ -27,10 +27,10 @@ class TradeHistoryTableViewCell: UITableViewCell {
   ) {
 	if transactionInfo.orderType == .ask {
 	  self.orderTypeLabel.text = "매도"
-	  self.orderTypeLabel.textColor = .mobitColors(.askDeepBlue)
+	  self.orderTypeLabel.textColor = .systemBlue
 	} else {
 	  self.orderTypeLabel.text = "매수"
-	  self.orderTypeLabel.textColor = .mobitColors(.bidDeepRed)
+	  self.orderTypeLabel.textColor = .systemRed
 	}
 	self.tradeDate.text = transactionInfo.executedDate
 	self.marketName.text = marketName

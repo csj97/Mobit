@@ -296,7 +296,7 @@ extension TradeBidView: UITextFieldDelegate {
 	guard let currentPrice = self.cryptoInfo?.tradePrice else { return }
 	
 	if textField == self.inputTradeAmount {
-	  self.inputAmount = Double(textField.text ?? "0") ?? 0
+	  self.inputAmount = textField.text?.digitsOnlyDouble ?? 0
 	  let totalPrice = floor(
 		currentPrice.formatDigits(digits: 8) * inputAmount.formatDigits(digits: 8)
 	  )

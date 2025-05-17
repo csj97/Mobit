@@ -89,7 +89,9 @@ class OrderBookCell: UITableViewCell {
         .justifyContent(.center)
         .define { flex in
           flex.addItem(self.obPrice)
+			.margin(0, 4)
           flex.addItem(self.obChangeRate)
+			.margin(0, 4)
         }.width(64%)
       
       flex.addItem(
@@ -105,16 +107,28 @@ class OrderBookCell: UITableViewCell {
           
           flex.addItem(self.obSizeLabel)
             .position(.absolute)
-			.paddingLeft(4)
+			.left(4).right(4)
+			.alignSelf(.center)
         }.width(35%)
     }
+  }
+  
+  func updateObBar(maxSize: Double, currentSize: Double) {
+	let parentViewSize = self.obBarView.superview?.frame
+	let newObBarWidthRatio = (currentSize / maxSize) * 100
+	
+	self.obBarView.flex.width(newObBarWidthRatio%)
+	self.rootFlexContainer.flex.markDirty()
+	self.rootFlexContainer.flex.layout(mode: .adjustWidth)
   }
   
   func configure(
     changeRate: Double?,
     obType: OrderType,
     obPrice: Double,
-    obSize: Double
+    obSize: Double,
+	askMaxSize: Double,
+	bidMaxSize: Double
   ) {
     let numberFormatter = NumberFormatter()
     numberFormatter.numberStyle = .decimal
@@ -130,9 +144,11 @@ class OrderBookCell: UITableViewCell {
     case .ask:
       self.backgroundColor = .mobitColors(.askLightBlue)
       self.obBarView.backgroundColor = .mobitColors(.askDeepBlue)
+	  self.updateObBar(maxSize: askMaxSize, currentSize: obSize)
     case .bid:
       self.backgroundColor = .mobitColors(.bidLightRed)
       self.obBarView.backgroundColor = .mobitColors(.bidDeepRed)
+	  self.updateObBar(maxSize: bidMaxSize, currentSize: obSize)
     }
     
     guard let changeRate = changeRate else { return }

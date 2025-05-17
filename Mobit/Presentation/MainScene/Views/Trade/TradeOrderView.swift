@@ -27,6 +27,9 @@ class TradeOrderView: UIView, ViewRule {
   var askView: TradeAskView? = nil
   var historyView: TradeHistoryView? = nil
   
+  private var askMaxSize: Double? = 0
+  private var bidMaxSize: Double? = 0
+  
   deinit {
 	print("deinit : \(String(describing: type(of: self)))")
   }
@@ -139,7 +142,10 @@ class TradeOrderView: UIView, ViewRule {
 	  guard let cell = self.orderbookTableView.dequeueReusableCell(
 		withIdentifier: self.cellIndentifier,
 		for: indexPath
-	  ) as? OrderBookCell else { return UITableViewCell() }
+	  ) as? OrderBookCell,
+			let askMaxSize = self.askMaxSize,
+			let bidMaxSize = self.bidMaxSize
+	  else { return UITableViewCell() }
 	  
 	  cell.configure(
 		changeRate: self.calculateFluctuation(
@@ -147,7 +153,9 @@ class TradeOrderView: UIView, ViewRule {
 		),
 		obType: obUnit.type,
 		obPrice: obUnit.price,
-		obSize: obUnit.size
+		obSize: obUnit.size,
+		askMaxSize: askMaxSize,
+		bidMaxSize: bidMaxSize
 	  )
 	  
 	  cell.selectionStyle = .none
@@ -222,10 +230,14 @@ class TradeOrderView: UIView, ViewRule {
 	if prevClosingPrice == 0 {
 	  return 1
 	} else {
-//	  let fluctuation = ceil((obPrice / prevClosingPrice) * 100) / 100
 	  let fluctuation = ((obPrice - prevClosingPrice) / prevClosingPrice) * 100
 	  return fluctuation.formatDigits(digits: 2)
 	}
+  }
+  
+  /// 현재 물량이 최대 개수 대비 얼마나 되는지 시각화 해주기 위함
+  private func updateObBarView() {
+	
   }
 }
 
@@ -244,9 +256,13 @@ extension TradeOrderView {
 			by: { $0.askPrice > $1.askPrice }
 		  ).map { OrderUnit(type: .ask, price: $0.askPrice, size: $0.askSize) }
 		  let bidData = obTicker.orderbookUnits.sorted(
-			by: { $0.bidPrice < $1.bidPrice }
+			by: { $0.bidPrice > $1.bidPrice }
 		  ).map { OrderUnit(type: .bid, price: $0.bidPrice, size: $0.bidSize) }
 		  let orderDatas = askData + bidData
+		  
+		  self.askMaxSize = askData.max(by: { $0.size < $1.size })?.size
+		  self.bidMaxSize = bidData.max(by: { $0.size < $1.size })?.size
+		  
 		  self.applySnapshot(orderDatas: orderDatas)
 		}
 	  )
