@@ -6,12 +6,16 @@
 //
 
 import UIKit
+import GoogleMobileAds
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
   
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     
+	MobileAds.shared.requestConfiguration.testDeviceIdentifiers = [ "8fd7e36c1306521658de783d0e0d586e" ]
+	MobileAds.shared.start(completionHandler: nil)
+	
     checkFirstLaunch()
     return true
   }

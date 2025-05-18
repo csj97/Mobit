@@ -50,8 +50,12 @@
 		31E208092C46BF6B000BFEBC /* MainTabBarCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208082C46BF6B000BFEBC /* MainTabBarCoordinator.swift */; };
 		31E208102C46C2FE000BFEBC /* InvestmentCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E2080F2C46C2FE000BFEBC /* InvestmentCoordinator.swift */; };
 		31E208172C46C441000BFEBC /* MoreCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208162C46C441000BFEBC /* MoreCoordinator.swift */; };
-		31E208192C46C448000BFEBC /* MoreViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208182C46C448000BFEBC /* MoreViewController.swift */; };
 		31E208432C46CB47000BFEBC /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 31E208422C46CB47000BFEBC /* Then */; };
+		31F33FCA2DDA1ACE003D533A /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 31F33FC92DDA1ACE003D533A /* GoogleMobileAds */; };
+		31F33FCF2DDA1C09003D533A /* MoreViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31F33FCD2DDA1C09003D533A /* MoreViewController.swift */; };
+		31F33FD02DDA1C09003D533A /* MoreViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31F33FCE2DDA1C09003D533A /* MoreViewController.xib */; };
+		31F33FD32DDA1D4C003D533A /* MobitAlertViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31F33FD12DDA1D4C003D533A /* MobitAlertViewController.swift */; };
+		31F33FD42DDA1D4C003D533A /* MobitAlertViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31F33FD22DDA1D4C003D533A /* MobitAlertViewController.xib */; };
 		367271AD2C7B2DA600F9D86E /* OrderBookResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367271AC2C7B2DA600F9D86E /* OrderBookResponse.swift */; };
 		367271B12C7B305500F9D86E /* OrderBookCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367271B02C7B305500F9D86E /* OrderBookCell.swift */; };
 		369E877F2C7D955E0020A0B3 /* OrderBookResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */; };
@@ -188,8 +192,11 @@
 		31E208082C46BF6B000BFEBC /* MainTabBarCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabBarCoordinator.swift; sourceTree = "<group>"; };
 		31E2080F2C46C2FE000BFEBC /* InvestmentCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestmentCoordinator.swift; sourceTree = "<group>"; };
 		31E208162C46C441000BFEBC /* MoreCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreCoordinator.swift; sourceTree = "<group>"; };
-		31E208182C46C448000BFEBC /* MoreViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreViewController.swift; sourceTree = "<group>"; };
 		31E208532C46CD9F000BFEBC /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/iPhoneOS.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		31F33FCD2DDA1C09003D533A /* MoreViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreViewController.swift; sourceTree = "<group>"; };
+		31F33FCE2DDA1C09003D533A /* MoreViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MoreViewController.xib; sourceTree = "<group>"; };
+		31F33FD12DDA1D4C003D533A /* MobitAlertViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitAlertViewController.swift; sourceTree = "<group>"; };
+		31F33FD22DDA1D4C003D533A /* MobitAlertViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MobitAlertViewController.xib; sourceTree = "<group>"; };
 		367271AB2C7B2B1900F9D86E /* UpbitKey.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = UpbitKey.xcconfig; sourceTree = "<group>"; };
 		367271AC2C7B2DA600F9D86E /* OrderBookResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderBookResponse.swift; sourceTree = "<group>"; };
 		367271B02C7B305500F9D86E /* OrderBookCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderBookCell.swift; sourceTree = "<group>"; };
@@ -249,6 +256,7 @@
 				99C20A5B2C48DE40009276E7 /* SwiftJWT in Frameworks */,
 				99C20A862C4A27F1009276E7 /* ReactorKit in Frameworks */,
 				3133E2772C3F7192000D4B1A /* FlexLayout in Frameworks */,
+				31F33FCA2DDA1ACE003D533A /* GoogleMobileAds in Frameworks */,
 				31DC41E02CD9196400F0FFF2 /* Starscream in Frameworks */,
 				9987250A2C50944700088C71 /* RxSwift in Frameworks */,
 			);
@@ -456,6 +464,7 @@
 				31B741F82D53AAAC00706340 /* TradeChartView.xib */,
 				31B7420D2D5B939000706340 /* TradeHistoryTableViewCell.swift */,
 				31B7420E2D5B939000706340 /* TradeHistoryTableViewCell.xib */,
+				367271B02C7B305500F9D86E /* OrderBookCell.swift */,
 			);
 			path = Trade;
 			sourceTree = "<group>";
@@ -512,10 +521,8 @@
 		31E2080E2C46C2CC000BFEBC /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				31F33FC72DDA1903003D533A /* Main */,
 				31B741F32D53AA3200706340 /* Trade */,
-				311E33FB2C4608800054C6BC /* MainViewController.swift */,
-				99C20A5C2C48DF11009276E7 /* CoinTableViewCell.swift */,
-				367271B02C7B305500F9D86E /* OrderBookCell.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -532,7 +539,8 @@
 		31E208142C46C430000BFEBC /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				31E208182C46C448000BFEBC /* MoreViewController.swift */,
+				31F33FCD2DDA1C09003D533A /* MoreViewController.swift */,
+				31F33FCE2DDA1C09003D533A /* MoreViewController.xib */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -557,8 +565,19 @@
 			isa = PBXGroup;
 			children = (
 				99C20A572C48D35C009276E7 /* DividerLineView.swift */,
+				31F33FD12DDA1D4C003D533A /* MobitAlertViewController.swift */,
+				31F33FD22DDA1D4C003D533A /* MobitAlertViewController.xib */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		31F33FC72DDA1903003D533A /* Main */ = {
+			isa = PBXGroup;
+			children = (
+				311E33FB2C4608800054C6BC /* MainViewController.swift */,
+				99C20A5C2C48DF11009276E7 /* CoinTableViewCell.swift */,
+			);
+			path = Main;
 			sourceTree = "<group>";
 		};
 		36E7718D2D75958700739CDE /* CallbackResultTypes */ = {
@@ -703,6 +722,7 @@
 				998725092C50944700088C71 /* RxSwift */,
 				31DC41DF2CD9196400F0FFF2 /* Starscream */,
 				31B741F12D53A50600706340 /* SnapKit */,
+				31F33FC92DDA1ACE003D533A /* GoogleMobileAds */,
 			);
 			productName = Mobit;
 			productReference = 3133E2242C3E2355000D4B1A /* Mobit.app */;
@@ -791,6 +811,7 @@
 				998724FC2C50944700088C71 /* XCRemoteSwiftPackageReference "RxSwift" */,
 				31DC41DE2CD9196400F0FFF2 /* XCRemoteSwiftPackageReference "Starscream" */,
 				31B741F02D53A42700706340 /* XCRemoteSwiftPackageReference "SnapKit" */,
+				31F33FC82DDA1ACE003D533A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 			);
 			productRefGroup = 3133E2252C3E2355000D4B1A /* Products */;
 			projectDirPath = "";
@@ -811,6 +832,7 @@
 				C17E08332D2A62BC0029A8D0 /* Colors.xcassets in Resources */,
 				C17CF49D2DA4DAE900CDF76D /* InvestmentViewController.xib in Resources */,
 				31B741FF2D58D67800706340 /* TradeHistoryView.xib in Resources */,
+				31F33FD42DDA1D4C003D533A /* MobitAlertViewController.xib in Resources */,
 				C17DB9732DA5FAF000DA673A /* InvestmentTableViewCell.xib in Resources */,
 				31B741F72D53AA7600706340 /* TradeOrderView.xib in Resources */,
 				31B741F92D53AAAC00706340 /* TradeChartView.xib in Resources */,
@@ -819,6 +841,7 @@
 				3133E2342C3E2357000D4B1A /* LaunchScreen.storyboard in Resources */,
 				3133E2312C3E2357000D4B1A /* Assets.xcassets in Resources */,
 				C18EED532D55FE450038BBF7 /* TradeBidView.xib in Resources */,
+				31F33FD02DDA1C09003D533A /* MoreViewController.xib in Resources */,
 				31B7420F2D5B939000706340 /* TradeHistoryTableViewCell.xib in Resources */,
 				31B741ED2D524F7000706340 /* TradeViewController.xib in Resources */,
 			);
@@ -845,6 +868,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				31F33FCF2DDA1C09003D533A /* MoreViewController.swift in Sources */,
 				C1E12D402D7C29AF003C76F0 /* DoubleExtension.swift in Sources */,
 				99C20A792C490B08009276E7 /* CryptoDTO.swift in Sources */,
 				367271B12C7B305500F9D86E /* OrderBookCell.swift in Sources */,
@@ -862,7 +886,6 @@
 				31B742102D5B939000706340 /* TradeHistoryTableViewCell.swift in Sources */,
 				C17424C62D460478009861CC /* MobitUserInformation.swift in Sources */,
 				3133E2662C3F6A44000D4B1A /* BaseCoordinator.swift in Sources */,
-				31E208192C46C448000BFEBC /* MoreViewController.swift in Sources */,
 				C17424C42D4600A8009861CC /* UserDataManager.swift in Sources */,
 				31B741F52D53AA6C00706340 /* TradeOrderView.swift in Sources */,
 				C17E08352D2A64EE0029A8D0 /* ColorExtension.swift in Sources */,
@@ -888,6 +911,7 @@
 				31E208042C4677CB000BFEBC /* AppTabBarCoordinator.swift in Sources */,
 				99C20A582C48D35C009276E7 /* DividerLineView.swift in Sources */,
 				3133E2682C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift in Sources */,
+				31F33FD32DDA1D4C003D533A /* MobitAlertViewController.swift in Sources */,
 				31B742032D5A2CAC00706340 /* ViewExtension.swift in Sources */,
 				31B742122D5B967F00706340 /* TradeHistoryInformation.swift in Sources */,
 				3133E2282C3E2355000D4B1A /* AppDelegate.swift in Sources */,
@@ -1302,6 +1326,14 @@
 				minimumVersion = 3.0.0;
 			};
 		};
+		31F33FC82DDA1ACE003D533A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.4.0;
+			};
+		};
 		998724FC2C50944700088C71 /* XCRemoteSwiftPackageReference "RxSwift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ReactiveX/RxSwift";
@@ -1361,6 +1393,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 31E208412C46CB47000BFEBC /* XCRemoteSwiftPackageReference "Then" */;
 			productName = Then;
+		};
+		31F33FC92DDA1ACE003D533A /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 31F33FC82DDA1ACE003D533A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
 		};
 		998725012C50944700088C71 /* RxCocoa */ = {
 			isa = XCSwiftPackageProductDependency;
