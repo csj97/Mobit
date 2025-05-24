@@ -200,11 +200,7 @@ class MainViewController: UIViewController {
     
     self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoCellInfo>(
       tableView: self.tableView
-    ) { (
-      tableView: UITableView,
-      indexPath: IndexPath,
-      crypto: CryptoCellInfo
-    ) -> UITableViewCell? in
+    ) { (tableView: UITableView, indexPath: IndexPath, crypto: CryptoCellInfo) -> UITableViewCell? in
       
       guard let cell = self.tableView.dequeueReusableCell(
         withIdentifier: self.cellIndentifier,
@@ -356,7 +352,7 @@ class MainViewController: UIViewController {
     case 0:
       self.selectedTab = .krw
       self.reactor.action.onNext(.loadCrypto(selectedTab: .krw))
-      self.applySnapshot(cellInfos: reactor.currentState.cryptoCellInfo)
+      self.applySnapshot(cellInfos: reactor.currentState.cryptoCellInfos)
 //    case 1:
 //      self.selectedTab = .btc
 //      self.reactor.action.onNext(.loadCrypto(selectedTab: .btc))
@@ -364,7 +360,7 @@ class MainViewController: UIViewController {
     case 2:
       self.selectedTab = .favorite
 	  let favoriteMarketNames = UserDataManager.userFavoriteList
-	  let favoriteCellInfos = self.reactor.currentState.cryptoCellInfo.filter {
+	  let favoriteCellInfos = self.reactor.currentState.cryptoCellInfos.filter {
 		favoriteMarketNames.contains($0.market)
 	  }
 	  self.applySnapshot(cellInfos: favoriteCellInfos)
@@ -446,7 +442,8 @@ class MainViewController: UIViewController {
 extension MainViewController: View {
   func bind(reactor: MainReactor) {
     
-    reactor.state.map { $0.cryptoCellInfo }
+    reactor.state.map { $0.cryptoCellInfos }
+	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)
       .distinctUntilChanged()
       .observe(on: MainScheduler.instance)
       .subscribe(onNext: { cellInfos in
@@ -454,7 +451,7 @@ extension MainViewController: View {
 		let searchText = self.searchBar.text?.lowercased() ?? ""
 		let isSearching = !searchText.isEmpty
 		let favoriteMarketNames = UserDataManager.userFavoriteList
-		let favoriteCellInfos = reactor.currentState.cryptoCellInfo.filter {
+		let favoriteCellInfos = reactor.currentState.cryptoCellInfos.filter {
 		  favoriteMarketNames.contains($0.market)
 		}
 		
@@ -488,7 +485,7 @@ extension MainViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 	self.reactor.action.onNext(.disconnectSocket)
 	
-	var cryptoCellInfo = reactor.currentState.cryptoCellInfo
+	var cryptoCellInfo = reactor.currentState.cryptoCellInfos
 	
 	if self.selectedTab == .favorite {
 	  let favoriteMarketNames = UserDataManager.userFavoriteList
@@ -521,7 +518,7 @@ extension MainViewController: UITableViewDelegate {
 
 extension MainViewController: UISearchBarDelegate {
   func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-	let cellInfos = self.reactor.currentState.cryptoCellInfo
+	let cellInfos = self.reactor.currentState.cryptoCellInfos
 	if searchText.isEmpty {
 	  self.applySnapshot(cellInfos: cellInfos)
 	} else {
@@ -531,7 +528,7 @@ extension MainViewController: UISearchBarDelegate {
   }
   
   func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-	let cellInfos = self.reactor.currentState.cryptoCellInfo
+	let cellInfos = self.reactor.currentState.cryptoCellInfos
 	searchBar.text = nil
 	searchBar.resignFirstResponder() // 키보드 내림
 	self.applySnapshot(cellInfos: cellInfos)

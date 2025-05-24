@@ -64,15 +64,16 @@ class TradeHistoryView: UIView, ViewRule {
   func updateHistory() {
 	guard let transaction = UserDataManager.userTransactionList?.filter({
 			$0.marketName == self.reactor?.selectCrypto.market
-		  })
-	else {
+		  }) else { return }
+	
+	if transaction.count == 0 {
 	  noHistoryView.isHidden = false
 	  historyTableView.isHidden = true
-	  return
+	} else {
+	  self.noHistoryView.isHidden = true
+	  self.historyTableView.isHidden = false
 	}
 	
-	self.noHistoryView.isHidden = true
-	self.historyTableView.isHidden = false
 	self.transaction = transaction
 	self.historyTableView.reloadData()
   }

@@ -53,7 +53,7 @@ extension MainReactor {
     
     var tabCryptoList: CryptoList = []
     // Cell에 필요한 정보들을 모아 놓은 모델 변수
-    var cryptoCellInfo: [CryptoCellInfo] = []
+    var cryptoCellInfos: [CryptoCellInfo] = []
     var cryptoSocketTicker: CryptoSocketTicker? = nil
     var sortBy: CryptoSortType = .normal
   }
@@ -88,7 +88,7 @@ extension MainReactor {
       newState.tabCryptoList = cryptoList
       
     case .setCombinedArray(let combinedResult):
-      newState.cryptoCellInfo = combinedResult
+      newState.cryptoCellInfos = combinedResult
       
     case .setSortType(let sortBy):
       newState.sortBy = sortBy
@@ -150,24 +150,6 @@ extension MainReactor {
         return Observable.error(error)
       }
     
-    loadCryptoObservable
-      .subscribe { mutation in
-        switch mutation {
-        case .completed:
-          self.action.onNext(
-            .loadSocketTicker(
-              selectedTab: selectedTab,
-              cryptoList: self.currentState.tabCryptoList
-            )
-          )
-        case .next:
-          break
-        case .error(let error):
-          print("error : \(error.localizedDescription)")
-        }
-      }
-      .disposed(by: self.disposeBag)
-    
     return loadCryptoObservable
   }
   
@@ -214,6 +196,23 @@ extension MainReactor {
       return Disposables.create()
     }
     
+	tickerObservable
+	  .subscribe { mutaion in
+		switch mutaion {
+		case .completed:
+		  self.action.onNext(
+			.loadSocketTicker(
+			  selectedTab: selectedTab,
+			  cryptoList: self.currentState.tabCryptoList
+			)
+		  )
+		case .next:
+		  break
+		case .error(let error):
+		  print("error : \(error.localizedDescription)")
+		}
+	  }.disposed(by: self.disposeBag)
+	
     return tickerObservable
   }
   
@@ -270,10 +269,6 @@ extension MainReactor {
   }
   
   /// CryptoList & CryptoSocketTicker 모델을 합치는 과정 (ticker랑 socket ticker랑 제공되는 데이터가 다름)
-  /// - Parameters:
-  ///   - cryptoList: name, market, event 정보를 갖고 있음
-  ///   - cryptoTickerList: tradePrice, signedChangeRate, change, accTradeVolume 정보를 갖고 있음
-  /// - Returns: Main TableView Cell에 노출될 Cell 정보를 반환
   func combineTicker(
     selectedTab: SelectedTab,
     cryptoList: CryptoList,
@@ -314,7 +309,7 @@ extension MainReactor {
       }
     }
     
-    return self.currentState.cryptoCellInfo.map { cellInfo in
+    return self.currentState.cryptoCellInfos.map { cellInfo in
       cryptoCells.first(where: { $0.cryptoName == cellInfo.cryptoName }) ?? cellInfo
     }
   }
@@ -430,7 +425,7 @@ extension MainReactor {
     
     self.sortCryptoCellInfos(
       sortBy: sortBy,
-      cellInfos: currentState.cryptoCellInfo
+	  cellInfos: currentState.cryptoCellInfos
     ) { sortedCellInfos in
       guard let sortedCellInfos = sortedCellInfos else { return }
       

@@ -37,6 +37,9 @@ class MoreViewController: UIViewController, MobitAlertDelegate {
 	  rewardedAd = try await RewardedAd.load(
 		with: "ca-app-pub-3498168241675848/9517873690", request: Request())
 	  rewardedAd?.fullScreenContentDelegate = self
+	  rewardedAd?.present(from: nil, userDidEarnRewardHandler: {
+		print("did earn reward")
+	  })
 	} catch {
 	  print("Rewarded ad failed to load with error: \(error.localizedDescription)")
 	}

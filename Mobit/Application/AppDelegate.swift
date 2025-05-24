@@ -13,7 +13,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     
-	MobileAds.shared.requestConfiguration.testDeviceIdentifiers = [ "8fd7e36c1306521658de783d0e0d586e" ]
+	MobileAds.shared.requestConfiguration.testDeviceIdentifiers = [ "8fd7e36c1306521658de783d0e0d586e", "e48c86c220b0dbb51f97c4c17ad73ce7" ]
 	MobileAds.shared.start(completionHandler: nil)
 	
     checkFirstLaunch()
