@@ -9,6 +9,7 @@ import Foundation
 import RxSwift
 
 protocol CryptoDetailUseCaseProtocol {
+  func getCryptoInformation(market: String) -> Observable<CryptoQuoteResponse>
 }
 
 class CryptoDetailUseCase: CryptoDetailUseCaseProtocol {
@@ -18,5 +19,9 @@ class CryptoDetailUseCase: CryptoDetailUseCaseProtocol {
   
   init(cryptoDetailRepository: CryptoDetailRepository) {
     self.cryptoDetailRepository = cryptoDetailRepository
+  }
+  
+  func getCryptoInformation(market: String) -> Observable<CryptoQuoteResponse> {
+	self.cryptoDetailRepository.getCryptoInfo(market: market)
   }
 }

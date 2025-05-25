@@ -33,12 +33,12 @@ class TradeViewController: UIViewController, ViewRule {
   @IBOutlet weak var favoriteButton: UIButton!
   @IBOutlet weak var segmentedControl: MobitSegmentedControl!
   @IBOutlet weak var segmentedContainerView: UIView!
-  @IBOutlet weak var informationView: UIView!
   
   weak var coordinator: CryptoDetailCoordinator?
   var reactor: CryptoDetailReactor
   var orderView: TradeOrderView? = nil
   var chartView: TradeChartView? = nil
+  var informationView: TradeInformationView? = nil
   var prevClosingPrice: Double? = nil
   var disposeBag = DisposeBag()
   /// 가격 변동 -/+/보합에 따른 색상 변경
@@ -88,14 +88,18 @@ class TradeViewController: UIViewController, ViewRule {
 	  }
 	}
 	chartView = TradeChartView.instanceFromNib(symbol: self.reactor.selectCrypto.market)
+	informationView = TradeInformationView.instanceFromNib(
+	  reactor: self.reactor
+	)
 	
 	guard let orderView = self.orderView,
-		  let chartView = self.chartView
+		  let chartView = self.chartView,
+		  let informationView = self.informationView
 	else { return }
 	
 	self.segmentedContainerView.addSubview(orderView)
 	self.segmentedContainerView.addSubview(chartView)
-	self.segmentedContainerView.addSubview(self.informationView)
+	self.segmentedContainerView.addSubview(informationView)
 	
 	self.segmentedControl.setSegmentedControl(
 	  normalColor: .mobitColors(.lightGrayBG),
@@ -108,7 +112,7 @@ class TradeViewController: UIViewController, ViewRule {
 	chartView.snp.makeConstraints { make in
 	  make.edges.equalToSuperview()
 	}
-	self.informationView.snp.makeConstraints { make in
+	informationView.snp.makeConstraints { make in
 	  make.edges.equalToSuperview()
 	}
 	
@@ -193,15 +197,15 @@ class TradeViewController: UIViewController, ViewRule {
 	case 0:
 	  orderView?.isHidden = false
 	  chartView?.isHidden = true
-	  self.informationView.isHidden = true
+	  informationView?.isHidden = true
 	case 1:
 	  orderView?.isHidden = true
 	  chartView?.isHidden = false
-	  self.informationView.isHidden = true
+	  informationView?.isHidden = true
 	case 2:
 	  orderView?.isHidden = true
 	  chartView?.isHidden = true
-	  self.informationView.isHidden = false
+	  informationView?.isHidden = false
 	  
 	default:
 	  break
@@ -260,7 +264,7 @@ extension TradeViewController {
   
   func bind(reactor: CryptoDetailReactor) {
 	
-	reactor.state.map { $0.cryptoInfo }
+	reactor.state.map { $0.cryptoCellInfo }
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] cellInfo in

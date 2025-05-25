@@ -12,6 +12,7 @@ import RxSwift
 enum MainNetworkService {
   case getCryptoList
   case getTicker(markets: [String])
+  case getCryptoInfo(market: String)
 }
 
 extension MainNetworkService: TargetType {
@@ -21,6 +22,8 @@ extension MainNetworkService: TargetType {
       return URL(string: "https://api.upbit.com/v1/market/all")!
     case .getTicker:
       return URL(string: "https://api.upbit.com/v1/ticker")!
+	case .getCryptoInfo:
+	 return URL(string: "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest")!
     }
   }
   
@@ -30,6 +33,8 @@ extension MainNetworkService: TargetType {
       return ""
     case .getTicker:
       return ""
+	case .getCryptoInfo:
+	  return ""
     }
   }
   
@@ -39,6 +44,8 @@ extension MainNetworkService: TargetType {
       return .get
     case .getTicker:
       return .get
+	case .getCryptoInfo:
+	  return .get
     }
   }
   
@@ -52,12 +59,20 @@ extension MainNetworkService: TargetType {
       let markets = markets.joined(separator: ",")
       let param = ["markets": markets]
       return .requestParameters(parameters: param, encoding: URLEncoding.queryString)
+    case .getCryptoInfo(let market):
+	 let param = ["symbol": market]
+	 return .requestParameters(parameters: param, encoding: URLEncoding.queryString)
     }
   }
   
   var headers: [String : String]? {
-    return ["Accept":"application/json",
-            "Content-type":"application/json"]
+    switch self {
+    case .getCryptoInfo:
+	 return ["X-CMC_PRO_API_KEY": "101fdf9b-56b2-4600-ae1c-1a7947b55dfd"]
+    default:
+	 return ["Accept":"application/json",
+		    "Content-type":"application/json"]
+    }
   }
   
   

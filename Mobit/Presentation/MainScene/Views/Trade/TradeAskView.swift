@@ -187,7 +187,7 @@ class TradeAskView: UIView, ViewRule {
   
   func bind(reactor: CryptoDetailReactor) {
 	// TODO: reactor에서 값이 변경될 때마다 UserDataManager에 새로 계산해서 업데이트 해주기
-	reactor.state.map { $0.cryptoInfo }
+	reactor.state.map { $0.cryptoCellInfo }
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] cellInfo in

@@ -104,6 +104,11 @@
 		C18FF26E2D5AEDF7003E95B0 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */; };
 		C190F29D2D65AD6A00895D9E /* CryptoTransactionDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C190F29C2D65AD6A00895D9E /* CryptoTransactionDataModel.swift */; };
 		C191ECCE2DA79A6700BBA5EB /* CustomWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C191ECCD2DA79A6700BBA5EB /* CustomWindow.swift */; };
+		C19ED6E22DE2E914001ACCF9 /* CoinMarketApiKey.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = C19ED6E12DE2E914001ACCF9 /* CoinMarketApiKey.xcconfig */; };
+		C19ED6E52DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E42DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift */; };
+		C19ED6E72DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E62DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift */; };
+		C19ED6E92DE31648001ACCF9 /* TradeInformationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E82DE31648001ACCF9 /* TradeInformationView.swift */; };
+		C19ED6EB2DE31653001ACCF9 /* TradeInformationView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C19ED6EA2DE31653001ACCF9 /* TradeInformationView.xib */; };
 		C1AEA1AF2D66E982001E2A9E /* CalculationUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */; };
 		C1E12D402D7C29AF003C76F0 /* DoubleExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */; };
 /* End PBXBuildFile section */
@@ -208,7 +213,7 @@
 		998849E52C5379960073A27D /* CryptoTicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTicker.swift; sourceTree = "<group>"; };
 		99C20A572C48D35C009276E7 /* DividerLineView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DividerLineView.swift; sourceTree = "<group>"; };
 		99C20A5C2C48DF11009276E7 /* CoinTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinTableViewCell.swift; sourceTree = "<group>"; };
-		99C20A682C490326009276E7 /* MainNetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainNetworkService.swift; sourceTree = "<group>"; };
+		99C20A682C490326009276E7 /* MainNetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainNetworkService.swift; sourceTree = "<group>"; tabWidth = 5; };
 		99C20A752C490A3C009276E7 /* MainRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainRepository.swift; sourceTree = "<group>"; };
 		99C20A782C490B08009276E7 /* CryptoDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDTO.swift; sourceTree = "<group>"; };
 		99C20A822C4A2787009276E7 /* MainReactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainReactor.swift; sourceTree = "<group>"; };
@@ -235,6 +240,11 @@
 		C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		C190F29C2D65AD6A00895D9E /* CryptoTransactionDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTransactionDataModel.swift; sourceTree = "<group>"; };
 		C191ECCD2DA79A6700BBA5EB /* CustomWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomWindow.swift; sourceTree = "<group>"; };
+		C19ED6E12DE2E914001ACCF9 /* CoinMarketApiKey.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = CoinMarketApiKey.xcconfig; sourceTree = "<group>"; };
+		C19ED6E42DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoInfoQuotesResponse.swift; sourceTree = "<group>"; };
+		C19ED6E62DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoQuoteResponseDTO.swift; sourceTree = "<group>"; };
+		C19ED6E82DE31648001ACCF9 /* TradeInformationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeInformationView.swift; sourceTree = "<group>"; };
+		C19ED6EA2DE31653001ACCF9 /* TradeInformationView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeInformationView.xib; sourceTree = "<group>"; };
 		C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationUtil.swift; sourceTree = "<group>"; };
 		C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoubleExtension.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -343,6 +353,7 @@
 				C17E08322D2A62BC0029A8D0 /* Colors.xcassets */,
 				3133E2322C3E2357000D4B1A /* LaunchScreen.storyboard */,
 				367271AB2C7B2B1900F9D86E /* UpbitKey.xcconfig */,
+				C19ED6E12DE2E914001ACCF9 /* CoinMarketApiKey.xcconfig */,
 			);
 			path = Resource;
 			sourceTree = "<group>";
@@ -462,6 +473,8 @@
 				31B741FE2D58D67800706340 /* TradeHistoryView.xib */,
 				31B741FA2D53AAD800706340 /* TradeChartView.swift */,
 				31B741F82D53AAAC00706340 /* TradeChartView.xib */,
+				C19ED6E82DE31648001ACCF9 /* TradeInformationView.swift */,
+				C19ED6EA2DE31653001ACCF9 /* TradeInformationView.xib */,
 				31B7420D2D5B939000706340 /* TradeHistoryTableViewCell.swift */,
 				31B7420E2D5B939000706340 /* TradeHistoryTableViewCell.xib */,
 				367271B02C7B305500F9D86E /* OrderBookCell.swift */,
@@ -622,6 +635,7 @@
 				99C20AAB2C4F458C009276E7 /* CryptoSocketTickerDTO.swift */,
 				998849E32C5378CD0073A27D /* CryptoTickerDTO.swift */,
 				369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */,
+				C19ED6E62DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift */,
 			);
 			path = DataMapping;
 			sourceTree = "<group>";
@@ -655,6 +669,7 @@
 				31B742112D5B967F00706340 /* TradeHistoryInformation.swift */,
 				C190F29C2D65AD6A00895D9E /* CryptoTransactionDataModel.swift */,
 				C17424C52D460478009861CC /* MobitUserInformation.swift */,
+				C19ED6E42DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -837,12 +852,14 @@
 				31B741F72D53AA7600706340 /* TradeOrderView.xib in Resources */,
 				31B741F92D53AAAC00706340 /* TradeChartView.xib in Resources */,
 				C18EED572D55FE610038BBF7 /* TradeAskView.xib in Resources */,
+				C19ED6E22DE2E914001ACCF9 /* CoinMarketApiKey.xcconfig in Resources */,
 				31B742082D5A3BC400706340 /* tradingview.html in Resources */,
 				3133E2342C3E2357000D4B1A /* LaunchScreen.storyboard in Resources */,
 				3133E2312C3E2357000D4B1A /* Assets.xcassets in Resources */,
 				C18EED532D55FE450038BBF7 /* TradeBidView.xib in Resources */,
 				31F33FD02DDA1C09003D533A /* MoreViewController.xib in Resources */,
 				31B7420F2D5B939000706340 /* TradeHistoryTableViewCell.xib in Resources */,
+				C19ED6EB2DE31653001ACCF9 /* TradeInformationView.xib in Resources */,
 				31B741ED2D524F7000706340 /* TradeViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -876,6 +893,7 @@
 				998849E62C5379960073A27D /* CryptoTicker.swift in Sources */,
 				3133E2702C3F7098000D4B1A /* MainUseCase.swift in Sources */,
 				99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */,
+				C19ED6E92DE31648001ACCF9 /* TradeInformationView.swift in Sources */,
 				31D644482C7257F900C7F96D /* CryptoDetailCoordinator.swift in Sources */,
 				998849E22C524AAA0073A27D /* CryptoCellInfo.swift in Sources */,
 				C18EED512D55FE3D0038BBF7 /* TradeBidView.swift in Sources */,
@@ -890,6 +908,7 @@
 				31B741F52D53AA6C00706340 /* TradeOrderView.swift in Sources */,
 				C17E08352D2A64EE0029A8D0 /* ColorExtension.swift in Sources */,
 				31B742012D5A2AC400706340 /* ButtonExtension.swift in Sources */,
+				C19ED6E72DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift in Sources */,
 				369E877F2C7D955E0020A0B3 /* OrderBookResponseDTO.swift in Sources */,
 				998849E42C5378CD0073A27D /* CryptoTickerDTO.swift in Sources */,
 				31B741FB2D53AAD800706340 /* TradeChartView.swift in Sources */,
@@ -919,6 +938,7 @@
 				C17CF4A02DA4DD6500CDF76D /* InvestReactor.swift in Sources */,
 				99C20AB22C4F6A04009276E7 /* Environment.swift in Sources */,
 				31D6444A2C72587B00C7F96D /* CryptoDetailReactor.swift in Sources */,
+				C19ED6E52DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift in Sources */,
 				3133E22A2C3E2355000D4B1A /* SceneDelegate.swift in Sources */,
 				31D6444F2C72595000C7F96D /* CryptoDetailRepository.swift in Sources */,
 				36E7718F2D7595A700739CDE /* CallbackResultEnums.swift in Sources */,

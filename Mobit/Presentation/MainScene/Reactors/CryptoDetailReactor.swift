@@ -17,8 +17,6 @@ class CryptoDetailReactor: Reactor {
   private let disposeBag = DisposeBag()
   
   let initialState: CryptoDetailState = CryptoDetailState()
-//  let tickerSocketManager: NewWebSocketManager = NewWebSocketManager(socketType: .ticker)
-//  let orderBookSocketManager: NewWebSocketManager = NewWebSocketManager(socketType: .orderbook)
   var tickerSocketManager: NewWebSocketManager? = nil
   var orderBookSocketManager: NewWebSocketManager? = nil
   
@@ -35,16 +33,19 @@ extension CryptoDetailReactor {
   enum CryptoDetailAction {
     case connectTickerSocket
     case connectOrderBookSocket
+	case getCryptoInformation
   }
   
   enum CryptoDetailMutation {
     case setCryptoInfo(cryptoInfo: CryptoCellInfo)
     case setOrderBookInfo(obTicker: Orderbook)
+	case setCryptoInformation(cryptoQuoteResponse: CryptoQuoteResponse)
   }
   
   struct CryptoDetailState {
-    var cryptoInfo: CryptoCellInfo? = nil
+    var cryptoCellInfo: CryptoCellInfo? = nil
     var obTicker: Orderbook?
+	var cryptoQuotesInfo: CryptoQuoteResponse? = nil
   }
 }
 
@@ -56,6 +57,9 @@ extension CryptoDetailReactor {
       
     case .connectOrderBookSocket:
       return self.connectOrderBookTicker(crypto: self.selectCrypto)
+	  
+	case .getCryptoInformation:
+	  return self.getCryptoInformation(market: self.selectCrypto.market)
     }
   }
   
@@ -64,10 +68,12 @@ extension CryptoDetailReactor {
     var newState = state
     
     switch mutation {
-    case .setCryptoInfo(let cryptoInfo):
-      newState.cryptoInfo = cryptoInfo
+    case .setCryptoInfo(let cryptoCellInfo):
+      newState.cryptoCellInfo = cryptoCellInfo
     case .setOrderBookInfo(let obTicker):
       newState.obTicker = obTicker
+	case .setCryptoInformation(let cryptoQuotesResponse):
+	  newState.cryptoQuotesInfo = cryptoQuotesResponse
     }
     
     return newState
@@ -183,6 +189,12 @@ extension CryptoDetailReactor {
     return socketObservable
   }
   
+  private func getCryptoInformation(market: String) -> Observable<CryptoDetailMutation> {
+	return self.cryptoDetailUseCase.getCryptoInformation(market: market)
+	  .map { cryptoQuoteResponse in
+		return .setCryptoInformation(cryptoQuoteResponse: cryptoQuoteResponse)
+	  }
+  }
   
   func transformMarketForm(market: String) -> String {
     var transformMarket = market

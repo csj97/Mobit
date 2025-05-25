@@ -278,7 +278,7 @@ class TradeBidView: UIView, ViewRule {
   
   func bind(reactor: CryptoDetailReactor) {
 	
-	reactor.state.map { $0.cryptoInfo }
+	reactor.state.map { $0.cryptoCellInfo }
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] cellInfo in
