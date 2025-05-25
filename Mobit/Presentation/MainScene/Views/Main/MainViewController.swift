@@ -114,6 +114,18 @@ class MainViewController: UIViewController {
     $0.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
   }
   
+  let noFavoriteView: UIView = UIView().then {
+	$0.backgroundColor = .white
+	$0.isHidden = true
+  }
+  
+  let noFavoriteLabel: UILabel = UILabel().then {
+	$0.text = "즐겨찾기 설정된 코인이 없습니다."
+	$0.font = UIFont.systemFont(ofSize: 20)
+	$0.textAlignment = .center
+	$0.textColor = .black
+  }
+  
   let keyboardDismissButton: UIButton = UIButton().then {
 	$0.setTitle("키보드 내리기", for: .normal)
 	$0.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
@@ -351,6 +363,8 @@ class MainViewController: UIViewController {
     switch sender.tag {
     case 0:
       self.selectedTab = .krw
+	  self.tableView.isHidden = false
+	  self.noFavoriteView.isHidden = true
       self.reactor.action.onNext(.loadCrypto(selectedTab: .krw))
       self.applySnapshot(cellInfos: reactor.currentState.cryptoCellInfos)
 //    case 1:
@@ -363,7 +377,15 @@ class MainViewController: UIViewController {
 	  let favoriteCellInfos = self.reactor.currentState.cryptoCellInfos.filter {
 		favoriteMarketNames.contains($0.market)
 	  }
-	  self.applySnapshot(cellInfos: favoriteCellInfos)
+	  if favoriteCellInfos.count == 0 {
+		self.tableView.isHidden = true
+		self.noFavoriteView.isHidden = false
+	  } else {
+		self.tableView.isHidden = false
+		self.noFavoriteView.isHidden = true
+		self.applySnapshot(cellInfos: favoriteCellInfos)
+	  }
+	  
     default:
       break
     }
@@ -433,7 +455,20 @@ class MainViewController: UIViewController {
           flex.addItem(self.tradingVolumeButton).width(25%)
         }
         flex.addItem(DividerLineView()).height(1)
-        flex.addItem(self.tableView).grow(1)
+		flex.addItem().direction(.column).define { flex in
+		  flex.addItem(self.tableView)
+			.grow(1)
+
+		  flex.addItem(self.noFavoriteView)
+			.position(.absolute)
+			.top(0).bottom(0).left(0).right(0)
+			.justifyContent(.center)
+			.alignItems(.center)
+			.backgroundColor(.white)
+			.define { flex in
+			  flex.addItem(self.noFavoriteLabel)
+			}
+		}.grow(1)
     }
   }
 }
