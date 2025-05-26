@@ -68,7 +68,7 @@ extension MainNetworkService: TargetType {
   var headers: [String : String]? {
     switch self {
     case .getCryptoInfo:
-	 return ["X-CMC_PRO_API_KEY": "101fdf9b-56b2-4600-ae1c-1a7947b55dfd"]
+	 return ["X-CMC_PRO_API_KEY": Environment.coinMarketCapApiKey]
     default:
 	 return ["Accept":"application/json",
 		    "Content-type":"application/json"]
