@@ -11,6 +11,9 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="MoreViewController" customModule="Mobit" customModuleProvider="target">
             <connections>
+                <outlet property="chargeMoneyButton" destination="KAA-OG-EQT" id="ZBw-4m-vx0"/>
+                <outlet property="loadingIndicator" destination="qQX-RO-VsG" id="6dl-Is-qgp"/>
+                <outlet property="loadingView" destination="Gdd-ng-g83" id="Pm3-NM-biD"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
         </placeholder>
@@ -19,24 +22,44 @@
             <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="KAA-OG-EQT">
-                    <rect key="frame" x="0.0" y="59" width="393" height="50"/>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="KAA-OG-EQT">
+                    <rect key="frame" x="20" y="79" width="353" height="50"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="50" id="KOZ-8r-6JZ"/>
                     </constraints>
-                    <state key="normal" title="Button"/>
-                    <buttonConfiguration key="configuration" style="plain" title="투자금 충전하기"/>
+                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                    <state key="normal" title="투자금 충전하기">
+                        <color key="titleColor" red="0.24600857500000001" green="0.58315294979999999" blue="0.98942488429999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    </state>
                     <connections>
                         <action selector="tapOnChargeMoney:" destination="-1" eventType="touchUpInside" id="3zM-3e-zCw"/>
                     </connections>
                 </button>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Gdd-ng-g83" userLabel="Loading View">
+                    <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                    <subviews>
+                        <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="large" translatesAutoresizingMaskIntoConstraints="NO" id="qQX-RO-VsG">
+                            <rect key="frame" x="178" y="407.66666666666669" width="37" height="37"/>
+                            <color key="color" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        </activityIndicatorView>
+                    </subviews>
+                    <color key="backgroundColor" white="0.0" alpha="0.10000000000000001" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    <constraints>
+                        <constraint firstItem="qQX-RO-VsG" firstAttribute="centerX" secondItem="Gdd-ng-g83" secondAttribute="centerX" id="bSB-Ll-IZT"/>
+                        <constraint firstItem="qQX-RO-VsG" firstAttribute="centerY" secondItem="Gdd-ng-g83" secondAttribute="centerY" id="eSe-Nn-tRA"/>
+                    </constraints>
+                </view>
             </subviews>
             <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
             <color key="backgroundColor" systemColor="systemBackgroundColor"/>
             <constraints>
-                <constraint firstItem="KAA-OG-EQT" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" id="M10-jv-lWU"/>
-                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="KAA-OG-EQT" secondAttribute="trailing" id="REh-YM-rde"/>
-                <constraint firstItem="KAA-OG-EQT" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="jGY-XB-H19"/>
+                <constraint firstAttribute="bottom" secondItem="Gdd-ng-g83" secondAttribute="bottom" id="EB0-X9-Nac"/>
+                <constraint firstAttribute="trailing" secondItem="Gdd-ng-g83" secondAttribute="trailing" id="HBp-2D-uql"/>
+                <constraint firstItem="Gdd-ng-g83" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="HI2-39-dPc"/>
+                <constraint firstItem="KAA-OG-EQT" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" constant="20" id="M10-jv-lWU"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="KAA-OG-EQT" secondAttribute="trailing" constant="20" id="REh-YM-rde"/>
+                <constraint firstItem="Gdd-ng-g83" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="dNd-1I-EBL"/>
+                <constraint firstItem="KAA-OG-EQT" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="20" id="jGY-XB-H19"/>
             </constraints>
             <point key="canvasLocation" x="132" y="-11"/>
         </view>

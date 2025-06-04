@@ -21,19 +21,41 @@ class MobitAlertViewController: UIViewController {
   @IBOutlet weak var confirmButton: UIButton!
   @IBOutlet weak var dimView: UIView!
   
-  var callBack: (() -> ())? = nil
+  var callBack: ((Bool) -> ())? = nil
   var delegate: MobitAlertDelegate?
+  
+  var alertType: AlertType
+  var titleString: String
+  var content: String
+  
+  init(alertType: AlertType, title: String, content: String, callBack: ((Bool) -> ())?) {
+	self.alertType = alertType
+	self.titleString = title
+	self.content = content
+	self.callBack = callBack
+
+	super.init(nibName: "MobitAlertViewController", bundle: nil)
+
+  }
+  
+  required init?(coder: NSCoder) {
+	fatalError("init(coder:) has not been implemented")
+  }
   
   override func viewDidLoad() {
 	super.viewDidLoad()
 	
+	self.configure(alertType: alertType, title: titleString, content: content, callBack: callBack)
   }
   
   func configure(
 	alertType: AlertType,
 	title: String?,
-	content: String
+	content: String,
+	callBack: ((Bool) -> ())?
   ) {
+	self.callBack = callBack
+	
 	if alertType == .onlyConfirm {
 	  self.cancelButton.isHidden = true
 	}
@@ -47,36 +69,38 @@ class MobitAlertViewController: UIViewController {
   }
   
   @IBAction func tapOnCancelButton(_ sender: UIButton) {
-    
+	self.dismiss(animated: true) {
+	  self.callBack?(false)
+	}
   }
   
   @IBAction func tapOnConfirmButton(_ sender: UIButton) {
-    
+	self.dismiss(animated: true) {
+	  self.callBack?(true)
+	}
   }
 }
 
 protocol MobitAlertDelegate {
-//  func show(alertType: AlertType, title: String, content: String)
+//  func show(alertType: AlertType, title: String, content: String, callBack: ((Bool) -> ())?)
 }
 
 extension MobitAlertDelegate where Self: UIViewController {
-	func show(
-		alertType: AlertType,
-		title: String? = nil,
-		content: String
-	) {
-	  
-	  let mobitAlertStoryboard = UIStoryboard(name: "MobitAlertViewController", bundle: nil)
-	  let mobitAlertViewController = mobitAlertStoryboard.instantiateViewController(
-		withIdentifier: "MobitAlertViewController"
-	  ) as! MobitAlertViewController
-	  
-	  mobitAlertViewController.delegate = self
-	  
-	  mobitAlertViewController.modalPresentationStyle = .overFullScreen
-	  mobitAlertViewController.modalTransitionStyle = .crossDissolve
-	  mobitAlertViewController.configure(alertType: alertType, title: title, content: content)
-	  
-	  self.present(mobitAlertViewController, animated: true, completion: nil)
-	}
+  func show(
+	alertType: AlertType,
+	title: String? = nil,
+	content: String,
+	callBack: ((Bool) -> ())?
+  ) {
+	
+	let mobitAlertViewController = MobitAlertViewController(
+	  alertType: alertType, title: title ?? "", content: content, callBack: callBack
+	)
+	mobitAlertViewController.delegate = self
+	
+	mobitAlertViewController.modalPresentationStyle = .overFullScreen
+	mobitAlertViewController.modalTransitionStyle = .crossDissolve
+	
+	self.present(mobitAlertViewController, animated: true, completion: nil)
+  }
 }

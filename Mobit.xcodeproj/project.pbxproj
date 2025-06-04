@@ -22,6 +22,7 @@
 		3133E2702C3F7098000D4B1A /* MainUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E26F2C3F7098000D4B1A /* MainUseCase.swift */; };
 		3133E2742C3F7135000D4B1A /* PinLayout in Frameworks */ = {isa = PBXBuildFile; productRef = 3133E2732C3F7135000D4B1A /* PinLayout */; };
 		3133E2772C3F7192000D4B1A /* FlexLayout in Frameworks */ = {isa = PBXBuildFile; productRef = 3133E2762C3F7192000D4B1A /* FlexLayout */; };
+		31630E622DF096C8003EFEE6 /* CoinMarketApiKey.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 31630E612DF096C8003EFEE6 /* CoinMarketApiKey.xcconfig */; };
 		31B741EC2D524F7000706340 /* TradeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741EA2D524F7000706340 /* TradeViewController.swift */; };
 		31B741ED2D524F7000706340 /* TradeViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B741EB2D524F7000706340 /* TradeViewController.xib */; };
 		31B741EF2D53A37E00706340 /* ViewRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741EE2D53A37600706340 /* ViewRule.swift */; };
@@ -104,7 +105,6 @@
 		C18FF26E2D5AEDF7003E95B0 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */; };
 		C190F29D2D65AD6A00895D9E /* CryptoTransactionDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C190F29C2D65AD6A00895D9E /* CryptoTransactionDataModel.swift */; };
 		C191ECCE2DA79A6700BBA5EB /* CustomWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C191ECCD2DA79A6700BBA5EB /* CustomWindow.swift */; };
-		C19ED6E22DE2E914001ACCF9 /* CoinMarketApiKey.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = C19ED6E12DE2E914001ACCF9 /* CoinMarketApiKey.xcconfig */; };
 		C19ED6E52DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E42DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift */; };
 		C19ED6E72DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E62DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift */; };
 		C19ED6E92DE31648001ACCF9 /* TradeInformationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E82DE31648001ACCF9 /* TradeInformationView.swift */; };
@@ -171,6 +171,7 @@
 		3133E2652C3F6A44000D4B1A /* BaseCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseCoordinator.swift; sourceTree = "<group>"; };
 		3133E2672C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoordinatorFinishDelegate.swift; sourceTree = "<group>"; };
 		3133E26F2C3F7098000D4B1A /* MainUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainUseCase.swift; sourceTree = "<group>"; };
+		31630E612DF096C8003EFEE6 /* CoinMarketApiKey.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = CoinMarketApiKey.xcconfig; sourceTree = "<group>"; };
 		31B741EA2D524F7000706340 /* TradeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeViewController.swift; sourceTree = "<group>"; tabWidth = 4; usesTabs = 1; };
 		31B741EB2D524F7000706340 /* TradeViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeViewController.xib; sourceTree = "<group>"; };
 		31B741EE2D53A37600706340 /* ViewRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewRule.swift; sourceTree = "<group>"; };
@@ -240,7 +241,6 @@
 		C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		C190F29C2D65AD6A00895D9E /* CryptoTransactionDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTransactionDataModel.swift; sourceTree = "<group>"; };
 		C191ECCD2DA79A6700BBA5EB /* CustomWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomWindow.swift; sourceTree = "<group>"; };
-		C19ED6E12DE2E914001ACCF9 /* CoinMarketApiKey.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = CoinMarketApiKey.xcconfig; sourceTree = "<group>"; };
 		C19ED6E42DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoInfoQuotesResponse.swift; sourceTree = "<group>"; };
 		C19ED6E62DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoQuoteResponseDTO.swift; sourceTree = "<group>"; };
 		C19ED6E82DE31648001ACCF9 /* TradeInformationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeInformationView.swift; sourceTree = "<group>"; };
@@ -353,7 +353,7 @@
 				C17E08322D2A62BC0029A8D0 /* Colors.xcassets */,
 				3133E2322C3E2357000D4B1A /* LaunchScreen.storyboard */,
 				367271AB2C7B2B1900F9D86E /* UpbitKey.xcconfig */,
-				C19ED6E12DE2E914001ACCF9 /* CoinMarketApiKey.xcconfig */,
+				31630E612DF096C8003EFEE6 /* CoinMarketApiKey.xcconfig */,
 			);
 			path = Resource;
 			sourceTree = "<group>";
@@ -852,12 +852,12 @@
 				31B741F72D53AA7600706340 /* TradeOrderView.xib in Resources */,
 				31B741F92D53AAAC00706340 /* TradeChartView.xib in Resources */,
 				C18EED572D55FE610038BBF7 /* TradeAskView.xib in Resources */,
-				C19ED6E22DE2E914001ACCF9 /* CoinMarketApiKey.xcconfig in Resources */,
 				31B742082D5A3BC400706340 /* tradingview.html in Resources */,
 				3133E2342C3E2357000D4B1A /* LaunchScreen.storyboard in Resources */,
 				3133E2312C3E2357000D4B1A /* Assets.xcassets in Resources */,
 				C18EED532D55FE450038BBF7 /* TradeBidView.xib in Resources */,
 				31F33FD02DDA1C09003D533A /* MoreViewController.xib in Resources */,
+				31630E622DF096C8003EFEE6 /* CoinMarketApiKey.xcconfig in Resources */,
 				31B7420F2D5B939000706340 /* TradeHistoryTableViewCell.xib in Resources */,
 				C19ED6EB2DE31653001ACCF9 /* TradeInformationView.xib in Resources */,
 				31B741ED2D524F7000706340 /* TradeViewController.xib in Resources */,
