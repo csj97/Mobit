@@ -22,7 +22,7 @@
 		3133E2702C3F7098000D4B1A /* MainUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E26F2C3F7098000D4B1A /* MainUseCase.swift */; };
 		3133E2742C3F7135000D4B1A /* PinLayout in Frameworks */ = {isa = PBXBuildFile; productRef = 3133E2732C3F7135000D4B1A /* PinLayout */; };
 		3133E2772C3F7192000D4B1A /* FlexLayout in Frameworks */ = {isa = PBXBuildFile; productRef = 3133E2762C3F7192000D4B1A /* FlexLayout */; };
-		31630E622DF096C8003EFEE6 /* CoinMarketApiKey.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 31630E612DF096C8003EFEE6 /* CoinMarketApiKey.xcconfig */; };
+		31630E622DF096C8003EFEE6 /* MobitAPIKeys.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 31630E612DF096C8003EFEE6 /* MobitAPIKeys.xcconfig */; };
 		31B741EC2D524F7000706340 /* TradeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741EA2D524F7000706340 /* TradeViewController.swift */; };
 		31B741ED2D524F7000706340 /* TradeViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B741EB2D524F7000706340 /* TradeViewController.xib */; };
 		31B741EF2D53A37E00706340 /* ViewRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741EE2D53A37600706340 /* ViewRule.swift */; };
@@ -88,6 +88,7 @@
 		99C20AB42C4F7177009276E7 /* CryptoSocketTicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB32C4F7177009276E7 /* CryptoSocketTicker.swift */; };
 		99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB72C4F775B009276E7 /* Crypto.swift */; };
 		C154CA192D97D63D006923BD /* MarketDataServiceUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */; };
+		C15DCD2B2DF2CAFD007544D8 /* ImageViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C15DCD2A2DF2CAFD007544D8 /* ImageViewExtension.swift */; };
 		C17424C42D4600A8009861CC /* UserDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17424C32D4600A8009861CC /* UserDataManager.swift */; };
 		C17424C62D460478009861CC /* MobitUserInformation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17424C52D460478009861CC /* MobitUserInformation.swift */; };
 		C17CF49C2DA4DAE900CDF76D /* InvestmentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17CF49A2DA4DAE900CDF76D /* InvestmentViewController.swift */; };
@@ -171,7 +172,7 @@
 		3133E2652C3F6A44000D4B1A /* BaseCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseCoordinator.swift; sourceTree = "<group>"; };
 		3133E2672C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoordinatorFinishDelegate.swift; sourceTree = "<group>"; };
 		3133E26F2C3F7098000D4B1A /* MainUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainUseCase.swift; sourceTree = "<group>"; };
-		31630E612DF096C8003EFEE6 /* CoinMarketApiKey.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = CoinMarketApiKey.xcconfig; sourceTree = "<group>"; };
+		31630E612DF096C8003EFEE6 /* MobitAPIKeys.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MobitAPIKeys.xcconfig; sourceTree = "<group>"; };
 		31B741EA2D524F7000706340 /* TradeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeViewController.swift; sourceTree = "<group>"; tabWidth = 4; usesTabs = 1; };
 		31B741EB2D524F7000706340 /* TradeViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeViewController.xib; sourceTree = "<group>"; };
 		31B741EE2D53A37600706340 /* ViewRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewRule.swift; sourceTree = "<group>"; };
@@ -203,7 +204,6 @@
 		31F33FCE2DDA1C09003D533A /* MoreViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MoreViewController.xib; sourceTree = "<group>"; };
 		31F33FD12DDA1D4C003D533A /* MobitAlertViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitAlertViewController.swift; sourceTree = "<group>"; };
 		31F33FD22DDA1D4C003D533A /* MobitAlertViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MobitAlertViewController.xib; sourceTree = "<group>"; };
-		367271AB2C7B2B1900F9D86E /* UpbitKey.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = UpbitKey.xcconfig; sourceTree = "<group>"; };
 		367271AC2C7B2DA600F9D86E /* OrderBookResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderBookResponse.swift; sourceTree = "<group>"; };
 		367271B02C7B305500F9D86E /* OrderBookCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderBookCell.swift; sourceTree = "<group>"; };
 		369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderBookResponseDTO.swift; sourceTree = "<group>"; };
@@ -224,6 +224,7 @@
 		99C20AB32C4F7177009276E7 /* CryptoSocketTicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CryptoSocketTicker.swift; path = Mobit/Domain/Model/CryptoSocketTicker.swift; sourceTree = SOURCE_ROOT; };
 		99C20AB72C4F775B009276E7 /* Crypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Crypto.swift; sourceTree = "<group>"; };
 		C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketDataServiceUtil.swift; sourceTree = "<group>"; };
+		C15DCD2A2DF2CAFD007544D8 /* ImageViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewExtension.swift; sourceTree = "<group>"; };
 		C17424C32D4600A8009861CC /* UserDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataManager.swift; sourceTree = "<group>"; };
 		C17424C52D460478009861CC /* MobitUserInformation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitUserInformation.swift; sourceTree = "<group>"; };
 		C17CF49A2DA4DAE900CDF76D /* InvestmentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestmentViewController.swift; sourceTree = "<group>"; };
@@ -352,8 +353,7 @@
 				3133E2302C3E2357000D4B1A /* Assets.xcassets */,
 				C17E08322D2A62BC0029A8D0 /* Colors.xcassets */,
 				3133E2322C3E2357000D4B1A /* LaunchScreen.storyboard */,
-				367271AB2C7B2B1900F9D86E /* UpbitKey.xcconfig */,
-				31630E612DF096C8003EFEE6 /* CoinMarketApiKey.xcconfig */,
+				31630E612DF096C8003EFEE6 /* MobitAPIKeys.xcconfig */,
 			);
 			path = Resource;
 			sourceTree = "<group>";
@@ -701,6 +701,7 @@
 				31B742022D5A2CAC00706340 /* ViewExtension.swift */,
 				C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */,
 				C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */,
+				C15DCD2A2DF2CAFD007544D8 /* ImageViewExtension.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -857,7 +858,7 @@
 				3133E2312C3E2357000D4B1A /* Assets.xcassets in Resources */,
 				C18EED532D55FE450038BBF7 /* TradeBidView.xib in Resources */,
 				31F33FD02DDA1C09003D533A /* MoreViewController.xib in Resources */,
-				31630E622DF096C8003EFEE6 /* CoinMarketApiKey.xcconfig in Resources */,
+				31630E622DF096C8003EFEE6 /* MobitAPIKeys.xcconfig in Resources */,
 				31B7420F2D5B939000706340 /* TradeHistoryTableViewCell.xib in Resources */,
 				C19ED6EB2DE31653001ACCF9 /* TradeInformationView.xib in Resources */,
 				31B741ED2D524F7000706340 /* TradeViewController.xib in Resources */,
@@ -915,6 +916,7 @@
 				31E208172C46C441000BFEBC /* MoreCoordinator.swift in Sources */,
 				3133E2642C3F6A3B000D4B1A /* AppCoordinator.swift in Sources */,
 				31B741FD2D58D67200706340 /* TradeHistoryView.swift in Sources */,
+				C15DCD2B2DF2CAFD007544D8 /* ImageViewExtension.swift in Sources */,
 				C18EED552D55FE4D0038BBF7 /* TradeAskView.swift in Sources */,
 				31B741EF2D53A37E00706340 /* ViewRule.swift in Sources */,
 				99C20AAE2C4F63E4009276E7 /* WebSocketManager.swift in Sources */,
@@ -1001,6 +1003,7 @@
 /* Begin XCBuildConfiguration section */
 		3133E24C2C3E2357000D4B1A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 31630E612DF096C8003EFEE6 /* MobitAPIKeys.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -1032,6 +1035,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COIN_MARKET_CAP_API_KEY = "";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1064,6 +1068,7 @@
 		};
 		3133E24D2C3E2357000D4B1A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 31630E612DF096C8003EFEE6 /* MobitAPIKeys.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -1095,6 +1100,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COIN_MARKET_CAP_API_KEY = "";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -1120,6 +1126,7 @@
 		};
 		3133E24F2C3E2357000D4B1A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 31630E612DF096C8003EFEE6 /* MobitAPIKeys.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -1155,6 +1162,7 @@
 		};
 		3133E2502C3E2357000D4B1A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 31630E612DF096C8003EFEE6 /* MobitAPIKeys.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;

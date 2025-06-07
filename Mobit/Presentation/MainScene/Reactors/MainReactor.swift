@@ -104,7 +104,7 @@ extension MainReactor {
         
         var observableConcat: [Observable<MainMutation>] = []
 		
-		if let socketManager = self.socketManager {
+		if let _ = self.socketManager {
 		  // socketManager 있으면 그냥 진행
 		} else {
 		  self.socketManager = NewWebSocketManager()
@@ -260,7 +260,10 @@ extension MainReactor {
       updatedCryptoCellInfo.changePrice = matchedTicker.changePrice
       updatedCryptoCellInfo.signedChangeRate = matchedTicker.signedChangeRate
       updatedCryptoCellInfo.change = matchedTicker.change
-      updatedCryptoCellInfo.accTradePrice24h = matchedTicker.accTradePrice24h
+	  updatedCryptoCellInfo.accTradePrice24h = matchedTicker.accTradePrice24h
+	  updatedCryptoCellInfo.accTradeVolume24h = matchedTicker.accTradeVolume24h
+	  updatedCryptoCellInfo.highest52WeekPrice = matchedTicker.highest52WeekPrice
+	  updatedCryptoCellInfo.lowest52WeekPrice = matchedTicker.lowest52WeekPrice
       
       return updatedCryptoCellInfo
     }
@@ -301,6 +304,9 @@ extension MainReactor {
         updatedCryptoCellInfo.signedChangeRate = socketTicker.signedChangeRate
         updatedCryptoCellInfo.change = socketTicker.change
         updatedCryptoCellInfo.accTradePrice24h = socketTicker.accTradePrice24H
+		updatedCryptoCellInfo.accTradeVolume24h = socketTicker.accTradeVolume24H
+		updatedCryptoCellInfo.highest52WeekPrice = socketTicker.highest52WeekPrice
+		updatedCryptoCellInfo.lowest52WeekPrice = socketTicker.lowest52WeekPrice
         
         return updatedCryptoCellInfo
       } else {

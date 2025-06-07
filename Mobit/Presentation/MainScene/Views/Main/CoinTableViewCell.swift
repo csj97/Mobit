@@ -136,7 +136,15 @@ class CoinTableViewCell: UITableViewCell {
           let change = crypto.change  else { return }
     
     if marketEvent.warning == true {
-      self.coinName.text = "[유]\(crypto.cryptoName)"
+	  let fullText = "[유]\(crypto.cryptoName)"
+	  let attributedString = NSMutableAttributedString(string: fullText)
+
+	  // [유]에만 색상 적용
+	  attributedString.addAttribute(.foregroundColor,
+									 value: UIColor.red,
+									 range: NSRange(location: 0, length: 3))
+
+	  self.coinName.attributedText = attributedString
     } else {
       self.coinName.text = crypto.cryptoName
     }

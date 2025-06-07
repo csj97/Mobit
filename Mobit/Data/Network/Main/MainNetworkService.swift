@@ -12,7 +12,7 @@ import RxSwift
 enum MainNetworkService {
   case getCryptoList
   case getTicker(markets: [String])
-  case getCryptoInfo(market: String)
+  case getCryptoInfo(market: String, currency: String = "KRW")
 }
 
 extension MainNetworkService: TargetType {
@@ -59,8 +59,8 @@ extension MainNetworkService: TargetType {
       let markets = markets.joined(separator: ",")
       let param = ["markets": markets]
       return .requestParameters(parameters: param, encoding: URLEncoding.queryString)
-    case .getCryptoInfo(let market):
-	 let param = ["symbol": market]
+    case .getCryptoInfo(let market, let currency):
+	 let param = ["symbol": market, "convert": currency]
 	 return .requestParameters(parameters: param, encoding: URLEncoding.queryString)
     }
   }
@@ -68,7 +68,8 @@ extension MainNetworkService: TargetType {
   var headers: [String : String]? {
     switch self {
     case .getCryptoInfo:
-	 return ["X-CMC_PRO_API_KEY": Environment.coinMarketCapApiKey]
+	 let apiKey = Bundle.main.infoDictionary?["COIN_MARKET_CAP_API_KEY"] as! String
+	 return ["X-CMC_PRO_API_KEY": apiKey]
     default:
 	 return ["Accept":"application/json",
 		    "Content-type":"application/json"]

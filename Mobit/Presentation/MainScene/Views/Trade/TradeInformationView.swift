@@ -13,11 +13,23 @@ class TradeInformationView: UIView, ViewRule {
   
   @IBOutlet weak var cryptoImageView: UIImageView!
   @IBOutlet weak var marketNameLabel: UILabel!
-  @IBOutlet weak var symbolLabel: UILabel!
+  @IBOutlet weak var basicInfoView: UIView!
+  @IBOutlet weak var priceInfoView: UIView!
+  @IBOutlet var symbolLabels: [UILabel]!
+  @IBOutlet weak var totalSupplyLabel: UILabel!
+  @IBOutlet weak var marketCapLabel: UILabel!
+  @IBOutlet weak var circulatingSupplyLabel: UILabel!
+  @IBOutlet weak var updatedAtStringLabel: UILabel!
+  @IBOutlet weak var accTradeVolume24HLabel: UILabel!
+  @IBOutlet weak var accTradePrice24HLabel: UILabel!
+  @IBOutlet weak var prevClosingPriceLabel: UILabel!
+  @IBOutlet weak var highest52WeekPriceLabel: UILabel!
+  @IBOutlet weak var lowest52WeekPriceLabel: UILabel!
   
   var symbol: String? = nil
   var reactor: CryptoDetailReactor? = nil
   var disposeBag = DisposeBag()
+  private var cryptoQuotesInfo: CryptoQuoteResponse? = nil
   
   static func instanceFromNib(
 	reactor: CryptoDetailReactor
@@ -35,13 +47,48 @@ class TradeInformationView: UIView, ViewRule {
 	}
 	
 	selfView.reactor = reactor
-	selfView.setUI()
 	selfView.setData()
+	selfView.configure()
 	
 	return selfView
   }
   
+  func configure() {
+	self.basicInfoView.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.5).cgColor
+	self.basicInfoView.layer.borderWidth = 1
+	self.priceInfoView.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.5).cgColor
+	self.priceInfoView.layer.borderWidth = 1
+  }
+  
   func setUI() {
+	guard let cryptoQuotesInfo = cryptoQuotesInfo else { return }
+	
+	if let iconURL = cryptoQuotesInfo.iconURL {
+	  self.cryptoImageView.load(from: iconURL)
+	} else {
+	  self.cryptoImageView.image = UIImage(named: "")
+	}
+	
+	self.marketNameLabel.text = cryptoQuotesInfo.slug
+	self.symbolLabels.forEach { $0.text = cryptoQuotesInfo.symbol }
+	self.totalSupplyLabel.text = cryptoQuotesInfo.totalSupply.formatSignificantDigits()
+	self.marketCapLabel.text = cryptoQuotesInfo.marketCap.formatSignificantDigits() + " 원"
+	self.updatedAtStringLabel.text = cryptoQuotesInfo.updatedAtString
+	self.circulatingSupplyLabel.text = cryptoQuotesInfo.circulatingSupply.formatSignificantDigits()
+	
+	guard let selectedCrypto = self.reactor?.selectCrypto,
+		  let accTradePrice24h = selectedCrypto.accTradePrice24h,
+		  let accTradeVolume24h = selectedCrypto.accTradeVolume24h,
+		  let prevPrice = selectedCrypto.prevPrice,
+		  let highest52WeekPrice = selectedCrypto.highest52WeekPrice,
+		  let lowest52WeekPrice = selectedCrypto.lowest52WeekPrice
+	else { return }
+	
+	self.accTradeVolume24HLabel.text = accTradeVolume24h.formatSignificantDigits()
+	self.accTradePrice24HLabel.text = "\(accTradePrice24h.formatSignificantDigits()) 원"
+	self.prevClosingPriceLabel.text = "\(prevPrice.formatSignificantDigits()) 원"
+	self.highest52WeekPriceLabel.text = "\(highest52WeekPrice.formatSignificantDigits()) 원"
+	self.lowest52WeekPriceLabel.text = "\(lowest52WeekPrice.formatSignificantDigits()) 원"
   }
   
   func setData() {
@@ -59,11 +106,12 @@ extension TradeInformationView {
 	  .distinctUntilChanged()
 	  .subscribe(onNext: { cryptoQuotesInfo in
 		guard let cryptoQuotesInfo = cryptoQuotesInfo else { return }
-		self.symbolLabel.text = cryptoQuotesInfo.symbol
+		self.cryptoQuotesInfo = cryptoQuotesInfo
+		self.setUI()
 		print("🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁")
 		print(cryptoQuotesInfo)
 	  })
 	  .disposed(by: disposeBag)
-	 
+	
   }
 }

@@ -19,4 +19,7 @@ struct CryptoCellInfo: Hashable {
   var signedChangeRate: Double?  // 부호있는 전일대비 변화율
   var change: String?    // 변화 (상승, 하락, 보합)
   var accTradePrice24h: Double?  //  24시간 누적 거래대금
+  var accTradeVolume24h: Double?  //  24시간 누적 거래볼륨
+  var highest52WeekPrice: Double? // 52주 최고가
+  var lowest52WeekPrice: Double? // 52주 최저가
 }

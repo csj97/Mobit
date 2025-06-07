@@ -59,7 +59,8 @@ extension CryptoDetailReactor {
       return self.connectOrderBookTicker(crypto: self.selectCrypto)
 	  
 	case .getCryptoInformation:
-	  return self.getCryptoInformation(market: self.selectCrypto.market)
+	  let symbol = self.selectCrypto.market.components(separatedBy: "/").first ?? ""
+	  return self.getCryptoInformation(market: symbol)
     }
   }
   

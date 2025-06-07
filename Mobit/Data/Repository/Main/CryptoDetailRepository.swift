@@ -22,7 +22,7 @@ class CryptoDetailRepository: CryptoDetailRepositoryProtocol {
 	let decodeTarget = CryptoQuoteResponseDTO.self
 	
 	return Observable.create { observer in
-	  let disposable = self.provider.rx.request(.getCryptoList)
+	  let disposable = self.provider.rx.request(.getCryptoInfo(market: market))
 		.subscribe { event in
 		  switch event {
 		  case .success(let response):

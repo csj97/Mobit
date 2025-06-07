@@ -131,7 +131,7 @@ struct Quote: Codable {
 extension CryptoQuoteResponseDTO {
   func toDomain(symbol: String) -> CryptoQuoteResponse {
 	let cryptoData = data[symbol]
-	let quoteData = cryptoData?.quote["USD"]
+	let quoteData = cryptoData?.quote["KRW"]
 	guard let id = cryptoData?.id,
 		  let name = cryptoData?.name,
 		  let marketCap = quoteData?.marketCap,
@@ -140,11 +140,23 @@ extension CryptoQuoteResponseDTO {
 		  let lastUpdated = quoteData?.lastUpdated,
 		  let price = quoteData?.price,
 		  let marketCapRank = cryptoData?.cmcRank,
-		  let updatedAtString = quoteData?.lastUpdated
+		  let dateAdded = cryptoData?.dateAdded,
+		  let tags = cryptoData?.tags,
+		  let slug = cryptoData?.slug,
+		  let volume24h = quoteData?.volume24h,
+		  let volumeChange24h = quoteData?.volumeChange24h,
+		  let percentChange1h = quoteData?.percentChange1h,
+		  let percentChange24h = quoteData?.percentChange24h,
+		  let percentChange7d = quoteData?.percentChange7d,
+		  let percentChange30d = quoteData?.percentChange30d,
+		  let percentChange60d = quoteData?.percentChange60d,
+		  let percentChange90d = quoteData?.percentChange90d
 	else {
 	  fatalError("Could not parse CryptoQuoteResponseDTO to CryptoQuoteResponse")
 	}
-		  
+	
+	let updatedAtString = Self.formattedDate(from: quoteData?.lastUpdated ?? "")
+	
 	return .init(
 	  id: id,
 	  name: name,
@@ -159,7 +171,20 @@ extension CryptoQuoteResponseDTO {
 	  marketCapRank: marketCapRank,
 	  platformName: cryptoData?.platform?.name,
 	  tokenAddress: cryptoData?.platform?.tokenAddress,
-	  updatedAtString: updatedAtString
+	  updatedAtString: updatedAtString,
+	  dateAdded: dateAdded,
+	  tags: tags,
+	  slug: slug,
+	  selfReportedCirculatingSupply:  cryptoData?.selfReportedCirculatingSupply,
+	  selfReportedMarketCap: cryptoData?.selfReportedMarketCap,
+	  volume24h: volume24h,
+	  volumeChange24h: volumeChange24h,
+	  percentChange1h: percentChange1h,
+	  percentChange24h: percentChange24h,
+	  percentChange7d: percentChange7d,
+	  percentChange30d: percentChange30d,
+	  percentChange60d: percentChange60d,
+	  percentChange90d: percentChange90d
 	)
   }
   private static func date(from string: String) -> Date {
@@ -169,10 +194,13 @@ extension CryptoQuoteResponseDTO {
   
   private static func formattedDate(from string: String) -> String {
 	let formatter = ISO8601DateFormatter()
+	formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds] // 이 부분이 핵심
+	
 	guard let date = formatter.date(from: string) else { return "" }
 	
 	let displayFormatter = DateFormatter()
 	displayFormatter.locale = Locale(identifier: "ko_KR")
+	displayFormatter.timeZone = TimeZone(identifier: "Asia/Seoul") // 한국 시간으로 보여주려면 설정
 	displayFormatter.dateFormat = "yyyy-MM-dd HH:mm"
 	
 	return "코인마켓캡 기준: \(displayFormatter.string(from: date))"
