@@ -18,9 +18,14 @@ class InvestReactor: Reactor {
   
   init() {
 	UserDataManager.userCryptoListObservable
-		.map { InvestMutation.setUserCrypto($0) }
-		.bind(to: mutationSubject)
-		.disposed(by: disposeBag)
+	  .map { InvestMutation.setUserCrypto($0) }
+	  .bind(to: mutationSubject)
+	  .disposed(by: disposeBag)
+	
+	UserDataManager.userAvailableBalanceObservable
+	  .map { InvestMutation.setUserAvailableBalance($0 ?? 0) }
+	  .bind(to: mutationSubject)
+	  .disposed(by: disposeBag)
   }
   
 }
@@ -29,15 +34,18 @@ class InvestReactor: Reactor {
 extension InvestReactor {
   enum InvestAction {
 	case loadTransactions
+//	case updateUserAvailableBalance
   }
   
   /// 상태 변경 단위, 작업 단위
   enum InvestMutation {
 	case setUserCrypto([CryptoTransactionDataModel]?)
+	case setUserAvailableBalance(Double)
   }
   
   struct InvestReactorState {
 	var cryptos: [CryptoTransactionDataModel]? = []
+	var userAvailableBalance: Double = UserDataManager.userInformation?.userAvailableBalance ?? 0
   }
 }
 
@@ -63,6 +71,8 @@ extension InvestReactor {
 	switch mutation {
 	case .setUserCrypto(let crypto):
 	  newState.cryptos = crypto
+	case .setUserAvailableBalance(let userAvailableBalance):
+	  newState.userAvailableBalance = userAvailableBalance
 	}
 	return newState
   }

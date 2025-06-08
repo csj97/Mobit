@@ -27,9 +27,9 @@ class AppTabBarCoordinator: BaseCoordinator {
     mainCoordinator.start()
     
     let mainTabBarItem = UITabBarItem(
-      title: "홈",
-      image: UIImage(systemName: "house"),
-      selectedImage: UIImage(systemName: "house.fill")
+      title: "거래소",
+      image: UIImage(named: "bitcoin_convert"),
+      selectedImage: UIImage(named: "bitcoin_convert")
     )
     mainNavigation.tabBarItem = mainTabBarItem
     
@@ -41,8 +41,8 @@ class AppTabBarCoordinator: BaseCoordinator {
     
     let investTabBarItem = UITabBarItem(
       title: "투자내역",
-      image: UIImage(systemName: "doc.circle"),
-      selectedImage: UIImage(systemName: "doc.circle.fill")
+      image: UIImage(named: "wallet"),
+      selectedImage: UIImage(named: "wallet")
     )
     investNavigation.tabBarItem = investTabBarItem
     
@@ -54,8 +54,8 @@ class AppTabBarCoordinator: BaseCoordinator {
     
     let moreTabBarItem = UITabBarItem(
       title: "더보기",
-      image: UIImage(systemName: "ellipsis.circle"),
-      selectedImage: UIImage(systemName: "ellipsis.circle.fill")
+	  image: UIImage(named: "more_square"),
+      selectedImage: UIImage(named: "more_square")
     )
     moreNavigation.tabBarItem = moreTabBarItem
     

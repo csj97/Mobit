@@ -231,5 +231,13 @@
 			<string>3qcr597p9d.skadnetwork</string>
 		</dict>
 	</array>
+	<key>UIAppFonts</key>
+	<array>
+		<string>esamanru-OTF-Bold.otf</string>
+		<string>esamanru-OTF-Light.otf</string>
+		<string>esamanru-OTF-Medium.otf</string>
+	</array>
+	<key>UILaunchStoryboardName</key>
+	<string>MobitLaunchScreen</string>
 </dict>
 </plist>

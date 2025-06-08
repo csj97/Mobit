@@ -69,7 +69,7 @@ class TradeInformationView: UIView, ViewRule {
 	  self.cryptoImageView.image = UIImage(named: "")
 	}
 	
-	self.marketNameLabel.text = cryptoQuotesInfo.slug
+	self.marketNameLabel.text = cryptoQuotesInfo.name
 	self.symbolLabels.forEach { $0.text = cryptoQuotesInfo.symbol }
 	self.totalSupplyLabel.text = cryptoQuotesInfo.totalSupply.formatSignificantDigits()
 	self.marketCapLabel.text = cryptoQuotesInfo.marketCap.formatSignificantDigits() + " 원"

@@ -9,8 +9,12 @@ import Foundation
 import RxSwift
 
 class UserDataManager: NSObject {
-  private static let userCryptoListSubject = BehaviorSubject<[CryptoTransactionDataModel]?>(value: [])
+  static let userAvailableBalanceSubject = BehaviorSubject<Double?>(value: nil)
+  static var userAvailableBalanceObservable: Observable<Double?> {
+	  return userAvailableBalanceSubject.asObservable()
+  }
   
+  private static let userCryptoListSubject = BehaviorSubject<[CryptoTransactionDataModel]?>(value: [])
   static var userCryptoListObservable: Observable<[CryptoTransactionDataModel]?> {
 	return userCryptoListSubject.asObservable()
   }
@@ -26,18 +30,6 @@ class UserDataManager: NSObject {
     }
     set {
       UserDefaults.standard.set(newValue, forKey: "isFirstLaunch")
-    }
-  }
-  
-  /// 사용자 직전 로그인 시간
-  static var userAvailableBalance: Double {
-    get {
-      let defaults = UserDefaults.standard
-      let data = defaults.double(forKey: "user-balance")
-      return data
-    }
-    set {
-      UserDefaults.standard.set(newValue, forKey: "user-balance")
     }
   }
   
@@ -123,26 +115,9 @@ class UserDataManager: NSObject {
       let defaults = UserDefaults.standard
       if let encodedData = try? JSONEncoder().encode(newValue) {
         defaults.set(encodedData, forKey: "user-information")
+		self.userAvailableBalanceSubject.onNext(newValue?.userAvailableBalance)
       }
     }
   }
   
-  /// 매수한 코인 목록
-  static var bidCryptoList: [CryptoTransactionDataModel?] {
-	get {
-	  let defaults = UserDefaults.standard
-	  if let data = defaults.data(forKey: "mobit-crypto-bid-transaction") {
-		// TODO: 이미 같은 코인 매수 히스토리가 있다면, 평균 금액을 산정해서 업데이트 필요
-		let decodedData = try? JSONDecoder().decode([CryptoTransactionDataModel?].self, from: data)
-		return decodedData ?? []
-	  }
-	  return []
-	}
-	set {
-	  let defaults = UserDefaults.standard
-	  if let encodedData = try? JSONEncoder().encode(newValue) {
-		defaults.set(encodedData, forKey: "mobit-crypto-bid-transaction")
-	  }
-	}
-  }
 }

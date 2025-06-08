@@ -10,7 +10,7 @@ import UIKit
 class DividerLineView: UIView {
   override init(frame: CGRect) {
     super.init(frame: frame)
-    backgroundColor = .lightGray
+	backgroundColor = .mobitColors(.lineLightGray).withAlphaComponent(0.5)
   }
   
   required init?(coder: NSCoder) {

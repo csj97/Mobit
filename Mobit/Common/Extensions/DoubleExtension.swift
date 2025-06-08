@@ -37,11 +37,13 @@ extension Double {
 	var formattedString = String(format: "%.\(digits)f", formattedValue)
 	
 	// 3. 불필요한 소수점 이하 0 제거
-	while formattedString.last == "0" {
-	  formattedString.removeLast()
-	}
-	if formattedString.last == "." {
-	  formattedString.removeLast()
+	if formattedString.contains(".") {
+	  while formattedString.last == "0" {
+		formattedString.removeLast()
+	  }
+	  if formattedString.last == "." {
+		formattedString.removeLast()
+	  }
 	}
 	
 	// 4. 콤마 추가 (소수점 앞부분만)

@@ -24,6 +24,7 @@ class InvestmentViewController: UIViewController, ViewRule {
   var disposeBag = DisposeBag()
   var reactor: InvestReactor
   var cryptos: [CryptoTransactionDataModel] = []
+  var userAvailableBalance: Double = 0
   var pendingUpdate: [CryptoTransactionDataModel]?
   private var isScrolling = false
   
@@ -78,23 +79,37 @@ class InvestmentViewController: UIViewController, ViewRule {
 	  $0 + $1.dynamicData.evaluationProfitLoss
 	}
 	// 수익률
-	let totalProfitRate = (totalProfitLoss / totalUserBalance) * 100
+	var totalProfitRate: Double
+
+	if totalUserBalance != 0 {
+		totalProfitRate = (totalProfitLoss / totalUserBalance) * 100
+	} else {
+		totalProfitRate = 0 // 혹은 nil 처리 또는 다른 기본값
+	}
 	
 	// 총 매수
 	let totalBuyPrice = cryptos.reduce(0) {
 	  $0 + $1.self.staticData.buyAmount
 	}
-
-	self.availableUserBalance.text = availableUserBalance.formatSignificantDigits() + " 원"
-	self.totalUserBalance.text = totalUserBalance.formatSignificantDigits(digits: 0) + " 원"
-	self.totalProfitRate.text = totalProfitRate.formatSignificantDigits(digits: 2) + " %"
+	
+	let availableUserBalanceString: String = availableUserBalance == 0 ? "0" : availableUserBalance.formatSignificantDigits()
+	let totalUserBalanceString: String = totalUserBalance == 0 ? "0" : totalUserBalance.formatSignificantDigits(digits: 0)
+	let totalProfitRateString: String = totalProfitRate == 0 ? "0" : totalProfitRate.formatSignificantDigits(digits: 2)
+	let totalEvalProfitLossString: String = totalProfitRate == 0 ? "0" : totalProfitLoss.formatSignificantDigits(digits: 0)
+	let totalBuyPriceString: String = totalBuyPrice == 0 ? "0" : totalBuyPrice.formatSignificantDigits(digits: 0)
+	
+	self.availableUserBalance.text = availableUserBalanceString + " 원"
+	self.totalUserBalance.text = totalUserBalanceString + " 원"
+	self.totalProfitRate.text = totalProfitRateString + " %"
 	if totalProfitRate < 0 {
 	  self.totalProfitRate.textColor = .blue
+	} else if totalProfitRate == 0 {
+	  self.totalProfitRate.textColor = .black
 	} else {
 	  self.totalProfitRate.textColor = .red
 	}
-	self.totalEvalProfitLoss.text = totalProfitLoss.formatSignificantDigits(digits: 0) + " 원"
-	self.totalBuyPrice.text = totalBuyPrice.formatSignificantDigits(digits: 0) + " 원"
+	self.totalEvalProfitLoss.text = totalEvalProfitLossString + " 원"
+	self.totalBuyPrice.text = totalBuyPriceString + " 원"
   }
 }
 
@@ -116,6 +131,16 @@ extension InvestmentViewController: View {
 		  self.updateTotalDatas(cryptos: cryptos)
 		  self.transactionTableview.reloadData()
 		}
+	  })
+	  .disposed(by: self.disposeBag)
+	
+	reactor.state.map { $0.userAvailableBalance }
+	  .distinctUntilChanged()
+	  .observe(on: MainScheduler.instance)
+	  .subscribe(onNext: { [weak self] userAvailableBalance in
+		guard let self else { return }
+		self.userAvailableBalance = userAvailableBalance
+		self.updateTotalDatas(cryptos: self.cryptos)
 	  })
 	  .disposed(by: self.disposeBag)
   }

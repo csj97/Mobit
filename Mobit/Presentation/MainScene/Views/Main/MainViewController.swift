@@ -247,7 +247,7 @@ class MainViewController: UIViewController {
 	  }
 	  
 	  filteredCellInfos?.forEach({ cellInfo in
-		self.fetchBidCryptoList(
+		self.fetchUserCryptoList(
 		  marketName: cellInfo.market,
 		  currentPrice: cellInfo.tradePrice
 		)
@@ -257,8 +257,8 @@ class MainViewController: UIViewController {
 	}
   }
   
-  /// crypto socket 업데이트 될 떄, 매수 목록 fetch
-  func fetchBidCryptoList(
+  /// crypto socket 업데이트 될 때, 매수 목록 fetch
+  func fetchUserCryptoList(
 	marketName: String,
 	currentPrice: Double?
   ) {

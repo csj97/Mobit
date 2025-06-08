@@ -30,6 +30,8 @@ class TradeAskView: UIView, ViewRule {
   var availableCryptoCount: Double = 0.0
   // 매도 수량
   var inputAmount: Double = 0.0
+  // 매도 금액
+  var totalPrice: Double = 0.0
   var askCryptoIndex: Int? = nil
   
   deinit {
@@ -67,7 +69,7 @@ class TradeAskView: UIView, ViewRule {
 	let marketName = self.reactor?.selectCrypto.market.components(separatedBy: "/").first
 	self.marketNameLabels.forEach({ $0.text = marketName })
 	self.inputTradeAmount.keyboardType = .decimalPad
-	self.totalPriceTextField.keyboardType = .decimalPad
+	self.totalPriceTextField.keyboardType = .numberPad
   }
   
   func setData() {
@@ -86,7 +88,7 @@ class TradeAskView: UIView, ViewRule {
 	let krwAvailablePrice = currentPrice * crypto.staticData.holdingQuantity
 	self.availableCryptoCount = crypto.staticData.holdingQuantity
 	self.availableCrypto.text = String(self.availableCryptoCount.formatSignificantDigits())
-	self.availableTradePrice.text = "≈ " + String(krwAvailablePrice.formatSignificantDigits())
+	self.availableTradePrice.text = "≈ " + String(floor(krwAvailablePrice)).addComma()
   }
   
   func updateCalcUtil(updateCrypto: CryptoCellInfo?) {
@@ -135,6 +137,13 @@ class TradeAskView: UIView, ViewRule {
 	// 매수 내역은 현재 가지고 있는 매매 기록에 대해서만 나와야한다.
 	if let postStaticTransaction = postStaticTransaction {
 	  if inputAmount > 0, inputAmount <= crypto.staticData.holdingQuantity {
+		
+		if let totalPrice = Double(self.totalPriceTextField.text ?? "0"),
+		   totalPrice < 500 {
+		  self.callBack?(.alert(title: "알림", message: "500원 이상 매수/매도 가능합니다."))
+		  return
+		}
+		
 		let formatter = DateFormatter()
 		formatter.dateFormat = "MM.dd HH:mm"
 		formatter.locale = Locale(identifier: "ko_KR") // 한국 시간 기준
@@ -169,14 +178,14 @@ class TradeAskView: UIView, ViewRule {
 			data: newCryptoStaticData,
 			currentPrice: currentPrice
 		  )
-		  
-		  // 사용자 계좌 반영
-//		  UserDataManager.userAvailableBalance += crypto.dynamicData.evaluationProfitLoss
 		} else {
 		  // 전량 매도
 		  UserDataManager.userCryptoList?.remove(at: transactionIndex)
 		}
 		
+		// 사용자 계좌 반영
+		UserDataManager.userInformation?.userAvailableBalance += self.totalPrice
+		self.updateCryptoData()
 		self.callBack?(.updateHistory)
 		
 	  } else {
@@ -186,7 +195,6 @@ class TradeAskView: UIView, ViewRule {
   }
   
   func bind(reactor: CryptoDetailReactor) {
-	// TODO: reactor에서 값이 변경될 때마다 UserDataManager에 새로 계산해서 업데이트 해주기
 	reactor.state.map { $0.cryptoCellInfo }
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
@@ -200,20 +208,71 @@ class TradeAskView: UIView, ViewRule {
 }
 
 extension TradeAskView: UITextFieldDelegate {
+  func checkTotalPriceTextField(_ textField: UITextField) {
+	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8) else { return }
+	let inputTotalPrice = textField.text?.digitsOnlyDouble ?? 0
+	self.totalPrice = inputTotalPrice
+	let inputAmount = inputTotalPrice / currentPrice
+	
+	if floor(self.inputAmount) > 0 {
+	  self.inputTradeAmount.text = inputAmount.formatSignificantDigits(digits: 4)
+	  self.inputAmount = Double(inputAmount.formatSignificantDigits(digits: 4)) ?? 0
+	} else {
+	  self.inputTradeAmount.text = inputAmount.formatSignificantDigits()
+	  self.inputAmount = Double(inputAmount.formatSignificantDigits()) ?? 0
+	}
+  }
+  
+  func textFieldDidEndEditing(_ textField: UITextField) {
+	textField.text = textField.text?.addComma()
+  }
+  
   func textFieldDidChangeSelection(_ textField: UITextField) {
 	guard let currentPrice = self.cryptoInfo?.tradePrice else { return }
 	
 	if textField == self.inputTradeAmount {
-	  self.inputAmount = (textField.text?.digitsOnlyDouble ?? 0)?.formatDigits(digits: 8) ?? 0
+	  self.inputAmount = textField.text?.digitsOnlyDouble ?? 0
 	  let totalPrice = floor(
 		currentPrice.formatDigits(digits: 8) * inputAmount.formatDigits(digits: 8)
 	  )
 	  self.totalPriceTextField.text = totalPrice.formatSignificantDigits()
+	  self.totalPrice = totalPrice
 	} else if textField == self.totalPriceTextField {
-	  let inputTotalPrice = Double(textField.text ?? "0")?.formatDigits(digits: 8) ?? 0
-	  let quantity = Double(inputTotalPrice / currentPrice).formatSignificantDigits()
-	  
-	  self.inputTradeAmount.text = quantity.addComma()
+	  self.checkTotalPriceTextField(textField)
 	}
+  }
+  
+  func textField(
+	_ textField: UITextField,
+	shouldChangeCharactersIn range: NSRange,
+	replacementString string: String
+  ) -> Bool {
+	let currentText = textField.text ?? ""
+	
+	// 바뀐 텍스트 예측
+	guard let stringRange = Range(range, in: currentText) else { return false }
+	
+	let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
+	
+	if string == "." && currentText.contains(".") {
+	  return false
+	}
+	
+	if currentText.isEmpty && string == "." {
+	  textField.text = "0."
+	  self.checkTotalPriceTextField(textField)
+	  return false
+	}
+	
+	// "0"으로 시작하는데 다음 문자가 숫자일 경우 → "0" 제거
+	if currentText == "0", string != ".", !string.isEmpty {
+	  textField.text = string
+	  self.checkTotalPriceTextField(textField)
+	  return false
+	}
+	
+//	textField.text = updatedText.addComma()
+	
+	return true
   }
 }

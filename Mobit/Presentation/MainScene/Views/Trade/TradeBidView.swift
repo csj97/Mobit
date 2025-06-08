@@ -62,7 +62,7 @@ class TradeBidView: UIView, ViewRule {
   func setUI() {
 	self.inputMarketName.text = self.reactor?.selectCrypto.market.components(separatedBy: "/").first
 	self.inputTradeAmount.keyboardType = .decimalPad
-	self.totalPriceTextField.keyboardType = .decimalPad
+	self.totalPriceTextField.keyboardType = .numberPad
   }
   
   func setData() {
@@ -260,6 +260,7 @@ class TradeBidView: UIView, ViewRule {
 	  availableBalance -= buyAmount
 	}
 	
+	UserDataManager.userInformation?.userAvailableBalance = availableBalance
 	self.availableTradePrice.text = availableBalance.formatSignificantDigits()
 	
 	completion()
@@ -291,8 +292,21 @@ class TradeBidView: UIView, ViewRule {
 }
 
 extension TradeBidView: UITextFieldDelegate {
+  func checkTotalPriceTextField(_ textField: UITextField) {
+	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8) else { return }
+	let inputTotalPrice = textField.text?.digitsOnlyDouble ?? 0
+	let inputAmount = inputTotalPrice / currentPrice
+	
+	if floor(self.inputAmount) > 0 {
+	  self.inputTradeAmount.text = inputAmount.formatSignificantDigits(digits: 4)
+	  self.inputAmount = Double(inputAmount.formatSignificantDigits(digits: 4)) ?? 0
+	} else {
+	  self.inputTradeAmount.text = inputAmount.formatSignificantDigits()
+	  self.inputAmount = Double(inputAmount.formatSignificantDigits()) ?? 0
+	}
+  }
+  
   func textFieldDidChangeSelection(_ textField: UITextField) {
-	// TODO: 수량 및 총액 입력시, 같이 수정 되어야 함.
 	guard let currentPrice = self.cryptoInfo?.tradePrice else { return }
 	
 	if textField == self.inputTradeAmount {
@@ -302,7 +316,53 @@ extension TradeBidView: UITextFieldDelegate {
 	  )
 	  self.totalPriceTextField.text = totalPrice.formatSignificantDigits()
 	} else if textField == self.totalPriceTextField {
-	  
+	  self.checkTotalPriceTextField(textField)
 	}
+  }
+  
+  func textFieldDidEndEditing(_ textField: UITextField) {
+	textField.text = textField.text?.addComma()
+  }
+  
+  func textField(
+	_ textField: UITextField,
+	shouldChangeCharactersIn range: NSRange,
+	replacementString string: String
+  ) -> Bool {
+	let currentText = textField.text ?? ""
+	
+	// 바뀐 텍스트 예측
+	guard let stringRange = Range(range, in: currentText) else { return false }
+	
+	let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
+	
+	let allowedCharacters = CharacterSet(charactersIn: "0123456789.")
+	if string.rangeOfCharacter(from: allowedCharacters.inverted) != nil {
+	  return false
+	}
+	
+	// 소숫점 입력 중복 방지
+	if string == "." {
+	  
+	  if updatedText.filter({ $0 == "." }).count > 1 {
+		return false
+	  }
+	  
+	  // "."이 맨 앞에 입력되면 자동으로 "0."으로 바꿔주기
+	  if currentText.isEmpty && string == "." {
+		textField.text = "0."
+		self.checkTotalPriceTextField(textField)
+		return false
+	  }
+	}
+	
+	// "0"으로 시작하는데 다음 문자가 숫자일 경우 → "0" 제거
+	if currentText == "0", string != ".", !string.isEmpty {
+	  textField.text = string
+	  self.checkTotalPriceTextField(textField)
+	  return false
+	}
+	
+	return true
   }
 }

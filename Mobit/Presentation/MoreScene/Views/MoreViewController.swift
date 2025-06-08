@@ -13,12 +13,15 @@ import UIKit
 class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
   
   @IBOutlet weak var chargeMoneyButton: UIButton!
+  @IBOutlet weak var userNoticeButton: UIButton!
+  @IBOutlet weak var investInitButton: UIButton!
   @IBOutlet weak var loadingIndicator: UIActivityIndicatorView!
   @IBOutlet weak var loadingView: UIView!
+  @IBOutlet weak var versionLabel: UILabel!
   
   weak var coordinator: MoreCoordinator?
   private var rewardedAd: RewardedAd?
-
+  
   override func viewDidLoad() {
 	super.viewDidLoad()
 	
@@ -31,14 +34,20 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
   }
   
   func setUI() {
-    self.chargeMoneyButton.layer.borderWidth = 1
-	self.chargeMoneyButton.layer.borderColor = UIColor.systemBlue.withAlphaComponent(0.4).cgColor
-	self.chargeMoneyButton.layer.cornerRadius = 10
-    self.loadingView.isHidden = true
+	self.makeBorderLine(self.chargeMoneyButton)
+	self.makeBorderLine(self.userNoticeButton)
+	self.makeBorderLine(self.investInitButton)
+	self.loadingView.isHidden = true
   }
   
   func setData() {
-    
+	
+  }
+  
+  func makeBorderLine(_ button: UIButton) {
+	button.layer.borderWidth = 1
+	button.layer.borderColor = UIColor.systemBlue.withAlphaComponent(0.4).cgColor
+	button.layer.cornerRadius = 10
   }
   
   @IBAction func tapOnChargeMoney(_ sender: UIButton) {
@@ -57,11 +66,47 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
 	}
   }
   
+  @IBAction func tapOnUserNoticeButton(_ sender: UIButton) {
+	let noticeContent = """
+   사용자는 이 앱에서 실제 금전적인 자산을 입금하거나 출금할 수 없으며,
+   모든 거래 및 수익/손실은 가상의 수치일 뿐, 
+   
+   **현실의 자산에 어떤 영향도 미치지 않습니다.
+   
+   앱 내 정보 및 결과는 학습 또는 참고 목적으로 제공되며,
+   실제 투자 판단의 근거로 삼을 수 없으며, 
+   
+   **그로 인해 발생한 어떠한 손실에 대해서도 본 앱은 책임지지 않습니다.
+   """
+	self.show(
+	  alertType: .onlyConfirm,
+	  title: "* 사용자 안내사항 *",
+	  content: noticeContent,
+	  callBack: nil
+	)
+  }
+  
+  @IBAction func tapOnInvestInitButton(_ sender: UIButton) {
+	
+	let noticeContent = """
+	   투자하신 거래 내역이 모두 초기화되며, 보유 금액도 0원이 됩니다.
+	   """
+	self.show(
+	  alertType: .onlyConfirm,
+	  title: "* 투자내역 초기화 안내 *",
+	  content: noticeContent) { _ in
+		UserDataManager.userInformation?.userAvailableBalance = 0
+		UserDataManager.userCryptoList = []
+		UserDataManager.userTransactionList = []
+		UserDataManager.userValidTransactionList = []
+	  }
+  }
+  
   /// Google 보상형 광고 load
   func loadRewardedAd() async {
 	do {
-      self.loadingIndicator.startAnimating()
-      self.loadingView.isHidden = false
+	  self.loadingIndicator.startAnimating()
+	  self.loadingView.isHidden = false
 	  rewardedAd = try await RewardedAd.load(
 		with: "ca-app-pub-3498168241675848/9517873690",
 		request: Request()

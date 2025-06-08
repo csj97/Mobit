@@ -91,6 +91,11 @@
 		C15DCD2B2DF2CAFD007544D8 /* ImageViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C15DCD2A2DF2CAFD007544D8 /* ImageViewExtension.swift */; };
 		C17424C42D4600A8009861CC /* UserDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17424C32D4600A8009861CC /* UserDataManager.swift */; };
 		C17424C62D460478009861CC /* MobitUserInformation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17424C52D460478009861CC /* MobitUserInformation.swift */; };
+		C17BA2B72DF5B576001AF72D /* MobitLaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2B62DF5B576001AF72D /* MobitLaunchScreen.xib */; };
+		C17BA2BB2DF5B6D9001AF72D /* esamanru-OTF-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2BA2DF5B6D9001AF72D /* esamanru-OTF-Medium.otf */; };
+		C17BA2BC2DF5B6D9001AF72D /* esamanru-OTF-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2B82DF5B6D9001AF72D /* esamanru-OTF-Bold.otf */; };
+		C17BA2BD2DF5B6D9001AF72D /* esamanru-OTF-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2B92DF5B6D9001AF72D /* esamanru-OTF-Light.otf */; };
+		C17BA2BF2DF5B8FB001AF72D /* MobitLaunchScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17BA2BE2DF5B8FB001AF72D /* MobitLaunchScreen.swift */; };
 		C17CF49C2DA4DAE900CDF76D /* InvestmentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17CF49A2DA4DAE900CDF76D /* InvestmentViewController.swift */; };
 		C17CF49D2DA4DAE900CDF76D /* InvestmentViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C17CF49B2DA4DAE900CDF76D /* InvestmentViewController.xib */; };
 		C17CF4A02DA4DD6500CDF76D /* InvestReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17CF49F2DA4DD6500CDF76D /* InvestReactor.swift */; };
@@ -227,6 +232,11 @@
 		C15DCD2A2DF2CAFD007544D8 /* ImageViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewExtension.swift; sourceTree = "<group>"; };
 		C17424C32D4600A8009861CC /* UserDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataManager.swift; sourceTree = "<group>"; };
 		C17424C52D460478009861CC /* MobitUserInformation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitUserInformation.swift; sourceTree = "<group>"; };
+		C17BA2B62DF5B576001AF72D /* MobitLaunchScreen.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MobitLaunchScreen.xib; sourceTree = "<group>"; };
+		C17BA2B82DF5B6D9001AF72D /* esamanru-OTF-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "esamanru-OTF-Bold.otf"; sourceTree = "<group>"; };
+		C17BA2B92DF5B6D9001AF72D /* esamanru-OTF-Light.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "esamanru-OTF-Light.otf"; sourceTree = "<group>"; };
+		C17BA2BA2DF5B6D9001AF72D /* esamanru-OTF-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "esamanru-OTF-Medium.otf"; sourceTree = "<group>"; };
+		C17BA2BE2DF5B8FB001AF72D /* MobitLaunchScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitLaunchScreen.swift; sourceTree = "<group>"; };
 		C17CF49A2DA4DAE900CDF76D /* InvestmentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestmentViewController.swift; sourceTree = "<group>"; };
 		C17CF49B2DA4DAE900CDF76D /* InvestmentViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = InvestmentViewController.xib; sourceTree = "<group>"; };
 		C17CF49F2DA4DD6500CDF76D /* InvestReactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestReactor.swift; sourceTree = "<group>"; };
@@ -350,10 +360,13 @@
 		3133E2572C3F696A000D4B1A /* Resource */ = {
 			isa = PBXGroup;
 			children = (
+				C17BA2AB2DF5A9F0001AF72D /* Fonts */,
 				3133E2302C3E2357000D4B1A /* Assets.xcassets */,
 				C17E08322D2A62BC0029A8D0 /* Colors.xcassets */,
 				3133E2322C3E2357000D4B1A /* LaunchScreen.storyboard */,
 				31630E612DF096C8003EFEE6 /* MobitAPIKeys.xcconfig */,
+				C17BA2B62DF5B576001AF72D /* MobitLaunchScreen.xib */,
+				C17BA2BE2DF5B8FB001AF72D /* MobitLaunchScreen.swift */,
 			);
 			path = Resource;
 			sourceTree = "<group>";
@@ -683,6 +696,16 @@
 			path = Utils;
 			sourceTree = "<group>";
 		};
+		C17BA2AB2DF5A9F0001AF72D /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				C17BA2B82DF5B6D9001AF72D /* esamanru-OTF-Bold.otf */,
+				C17BA2B92DF5B6D9001AF72D /* esamanru-OTF-Light.otf */,
+				C17BA2BA2DF5B6D9001AF72D /* esamanru-OTF-Medium.otf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
 		C17CF49E2DA4DD1C00CDF76D /* Reactors */ = {
 			isa = PBXGroup;
 			children = (
@@ -849,9 +872,13 @@
 				C17CF49D2DA4DAE900CDF76D /* InvestmentViewController.xib in Resources */,
 				31B741FF2D58D67800706340 /* TradeHistoryView.xib in Resources */,
 				31F33FD42DDA1D4C003D533A /* MobitAlertViewController.xib in Resources */,
+				C17BA2B72DF5B576001AF72D /* MobitLaunchScreen.xib in Resources */,
 				C17DB9732DA5FAF000DA673A /* InvestmentTableViewCell.xib in Resources */,
 				31B741F72D53AA7600706340 /* TradeOrderView.xib in Resources */,
 				31B741F92D53AAAC00706340 /* TradeChartView.xib in Resources */,
+				C17BA2BB2DF5B6D9001AF72D /* esamanru-OTF-Medium.otf in Resources */,
+				C17BA2BC2DF5B6D9001AF72D /* esamanru-OTF-Bold.otf in Resources */,
+				C17BA2BD2DF5B6D9001AF72D /* esamanru-OTF-Light.otf in Resources */,
 				C18EED572D55FE610038BBF7 /* TradeAskView.xib in Resources */,
 				31B742082D5A3BC400706340 /* tradingview.html in Resources */,
 				3133E2342C3E2357000D4B1A /* LaunchScreen.storyboard in Resources */,
@@ -943,6 +970,7 @@
 				C19ED6E52DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift in Sources */,
 				3133E22A2C3E2355000D4B1A /* SceneDelegate.swift in Sources */,
 				31D6444F2C72595000C7F96D /* CryptoDetailRepository.swift in Sources */,
+				C17BA2BF2DF5B8FB001AF72D /* MobitLaunchScreen.swift in Sources */,
 				36E7718F2D7595A700739CDE /* CallbackResultEnums.swift in Sources */,
 				99C20AB42C4F7177009276E7 /* CryptoSocketTicker.swift in Sources */,
 				31E208092C46BF6B000BFEBC /* MainTabBarCoordinator.swift in Sources */,

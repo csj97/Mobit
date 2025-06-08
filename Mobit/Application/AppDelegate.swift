@@ -13,7 +13,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     
-	MobileAds.shared.requestConfiguration.testDeviceIdentifiers = [ "8fd7e36c1306521658de783d0e0d586e", "e48c86c220b0dbb51f97c4c17ad73ce7" ]
+	MobileAds.shared.requestConfiguration.testDeviceIdentifiers = [ "26842ce77d193c02e94e1e2826d0121f", "9c171ef9b1742b705cca840364271e44" ]
 	MobileAds.shared.start(completionHandler: nil)
 	
     checkFirstLaunch()
@@ -45,7 +45,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 	} else {
 	  guard let userInfo = UserDataManager.userInformation else { return }
 	  print("지금 내돈 : \(userInfo.userAvailableBalance)")
-	  print("매수 리스트: \(UserDataManager.bidCryptoList)")
 	}
   }
 }
