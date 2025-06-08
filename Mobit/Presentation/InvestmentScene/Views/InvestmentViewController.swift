@@ -94,7 +94,7 @@ class InvestmentViewController: UIViewController, ViewRule {
 	
 	let availableUserBalanceString: String = availableUserBalance == 0 ? "0" : availableUserBalance.formatSignificantDigits()
 	let totalUserBalanceString: String = totalUserBalance == 0 ? "0" : totalUserBalance.formatSignificantDigits(digits: 0)
-	let totalProfitRateString: String = totalProfitRate == 0 ? "0" : totalProfitRate.formatSignificantDigits(digits: 2)
+	let totalProfitRateString: String = totalProfitRate == 0 ? "0" : totalProfitRate.formatSignificantDigits(digits: 4)
 	let totalEvalProfitLossString: String = totalProfitRate == 0 ? "0" : totalProfitLoss.formatSignificantDigits(digits: 0)
 	let totalBuyPriceString: String = totalBuyPrice == 0 ? "0" : totalBuyPrice.formatSignificantDigits(digits: 0)
 	
