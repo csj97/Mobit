@@ -92,16 +92,18 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
 	   투자하신 거래 내역이 모두 초기화되며, 보유 금액도 0원이 됩니다.
 	   """
 	self.show(
-	  alertType: .onlyConfirm,
+	  alertType: .canCancel,
 	  title: "* 투자내역 초기화 안내 *",
 	  content: noticeContent
-	) { _ in
-	  UserDataManager.userInformation?.userAvailableBalance = 0
-	  UserDataManager.userCryptoList = []
-	  UserDataManager.userTransactionList = []
-	  UserDataManager.userValidTransactionList = []
-	  
-	  self.show(alertType: .onlyConfirm, content: "초기화 되었습니다.", callBack: nil)
+	) { isPositive in
+	  if isPositive {
+		UserDataManager.userInformation?.userAvailableBalance = 0
+		UserDataManager.userCryptoList = []
+		UserDataManager.userTransactionList = []
+		UserDataManager.userValidTransactionList = []
+		
+		self.show(alertType: .onlyConfirm, content: "초기화 되었습니다.", callBack: nil)
+	  }
 	}
   }
   
