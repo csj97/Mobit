@@ -25,45 +25,50 @@
             <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="KAA-OG-EQT">
-                    <rect key="frame" x="20" y="79" width="353" height="50"/>
-                    <constraints>
-                        <constraint firstAttribute="height" constant="50" id="KOZ-8r-6JZ"/>
-                    </constraints>
-                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                    <state key="normal" title="투자금 충전하기">
-                        <color key="titleColor" red="0.24600857500000001" green="0.58315294979999999" blue="0.98942488429999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                    </state>
-                    <connections>
-                        <action selector="tapOnChargeMoney:" destination="-1" eventType="touchUpInside" id="3zM-3e-zCw"/>
-                    </connections>
-                </button>
-                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ym1-Hn-qah">
-                    <rect key="frame" x="20" y="149" width="353" height="50"/>
-                    <constraints>
-                        <constraint firstAttribute="height" constant="50" id="Ryp-cP-Rax"/>
-                    </constraints>
-                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                    <state key="normal" title="사용자 고지사항">
-                        <color key="titleColor" red="0.24600857500000001" green="0.58315294979999999" blue="0.98942488429999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                    </state>
-                    <connections>
-                        <action selector="tapOnUserNoticeButton:" destination="-1" eventType="touchUpInside" id="tdk-U5-75M"/>
-                    </connections>
-                </button>
-                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="V2c-1i-CHG">
-                    <rect key="frame" x="20" y="219" width="353" height="50"/>
-                    <constraints>
-                        <constraint firstAttribute="height" constant="50" id="PhP-GH-wwO"/>
-                    </constraints>
-                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                    <state key="normal" title="투자 내역 초기화">
-                        <color key="titleColor" red="0.24600857500000001" green="0.58315294979999999" blue="0.98942488429999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                    </state>
-                    <connections>
-                        <action selector="tapOnInvestInitButton:" destination="-1" eventType="touchUpInside" id="8Xi-6X-hmo"/>
-                    </connections>
-                </button>
+                <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="QOk-eo-dGP">
+                    <rect key="frame" x="20" y="79" width="353" height="120"/>
+                    <subviews>
+                        <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="KAA-OG-EQT">
+                            <rect key="frame" x="0.0" y="-50" width="353" height="50"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="50" id="KOZ-8r-6JZ"/>
+                            </constraints>
+                            <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                            <state key="normal" title="투자금 충전하기">
+                                <color key="titleColor" red="0.24600857500000001" green="0.58315294979999999" blue="0.98942488429999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            </state>
+                            <connections>
+                                <action selector="tapOnChargeMoney:" destination="-1" eventType="touchUpInside" id="3zM-3e-zCw"/>
+                            </connections>
+                        </button>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ym1-Hn-qah">
+                            <rect key="frame" x="0.0" y="0.0" width="353" height="50"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="50" id="Ryp-cP-Rax"/>
+                            </constraints>
+                            <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                            <state key="normal" title="사용자 고지사항">
+                                <color key="titleColor" red="0.24600857500000001" green="0.58315294979999999" blue="0.98942488429999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            </state>
+                            <connections>
+                                <action selector="tapOnUserNoticeButton:" destination="-1" eventType="touchUpInside" id="tdk-U5-75M"/>
+                            </connections>
+                        </button>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="V2c-1i-CHG">
+                            <rect key="frame" x="0.0" y="70" width="353" height="50"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="50" id="PhP-GH-wwO"/>
+                            </constraints>
+                            <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                            <state key="normal" title="투자 내역 초기화">
+                                <color key="titleColor" red="0.24600857500000001" green="0.58315294979999999" blue="0.98942488429999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            </state>
+                            <connections>
+                                <action selector="tapOnInvestInitButton:" destination="-1" eventType="touchUpInside" id="8Xi-6X-hmo"/>
+                            </connections>
+                        </button>
+                    </subviews>
+                </stackView>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="앱 버전 v.1.0.0" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="sRb-9r-BlS">
                     <rect key="frame" x="20" y="781" width="353" height="17"/>
                     <fontDescription key="fontDescription" type="system" pointSize="14"/>
@@ -88,22 +93,16 @@
             <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
             <color key="backgroundColor" systemColor="systemBackgroundColor"/>
             <constraints>
-                <constraint firstItem="V2c-1i-CHG" firstAttribute="top" secondItem="Ym1-Hn-qah" secondAttribute="bottom" constant="20" id="3wa-GV-4z7"/>
-                <constraint firstItem="Ym1-Hn-qah" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="20" id="4J8-Ti-UGU"/>
                 <constraint firstItem="sRb-9r-BlS" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="20" id="6Hf-dg-A8V"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="bottom" secondItem="sRb-9r-BlS" secondAttribute="bottom" constant="20" id="858-WP-sch"/>
                 <constraint firstAttribute="bottom" secondItem="Gdd-ng-g83" secondAttribute="bottom" id="EB0-X9-Nac"/>
                 <constraint firstAttribute="trailing" secondItem="Gdd-ng-g83" secondAttribute="trailing" id="HBp-2D-uql"/>
                 <constraint firstItem="Gdd-ng-g83" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="HI2-39-dPc"/>
-                <constraint firstItem="KAA-OG-EQT" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" constant="20" id="M10-jv-lWU"/>
-                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="Ym1-Hn-qah" secondAttribute="trailing" constant="20" id="NrK-9r-RlK"/>
-                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="KAA-OG-EQT" secondAttribute="trailing" constant="20" id="REh-YM-rde"/>
-                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="V2c-1i-CHG" secondAttribute="trailing" constant="20" id="bZ0-VV-65W"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="sRb-9r-BlS" secondAttribute="trailing" constant="20" id="cjp-7C-meN"/>
                 <constraint firstItem="Gdd-ng-g83" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="dNd-1I-EBL"/>
-                <constraint firstItem="V2c-1i-CHG" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="20" id="fSC-4F-TTZ"/>
-                <constraint firstItem="KAA-OG-EQT" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="20" id="jGY-XB-H19"/>
-                <constraint firstItem="Ym1-Hn-qah" firstAttribute="top" secondItem="KAA-OG-EQT" secondAttribute="bottom" constant="20" id="zYT-8U-6OK"/>
+                <constraint firstItem="QOk-eo-dGP" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" constant="20" id="fwH-hX-WOU"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="QOk-eo-dGP" secondAttribute="trailing" constant="20" id="kcL-qI-4NW"/>
+                <constraint firstItem="QOk-eo-dGP" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="20" id="uxJ-bZ-zWN"/>
             </constraints>
             <point key="canvasLocation" x="132" y="-11"/>
         </view>
