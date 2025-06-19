@@ -12,6 +12,7 @@ import ReactorKit
 import PinLayout
 import Then
 import UIKit
+import SkeletonView
 
 enum TableViewSection: CaseIterable {
   case main
@@ -121,7 +122,7 @@ class MainViewController: UIViewController {
   
   let noFavoriteLabel: UILabel = UILabel().then {
 	$0.text = "즐겨찾기 설정된 코인이 없습니다."
-	$0.font = UIFont.systemFont(ofSize: 20)
+	$0.font = UIFont(name: "esamanru-OTF-Medium", size: 14)
 	$0.textAlignment = .center
 	$0.textColor = .black
   }
@@ -152,22 +153,6 @@ class MainViewController: UIViewController {
     
     self.bind(reactor: self.reactor)
 	
-//	let userCryptoList = UserDataManager.userCryptoList ?? []
-//	
-//	userCryptoList.forEach { item in
-//	  let itemTransaction = item.staticData.transactionHistoryList
-//	  itemTransaction.forEach { transaction in
-//		let tempTransaction: TransactionInfo = TransactionInfo(
-//		  marketName: item.staticData.marketName,
-//		  executedDate: transaction.executedDate,
-//		  executedPrice: transaction.executedPrice,
-//		  executedQuantity: transaction.executedQuantity,
-//		  executedAmount: transaction.executedAmount
-//		)
-//		UserDataManager.userTransactionList?.append(tempTransaction)
-//	  }
-//	}
-	
 	guard let transactionHistory = UserDataManager.userTransactionList else { return }
 	print(transactionHistory)
   }
@@ -179,15 +164,9 @@ class MainViewController: UIViewController {
     rootContainer.flex.layout()
   }
   
-//  override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-//	super.touchesMoved(touches, with: event)
-//	self.isSocketUpdating = false
-//  }
-  
-//  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-//	super.touchesBegan(touches, with: event)
-//	self.view.endEditing(true)
-//  }
+  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+	self.view.endEditing(true)
+  }
   
   // MARK: Sub Methods
   func addViews() {
@@ -518,7 +497,6 @@ extension MainViewController: View {
 // MARK: TableView Delegate
 extension MainViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-	self.reactor.action.onNext(.disconnectSocket)
 	
 	var cryptoCellInfo = reactor.currentState.cryptoCellInfos
 	
@@ -528,8 +506,11 @@ extension MainViewController: UITableViewDelegate {
 	}
 	
 	if let searchText = self.searchBar.text, !searchText.isEmpty {
-	  cryptoCellInfo = cryptoCellInfo.filter { $0.cryptoName.contains(searchText) }
+	  cryptoCellInfo = cryptoCellInfo.filter {
+		$0.cryptoName.contains(searchText) || $0.market.lowercased().contains(searchText)
+	  }
 	}
+	
     self.coordinator?.pushCryptoDetailVC(
       selectCrypto: cryptoCellInfo[indexPath.row]
     )
@@ -538,6 +519,7 @@ extension MainViewController: UITableViewDelegate {
 	  self.searchBar.text = ""
 	  self.searchBar.resignFirstResponder()
 	}
+	self.reactor.action.onNext(.disconnectSocket)
   }
   
   /// 스크롤 시작되면 소켓 업데이트 일시정지

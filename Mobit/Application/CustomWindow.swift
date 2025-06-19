@@ -25,13 +25,13 @@ class CustomWindow: UIWindow {
   private func setupObservers() {
 	  NotificationCenter.default.addObserver(
 		  self,
-		  selector: #selector(appDidBecomeActive),
+		  selector: #selector(mobitDidBecomeActive),
 		  name: UIApplication.didBecomeActiveNotification,
 		  object: nil
 	  )
 	  NotificationCenter.default.addObserver(
 		  self,
-		  selector: #selector(appWillResignActive),
+		  selector: #selector(mobitWillResignActive),
 		  name: UIApplication.willResignActiveNotification,
 		  object: nil
 	  )
@@ -39,7 +39,7 @@ class CustomWindow: UIWindow {
   
   
   // 앱이 Foreground로 돌아올 때
-  @objc private func appDidBecomeActive() {
+  @objc private func mobitDidBecomeActive() {
 	DispatchQueue.main.async {
 	  guard let controllable = self.getSocketControllableController() else { return }
 	  controllable.resumeSocket()
@@ -48,10 +48,10 @@ class CustomWindow: UIWindow {
   }
   
   // 앱이 백그라운드로 전환될 때
-  @objc private func appWillResignActive() {
+  @objc private func mobitWillResignActive() {
 	DispatchQueue.main.async {
-	  guard let controllable = self.getSocketControllableController() else { return }
-	  controllable.pauseSocket()
+	  guard let controllableVC = self.getSocketControllableController() else { return }
+	  controllableVC.pauseSocket()
 	}
 //	getVisibleController()?.pauseSocket()
   }

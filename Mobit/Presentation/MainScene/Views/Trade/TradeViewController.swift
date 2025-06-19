@@ -35,6 +35,7 @@ class TradeViewController: UIViewController, ViewRule {
   @IBOutlet weak var segmentedContainerView: UIView!
   
   weak var coordinator: CryptoDetailCoordinator?
+  weak var delegate: MainCoordinatorDelegate?
   var reactor: CryptoDetailReactor
   var orderView: TradeOrderView? = nil
   var chartView: TradeChartView? = nil
@@ -60,6 +61,7 @@ class TradeViewController: UIViewController, ViewRule {
   }
   
   override func viewWillAppear(_ animated: Bool) {
+	super.viewWillAppear(animated)
 	self.reactor.action
 	  .onNext(.connectTickerSocket)
 	self.reactor.action
@@ -72,6 +74,11 @@ class TradeViewController: UIViewController, ViewRule {
 	setData()
 	
 	self.bind(reactor: self.reactor)
+  }
+  
+  override func viewWillDisappear(_ animated: Bool) {
+	super.viewWillDisappear(animated)
+	self.delegate?.mainCoordinatorDidRequestShowTabBar()
   }
   
   func setUI() {

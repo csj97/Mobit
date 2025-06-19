@@ -8,6 +8,7 @@
 import UIKit
 import ReactorKit
 import RxSwift
+import SkeletonView
 
 class TradeOrderView: UIView, ViewRule {
   
@@ -247,6 +248,7 @@ extension TradeOrderView {
   
   func bind(reactor: CryptoDetailReactor) {
 	reactor.state.map { $0.obTicker }
+	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.asyncInstance)
 	  .subscribe(

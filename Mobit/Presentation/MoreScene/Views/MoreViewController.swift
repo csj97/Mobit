@@ -94,12 +94,15 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
 	self.show(
 	  alertType: .onlyConfirm,
 	  title: "* 투자내역 초기화 안내 *",
-	  content: noticeContent) { _ in
-		UserDataManager.userInformation?.userAvailableBalance = 0
-		UserDataManager.userCryptoList = []
-		UserDataManager.userTransactionList = []
-		UserDataManager.userValidTransactionList = []
-	  }
+	  content: noticeContent
+	) { _ in
+	  UserDataManager.userInformation?.userAvailableBalance = 0
+	  UserDataManager.userCryptoList = []
+	  UserDataManager.userTransactionList = []
+	  UserDataManager.userValidTransactionList = []
+	  
+	  self.show(alertType: .onlyConfirm, content: "초기화 되었습니다.", callBack: nil)
+	}
   }
   
   /// Google 보상형 광고 load

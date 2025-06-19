@@ -7,9 +7,21 @@
 
 import UIKit
 
+protocol MainCoordinatorDelegate: AnyObject {
+  func mainCoordinatorDidRequestHideTabBar()
+  func mainCoordinatorDidRequestShowTabBar()
+}
+
+/// optional로 사용할 수 있게 처리
+extension MainCoordinatorDelegate {
+	func mainCoordinatorDidRequestHideTabBar() { }
+	func mainCoordinatorDidRequestShowTabBar() { }
+}
+
 class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate {
   var childCoordinators = [BaseCoordinator]()
   var navigationController: UINavigationController
+  weak var delegate: MainCoordinatorDelegate?
   
   init(navigationController: UINavigationController) {
     self.navigationController = navigationController
@@ -17,13 +29,12 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
   }
   
   func start() {
-    self.navigationController.delegate = self
-    let reactor = MainReactor(mainUseCase: MainUseCase(mainRepository: MainRepository()))
-    let mainVC = MainViewController(reactor: reactor)
-    mainVC.coordinator = self
-    self.navigationController.viewControllers = [mainVC]
+	self.navigationController.delegate = self
+	let reactor = MainReactor(mainUseCase: MainUseCase(mainRepository: MainRepository()))
+	let mainVC = MainViewController(reactor: reactor)
+	mainVC.coordinator = self
+	self.navigationController.viewControllers = [mainVC]
   }
-  
   
   func pushCryptoDetailVC(selectCrypto: CryptoCellInfo) {
     let cryptoDetailCoordinator = CryptoDetailCoordinator(
@@ -31,7 +42,10 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
 	  navigationController: self.navigationController
 	)
     self.childCoordinators.append(cryptoDetailCoordinator)
+	cryptoDetailCoordinator.delegate = self
     cryptoDetailCoordinator.start()
+	
+	self.delegate?.mainCoordinatorDidRequestHideTabBar()
   }
   
   /// BTC 코인 목록 탭 노출
@@ -53,5 +67,11 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
     if let mainVC = viewController as? MainViewController {
       mainVC.reactor.action.onNext(.loadCrypto(selectedTab: .krw))
     }
+  }
+}
+
+extension MainCoordinator: MainCoordinatorDelegate {
+  func mainCoordinatorDidRequestShowTabBar() {
+	self.delegate?.mainCoordinatorDidRequestShowTabBar()
   }
 }

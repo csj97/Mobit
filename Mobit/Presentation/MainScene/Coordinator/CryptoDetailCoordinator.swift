@@ -11,6 +11,7 @@ class CryptoDetailCoordinator: BaseCoordinator {
   var childCoordinators = [BaseCoordinator]()
   var navigationController: UINavigationController
   var selectCrypto: CryptoCellInfo
+  weak var delegate: MainCoordinatorDelegate?
   
   init(selectCrypto: CryptoCellInfo, navigationController: UINavigationController) {
     self.selectCrypto = selectCrypto
@@ -28,7 +29,13 @@ class CryptoDetailCoordinator: BaseCoordinator {
     let tradeVC =  TradeViewController(reactor: reactor)
     tradeVC.coordinator = self
 	tradeVC.hidesBottomBarWhenPushed = true
+	tradeVC.delegate = self
     self.navigationController.pushViewController(tradeVC, animated: true)
   }
-  
+}
+
+extension CryptoDetailCoordinator: MainCoordinatorDelegate {
+  func mainCoordinatorDidRequestShowTabBar() {
+	self.delegate?.mainCoordinatorDidRequestShowTabBar()
+  }
 }
