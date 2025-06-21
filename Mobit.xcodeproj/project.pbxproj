@@ -65,7 +65,6 @@
 		369E877F2C7D955E0020A0B3 /* OrderBookResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */; };
 		36E7718F2D7595A700739CDE /* CallbackResultEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E7718E2D7595A700739CDE /* CallbackResultEnums.swift */; };
 		36E771932D75AF1E00739CDE /* MobitTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E771922D75AF1E00739CDE /* MobitTextField.swift */; };
-		5F657F772E06A5DB0065A029 /* MobitAPIKeys.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 5F657F762E06A5DB0065A029 /* MobitAPIKeys.xcconfig */; };
 		998725022C50944700088C71 /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = 998725012C50944700088C71 /* RxCocoa */; };
 		998725062C50944700088C71 /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = 998725052C50944700088C71 /* RxRelay */; };
 		9987250A2C50944700088C71 /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 998725092C50944700088C71 /* RxSwift */; };
@@ -220,7 +219,6 @@
 		369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderBookResponseDTO.swift; sourceTree = "<group>"; };
 		36E7718E2D7595A700739CDE /* CallbackResultEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallbackResultEnums.swift; sourceTree = "<group>"; };
 		36E771922D75AF1E00739CDE /* MobitTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitTextField.swift; sourceTree = "<group>"; };
-		5F657F762E06A5DB0065A029 /* MobitAPIKeys.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MobitAPIKeys.xcconfig; sourceTree = "<group>"; };
 		998849E12C524AAA0073A27D /* CryptoCellInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoCellInfo.swift; sourceTree = "<group>"; };
 		998849E32C5378CD0073A27D /* CryptoTickerDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTickerDTO.swift; sourceTree = "<group>"; };
 		998849E52C5379960073A27D /* CryptoTicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTicker.swift; sourceTree = "<group>"; };
@@ -371,7 +369,6 @@
 				C17BA2AB2DF5A9F0001AF72D /* Fonts */,
 				3133E2302C3E2357000D4B1A /* Assets.xcassets */,
 				C17E08322D2A62BC0029A8D0 /* Colors.xcassets */,
-				5F657F762E06A5DB0065A029 /* MobitAPIKeys.xcconfig */,
 				3133E2322C3E2357000D4B1A /* LaunchScreen.storyboard */,
 				C17BA2B62DF5B576001AF72D /* MobitLaunchScreen.xib */,
 				C17BA2BE2DF5B8FB001AF72D /* MobitLaunchScreen.swift */,
@@ -896,7 +893,6 @@
 				3128610F2DFF125A00541A6A /* PrivacyInfo.xcprivacy in Resources */,
 				31B742082D5A3BC400706340 /* tradingview.html in Resources */,
 				3133E2342C3E2357000D4B1A /* LaunchScreen.storyboard in Resources */,
-				5F657F772E06A5DB0065A029 /* MobitAPIKeys.xcconfig in Resources */,
 				3133E2312C3E2357000D4B1A /* Assets.xcassets in Resources */,
 				C18EED532D55FE450038BBF7 /* TradeBidView.xib in Resources */,
 				31F33FD02DDA1C09003D533A /* MoreViewController.xib in Resources */,
@@ -1174,7 +1170,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = L8AX56G69N;
 				ENABLE_TESTING_SEARCH_PATHS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1212,7 +1208,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = L8AX56G69N;
 				ENABLE_TESTING_SEARCH_PATHS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
