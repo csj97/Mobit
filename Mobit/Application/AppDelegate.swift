@@ -5,6 +5,8 @@
 //  Created by 조성재 on 7/10/24.
 //
 
+import AdSupport
+import AppTrackingTransparency
 import UIKit
 import GoogleMobileAds
 
@@ -16,6 +18,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 	MobileAds.shared.requestConfiguration.testDeviceIdentifiers = [ "26842ce77d193c02e94e1e2826d0121f", "9c171ef9b1742b705cca840364271e44" ]
 	MobileAds.shared.start(completionHandler: nil)
 	
+	requestATT()
     checkFirstLaunch()
     return true
   }
@@ -45,6 +48,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 	} else {
 	  guard let userInfo = UserDataManager.userInformation else { return }
 	  print("지금 내돈 : \(userInfo.userAvailableBalance)")
+	}
+  }
+  
+  func requestATT() {
+	// 앱 추적 권한 요청
+	DispatchQueue.main.async {
+	  ATTrackingManager.requestTrackingAuthorization { status in
+		switch status {
+		case .authorized:           // 허용됨
+		  print("Authorized")
+		  print("IDFA = \(ASIdentifierManager.shared().advertisingIdentifier)")
+		case .denied:               // 거부됨
+		  print("Denied")
+		case .notDetermined:        // 결정되지 않음
+		  print("Not Determined")
+		case .restricted:           // 제한됨
+		  print("Restricted")
+		@unknown default:           // 알려지지 않음
+		  print("Unknow")
+		}
+	  }
 	}
   }
 }

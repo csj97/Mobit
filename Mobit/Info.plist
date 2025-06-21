@@ -2,36 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>UPBIT_SECRET_KEY</key>
-	<string>$(UPBIT_SECRET_KEY)</string>
-	<key>UPBIT_ACCESS_KEY</key>
-	<string>$(UPBIT_ACCESS_KEY)</string>
-	<key>COIN_MARKET_CAP_API_KEY</key>
-	<string>$(COIN_MARKET_CAP_API_KEY)</string>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
-	<key>UIApplicationSceneManifest</key>
-	<dict>
-		<key>UIApplicationSupportsMultipleScenes</key>
-		<false/>
-		<key>UISceneConfigurations</key>
-		<dict>
-			<key>UIWindowSceneSessionRoleApplication</key>
-			<array>
-				<dict>
-					<key>UISceneConfigurationName</key>
-					<string>Default Configuration</string>
-					<key>UISceneDelegateClassName</key>
-					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
-				</dict>
-			</array>
-		</dict>
-	</dict>
-	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3498168241675848~9078363335</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>사용자 맞춤 광고를 위해 앱 추적 권한이 필요합니다.</string>
 	<key>SKAdNetworkItems</key>
 	<array>
 		<dict>
@@ -231,6 +203,36 @@
 			<string>3qcr597p9d.skadnetwork</string>
 		</dict>
 	</array>
+	<key>UPBIT_SECRET_KEY</key>
+	<string>$(UPBIT_SECRET_KEY)</string>
+	<key>UPBIT_ACCESS_KEY</key>
+	<string>$(UPBIT_ACCESS_KEY)</string>
+	<key>COIN_MARKET_CAP_API_KEY</key>
+	<string>$(COIN_MARKET_CAP_API_KEY)</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>Default Configuration</string>
+					<key>UISceneDelegateClassName</key>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-3498168241675848~9078363335</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>esamanru-OTF-Bold.otf</string>
