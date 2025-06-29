@@ -83,7 +83,13 @@ class TradeAskView: UIView, ViewRule {
 	  .compactMap({ $0 })
 	  .first(where: { $0.staticData.marketName == self.reactor?.selectCrypto.market }),
 		  let currentPrice = self.cryptoInfo?.tradePrice
-	else { return }
+	else {
+	  // crypto를 찾지 못한 것은 이미 모두 매도했다는 의미로 간주
+	  self.availableCrypto.text = "0"
+	  self.availableTradePrice.text = "≈ 0"
+	  
+	  return
+	}
 	
 	let krwAvailablePrice = currentPrice * crypto.staticData.holdingQuantity
 	self.availableCryptoCount = crypto.staticData.holdingQuantity
@@ -109,6 +115,7 @@ class TradeAskView: UIView, ViewRule {
   }
   
   @IBAction func tapOnAskButton(_ sender: UIButton) {
+	
 	guard let totalPrice = self.totalPriceTextField.text,
 		  let doubleTotalPrice = Double(totalPrice.replacingOccurrences(of: ",", with: "")),
 		  let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
@@ -119,6 +126,8 @@ class TradeAskView: UIView, ViewRule {
 	  self.callBack?(.alert(title: "알림", message: "매도 수량을 확인 해주세요."))
 	  return
 	}
+	
+	self.endEditing(true)
 	
 	let userCryptoList = UserDataManager.userCryptoList
 	var postStaticTransaction: CryptoTransactionDataModel.CryptoTransactionStaticData? = nil
@@ -151,6 +160,7 @@ class TradeAskView: UIView, ViewRule {
 		let executedDate = formatter.string(from: currentTime)
 		
 		self.callBack?(.alert(title: "알림", message: "매도 되었습니다."))
+		self.initTextFieldValue()
 		
 		let newTransaction: TransactionInfo = TransactionInfo(
 		  marketName: crypto.staticData.marketName,
@@ -184,7 +194,7 @@ class TradeAskView: UIView, ViewRule {
 		}
 		
 		// 사용자 계좌 반영
-		UserDataManager.userInformation?.userAvailableBalance += self.totalPrice
+		UserDataManager.userInformation?.userAvailableBalance += doubleTotalPrice
 		self.updateCryptoData()
 		self.callBack?(.updateHistory)
 		
@@ -192,6 +202,11 @@ class TradeAskView: UIView, ViewRule {
 		self.callBack?(.alert(title: "알림", message: "주문 수량을 재설정 해주세요."))
 	  }
 	}
+  }
+  
+  func initTextFieldValue() {
+	self.inputTradeAmount.text = nil
+	self.totalPriceTextField.text = nil
   }
   
   func bind(reactor: CryptoDetailReactor) {

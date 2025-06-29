@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -26,10 +26,10 @@
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="OVA-w0-ApO">
-                    <rect key="frame" x="0.0" y="0.0" width="393" height="113"/>
+                    <rect key="frame" x="0.0" y="0.0" width="393" height="172"/>
                     <subviews>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="투자 내역" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ylj-d0-zZ7">
-                            <rect key="frame" x="0.0" y="69" width="393" height="24"/>
+                            <rect key="frame" x="0.0" y="128" width="393" height="24"/>
                             <fontDescription key="fontDescription" type="boldSystem" pointSize="20"/>
                             <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             <nil key="highlightedColor"/>
@@ -43,7 +43,7 @@
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Ryi-yk-Mln">
-                    <rect key="frame" x="0.0" y="112.99999999999999" width="393" height="222.66666666666663"/>
+                    <rect key="frame" x="0.0" y="172" width="393" height="222.66666666666663"/>
                     <subviews>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="30" translatesAutoresizingMaskIntoConstraints="NO" id="kPO-6r-89s">
                             <rect key="frame" x="20" y="20" width="353" height="182.66666666666666"/>
@@ -66,7 +66,7 @@
                                     </subviews>
                                 </stackView>
                                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="iwr-zH-YHr">
-                                    <rect key="frame" x="0.0" y="80.666666666666657" width="353" height="102"/>
+                                    <rect key="frame" x="0.0" y="80.666666666666686" width="353" height="102"/>
                                     <subviews>
                                         <stackView opaque="NO" contentMode="scaleToFill" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="rCf-rc-uhA">
                                             <rect key="frame" x="0.0" y="0.0" width="353" height="18"/>
@@ -103,7 +103,7 @@
                                             </subviews>
                                         </stackView>
                                         <stackView opaque="NO" contentMode="scaleToFill" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="K5U-Ha-q60">
-                                            <rect key="frame" x="0.0" y="56.000000000000028" width="353" height="18"/>
+                                            <rect key="frame" x="0.0" y="56" width="353" height="18"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="총 매수금액" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aw1-uU-I04">
                                                     <rect key="frame" x="0.0" y="0.0" width="69" height="18"/>
@@ -120,7 +120,7 @@
                                             </subviews>
                                         </stackView>
                                         <stackView opaque="NO" contentMode="scaleToFill" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="Xg5-9P-bF4">
-                                            <rect key="frame" x="0.0" y="84.000000000000028" width="353" height="18"/>
+                                            <rect key="frame" x="0.0" y="84" width="353" height="18"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="주문가능금액" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="0oL-iM-fgZ">
                                                     <rect key="frame" x="0.0" y="0.0" width="78" height="18"/>
@@ -150,17 +150,17 @@
                     </constraints>
                 </view>
                 <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="xs5-6g-hcy" userLabel="Divider View">
-                    <rect key="frame" x="24" y="335.66666666666669" width="345" height="1"/>
+                    <rect key="frame" x="24" y="394.66666666666669" width="345" height="1"/>
                     <color key="backgroundColor" systemColor="systemGray3Color"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="1" id="ADB-bA-5C8"/>
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="EYj-UQ-OML">
-                    <rect key="frame" x="0.0" y="336.66666666666669" width="393" height="515.33333333333326"/>
+                    <rect key="frame" x="0.0" y="395.66666666666674" width="393" height="456.33333333333326"/>
                     <subviews>
                         <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="none" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="vcj-0Q-9QG">
-                            <rect key="frame" x="10" y="29.999999999999972" width="373" height="485.33333333333326"/>
+                            <rect key="frame" x="10" y="30" width="373" height="426.33333333333331"/>
                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         </tableView>
                     </subviews>
@@ -172,6 +172,22 @@
                         <constraint firstAttribute="trailing" secondItem="vcj-0Q-9QG" secondAttribute="trailing" constant="10" id="nb9-TG-MTc"/>
                     </constraints>
                 </view>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rwH-Pi-cIy" userLabel="NO RESULT VIEW">
+                    <rect key="frame" x="0.0" y="395.66666666666674" width="393" height="456.33333333333326"/>
+                    <subviews>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="보유중인 코인이 없습니다." textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="rR5-bF-kay">
+                            <rect key="frame" x="124" y="219.66666666666669" width="145" height="17"/>
+                            <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                            <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                    </subviews>
+                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    <constraints>
+                        <constraint firstItem="rR5-bF-kay" firstAttribute="centerY" secondItem="rwH-Pi-cIy" secondAttribute="centerY" id="9yu-Bk-Vxl"/>
+                        <constraint firstItem="rR5-bF-kay" firstAttribute="centerX" secondItem="rwH-Pi-cIy" secondAttribute="centerX" id="cUA-SC-8CE"/>
+                    </constraints>
+                </view>
             </subviews>
             <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -180,12 +196,16 @@
                 <constraint firstAttribute="trailing" secondItem="OVA-w0-ApO" secondAttribute="trailing" id="1wK-mu-cib"/>
                 <constraint firstItem="EYj-UQ-OML" firstAttribute="trailing" secondItem="fnl-2z-Ty3" secondAttribute="trailing" id="ExO-P8-ggx"/>
                 <constraint firstItem="EYj-UQ-OML" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="HEj-sJ-AIH"/>
+                <constraint firstItem="rwH-Pi-cIy" firstAttribute="trailing" secondItem="EYj-UQ-OML" secondAttribute="trailing" id="Kqc-lS-ciE"/>
                 <constraint firstItem="xs5-6g-hcy" firstAttribute="top" secondItem="Ryi-yk-Mln" secondAttribute="bottom" id="MPt-VB-8VF"/>
                 <constraint firstItem="OVA-w0-ApO" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="TNp-e5-AXO"/>
+                <constraint firstItem="rwH-Pi-cIy" firstAttribute="top" secondItem="EYj-UQ-OML" secondAttribute="top" id="Tp4-uD-Qwm"/>
                 <constraint firstItem="OVA-w0-ApO" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="Vee-vn-2DM"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="xs5-6g-hcy" secondAttribute="trailing" constant="24" id="WEb-eP-0KG"/>
                 <constraint firstItem="xs5-6g-hcy" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="24" id="a7u-qI-9mt"/>
+                <constraint firstItem="rwH-Pi-cIy" firstAttribute="leading" secondItem="EYj-UQ-OML" secondAttribute="leading" id="aiy-Nh-j8I"/>
                 <constraint firstItem="EYj-UQ-OML" firstAttribute="top" secondItem="xs5-6g-hcy" secondAttribute="bottom" id="caY-ed-JyG"/>
+                <constraint firstItem="rwH-Pi-cIy" firstAttribute="bottom" secondItem="EYj-UQ-OML" secondAttribute="bottom" id="kHh-rn-ZdI"/>
                 <constraint firstItem="Ryi-yk-Mln" firstAttribute="top" secondItem="OVA-w0-ApO" secondAttribute="bottom" id="lYP-1g-7Bd"/>
                 <constraint firstItem="ylj-d0-zZ7" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" constant="10" id="vlA-Bw-JZE"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="Ryi-yk-Mln" secondAttribute="trailing" id="xoP-IZ-d0A"/>
