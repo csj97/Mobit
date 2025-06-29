@@ -28,7 +28,7 @@ class CoinTableViewCell: UITableViewCell {
     $0.text = "-"
     $0.textColor = .black
     $0.font = UIFont.systemFont(ofSize: 12)
-    $0.numberOfLines = 2
+    $0.numberOfLines = 1
     $0.textAlignment = .left
   }
   var coinSymbol = UILabel().then {

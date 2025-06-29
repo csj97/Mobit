@@ -14,11 +14,12 @@ import UIKit
 
 class InvestmentViewController: UIViewController, ViewRule {
   @IBOutlet weak var transactionTableview: UITableView!
-    @IBOutlet weak var totalUserBalance: UILabel!
-    @IBOutlet weak var totalEvalProfitLoss: UILabel!
-    @IBOutlet weak var totalProfitRate: UILabel!
-    @IBOutlet weak var totalBuyPrice: UILabel!
-    @IBOutlet weak var availableUserBalance: UILabel!
+  @IBOutlet weak var totalUserBalance: UILabel!
+  @IBOutlet weak var totalEvalProfitLoss: UILabel!
+  @IBOutlet weak var totalProfitRate: UILabel!
+  @IBOutlet weak var totalBuyPrice: UILabel!
+  @IBOutlet weak var availableUserBalance: UILabel!
+  @IBOutlet weak var noResultView: UIView!
     
   weak var coordinator: InvestmentCoordinator?
   var disposeBag = DisposeBag()
@@ -122,6 +123,14 @@ extension InvestmentViewController: View {
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] cryptos in
 		guard let self else { return }
+		
+		guard cryptos.count != 0 else {
+		  self.noResultView.isHidden = false
+		  
+		  return
+		}
+		
+		self.noResultView.isHidden = true
 		
 		if self.isScrolling {
 		  self.pendingUpdate = cryptos
