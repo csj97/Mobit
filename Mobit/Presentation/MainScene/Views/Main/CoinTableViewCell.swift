@@ -104,10 +104,10 @@ class CoinTableViewCell: UITableViewCell {
         .direction(.column)
         .justifyContent(.center)
         .define { flex in
-          flex.addItem(self.coinName).width(80%)
-          flex.addItem(self.coinSymbol).width(80%)
+          flex.addItem(self.coinName).width(100%)
+          flex.addItem(self.coinSymbol).width(100%)
         }.width(25%)
-      flex.addItem().width(25%)
+      flex.addItem()
         .alignItems(.center)
         .justifyContent(.center)
         .define { flex in
@@ -116,7 +116,7 @@ class CoinTableViewCell: UITableViewCell {
             .define { flex in
               flex.addItem(self.price)
             }
-        }
+        }.width(25%)
       
       flex.addItem(self.changeRate).width(25%)
       flex.addItem(self.accTradePrice).width(25%)
