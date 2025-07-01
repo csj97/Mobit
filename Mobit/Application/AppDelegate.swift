@@ -53,7 +53,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   
   func requestATT() {
 	// 앱 추적 권한 요청
-	DispatchQueue.main.async {
+	DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
 	  ATTrackingManager.requestTrackingAuthorization { status in
 		switch status {
 		case .authorized:           // 허용됨

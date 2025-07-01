@@ -100,7 +100,7 @@ class TradeBidView: UIView, ViewRule {
 	  return
 	}
 	
-	if doubleTotalPrice > 0.0, userBalance > doubleTotalPrice {
+	if doubleTotalPrice > 0.0, userBalance >= doubleTotalPrice {
 	  self.updateTransaction(marketName: marketName) {
 		self.initTextFieldValue()
 		self.callBack?(.alert(title: "알림", message: "매수 되었습니다."))
