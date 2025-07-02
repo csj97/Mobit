@@ -126,6 +126,7 @@ extension InvestmentViewController: View {
 		
 		guard cryptos.count != 0 else {
 		  self.noResultView.isHidden = false
+		  self.updateTotalDatas(cryptos: [])
 		  
 		  return
 		}
