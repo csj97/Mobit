@@ -90,17 +90,18 @@ class TradeBidView: UIView, ViewRule {
   
   @IBAction func tapOnBidButton(_ sender: UIButton) {
 	guard let marketName = self.cryptoInfo?.market,
-		  let userBalance = UserDataManager.userInformation?.userAvailableBalance,
-		  let totalPrice = self.totalPriceTextField.text,
-		  let doubleTotalPrice = Double(totalPrice.replacingOccurrences(
-			of: ",", with: ""
-		  ))
+		  let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
+		  let userBalance = UserDataManager.userInformation?.userAvailableBalance
 	else {
 	  callBack?(.alert(title: "알림", message: "매수 금액을 입력해주세요"))
 	  return
 	}
 	
-	if doubleTotalPrice > 0.0, userBalance >= doubleTotalPrice {
+	// 매수 버튼 누르는 시점 기준, total 금액으로 비교
+	let calcUtil = CalculationUtil(currentPrice: currentPrice, newHoldingQuantity: inputAmount)
+	let executedTotalPrice = calcUtil.calcBuyAmount()
+	
+	if executedTotalPrice > 0.0, userBalance >= executedTotalPrice {
 	  self.updateTransaction(marketName: marketName) {
 		self.initTextFieldValue()
 		self.callBack?(.alert(title: "알림", message: "매수 되었습니다."))
@@ -109,6 +110,22 @@ class TradeBidView: UIView, ViewRule {
 	} else {
 	  callBack?(.alert(title: "알림", message: "매수 금액을 확인해 주세요"))
 	}
+  }
+  
+  /// 매도하고 나면 여기 업데이트
+  func updateCryptoData() {
+	guard let crypto = UserDataManager.userCryptoList?
+	  .compactMap({ $0 })
+	  .first(where: { $0.staticData.marketName == self.reactor?.selectCrypto.market }),
+		  let currentPrice = self.cryptoInfo?.tradePrice
+	else {
+	  self.availableTradePrice.text = "0"
+	  
+	  return
+	}
+	
+	let userBalance = UserDataManager.userInformation?.userAvailableBalance
+	self.availableTradePrice.text = userBalance?.formatSignificantDigits()
   }
   
   func updateTransaction(marketName: String, completion: @escaping () -> ()) {
@@ -272,6 +289,14 @@ class TradeBidView: UIView, ViewRule {
 	)
   }
   
+  /// price format
+  func formatTradePrice(_ tradePrice: Double?, precision: Int = 8) -> String {
+	guard let price = tradePrice else {
+	  return "N/A"  // 값이 없을 때 반환할 기본 문자열
+	}
+	return String(format: "%.\(precision)f", price)
+  }
+  
   func initTextFieldValue() {
 	self.inputTradeAmount.text = nil
 	self.totalPriceTextField.text = nil
@@ -284,8 +309,24 @@ class TradeBidView: UIView, ViewRule {
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] cellInfo in
 		guard let self = self else { return }
+		
+		let numberFormatter = NumberFormatter()
+		numberFormatter.numberStyle = .decimal
+		
 		self.cryptoInfo = cellInfo
-		self.currentPrice.text = cellInfo?.tradePrice?.formatSignificantDigits()
+		
+		guard let tradePrice = self.cryptoInfo?.tradePrice else {
+		  self.currentPrice.text = "N/A"
+		  return
+		}
+		
+		if tradePrice < 1 {
+		  self.currentPrice.text = formatTradePrice(tradePrice)
+		} else {
+		  self.currentPrice.text = numberFormatter.string(
+			from: NSNumber(value: tradePrice)
+		  )
+		}
 	  })
 	  .disposed(by: self.disposeBag)
   }

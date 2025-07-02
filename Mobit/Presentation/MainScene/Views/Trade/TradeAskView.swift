@@ -95,30 +95,33 @@ class TradeAskView: UIView, ViewRule {
 	self.availableCryptoCount = crypto.staticData.holdingQuantity
 	self.availableCrypto.text = String(self.availableCryptoCount.formatSignificantDigits())
 	self.availableTradePrice.text = "≈ " + String(floor(krwAvailablePrice)).addComma()
-  }
-  
-  func updateCalcUtil(updateCrypto: CryptoCellInfo?) {
-	guard let currentPrice = updateCrypto?.tradePrice else { return }
 	
+	if self.inputAmount > 0 {
+	  let totalPriceFromInputAmount = currentPrice * self.inputAmount
+	  self.totalPriceTextField.text = String(floor(totalPriceFromInputAmount)).addComma()
+	} else {
+	  self.totalPriceTextField.text = "0"
+	}
   }
   
   /// 최대 수량 버튼
   @IBAction func tapOnMaxAmount(_ sender: UIButton) {
 	guard let availableCrypto = UserDataManager.userCryptoList?
 			.compactMap({ $0 })
-			.first(where: { $0.staticData.marketName == self.reactor?.selectCrypto.market })
+			.first(where: { $0.staticData.marketName == self.reactor?.selectCrypto.market }),
+		  let currentPrice = self.cryptoInfo?.tradePrice
 	else { return }
 	
+	let krwAvailablePrice = currentPrice * availableCrypto.staticData.holdingQuantity
 	self.inputTradeAmount.text = String(availableCrypto.staticData.holdingQuantity.formatSignificantDigits())
 	self.inputAmount = availableCrypto.staticData.holdingQuantity
-	self.totalPriceTextField.text = String(availableCrypto.staticData.buyAmount.formatSignificantDigits())
+	self.totalPriceTextField.text = String(floor(krwAvailablePrice)).addComma()
   }
   
   @IBAction func tapOnAskButton(_ sender: UIButton) {
+	self.endEditing(true)
 	
-	guard let totalPrice = self.totalPriceTextField.text,
-		  let doubleTotalPrice = Double(totalPrice.replacingOccurrences(of: ",", with: "")),
-		  let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
+	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
 		  let crypto = UserDataManager.userCryptoList?.compactMap({ $0 }).first(
 			where: { $0.staticData.marketName == self.reactor?.selectCrypto.market }
 		  )
@@ -127,7 +130,9 @@ class TradeAskView: UIView, ViewRule {
 	  return
 	}
 	
-	self.endEditing(true)
+	// 매도 버튼 누르는 시점 기준, total 금액으로 비교
+	let calcUtil = CalculationUtil(currentPrice: currentPrice, newHoldingQuantity: inputAmount)
+	let executedTotalPrice = calcUtil.calcBuyAmount()
 	
 	let userCryptoList = UserDataManager.userCryptoList
 	var postStaticTransaction: CryptoTransactionDataModel.CryptoTransactionStaticData? = nil
@@ -183,18 +188,20 @@ class TradeAskView: UIView, ViewRule {
 			buyAmount: newBuyAmount
 		  )
 		  
+		  // 사용자 계좌 반영
+		  UserDataManager.userInformation?.userAvailableBalance += executedTotalPrice
 		  // 매도 후, 보유하고 있는 코인 매매정보 업데이트
 		  MarketDataServiceUtil.shared.fetchData(
 			data: newCryptoStaticData,
 			currentPrice: currentPrice
 		  )
 		} else {
+		  // 사용자 계좌 반영
+		  UserDataManager.userInformation?.userAvailableBalance += executedTotalPrice
 		  // 전량 매도
 		  UserDataManager.userCryptoList?.remove(at: transactionIndex)
 		}
 		
-		// 사용자 계좌 반영
-		UserDataManager.userInformation?.userAvailableBalance += doubleTotalPrice
 		self.updateCryptoData()
 		self.callBack?(.updateHistory)
 		
@@ -216,7 +223,6 @@ class TradeAskView: UIView, ViewRule {
 	  .subscribe(onNext: { [weak self] cellInfo in
 		guard let self = self else { return }
 		self.cryptoInfo = cellInfo
-		self.currentPrice.text = cellInfo?.tradePrice?.formatSignificantDigits()
 	  })
 	  .disposed(by: self.disposeBag)
   }

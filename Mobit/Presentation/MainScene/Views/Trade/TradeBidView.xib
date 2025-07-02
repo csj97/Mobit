@@ -17,10 +17,10 @@
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
             <subviews>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="tiX-HY-Bm6">
-                    <rect key="frame" x="0.0" y="0.0" width="393" height="253"/>
+                    <rect key="frame" x="0.0" y="0.0" width="393" height="309.33333333333331"/>
                     <subviews>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="6vk-Gc-wKC">
-                            <rect key="frame" x="10" y="10" width="373" height="233"/>
+                            <rect key="frame" x="10" y="10" width="373" height="289.33333333333331"/>
                             <subviews>
                                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="XC2-Or-Nf0">
                                     <rect key="frame" x="0.0" y="0.0" width="373" height="175"/>
@@ -279,6 +279,21 @@
                                         <constraint firstAttribute="height" constant="48" id="10s-wO-pak"/>
                                     </constraints>
                                 </stackView>
+                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="2Iz-mD-LCw">
+                                    <rect key="frame" x="0.0" y="243" width="373" height="10"/>
+                                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                    <constraints>
+                                        <constraint firstAttribute="height" constant="10" id="tOH-IE-9c5"/>
+                                    </constraints>
+                                </view>
+                                <label opaque="NO" userInteractionEnabled="NO" alpha="0.69999999999999996" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="nom-M2-gyc">
+                                    <rect key="frame" x="0.0" y="263" width="373" height="26.333333333333314"/>
+                                    <string key="text">*시장가 주문은 현재 시장 유동성에 따라
+체결 가격이 달라질 수 있습니다.</string>
+                                    <fontDescription key="fontDescription" type="system" pointSize="11"/>
+                                    <color key="textColor" systemColor="systemRedColor"/>
+                                    <nil key="highlightedColor"/>
+                                </label>
                             </subviews>
                             <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         </stackView>

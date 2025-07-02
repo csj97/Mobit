@@ -44,7 +44,7 @@ extension InvestReactor {
   }
   
   struct InvestReactorState {
-	var cryptos: [CryptoTransactionDataModel]? = []
+	var cryptos: [CryptoTransactionDataModel] = []
 	var userAvailableBalance: Double = UserDataManager.userInformation?.userAvailableBalance ?? 0
   }
 }
@@ -70,7 +70,7 @@ extension InvestReactor {
 	var newState = state
 	switch mutation {
 	case .setUserCrypto(let crypto):
-	  newState.cryptos = crypto
+	  newState.cryptos = crypto ?? []
 	case .setUserAvailableBalance(let userAvailableBalance):
 	  newState.userAvailableBalance = userAvailableBalance
 	}

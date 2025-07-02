@@ -92,6 +92,7 @@ class TradeOrderView: UIView, ViewRule {
 	  guard let self = self else { return }
 	  switch askResult {
 	  case .updateHistory:
+		bidView?.updateCryptoData()
 		historyView?.updateHistory()
 	  case .alert(let title, let message):
 		self.callback?(.alert(title: title, message: message))
