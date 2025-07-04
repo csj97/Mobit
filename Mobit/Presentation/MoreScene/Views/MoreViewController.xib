@@ -26,10 +26,10 @@
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="QOk-eo-dGP">
-                    <rect key="frame" x="20" y="79" width="353" height="120"/>
+                    <rect key="frame" x="20" y="79" width="353" height="190"/>
                     <subviews>
-                        <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="KAA-OG-EQT">
-                            <rect key="frame" x="0.0" y="-50" width="353" height="50"/>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="KAA-OG-EQT">
+                            <rect key="frame" x="0.0" y="0.0" width="353" height="50"/>
                             <constraints>
                                 <constraint firstAttribute="height" constant="50" id="KOZ-8r-6JZ"/>
                             </constraints>
@@ -42,7 +42,7 @@
                             </connections>
                         </button>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ym1-Hn-qah">
-                            <rect key="frame" x="0.0" y="0.0" width="353" height="50"/>
+                            <rect key="frame" x="0.0" y="70" width="353" height="50"/>
                             <constraints>
                                 <constraint firstAttribute="height" constant="50" id="Ryp-cP-Rax"/>
                             </constraints>
@@ -55,7 +55,7 @@
                             </connections>
                         </button>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="V2c-1i-CHG">
-                            <rect key="frame" x="0.0" y="70" width="353" height="50"/>
+                            <rect key="frame" x="0.0" y="140" width="353" height="50"/>
                             <constraints>
                                 <constraint firstAttribute="height" constant="50" id="PhP-GH-wwO"/>
                             </constraints>
