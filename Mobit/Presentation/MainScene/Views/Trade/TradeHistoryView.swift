@@ -77,10 +77,6 @@ class TradeHistoryView: UIView, ViewRule {
 	self.transaction = transaction
 	self.historyTableView.reloadData()
   }
-  
-  // TODO: UserDefault에 Key 값을 "MobitTrade(MarketName)"으로 설정하고
-  // 내부에 [TradeHistoryInformation]을 저장
-  // 꺼내쓸 땐, MarketName으로 Key를 조회하고 없으면 noHistoryView 노출
 }
 
 // MARK: - UITableView Delegate, DataSource

@@ -39,7 +39,7 @@ class MainViewController: UIViewController {
   var prevSortedButton: UIButton?
   let defaultTitles = ["현재가 ↑↓", "전일대비 ↑↓", "거래대금 ↑↓"]
   
-  private let cellIndentifier = "CryptoCell"
+  private let cellIndentifier = "MainCryptoTableViewCell"
   
   init(reactor: MainReactor) {
     self.reactor = reactor
@@ -182,11 +182,8 @@ class MainViewController: UIViewController {
   }
   
   func setTableView() {
-    self.tableView.register(
-      CoinTableViewCell.self,
-      forCellReuseIdentifier: self.cellIndentifier
-    )
-    self.tableView.rowHeight = 50
+	let nib = UINib(nibName: "MainCryptoTableViewCell", bundle: nil)
+	self.tableView.register(nib, forCellReuseIdentifier: self.cellIndentifier)
 	self.tableView.keyboardDismissMode = .onDrag
     
     self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoCellInfo>(
@@ -196,7 +193,7 @@ class MainViewController: UIViewController {
       guard let cell = self.tableView.dequeueReusableCell(
         withIdentifier: self.cellIndentifier,
         for: indexPath
-      ) as? CoinTableViewCell else { return UITableViewCell() }
+	  ) as? MainCryptoTableViewCell else { return UITableViewCell() }
       
       cell.configure(crypto: crypto, isScrolling: self.isSocketUpdating)
       cell.selectionStyle = .none
@@ -500,14 +497,32 @@ extension MainViewController: UITableViewDelegate {
 	
 	var cryptoCellInfo = reactor.currentState.cryptoCellInfos
 	
-	if self.selectedTab == .favorite {
-	  let favoriteMarketNames = UserDataManager.userFavoriteList
-	  cryptoCellInfo = cryptoCellInfo.filter { favoriteMarketNames.contains($0.market) }
-	}
-	
 	if let searchText = self.searchBar.text, !searchText.isEmpty {
-	  cryptoCellInfo = cryptoCellInfo.filter {
-		$0.cryptoName.contains(searchText) || $0.market.lowercased().contains(searchText)
+	  let lowerCasedSearchText = searchText.lowercased()
+	  
+	  if self.selectedTab == .favorite {
+		let favoriteMarketNames = UserDataManager.userFavoriteList
+		
+		// 즐겨찾기 코인 찾아오기
+		cryptoCellInfo = cryptoCellInfo.filter {
+		  favoriteMarketNames.contains($0.market)
+		}
+		
+		// 즐겨찾기 코인 중에서 검색 결과 도출
+		cryptoCellInfo = cryptoCellInfo.filter {
+		  $0.cryptoName.lowercased().contains(lowerCasedSearchText)
+		  || $0.market.lowercased().contains(lowerCasedSearchText)
+		}
+	  } else {
+		cryptoCellInfo = cryptoCellInfo.filter {
+		  $0.cryptoName.lowercased().contains(lowerCasedSearchText)
+		  || $0.market.lowercased().contains(lowerCasedSearchText)
+		}
+	  }
+	} else {
+	  if self.selectedTab == .favorite {
+		let favoriteMarketNames = UserDataManager.userFavoriteList
+		cryptoCellInfo = cryptoCellInfo.filter { favoriteMarketNames.contains($0.market) }
 	  }
 	}
 	
