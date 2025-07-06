@@ -136,6 +136,9 @@ class MainViewController: UIViewController {
   // MARK: Life Cycle
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
+	
+	// 필요할 때 주석 해제 후, 배포
+	// self.reactor.action.onNext(.checkNewVersion)
   }
   
   override func viewDidLoad() {
@@ -488,6 +491,16 @@ extension MainViewController: View {
 
       })
       .disposed(by: self.disposeBag)
+	
+	reactor.state.map { $0.isVersionDifferent }
+	  .distinctUntilChanged()
+	  .observe(on: MainScheduler.instance)
+	  .subscribe { isDiffer in
+		if isDiffer {
+		  self.coordinator?.pushNoticeAppUpdateVC()
+		}
+	  }
+	  .disposed(by: self.disposeBag)
   }
 }
 

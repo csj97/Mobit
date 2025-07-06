@@ -66,6 +66,9 @@
 		36E7718F2D7595A700739CDE /* CallbackResultEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E7718E2D7595A700739CDE /* CallbackResultEnums.swift */; };
 		36E771932D75AF1E00739CDE /* MobitTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E771922D75AF1E00739CDE /* MobitTextField.swift */; };
 		5F657F792E06B0E80065A029 /* MobitAPIKeys.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 5F657F782E06B0E80065A029 /* MobitAPIKeys.xcconfig */; };
+		5FA880E32E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA880E12E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.swift */; };
+		5FA880E42E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5FA880E22E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.xib */; };
+		5FA880E62E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA880E52E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift */; };
 		998725022C50944700088C71 /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = 998725012C50944700088C71 /* RxCocoa */; };
 		998725062C50944700088C71 /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = 998725052C50944700088C71 /* RxRelay */; };
 		9987250A2C50944700088C71 /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 998725092C50944700088C71 /* RxSwift */; };
@@ -223,6 +226,9 @@
 		36E7718E2D7595A700739CDE /* CallbackResultEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallbackResultEnums.swift; sourceTree = "<group>"; };
 		36E771922D75AF1E00739CDE /* MobitTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitTextField.swift; sourceTree = "<group>"; };
 		5F657F782E06B0E80065A029 /* MobitAPIKeys.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MobitAPIKeys.xcconfig; sourceTree = "<group>"; };
+		5FA880E12E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoticeForceUpdateViewControlelrViewController.swift; sourceTree = "<group>"; };
+		5FA880E22E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = NoticeForceUpdateViewControlelrViewController.xib; sourceTree = "<group>"; };
+		5FA880E52E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoticeAppUpdateCoordinator.swift; sourceTree = "<group>"; };
 		998849E12C524AAA0073A27D /* CryptoCellInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoCellInfo.swift; sourceTree = "<group>"; };
 		998849E32C5378CD0073A27D /* CryptoTickerDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTickerDTO.swift; sourceTree = "<group>"; };
 		998849E52C5379960073A27D /* CryptoTicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTicker.swift; sourceTree = "<group>"; };
@@ -524,6 +530,7 @@
 				31E208062C4678B9000BFEBC /* MainCoordinator.swift */,
 				31D644472C7257F900C7F96D /* CryptoDetailCoordinator.swift */,
 				31E208082C46BF6B000BFEBC /* MainTabBarCoordinator.swift */,
+				5FA880E52E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift */,
 			);
 			path = Coordinator;
 			sourceTree = "<group>";
@@ -616,6 +623,8 @@
 			isa = PBXGroup;
 			children = (
 				311E33FB2C4608800054C6BC /* MainViewController.swift */,
+				5FA880E12E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.swift */,
+				5FA880E22E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.xib */,
 				99C20A5C2C48DF11009276E7 /* CoinTableViewCell.swift */,
 				C1DF71152E16407E002E89E1 /* MainCryptoTableViewCell.swift */,
 				C1DF71162E16407E002E89E1 /* MainCryptoTableViewCell.xib */,
@@ -891,6 +900,7 @@
 				C17CF49D2DA4DAE900CDF76D /* InvestmentViewController.xib in Resources */,
 				31B741FF2D58D67800706340 /* TradeHistoryView.xib in Resources */,
 				C1DF71182E16407E002E89E1 /* MainCryptoTableViewCell.xib in Resources */,
+				5FA880E42E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.xib in Resources */,
 				31F33FD42DDA1D4C003D533A /* MobitAlertViewController.xib in Resources */,
 				C17BA2B72DF5B576001AF72D /* MobitLaunchScreen.xib in Resources */,
 				C17DB9732DA5FAF000DA673A /* InvestmentTableViewCell.xib in Resources */,
@@ -935,6 +945,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				31F33FCF2DDA1C09003D533A /* MoreViewController.swift in Sources */,
+				5FA880E32E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.swift in Sources */,
 				C1DF71172E16407E002E89E1 /* MainCryptoTableViewCell.swift in Sources */,
 				312861062DFE749200541A6A /* MobitTabBar.swift in Sources */,
 				C1E12D402D7C29AF003C76F0 /* DoubleExtension.swift in Sources */,
@@ -975,6 +986,7 @@
 				99C20AAC2C4F458C009276E7 /* CryptoSocketTickerDTO.swift in Sources */,
 				C17CF49C2DA4DAE900CDF76D /* InvestmentViewController.swift in Sources */,
 				31D6444D2C72590C00C7F96D /* CryptoDetailUseCase.swift in Sources */,
+				5FA880E62E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift in Sources */,
 				31DC41E22CD9197700F0FFF2 /* NewWebSocketManager.swift in Sources */,
 				99C20A692C490326009276E7 /* MainNetworkService.swift in Sources */,
 				C190F29D2D65AD6A00895D9E /* CryptoTransactionDataModel.swift in Sources */,

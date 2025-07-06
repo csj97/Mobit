@@ -48,6 +48,15 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
 	self.delegate?.mainCoordinatorDidRequestHideTabBar()
   }
   
+  func pushNoticeAppUpdateVC() {
+	let noticeAppUpdateCoordinator = NoticeAppUpdateCoordinator(navigationController: self.navigationController)
+	self.childCoordinators.append(noticeAppUpdateCoordinator)
+	noticeAppUpdateCoordinator.delegate = self
+	noticeAppUpdateCoordinator.start()
+	
+	self.delegate?.mainCoordinatorDidRequestHideTabBar()
+  }
+  
   /// BTC 코인 목록 탭 노출
   func showBTCCoinList() {
     

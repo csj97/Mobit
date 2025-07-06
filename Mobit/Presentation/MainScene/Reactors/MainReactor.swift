@@ -32,6 +32,7 @@ class MainReactor: Reactor {
 // 기본 설정
 extension MainReactor {
   enum MainAction {
+	case checkNewVersion
     case loadCrypto(selectedTab: SelectedTab)
     case loadSocketTicker(selectedTab: SelectedTab, cryptoList: CryptoList)
     case disconnectSocket
@@ -40,6 +41,7 @@ extension MainReactor {
   
   /// 상태 변경 단위, 작업 단위
   enum MainMutation {
+	case setVersionDifferent(isDiffer: Bool)
     case loadCrypto(list: CryptoList)
     
     case setTabCryptoList(cryptoList: CryptoList)
@@ -48,6 +50,9 @@ extension MainReactor {
   }
   
   struct MainReactorState {
+	
+	var isVersionDifferent: Bool = false
+	
     // krw, btc, usdt
     var cryptoList: CryptoList = []
     
@@ -63,6 +68,9 @@ extension MainReactor {
   // Observable 방출
   func mutate(action: MainAction) -> Observable<MainMutation> {
     switch action {
+	case .checkNewVersion:
+	  return self.checkNewVersion()
+	  
     case .loadCrypto(let selectedTab):
       return self.loadCryptoTicker(selectedTab: selectedTab)
       
@@ -81,6 +89,9 @@ extension MainReactor {
   func reduce(state: MainReactorState, mutation: MainMutation) -> MainReactorState {
     var newState = state
     switch mutation {
+	case .setVersionDifferent(let isDiffer):
+	  newState.isVersionDifferent = isDiffer
+	  
     case .loadCrypto(let cryptoList):
       newState.cryptoList = cryptoList
       
@@ -512,5 +523,76 @@ extension MainReactor {
     } else {
       completion(nil)
     }
+  }
+  
+  /// 새로운 버전 확인
+  func checkNewVersion() -> Observable<MainMutation>{
+	let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
+	
+	let observable = Observable<MainMutation>.create { observer in
+	  
+	  self.fetchAppStoreVersion { appStoreVersion in
+		guard let appStoreVersion = appStoreVersion else { return }
+		
+		if self.isAppStoreVersionNewer(current: currentVersion, appStore: appStoreVersion) {
+		  // 새로운 버전이 있을 경우
+		  observer.onNext(
+			.setVersionDifferent(isDiffer: true)
+		  )
+		} else {
+		  observer.onNext(
+			.setVersionDifferent(isDiffer: false)
+		  )
+		}
+		observer.onCompleted()
+	  }
+	  
+	  return Disposables.create()
+	}
+	
+	return observable
+  }
+  
+  /// 앱 스토어에 등록된 버전
+  func fetchAppStoreVersion(completion: @escaping (String?) -> Void) {
+	guard let url = URL(string: "https://itunes.apple.com/lookup?id=6747009759") else {
+	  completion(nil)
+	  return
+	}
+	
+	let task = URLSession.shared.dataTask(with: url) { data, _, error in
+	  guard
+		error == nil,
+		let data = data,
+		let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+		let results = json["results"] as? [[String: Any]],
+		let appStoreVersion = results.first?["version"] as? String
+	  else {
+		completion(nil)
+		return
+	  }
+	  
+	  completion(appStoreVersion)
+	}
+	
+	task.resume()
+  }
+  
+  /// 앱 버전 비교
+  func isAppStoreVersionNewer(current: String, appStore: String) -> Bool {
+	let currentComponents = current.split(separator: ".").map { Int($0) ?? 0 }
+	let appStoreComponents = appStore.split(separator: ".").map { Int($0) ?? 0 }
+	
+	// 배열의 길이를 맞추기 위해, 짧은 쪽에 0을 채워준다.
+	let maxCount = max(currentComponents.count, appStoreComponents.count)
+	let paddedCurrent = currentComponents + Array(repeating: 0, count: maxCount - currentComponents.count)
+	let paddedAppStore = appStoreComponents + Array(repeating: 0, count: maxCount - appStoreComponents.count)
+	
+	for (curr, store) in zip(paddedCurrent, paddedAppStore) {
+	  if store > curr { return true }
+	  if store < curr { return false }
+	}
+	
+	return false // 동일한 경우
   }
 }
