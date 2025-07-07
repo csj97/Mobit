@@ -10,6 +10,7 @@ import UIKit
 class InvestmentCoordinator: BaseCoordinator {
   var childCoordinators = [BaseCoordinator]()
   var navigationController: UINavigationController
+  weak var delegate: MainCoordinatorDelegate?
   
   init(navigationController: UINavigationController) {
     self.navigationController = navigationController
@@ -20,5 +21,23 @@ class InvestmentCoordinator: BaseCoordinator {
 	let investmentVC = InvestmentViewController(reactor: reactor)
     investmentVC.coordinator = self
     self.navigationController.viewControllers = [investmentVC]
+  }
+  
+  func pushCryptoDetailVC(selectCrypto: CryptoCellInfo) {
+	let cryptoDetailCoordinator = CryptoDetailCoordinator(
+	  selectCrypto: selectCrypto,
+	  navigationController: self.navigationController
+	)
+	self.childCoordinators.append(cryptoDetailCoordinator)
+	cryptoDetailCoordinator.delegate = self
+	cryptoDetailCoordinator.start()
+	
+	self.delegate?.mainCoordinatorDidRequestHideTabBar()
+  }
+}
+
+extension InvestmentCoordinator: MainCoordinatorDelegate {
+  func mainCoordinatorDidRequestShowTabBar() {
+	self.delegate?.mainCoordinatorDidRequestShowTabBar()
   }
 }

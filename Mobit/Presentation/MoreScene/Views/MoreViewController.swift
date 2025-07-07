@@ -41,7 +41,7 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
   }
   
   func setData() {
-	
+	self.updateVersionLabel()
   }
   
   func makeBorderLine(_ button: UIButton) {
@@ -107,6 +107,12 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
 	}
   }
   
+  /// 현재 사용 중인 앱 버전
+  func updateVersionLabel() {
+	let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
+	self.versionLabel.text = "앱 버전: \(currentVersion)"
+  }
+  
   /// Google 보상형 광고 load
   func loadRewardedAd() async {
 	do {
@@ -148,6 +154,7 @@ extension MoreViewController: FullScreenContentDelegate {
   /// Tells the delegate that the ad dismissed full screen content.
   func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
 	print("광고 끝! 돈 충전해줄게요!!")
+	self.show(alertType: .onlyConfirm, content: "충전이 완료 되었습니다.", callBack: nil)
 	UserDataManager.userInformation?.userAvailableBalance += 10000000
   }
 }

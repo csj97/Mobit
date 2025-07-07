@@ -7,15 +7,17 @@
 
 import AdSupport
 import AppTrackingTransparency
-import UIKit
 import GoogleMobileAds
+import UIKit
+import FirebaseCore
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
   
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     
-//	MobileAds.shared.requestConfiguration.testDeviceIdentifiers = [ "26842ce77d193c02e94e1e2826d0121f", "9c171ef9b1742b705cca840364271e44" ]
+	FirebaseApp.configure()
+	
 	MobileAds.shared.start(completionHandler: nil)
 	
 	requestATT()

@@ -69,6 +69,8 @@
 		5FA880E32E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA880E12E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.swift */; };
 		5FA880E42E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5FA880E22E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.xib */; };
 		5FA880E62E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA880E52E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift */; };
+		5FA880E82E1A58E700F22F9C /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5FA880E72E1A58E700F22F9C /* GoogleService-Info.plist */; };
+		5FA880EB2E1A598100F22F9C /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5FA880EA2E1A598100F22F9C /* FirebaseAnalytics */; };
 		998725022C50944700088C71 /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = 998725012C50944700088C71 /* RxCocoa */; };
 		998725062C50944700088C71 /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = 998725052C50944700088C71 /* RxRelay */; };
 		9987250A2C50944700088C71 /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 998725092C50944700088C71 /* RxSwift */; };
@@ -229,6 +231,7 @@
 		5FA880E12E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoticeForceUpdateViewControlelrViewController.swift; sourceTree = "<group>"; };
 		5FA880E22E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = NoticeForceUpdateViewControlelrViewController.xib; sourceTree = "<group>"; };
 		5FA880E52E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoticeAppUpdateCoordinator.swift; sourceTree = "<group>"; };
+		5FA880E72E1A58E700F22F9C /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		998849E12C524AAA0073A27D /* CryptoCellInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoCellInfo.swift; sourceTree = "<group>"; };
 		998849E32C5378CD0073A27D /* CryptoTickerDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTickerDTO.swift; sourceTree = "<group>"; };
 		998849E52C5379960073A27D /* CryptoTicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTicker.swift; sourceTree = "<group>"; };
@@ -288,6 +291,7 @@
 				31B741F22D53A50600706340 /* SnapKit in Frameworks */,
 				99C20A722C490615009276E7 /* RxMoya in Frameworks */,
 				31E208432C46CB47000BFEBC /* Then in Frameworks */,
+				5FA880EB2E1A598100F22F9C /* FirebaseAnalytics in Frameworks */,
 				99C20A6C2C490615009276E7 /* CombineMoya in Frameworks */,
 				99C20A702C490615009276E7 /* ReactiveMoya in Frameworks */,
 				998725022C50944700088C71 /* RxCocoa in Frameworks */,
@@ -386,6 +390,7 @@
 				C17BA2B62DF5B576001AF72D /* MobitLaunchScreen.xib */,
 				C17BA2BE2DF5B8FB001AF72D /* MobitLaunchScreen.swift */,
 				3128610E2DFF125A00541A6A /* PrivacyInfo.xcprivacy */,
+				5FA880E72E1A58E700F22F9C /* GoogleService-Info.plist */,
 			);
 			path = Resource;
 			sourceTree = "<group>";
@@ -789,6 +794,7 @@
 				31B741F12D53A50600706340 /* SnapKit */,
 				31F33FC92DDA1ACE003D533A /* GoogleMobileAds */,
 				3128610C2DFF004100541A6A /* SkeletonView */,
+				5FA880EA2E1A598100F22F9C /* FirebaseAnalytics */,
 			);
 			productName = Mobit;
 			productReference = 3133E2242C3E2355000D4B1A /* Mobit.app */;
@@ -879,6 +885,7 @@
 				31B741F02D53A42700706340 /* XCRemoteSwiftPackageReference "SnapKit" */,
 				31F33FC82DDA1ACE003D533A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 				3128610B2DFF004100541A6A /* XCRemoteSwiftPackageReference "SkeletonView" */,
+				5FA880E92E1A598100F22F9C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			productRefGroup = 3133E2252C3E2355000D4B1A /* Products */;
 			projectDirPath = "";
@@ -898,6 +905,7 @@
 			files = (
 				C17E08332D2A62BC0029A8D0 /* Colors.xcassets in Resources */,
 				C17CF49D2DA4DAE900CDF76D /* InvestmentViewController.xib in Resources */,
+				5FA880E82E1A58E700F22F9C /* GoogleService-Info.plist in Resources */,
 				31B741FF2D58D67800706340 /* TradeHistoryView.xib in Resources */,
 				C1DF71182E16407E002E89E1 /* MainCryptoTableViewCell.xib in Resources */,
 				5FA880E42E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.xib in Resources */,
@@ -1440,6 +1448,14 @@
 				minimumVersion = 12.4.0;
 			};
 		};
+		5FA880E92E1A598100F22F9C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.15.0;
+			};
+		};
 		998724FC2C50944700088C71 /* XCRemoteSwiftPackageReference "RxSwift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ReactiveX/RxSwift";
@@ -1509,6 +1525,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 31F33FC82DDA1ACE003D533A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
 			productName = GoogleMobileAds;
+		};
+		5FA880EA2E1A598100F22F9C /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5FA880E92E1A598100F22F9C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
 		};
 		998725012C50944700088C71 /* RxCocoa */ = {
 			isa = XCSwiftPackageProductDependency;
