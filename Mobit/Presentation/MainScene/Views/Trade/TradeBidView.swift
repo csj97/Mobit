@@ -112,7 +112,7 @@ class TradeBidView: UIView, ViewRule {
 	}
   }
   
-  /// 매도하고 나면 여기 업데이트
+  /// 매매하고 나면 여기 업데이트
   func updateCryptoData() {
 	guard let crypto = UserDataManager.userCryptoList?
 	  .compactMap({ $0 })
@@ -161,6 +161,21 @@ class TradeBidView: UIView, ViewRule {
 		newHoldingQuantity: self.inputAmount
 	  )
 	  
+	  // 새 동적 데이터
+	  let newValidTransactionData = ValidTransactionInfo.Transaction(
+		orderType: .bid,
+		quantity: self.inputAmount,
+		buyPrice: currentPrice
+	  )
+	  
+	  // 새 동적 데이터 추가
+	  MarketDataServiceUtil.shared.addValidTransactionData(
+		for: marketName,
+		orderType: .bid,
+		postValidTransactionList: UserDataManager.userValidTransactionList,
+		newValidTransactionData: newValidTransactionData
+	  )
+	  
 	  // 새 매수 거래내역
 	  let newTransactionInfo = TransactionInfo(
 		marketName: marketName,
@@ -169,6 +184,12 @@ class TradeBidView: UIView, ViewRule {
 		executedPrice: currentPrice,
 		executedQuantity: self.inputAmount,
 		executedAmount: currentPrice * self.inputAmount
+	  )
+	  
+	  // 새 매수 거래내역 추가
+	  MarketDataServiceUtil.shared.addTransactionData(
+		postTransactionList: UserDataManager.userTransactionList,
+		data: newTransactionInfo
 	  )
 	  
 	  // 기존 매수 내역의 (평균매수가, 매수금액, 보유수량)
@@ -185,24 +206,6 @@ class TradeBidView: UIView, ViewRule {
 		buyAmount: buyAmount
 	  )
 	  
-	  let newValidTransactionData = ValidTransactionInfo.Transaction(
-		orderType: .bid,
-		quantity: self.inputAmount,
-		buyPrice: currentPrice
-	  )
-	  
-	  MarketDataServiceUtil.shared.addValidTransactionData(
-		for: marketName,
-		orderType: .bid,
-		postValidTransactionList: UserDataManager.userValidTransactionList,
-		newValidTransactionData: newValidTransactionData
-	  )
-	  
-	  // 새 매수 거래내역 추가
-	  MarketDataServiceUtil.shared.addTransactionData(
-		postTransactionList: UserDataManager.userTransactionList,
-		data: newTransactionInfo
-	  )
 	  
 	  // 새 데이터 업데이트
 	  MarketDataServiceUtil.shared.fetchData(
