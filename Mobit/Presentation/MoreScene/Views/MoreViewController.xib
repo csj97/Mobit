@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -25,43 +25,49 @@
             <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="QOk-eo-dGP">
-                    <rect key="frame" x="20" y="138" width="353" height="190"/>
+                <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="QOk-eo-dGP">
+                    <rect key="frame" x="20" y="79" width="353" height="186"/>
                     <subviews>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="KAA-OG-EQT">
-                            <rect key="frame" x="0.0" y="0.0" width="353" height="50"/>
+                            <rect key="frame" x="0.0" y="0.0" width="353" height="54"/>
+                            <color key="backgroundColor" systemColor="tintColor"/>
                             <constraints>
-                                <constraint firstAttribute="height" constant="50" id="KOZ-8r-6JZ"/>
+                                <constraint firstAttribute="height" constant="54" id="KOZ-8r-6JZ"/>
                             </constraints>
+                            <fontDescription key="fontDescription" type="boldSystem" pointSize="20"/>
                             <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                             <state key="normal" title="투자금 충전하기">
-                                <color key="titleColor" red="0.24600857500000001" green="0.58315294979999999" blue="0.98942488429999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </state>
                             <connections>
                                 <action selector="tapOnChargeMoney:" destination="-1" eventType="touchUpInside" id="3zM-3e-zCw"/>
                             </connections>
                         </button>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ym1-Hn-qah">
-                            <rect key="frame" x="0.0" y="70" width="353" height="50"/>
+                            <rect key="frame" x="0.0" y="66" width="353" height="54"/>
+                            <color key="backgroundColor" systemColor="tintColor"/>
                             <constraints>
-                                <constraint firstAttribute="height" constant="50" id="Ryp-cP-Rax"/>
+                                <constraint firstAttribute="height" constant="54" id="Ryp-cP-Rax"/>
                             </constraints>
+                            <fontDescription key="fontDescription" type="boldSystem" pointSize="20"/>
                             <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                             <state key="normal" title="사용자 고지사항">
-                                <color key="titleColor" red="0.24600857500000001" green="0.58315294979999999" blue="0.98942488429999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </state>
                             <connections>
                                 <action selector="tapOnUserNoticeButton:" destination="-1" eventType="touchUpInside" id="tdk-U5-75M"/>
                             </connections>
                         </button>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="V2c-1i-CHG">
-                            <rect key="frame" x="0.0" y="140" width="353" height="50"/>
+                            <rect key="frame" x="0.0" y="132" width="353" height="54"/>
+                            <color key="backgroundColor" systemColor="tintColor"/>
                             <constraints>
-                                <constraint firstAttribute="height" constant="50" id="PhP-GH-wwO"/>
+                                <constraint firstAttribute="height" constant="54" id="PhP-GH-wwO"/>
                             </constraints>
+                            <fontDescription key="fontDescription" type="boldSystem" pointSize="20"/>
                             <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                             <state key="normal" title="투자 내역 초기화">
-                                <color key="titleColor" red="0.24600857500000001" green="0.58315294979999999" blue="0.98942488429999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </state>
                             <connections>
                                 <action selector="tapOnInvestInitButton:" destination="-1" eventType="touchUpInside" id="8Xi-6X-hmo"/>
@@ -70,7 +76,7 @@
                     </subviews>
                 </stackView>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="앱 버전 v.1.1.0" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="sRb-9r-BlS">
-                    <rect key="frame" x="20" y="667" width="353" height="17"/>
+                    <rect key="frame" x="20" y="701" width="353" height="17"/>
                     <fontDescription key="fontDescription" type="system" pointSize="14"/>
                     <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     <nil key="highlightedColor"/>
@@ -110,6 +116,9 @@
     <resources>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+        <systemColor name="tintColor">
+            <color red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>

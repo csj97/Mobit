@@ -89,8 +89,9 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
   @IBAction func tapOnInvestInitButton(_ sender: UIButton) {
 	
 	let noticeContent = """
-	   투자하신 거래 내역이 모두 초기화되며, 보유 금액도 0원이 됩니다.
-	   """
+	투자하신 거래 내역이 모두 초기화되며,
+	보유 금액도 0원이 됩니다.
+	"""
 	self.show(
 	  alertType: .canCancel,
 	  title: "* 투자내역 초기화 안내 *",
