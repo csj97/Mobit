@@ -75,6 +75,8 @@ class TradeAskView: UIView, ViewRule {
   func setData() {
 	self.inputTradeAmount.delegate = self
 	self.totalPriceTextField.delegate = self
+	self.inputTradeAmount.accessibilityIdentifier = "amount"
+	self.totalPriceTextField.accessibilityIdentifier = "totalPrice"
 	self.updateCryptoData()
   }
   
@@ -229,38 +231,39 @@ class TradeAskView: UIView, ViewRule {
 }
 
 extension TradeAskView: UITextFieldDelegate {
-  func checkTotalPriceTextField(_ textField: UITextField) {
-	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8) else { return }
-	let inputTotalPrice = textField.text?.digitsOnlyDouble ?? 0
-	self.totalPrice = inputTotalPrice
-	let inputAmount = inputTotalPrice / currentPrice
+
+  enum InputType: String {
+	case amount, totalPrice
+  }
+  
+  func inputType(for textField: UITextField) -> InputType? {
+	guard let id = textField.accessibilityIdentifier else { return nil }
+	return InputType(rawValue: id)
+  }
+  
+  func textFieldDidChangeSelection(_ textField: UITextField) {
+	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
+		  let type = inputType(for: textField) else { return }
 	
-	if floor(self.inputAmount) > 0 {
+	switch type {
+	case .totalPrice:
+	  let inputTotalPrice = textField.text?.digitsOnlyDouble ?? 0
+	  let inputAmount = inputTotalPrice / currentPrice
+	  self.inputAmount = inputAmount
 	  self.inputTradeAmount.text = inputAmount.formatSignificantDigits(digits: 4)
-	  self.inputAmount = Double(inputAmount.formatSignificantDigits(digits: 4)) ?? 0
-	} else {
-	  self.inputTradeAmount.text = inputAmount.formatSignificantDigits()
-	  self.inputAmount = Double(inputAmount.formatSignificantDigits()) ?? 0
+	  self.totalPrice = inputTotalPrice
+	  
+	case .amount:
+	  let inputAmount = textField.text?.digitsOnlyDouble ?? 0
+	  let totalPrice = floor(currentPrice * inputAmount)
+	  self.totalPriceTextField.text = totalPrice.formatSignificantDigits()
+	  self.inputAmount = inputAmount
+	  self.totalPrice = totalPrice
 	}
   }
   
   func textFieldDidEndEditing(_ textField: UITextField) {
 	textField.text = textField.text?.addComma()
-  }
-  
-  func textFieldDidChangeSelection(_ textField: UITextField) {
-	guard let currentPrice = self.cryptoInfo?.tradePrice else { return }
-	
-	if textField == self.inputTradeAmount {
-	  self.inputAmount = textField.text?.digitsOnlyDouble ?? 0
-	  let totalPrice = floor(
-		currentPrice.formatDigits(digits: 8) * inputAmount.formatDigits(digits: 8)
-	  )
-	  self.totalPriceTextField.text = totalPrice.formatSignificantDigits()
-	  self.totalPrice = totalPrice
-	} else if textField == self.totalPriceTextField {
-	  self.checkTotalPriceTextField(textField)
-	}
   }
   
   func textField(
@@ -272,27 +275,35 @@ extension TradeAskView: UITextFieldDelegate {
 	
 	// 바뀐 텍스트 예측
 	guard let stringRange = Range(range, in: currentText) else { return false }
-	
 	let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
 	
+	let allowedCharacters = CharacterSet(charactersIn: "0123456789.")
+	if string.rangeOfCharacter(from: allowedCharacters.inverted) != nil {
+	  return false
+	}
+	
+	// 소수점 중복 방지
 	if string == "." && currentText.contains(".") {
 	  return false
 	}
 	
+	// "."이 맨 앞에 오면 "0." 처리
 	if currentText.isEmpty && string == "." {
 	  textField.text = "0."
-	  self.checkTotalPriceTextField(textField)
+	  DispatchQueue.main.async {
+		self.textFieldDidChangeSelection(textField)
+	  }
 	  return false
 	}
 	
-	// "0"으로 시작하는데 다음 문자가 숫자일 경우 → "0" 제거
-	if currentText == "0", string != ".", !string.isEmpty {
+	// 선행 0 처리 (0으로 시작하고 뒤에 숫자가 오면 제거)
+	if currentText.allSatisfy({ $0 == "0" }), string != ".", !string.isEmpty {
 	  textField.text = string
-	  self.checkTotalPriceTextField(textField)
+	  DispatchQueue.main.async {
+		self.textFieldDidChangeSelection(textField)
+	  }
 	  return false
 	}
-	
-//	textField.text = updatedText.addComma()
 	
 	return true
   }
