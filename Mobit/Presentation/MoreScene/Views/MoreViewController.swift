@@ -12,9 +12,10 @@ import UIKit
 
 class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
   
-  @IBOutlet weak var chargeMoneyButton: UIButton!
-  @IBOutlet weak var userNoticeButton: UIButton!
-  @IBOutlet weak var investInitButton: UIButton!
+  @IBOutlet weak var naviBar: UIView!
+  @IBOutlet weak var chargeMoneyButton: NeumorphicButton!
+  @IBOutlet weak var userNoticeButton: NeumorphicButton!
+  @IBOutlet weak var investInitButton: NeumorphicButton!
   @IBOutlet weak var loadingIndicator: UIActivityIndicatorView!
   @IBOutlet weak var loadingView: UIView!
   @IBOutlet weak var versionLabel: UILabel!
@@ -34,6 +35,9 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
   }
   
   func setUI() {
+	self.navigationController?.navigationBar.isHidden = true
+    self.naviBar.layer.applyShadow(color: .lightGray, alpha: 0.3, x: 0, y: 3, blur: 12)
+    
 	self.makeBorderLine(self.chargeMoneyButton)
 	self.makeBorderLine(self.userNoticeButton)
 	self.makeBorderLine(self.investInitButton)
@@ -46,11 +50,11 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
   
   func makeBorderLine(_ button: UIButton) {
 	button.layer.borderWidth = 1
-	button.layer.borderColor = UIColor.systemBlue.withAlphaComponent(0.4).cgColor
-	button.layer.cornerRadius = 10
+    button.layer.borderColor = UIColor.clear.cgColor
+	button.layer.cornerRadius = 16
   }
   
-  @IBAction func tapOnChargeMoney(_ sender: UIButton) {
+  @IBAction func tapOnChargeMoney(_ sender: NeumorphicButton) {
 	self.show(
 	  alertType: .canCancel,
 	  title: "안내",
@@ -66,7 +70,7 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
 	}
   }
   
-  @IBAction func tapOnUserNoticeButton(_ sender: UIButton) {
+  @IBAction func tapOnUserNoticeButton(_ sender: NeumorphicButton) {
 	let noticeContent = """
    사용자는 이 앱에서 실제 금전적인 자산을 입금하거나 출금할 수 없으며,
    모든 거래 및 수익/손실은 가상의 수치일 뿐, 
@@ -86,7 +90,7 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
 	)
   }
   
-  @IBAction func tapOnInvestInitButton(_ sender: UIButton) {
+  @IBAction func tapOnInvestInitButton(_ sender: NeumorphicButton) {
 	
 	let noticeContent = """
 	투자하신 거래 내역이 모두 초기화되며,
@@ -111,7 +115,15 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
   /// 현재 사용 중인 앱 버전
   func updateVersionLabel() {
 	let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
-	self.versionLabel.text = "앱 버전: \(currentVersion)"
+    let versionParts = currentVersion.split(separator: ".")
+    var fixedVersion = currentVersion
+    
+    if versionParts.count == 2 {
+        // 1.2 → 1.2.0 으로 변환
+        fixedVersion = currentVersion + ".0"
+    }
+    
+    self.versionLabel.text = "앱 버전: \(fixedVersion)"
   }
   
   /// Google 보상형 광고 load

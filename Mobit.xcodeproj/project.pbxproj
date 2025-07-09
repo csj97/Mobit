@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		310865062E1EC3F40089D67A /* NeumorphicButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 310865052E1EC3F40089D67A /* NeumorphicButton.swift */; };
 		311E33FA2C46068C0054C6BC /* ErrorType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 311E33F92C46068C0054C6BC /* ErrorType.swift */; };
 		311E33FC2C4608800054C6BC /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 311E33FB2C4608800054C6BC /* MainViewController.swift */; };
 		312861062DFE749200541A6A /* MobitTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 312861052DFE749200541A6A /* MobitTabBar.swift */; };
@@ -171,6 +172,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		310865052E1EC3F40089D67A /* NeumorphicButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeumorphicButton.swift; sourceTree = "<group>"; };
 		311E33F92C46068C0054C6BC /* ErrorType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorType.swift; sourceTree = "<group>"; };
 		311E33FB2C4608800054C6BC /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		312861052DFE749200541A6A /* MobitTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitTabBar.swift; sourceTree = "<group>"; };
@@ -749,6 +751,7 @@
 			isa = PBXGroup;
 			children = (
 				31B742002D5A2ABD00706340 /* ButtonExtension.swift */,
+				310865052E1EC3F40089D67A /* NeumorphicButton.swift */,
 				C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */,
 				C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */,
 				36E771922D75AF1E00739CDE /* MobitTextField.swift */,
@@ -966,6 +969,7 @@
 				C19ED6E92DE31648001ACCF9 /* TradeInformationView.swift in Sources */,
 				31D644482C7257F900C7F96D /* CryptoDetailCoordinator.swift in Sources */,
 				998849E22C524AAA0073A27D /* CryptoCellInfo.swift in Sources */,
+				310865062E1EC3F40089D67A /* NeumorphicButton.swift in Sources */,
 				C18EED512D55FE3D0038BBF7 /* TradeBidView.swift in Sources */,
 				C17DB9722DA5FAF000DA673A /* InvestmentTableViewCell.swift in Sources */,
 				31E208072C4678B9000BFEBC /* MainCoordinator.swift in Sources */,
@@ -1221,7 +1225,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				NEW_SETTING = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.kando.Mobit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1260,7 +1264,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				NEW_SETTING = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.kando.Mobit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
