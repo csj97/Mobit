@@ -241,6 +241,8 @@ extension TradeAskView: UITextFieldDelegate {
 	return InputType(rawValue: id)
   }
   
+  /// 텍스트 필드에 텍스트가 변경될 때, 호출
+  /// 텍스트가 변경되지 않아도 selection만 변경되어도 호출
   func textFieldDidChangeSelection(_ textField: UITextField) {
 	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
 		  let type = inputType(for: textField) else { return }
@@ -262,10 +264,13 @@ extension TradeAskView: UITextFieldDelegate {
 	}
   }
   
+  /// 텍스트 필드 포커스 해제시, 호출
   func textFieldDidEndEditing(_ textField: UITextField) {
 	textField.text = textField.text?.addComma()
   }
   
+  /// 텍스트 필드 입력을 시도할 때, 호출
+  /// 입력값 허용 / 비허용, 입력 중간에 가로채서 수정할 수 있음
   func textField(
 	_ textField: UITextField,
 	shouldChangeCharactersIn range: NSRange,
