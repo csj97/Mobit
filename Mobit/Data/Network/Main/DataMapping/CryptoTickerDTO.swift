@@ -11,30 +11,30 @@ typealias CryptoTickerListDTO = [CryptoTickerDTO]
 
 struct CryptoTickerDTO: Hashable, Codable {
   let market: String
-  let tradeDate: String
-  let tradeTime: String
-  let tradeDateKst: String
-  let tradeTimeKst: String
-  let tradeTimestamp: Int64
-  let openingPrice: Double
-  let highPrice: Double
-  let lowPrice: Double
-  let tradePrice: Double
-  let prevClosingPrice: Double
+  let tradeDate: String?
+  let tradeTime: String?
+  let tradeDateKst: String?
+  let tradeTimeKst: String?
+  let tradeTimestamp: Int64?
+  let openingPrice: Double?
+  let highPrice: Double?
+  let lowPrice: Double?
+  let tradePrice: Double?
+  let prevClosingPrice: Double?
   let change: String
-  let changePrice: Double
-  let changeRate: Double
-  let signedChangePrice: Double
-  let signedChangeRate: Double
-  let tradeVolume: Double
-  let accTradePrice: Double
-  let accTradePrice24h: Double
-  let accTradeVolume: Double
-  let accTradeVolume24h: Double
-  let highest52WeekPrice: Double
-  let highest52WeekDate: String
-  let lowest52WeekPrice: Double
-  let lowest52WeekDate: String
+  let changePrice: Double?
+  let changeRate: Double?
+  let signedChangePrice: Double?
+  let signedChangeRate: Double?
+  let tradeVolume: Double?
+  let accTradePrice: Double?
+  let accTradePrice24h: Double?
+  let accTradeVolume: Double?
+  let accTradeVolume24h: Double?
+  let highest52WeekPrice: Double?
+  let highest52WeekDate: String?
+  let lowest52WeekPrice: Double?
+  let lowest52WeekDate: String?
   let timestamp: Int64
   
   enum CodingKeys: String, CodingKey {
@@ -69,34 +69,34 @@ struct CryptoTickerDTO: Hashable, Codable {
 
 extension CryptoTickerDTO {
   func toDomain() -> CryptoTicker {
-    return .init(
-      market: self.market,
-      tradeDate: self.tradeDate,
-      tradeTime: self.tradeTime,
-      tradeDateKst: self.tradeDateKst,
-      tradeTimeKst: self.tradeTimeKst,
-      tradeTimestamp: self.tradeTimestamp,
-      openingPrice: self.openingPrice,
-      highPrice: self.highPrice,
-      lowPrice: self.lowPrice,
-      tradePrice: self.tradePrice,
-      prevClosingPrice: self.prevClosingPrice,
-      change: self.change,
-      changePrice: self.changePrice,
-      changeRate: self.changeRate,
-      signedChangePrice: self.signedChangePrice,
-      signedChangeRate: self.signedChangeRate,
-      tradeVolume: self.tradeVolume,
-      accTradePrice: self.accTradePrice,
-      accTradePrice24h: self.accTradePrice24h,
-      accTradeVolume: self.accTradeVolume,
-      accTradeVolume24h: self.accTradeVolume24h,
-      highest52WeekPrice: self.highest52WeekPrice,
-      highest52WeekDate: self.highest52WeekDate,
-      lowest52WeekPrice: self.lowest52WeekPrice,
-      lowest52WeekDate: self.lowest52WeekDate,
-      timestamp: self.timestamp
-    )
+	return .init(
+	  market: self.market,
+	  tradeDate: self.tradeDate ?? "",
+	  tradeTime: self.tradeTime ?? "",
+	  tradeDateKst: self.tradeDateKst ?? "",
+	  tradeTimeKst: self.tradeTimeKst ?? "",
+	  tradeTimestamp: self.tradeTimestamp ?? 0,
+	  openingPrice: self.openingPrice ?? 0,
+	  highPrice: self.highPrice ?? 0,
+	  lowPrice: self.lowPrice ?? 0,
+	  tradePrice: self.tradePrice ?? 0,
+	  prevClosingPrice: self.prevClosingPrice ?? 0,
+	  change: self.change,
+	  changePrice: self.changePrice ?? 0,
+	  changeRate: self.changeRate ?? 0,
+	  signedChangePrice: self.signedChangePrice ?? 0,
+	  signedChangeRate: self.signedChangeRate ?? 0,
+	  tradeVolume: self.tradeVolume ?? 0,
+	  accTradePrice: self.accTradePrice ?? 0,
+	  accTradePrice24h: self.accTradePrice24h ?? 0,
+	  accTradeVolume: self.accTradeVolume ?? 0,
+	  accTradeVolume24h: self.accTradeVolume24h ?? 0,
+	  highest52WeekPrice: self.highest52WeekPrice ?? 0,
+	  highest52WeekDate: self.highest52WeekDate ?? "",
+	  lowest52WeekPrice: self.lowest52WeekPrice ?? 0,
+	  lowest52WeekDate: self.lowest52WeekDate ?? "",
+	  timestamp: self.timestamp
+	)
   }
 }
 
