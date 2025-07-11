@@ -36,9 +36,13 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
 	self.navigationController.viewControllers = [mainVC]
   }
   
-  func pushCryptoDetailVC(selectCrypto: CryptoCellInfo) {
+  func pushCryptoDetailVC(
+	selectCrypto: CryptoCellInfo,
+	cmcInformation: FirebaseCMCResponse
+  ) {
     let cryptoDetailCoordinator = CryptoDetailCoordinator(
 	  selectCrypto: selectCrypto,
+	  cmcInformation: cmcInformation,
 	  navigationController: self.navigationController
 	)
     self.childCoordinators.append(cryptoDetailCoordinator)

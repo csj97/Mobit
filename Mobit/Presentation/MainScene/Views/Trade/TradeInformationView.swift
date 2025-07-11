@@ -47,6 +47,7 @@ class TradeInformationView: UIView, ViewRule {
 	}
 	
 	selfView.reactor = reactor
+	selfView.setUI()
 	selfView.setData()
 	selfView.configure()
 	
@@ -61,20 +62,16 @@ class TradeInformationView: UIView, ViewRule {
   }
   
   func setUI() {
-	guard let cryptoQuotesInfo = cryptoQuotesInfo else { return }
+	guard let cmcInformation = self.reactor?.cmcInformation else { return }
 	
-	if let iconURL = cryptoQuotesInfo.iconURL {
-	  self.cryptoImageView.load(from: iconURL)
-	} else {
-	  self.cryptoImageView.image = UIImage(named: "")
-	}
-	
-	self.marketNameLabel.text = cryptoQuotesInfo.name
-	self.symbolLabels.forEach { $0.text = cryptoQuotesInfo.symbol }
-	self.totalSupplyLabel.text = cryptoQuotesInfo.totalSupply.formatSignificantDigits()
-	self.marketCapLabel.text = cryptoQuotesInfo.marketCap.formatSignificantDigits() + " 원"
-	self.updatedAtStringLabel.text = cryptoQuotesInfo.updatedAtString
-	self.circulatingSupplyLabel.text = cryptoQuotesInfo.circulatingSupply.formatSignificantDigits()
+	let iconURL = URL(string: cmcInformation.iconURL)!
+	self.cryptoImageView.load(from: iconURL)
+	self.marketNameLabel.text = cmcInformation.name
+	self.symbolLabels.forEach { $0.text = cmcInformation.symbol }
+	self.totalSupplyLabel.text = cmcInformation.totalSupply.formatSignificantDigits()
+	self.marketCapLabel.text = cmcInformation.marketCap.formatSignificantDigits() + " 원"
+	self.updatedAtStringLabel.text = cmcInformation.updatedAtString
+	self.circulatingSupplyLabel.text = cmcInformation.circulatingSupply.formatSignificantDigits()
 	
 	guard let selectedCrypto = self.reactor?.selectCrypto,
 		  let accTradePrice24h = selectedCrypto.accTradePrice24h,
@@ -94,7 +91,6 @@ class TradeInformationView: UIView, ViewRule {
   func setData() {
 	guard let reactor = self.reactor else { return }
 	self.bind(reactor: reactor)
-	self.reactor?.action.onNext(.getCryptoInformation)
   }
 }
 
@@ -102,16 +98,5 @@ class TradeInformationView: UIView, ViewRule {
 extension TradeInformationView {
   
   func bind(reactor: CryptoDetailReactor) {
-	reactor.state.map { $0.cryptoQuotesInfo }
-	  .distinctUntilChanged()
-	  .subscribe(onNext: { cryptoQuotesInfo in
-		guard let cryptoQuotesInfo = cryptoQuotesInfo else { return }
-		self.cryptoQuotesInfo = cryptoQuotesInfo
-		self.setUI()
-		print("🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁🏁")
-		print(cryptoQuotesInfo)
-	  })
-	  .disposed(by: disposeBag)
-	
   }
 }

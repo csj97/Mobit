@@ -128,11 +128,6 @@
                 <constraint firstItem="QOk-eo-dGP" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="20" id="uxJ-bZ-zWN"/>
                 <constraint firstItem="Of0-zp-4hq" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="veW-Gd-hAQ"/>
             </constraints>
-            <variation key="default">
-                <mask key="subviews">
-                    <exclude reference="Gdd-ng-g83"/>
-                </mask>
-            </variation>
             <point key="canvasLocation" x="132" y="-11"/>
         </view>
     </objects>

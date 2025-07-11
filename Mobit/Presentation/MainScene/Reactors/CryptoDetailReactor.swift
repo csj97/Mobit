@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import FirebaseDatabase
 import UIKit
 import RxSwift
 import ReactorKit
@@ -19,12 +20,16 @@ class CryptoDetailReactor: Reactor {
   let initialState: CryptoDetailState = CryptoDetailState()
   var tickerSocketManager: NewWebSocketManager? = nil
   var orderBookSocketManager: NewWebSocketManager? = nil
+  var cmcInformation: FirebaseCMCResponse
+  private var firebaseDB = Database.database().reference()
   
   init(
     selectCrypto: CryptoCellInfo,
+	cmcInformation: FirebaseCMCResponse,
     cryptoDetailUseCase: CryptoDetailUseCase
   ) {
     self.selectCrypto = selectCrypto
+	self.cmcInformation = cmcInformation
     self.cryptoDetailUseCase = cryptoDetailUseCase
   }
 }

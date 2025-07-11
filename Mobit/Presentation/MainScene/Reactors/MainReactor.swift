@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import FirebaseDatabase
 import UIKit
 import RxSwift
 import ReactorKit
@@ -23,6 +24,8 @@ class MainReactor: Reactor {
 //  let socketManager: NewWebSocketManager = NewWebSocketManager()
   var socketManager: NewWebSocketManager? = nil
   let initialState: MainReactorState = MainReactorState()
+  private var firebaseDB = Database.database().reference()
+  var cmcList: [FirebaseCMCResponse]?
   
   init(mainUseCase: MainUseCase) {
     self.mainUseCase = mainUseCase
@@ -594,5 +597,41 @@ extension MainReactor {
 	}
 	
 	return false // 동일한 경우
+  }
+  
+  /// 파이어베이스에서 CMC 코인 정보 가져오기
+  func downloadFromFirebase(completion: @escaping ([String: [String: Any]]) -> Void) {
+	  let path = firebaseDB.child("CMCResponse").child("cryptoInformations")
+	  
+	  path.observeSingleEvent(of: .value) { snapshot in
+		  guard let value = snapshot.value as? [String: [String: Any]] else {
+			  print("❌ 데이터 변환 실패")
+			  completion([:])
+			  return
+		  }
+		  print("✅ \(value.values.count)개 데이터 불러오기 성공")
+		  
+		  completion(value)
+	  }
+  }
+  
+  /// Data Model에 맞게 디코딩
+  func parseToCryptoData(dict: [String: Any]) -> FirebaseCMCResponse? {
+	do {
+	  // Step 1. dict → jsonData
+	  let jsonData = try JSONSerialization.data(withJSONObject: dict, options: [])
+	  
+	  // Step 2. jsonData → DTO
+	  let decoder = JSONDecoder()
+	  decoder.dateDecodingStrategy = .iso8601
+	  let dto = try decoder.decode(FirebaseCMCResponseDTO.self, from: jsonData)
+	  
+	  // Step 3. DTO → Domain
+	  return dto.toDomain()
+	  
+	} catch {
+	  print("❌ 디코딩 실패: \(error)")
+	  return nil
+	}
   }
 }

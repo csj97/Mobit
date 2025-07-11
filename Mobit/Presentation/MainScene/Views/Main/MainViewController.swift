@@ -136,6 +136,7 @@ class MainViewController: UIViewController {
   // MARK: Life Cycle
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
+	// TODO: socket disconnect check
 	
 	// 필요할 때 주석 해제 후, 배포
 	// self.reactor.action.onNext(.checkNewVersion)
@@ -155,6 +156,11 @@ class MainViewController: UIViewController {
     self.setUpFlexItems()
     
     self.bind(reactor: self.reactor)
+	
+	self.reactor.downloadFromFirebase { response in
+	  let cmcList = response.compactMap { self.reactor.parseToCryptoData(dict: $0.value) }
+	  self.reactor.cmcList = cmcList
+	}
 	
 	guard let transactionHistory = UserDataManager.userTransactionList else { return }
 	print(transactionHistory)
@@ -539,8 +545,15 @@ extension MainViewController: UITableViewDelegate {
 	  }
 	}
 	
+	let selectCrypto = cryptoCellInfo[indexPath.row]
+	let symbol = selectCrypto.market.replacingOccurrences(of: "/KRW", with: "")
+	guard let cmcInformation = self.reactor.cmcList?.first(
+	  where: { $0.symbol == symbol }
+	) else { return }
+	
     self.coordinator?.pushCryptoDetailVC(
-      selectCrypto: cryptoCellInfo[indexPath.row]
+      selectCrypto: cryptoCellInfo[indexPath.row],
+	  cmcInformation: cmcInformation
     )
 	
 	if let searchText = self.searchBar.text, !searchText.isEmpty {

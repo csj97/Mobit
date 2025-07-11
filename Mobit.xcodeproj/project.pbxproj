@@ -111,8 +111,11 @@
 		C17CF4A02DA4DD6500CDF76D /* InvestReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17CF49F2DA4DD6500CDF76D /* InvestReactor.swift */; };
 		C17DB9722DA5FAF000DA673A /* InvestmentTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17DB9702DA5FAF000DA673A /* InvestmentTableViewCell.swift */; };
 		C17DB9732DA5FAF000DA673A /* InvestmentTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = C17DB9712DA5FAF000DA673A /* InvestmentTableViewCell.xib */; };
+		C17DC0D22E2094DF00E35D3F /* FirebaseCMCResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17DC0D12E2094DF00E35D3F /* FirebaseCMCResponseDTO.swift */; };
 		C17E08332D2A62BC0029A8D0 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C17E08322D2A62BC0029A8D0 /* Colors.xcassets */; };
 		C17E08352D2A64EE0029A8D0 /* ColorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */; };
+		C17E8E252E1F5EED0082E7DC /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = C17E8E242E1F5EED0082E7DC /* FirebaseDatabase */; };
+		C17E8E272E1F60D50082E7DC /* FirebaseCMCResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */; };
 		C18EED4F2D55A82B0038BBF7 /* MobitSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */; };
 		C18EED512D55FE3D0038BBF7 /* TradeBidView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED502D55FE3D0038BBF7 /* TradeBidView.swift */; };
 		C18EED532D55FE450038BBF7 /* TradeBidView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C18EED522D55FE450038BBF7 /* TradeBidView.xib */; };
@@ -262,8 +265,10 @@
 		C17CF49F2DA4DD6500CDF76D /* InvestReactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestReactor.swift; sourceTree = "<group>"; };
 		C17DB9702DA5FAF000DA673A /* InvestmentTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestmentTableViewCell.swift; sourceTree = "<group>"; };
 		C17DB9712DA5FAF000DA673A /* InvestmentTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = InvestmentTableViewCell.xib; sourceTree = "<group>"; };
+		C17DC0D12E2094DF00E35D3F /* FirebaseCMCResponseDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseCMCResponseDTO.swift; sourceTree = "<group>"; };
 		C17E08322D2A62BC0029A8D0 /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
 		C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtension.swift; sourceTree = "<group>"; };
+		C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseCMCResponse.swift; sourceTree = "<group>"; };
 		C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitSegmentedControl.swift; sourceTree = "<group>"; };
 		C18EED502D55FE3D0038BBF7 /* TradeBidView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeBidView.swift; sourceTree = "<group>"; };
 		C18EED522D55FE450038BBF7 /* TradeBidView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeBidView.xib; sourceTree = "<group>"; };
@@ -293,6 +298,7 @@
 				31B741F22D53A50600706340 /* SnapKit in Frameworks */,
 				99C20A722C490615009276E7 /* RxMoya in Frameworks */,
 				31E208432C46CB47000BFEBC /* Then in Frameworks */,
+				C17E8E252E1F5EED0082E7DC /* FirebaseDatabase in Frameworks */,
 				5FA880EB2E1A598100F22F9C /* FirebaseAnalytics in Frameworks */,
 				99C20A6C2C490615009276E7 /* CombineMoya in Frameworks */,
 				99C20A702C490615009276E7 /* ReactiveMoya in Frameworks */,
@@ -682,6 +688,7 @@
 				998849E32C5378CD0073A27D /* CryptoTickerDTO.swift */,
 				369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */,
 				C19ED6E62DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift */,
+				C17DC0D12E2094DF00E35D3F /* FirebaseCMCResponseDTO.swift */,
 			);
 			path = DataMapping;
 			sourceTree = "<group>";
@@ -716,6 +723,7 @@
 				C190F29C2D65AD6A00895D9E /* CryptoTransactionDataModel.swift */,
 				C17424C52D460478009861CC /* MobitUserInformation.swift */,
 				C19ED6E42DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift */,
+				C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -798,6 +806,7 @@
 				31F33FC92DDA1ACE003D533A /* GoogleMobileAds */,
 				3128610C2DFF004100541A6A /* SkeletonView */,
 				5FA880EA2E1A598100F22F9C /* FirebaseAnalytics */,
+				C17E8E242E1F5EED0082E7DC /* FirebaseDatabase */,
 			);
 			productName = Mobit;
 			productReference = 3133E2242C3E2355000D4B1A /* Mobit.app */;
@@ -982,6 +991,7 @@
 				31B741F52D53AA6C00706340 /* TradeOrderView.swift in Sources */,
 				C17E08352D2A64EE0029A8D0 /* ColorExtension.swift in Sources */,
 				31B742012D5A2AC400706340 /* ButtonExtension.swift in Sources */,
+				C17E8E272E1F60D50082E7DC /* FirebaseCMCResponse.swift in Sources */,
 				C19ED6E72DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift in Sources */,
 				369E877F2C7D955E0020A0B3 /* OrderBookResponseDTO.swift in Sources */,
 				998849E42C5378CD0073A27D /* CryptoTickerDTO.swift in Sources */,
@@ -1002,6 +1012,7 @@
 				31DC41E22CD9197700F0FFF2 /* NewWebSocketManager.swift in Sources */,
 				99C20A692C490326009276E7 /* MainNetworkService.swift in Sources */,
 				C190F29D2D65AD6A00895D9E /* CryptoTransactionDataModel.swift in Sources */,
+				C17DC0D22E2094DF00E35D3F /* FirebaseCMCResponseDTO.swift in Sources */,
 				311E33FA2C46068C0054C6BC /* ErrorType.swift in Sources */,
 				31E208042C4677CB000BFEBC /* AppTabBarCoordinator.swift in Sources */,
 				99C20A582C48D35C009276E7 /* DividerLineView.swift in Sources */,
@@ -1589,6 +1600,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 99C20A842C4A27F1009276E7 /* XCRemoteSwiftPackageReference "ReactorKit" */;
 			productName = ReactorKit;
+		};
+		C17E8E242E1F5EED0082E7DC /* FirebaseDatabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FirebaseDatabase;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

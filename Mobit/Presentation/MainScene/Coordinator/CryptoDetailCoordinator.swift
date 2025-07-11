@@ -11,10 +11,16 @@ class CryptoDetailCoordinator: BaseCoordinator {
   var childCoordinators = [BaseCoordinator]()
   var navigationController: UINavigationController
   var selectCrypto: CryptoCellInfo
+  var cmcInformation: FirebaseCMCResponse
   weak var delegate: MainCoordinatorDelegate?
   
-  init(selectCrypto: CryptoCellInfo, navigationController: UINavigationController) {
+  init(
+	selectCrypto: CryptoCellInfo,
+	cmcInformation: FirebaseCMCResponse,
+	navigationController: UINavigationController
+  ) {
     self.selectCrypto = selectCrypto
+	self.cmcInformation = cmcInformation
     self.navigationController = navigationController
     self.navigationController.isNavigationBarHidden = true
   }
@@ -22,6 +28,7 @@ class CryptoDetailCoordinator: BaseCoordinator {
   func start() {
     let reactor = CryptoDetailReactor(
       selectCrypto: self.selectCrypto,
+	  cmcInformation: self.cmcInformation,
       cryptoDetailUseCase: CryptoDetailUseCase(
         cryptoDetailRepository: CryptoDetailRepository()
       )

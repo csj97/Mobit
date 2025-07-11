@@ -61,15 +61,19 @@ class MainRepository: MainRepositoryProtocol {
           case .success(let response):
             switch response.statusCode {
             case 200..<300:
-              guard let cryptoTickerList = try? JSONDecoder().decode(
-                decodeTarget,
-                from: response.data
-              ) else {
-                observer.onError(ErrorType.dataMappingError)
-                return
-              }
-              observer.onNext(cryptoTickerList.toDomain())
-              observer.onCompleted()
+			  
+			  do {
+				if let jsonString = String(data: response.data, encoding: .utf8) {
+					// print("📦 JSON 응답 문자열:\n\(jsonString)")
+				}
+				let cryptoTickerList = try JSONDecoder().decode(decodeTarget, from: response.data)
+				observer.onNext(cryptoTickerList.toDomain())
+				observer.onCompleted()
+			  } catch {
+				print("❌ 디코딩 실패: \(error)")
+				observer.onError(ErrorType.dataMappingError)
+			  }
+			  
             case 400..<500:
               observer.onError(ErrorType.badRequest)
             default:
@@ -79,11 +83,12 @@ class MainRepository: MainRepositoryProtocol {
             
           case .failure(let error):
             print(error.localizedDescription)
+			observer.onError(error)
           }
         }
       
       return Disposables.create {
-        disposable.disposed(by: self.disposeBag)
+        disposable.dispose()
       }
     }
   }
