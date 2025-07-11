@@ -34,10 +34,10 @@
                         </view>
                         <view contentMode="scaleToFill" placeholderIntrinsicWidth="243" placeholderIntrinsicHeight="719" translatesAutoresizingMaskIntoConstraints="NO" id="l8x-3a-CZr">
                             <rect key="frame" x="0.0" y="50" width="243" height="709"/>
-                            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         </view>
                     </subviews>
-                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     <constraints>
                         <constraint firstAttribute="trailing" secondItem="l8x-3a-CZr" secondAttribute="trailing" id="4fB-kA-iwj"/>
                         <constraint firstItem="l8x-3a-CZr" firstAttribute="top" secondItem="eCB-Un-W2a" secondAttribute="bottom" constant="5" id="5Ax-V0-qXQ"/>

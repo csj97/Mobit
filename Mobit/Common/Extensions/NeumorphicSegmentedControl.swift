@@ -9,7 +9,8 @@ import UIKit
 import SnapKit
 
 class NeumorphicSegmentedControl: UIView {
-  
+  private var lightShadow: CALayer?
+
   // MARK: - Public API
   public var onSegmentChanged: ((Int) -> Void)?
   public var segments: [String] = [] {
@@ -40,23 +41,47 @@ class NeumorphicSegmentedControl: UIView {
   }
   
   private func setupBaseStyle() {
-	backgroundColor = UIColor.systemGray6
+//	backgroundColor = UIColor.systemGray6
+//	layer.cornerRadius = 18
+//	layer.shadowColor = UIColor.white.cgColor
+//	layer.shadowOffset = CGSize(width: -2, height: -2)
+//	layer.shadowOpacity = 1
+//	layer.shadowRadius = 2
+//	clipsToBounds = false
+//	
+//	// 그림자 대비용 inner shadow
+//	let innerShadow = CALayer()
+//	innerShadow.frame = bounds
+//	innerShadow.shadowColor = UIColor.black.cgColor
+//	innerShadow.shadowOffset = CGSize(width: 2, height: 2)
+//	innerShadow.shadowOpacity = 0.07
+//	innerShadow.shadowRadius = 2
+//	innerShadow.backgroundColor = UIColor.clear.cgColor
+//	layer.addSublayer(innerShadow)
+	
+	// 기본 스타일
+	backgroundColor = UIColor(red: 0.925, green: 0.941, blue: 0.953, alpha: 1.0) // #ecf0f3
 	layer.cornerRadius = 18
-	layer.shadowColor = UIColor.white.cgColor
-	layer.shadowOffset = CGSize(width: -2, height: -2)
-	layer.shadowOpacity = 1
-	layer.shadowRadius = 2
+	layer.masksToBounds = false
+	
+	// 그림자 1: 아래쪽 (어두운 음영)
+	layer.shadowColor = UIColor(red: 0.6, green: 0.6, blue: 0.7, alpha: 1.0).cgColor
+	layer.shadowOffset = CGSize(width: 6, height: 6)
+	layer.shadowOpacity = 0.7
+	layer.shadowRadius = 8
 	clipsToBounds = false
 	
-	// 그림자 대비용 inner shadow
-	let innerShadow = CALayer()
-	innerShadow.frame = bounds
-	innerShadow.shadowColor = UIColor.black.cgColor
-	innerShadow.shadowOffset = CGSize(width: 2, height: 2)
-	innerShadow.shadowOpacity = 0.07
-	innerShadow.shadowRadius = 2
-	innerShadow.backgroundColor = UIColor.clear.cgColor
-	layer.addSublayer(innerShadow)
+	// 그림자 2: 위쪽 (밝은 빛)
+	let lightShadow = CALayer()
+	lightShadow.frame = bounds
+	lightShadow.backgroundColor = backgroundColor?.cgColor
+	lightShadow.shadowColor = UIColor.white.cgColor
+	lightShadow.shadowOffset = CGSize(width: -6, height: -6)
+	lightShadow.shadowOpacity = 1.0
+	lightShadow.shadowRadius = 8
+	lightShadow.cornerRadius = 18
+	layer.insertSublayer(lightShadow, at: 0)
+	self.lightShadow = lightShadow
 	
 	stackView.axis = .horizontal
 	stackView.distribution = .fillEqually
@@ -141,6 +166,10 @@ class NeumorphicSegmentedControl: UIView {
 	
 	DispatchQueue.main.async {
 	  self.updateSelectedIndex(animated: false)
+	  if let shadowLayer = self.lightShadow {
+		shadowLayer.frame = self.bounds
+		shadowLayer.cornerRadius = self.layer.cornerRadius
+	  }
 	}
   }
 }
