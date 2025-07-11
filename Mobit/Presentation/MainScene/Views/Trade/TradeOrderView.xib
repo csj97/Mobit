@@ -25,35 +25,27 @@
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="e0J-eg-XXq">
                     <rect key="frame" x="150" y="59" width="243" height="759"/>
                     <subviews>
-                        <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="cRc-ra-S1y" customClass="MobitSegmentedControl" customModule="Mobit" customModuleProvider="target">
-                            <rect key="frame" x="0.0" y="0.0" width="243" height="41"/>
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="eCB-Un-W2a" customClass="NeumorphicSegmentedControl" customModule="Mobit" customModuleProvider="target">
+                            <rect key="frame" x="10" y="5" width="223" height="40"/>
+                            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                             <constraints>
-                                <constraint firstAttribute="height" constant="40" id="WPN-ac-CSW"/>
+                                <constraint firstAttribute="height" constant="40" id="Rq2-H5-nIP"/>
                             </constraints>
-                            <segments>
-                                <segment title="매수"/>
-                                <segment title="매도"/>
-                                <segment title="거래내역"/>
-                            </segments>
-                            <color key="selectedSegmentTintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                            <connections>
-                                <action selector="tapOnSegmentedControl:" destination="01s-3e-MCv" eventType="valueChanged" id="8oL-h8-VTm"/>
-                            </connections>
-                        </segmentedControl>
+                        </view>
                         <view contentMode="scaleToFill" placeholderIntrinsicWidth="243" placeholderIntrinsicHeight="719" translatesAutoresizingMaskIntoConstraints="NO" id="l8x-3a-CZr">
-                            <rect key="frame" x="0.0" y="40" width="243" height="719"/>
+                            <rect key="frame" x="0.0" y="50" width="243" height="709"/>
                             <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         </view>
                     </subviews>
                     <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     <constraints>
                         <constraint firstAttribute="trailing" secondItem="l8x-3a-CZr" secondAttribute="trailing" id="4fB-kA-iwj"/>
-                        <constraint firstAttribute="trailing" secondItem="cRc-ra-S1y" secondAttribute="trailing" id="5Vr-EV-DLX"/>
+                        <constraint firstItem="l8x-3a-CZr" firstAttribute="top" secondItem="eCB-Un-W2a" secondAttribute="bottom" constant="5" id="5Ax-V0-qXQ"/>
+                        <constraint firstAttribute="trailing" secondItem="eCB-Un-W2a" secondAttribute="trailing" constant="10" id="8RX-rA-K5y"/>
+                        <constraint firstItem="eCB-Un-W2a" firstAttribute="leading" secondItem="e0J-eg-XXq" secondAttribute="leading" constant="10" id="C8f-dy-QIv"/>
                         <constraint firstItem="l8x-3a-CZr" firstAttribute="leading" secondItem="e0J-eg-XXq" secondAttribute="leading" id="EDG-1r-vKz"/>
                         <constraint firstAttribute="bottom" secondItem="l8x-3a-CZr" secondAttribute="bottom" id="ETx-u8-uOZ"/>
-                        <constraint firstItem="cRc-ra-S1y" firstAttribute="top" secondItem="e0J-eg-XXq" secondAttribute="top" id="abA-yU-OLV"/>
-                        <constraint firstItem="l8x-3a-CZr" firstAttribute="top" secondItem="cRc-ra-S1y" secondAttribute="bottom" id="b8N-yr-dYH"/>
-                        <constraint firstItem="cRc-ra-S1y" firstAttribute="leading" secondItem="e0J-eg-XXq" secondAttribute="leading" id="uST-du-Ivi"/>
+                        <constraint firstItem="eCB-Un-W2a" firstAttribute="top" secondItem="e0J-eg-XXq" secondAttribute="top" constant="5" id="fsB-eL-dme"/>
                     </constraints>
                 </view>
             </subviews>
@@ -72,9 +64,9 @@
             <connections>
                 <outlet property="orderbookTableView" destination="UkH-LF-ZKU" id="hZL-2X-Hec"/>
                 <outlet property="segmentedContainerView" destination="l8x-3a-CZr" id="qWF-f0-iyo"/>
-                <outlet property="segmentedControl" destination="cRc-ra-S1y" id="usd-G7-zOy"/>
+                <outlet property="segmentedControl" destination="eCB-Un-W2a" id="Rfy-NG-Itt"/>
             </connections>
-            <point key="canvasLocation" x="912" y="-12"/>
+            <point key="canvasLocation" x="910.68702290076328" y="-12.67605633802817"/>
         </view>
     </objects>
     <resources>

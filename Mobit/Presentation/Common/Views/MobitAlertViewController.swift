@@ -27,12 +27,20 @@ class MobitAlertViewController: UIViewController {
   var alertType: AlertType
   var titleString: String
   var content: String
+  var titleAlignment: NSTextAlignment = .left
   
-  init(alertType: AlertType, title: String, content: String, callBack: ((Bool) -> ())?) {
+  init(
+	alertType: AlertType,
+	titleAlignment: NSTextAlignment = .left,
+	title: String,
+	content: String,
+	callBack: ((Bool) -> ())?
+  ) {
 	self.alertType = alertType
 	self.titleString = title
 	self.content = content
 	self.callBack = callBack
+	self.titleAlignment = titleAlignment
 
 	super.init(nibName: "MobitAlertViewController", bundle: nil)
 
@@ -55,6 +63,8 @@ class MobitAlertViewController: UIViewController {
 	callBack: ((Bool) -> ())?
   ) {
 	self.callBack = callBack
+	
+	self.titleLabel.textAlignment = titleAlignment
 	
 	if alertType == .onlyConfirm {
 	  self.cancelButton.isHidden = true
@@ -88,13 +98,14 @@ protocol MobitAlertDelegate {
 extension MobitAlertDelegate where Self: UIViewController {
   func show(
 	alertType: AlertType,
+	titleAlignment: NSTextAlignment = .left,
 	title: String? = nil,
 	content: String,
 	callBack: ((Bool) -> ())?
   ) {
 	
 	let mobitAlertViewController = MobitAlertViewController(
-	  alertType: alertType, title: title ?? "", content: content, callBack: callBack
+	  alertType: alertType, titleAlignment: titleAlignment, title: title ?? "", content: content, callBack: callBack
 	)
 	mobitAlertViewController.delegate = self
 	

@@ -304,7 +304,7 @@
                                         </button>
                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IJV-Qt-hcU">
                                             <rect key="frame" x="189" y="0.0" width="184" height="48"/>
-                                            <color key="backgroundColor" red="0.16610881420000001" green="0.3877072332" blue="0.80208965180000003" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                            <color key="backgroundColor" name="primary_blue"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                             <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                             <state key="normal" title="매도"/>
@@ -399,6 +399,9 @@
     <resources>
         <namedColor name="ask_light_blue">
             <color red="0.92941176470588238" green="0.95294117647058818" blue="0.98039215686274506" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+        </namedColor>
+        <namedColor name="primary_blue">
+            <color red="0.11372549019607843" green="0.47058823529411764" blue="0.94901960784313721" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>

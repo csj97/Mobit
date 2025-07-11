@@ -75,16 +75,18 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
    사용자는 이 앱에서 실제 금전적인 자산을 입금하거나 출금할 수 없으며,
    모든 거래 및 수익/손실은 가상의 수치일 뿐, 
    
-   **현실의 자산에 어떤 영향도 미치지 않습니다.
+   ⭐️ 현실의 자산에 어떤 영향도 미치지 않습니다.
    
    앱 내 정보 및 결과는 학습 또는 참고 목적으로 제공되며,
    실제 투자 판단의 근거로 삼을 수 없으며, 
    
-   **그로 인해 발생한 어떠한 손실에 대해서도 본 앱은 책임지지 않습니다.
+   ⭐️ 그로 인해 발생한 어떠한 손실에 대해서도 본 앱은 책임지지 않습니다.
    """
+	
 	self.show(
 	  alertType: .onlyConfirm,
-	  title: "* 사용자 안내사항 *",
+	  titleAlignment: .center,
+	  title: "🚨 사용자 안내사항 🚨",
 	  content: noticeContent,
 	  callBack: nil
 	)
@@ -98,7 +100,8 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
 	"""
 	self.show(
 	  alertType: .canCancel,
-	  title: "* 투자내역 초기화 안내 *",
+	  titleAlignment: .center,
+	  title: "🚨 투자내역 초기화 안내 🚨",
 	  content: noticeContent
 	) { isPositive in
 	  if isPositive {

@@ -13,8 +13,9 @@ import SkeletonView
 class TradeOrderView: UIView, ViewRule {
   
   @IBOutlet weak var orderbookTableView: UITableView!
-  @IBOutlet weak var segmentedControl: MobitSegmentedControl!
-  @IBOutlet weak var segmentedContainerView: UIView!
+//  @IBOutlet weak var segmentedControl: MobitSegmentedControl!
+    @IBOutlet weak var segmentedControl: NeumorphicSegmentedControl!
+    @IBOutlet weak var segmentedContainerView: UIView!
   
   var disposeBag = DisposeBag()
   var dataSource: UITableViewDiffableDataSource<TableViewSection, OrderUnit>?
@@ -64,10 +65,10 @@ class TradeOrderView: UIView, ViewRule {
   }
   
   func setUI() {
-	self.segmentedControl.setSegmentedControl(
-	  normalColor: .mobitColors(.lightGrayBG),
-	  selectedColor: .white
-	)
+//	self.segmentedControl.setSegmentedControl(
+//	  normalColor: .mobitColors(.lightGrayBG),
+//	  selectedColor: .white
+//	)
 	
 	guard let reactor = self.reactor else { return }
 	historyView = TradeHistoryView.instanceFromNib(reactor: reactor) { [weak self] in }
@@ -121,8 +122,35 @@ class TradeOrderView: UIView, ViewRule {
 	  make.bottom.equalToSuperview()
 	}
 	
-	self.segmentedControl.selectedSegmentIndex = 0
-	self.tapOnSegmentedControl(self.segmentedControl)
+	self.segmentedControl.segments = ["매수", "매도", "거래내역"]
+	self.segmentedControl.onSegmentChanged = { index in
+	  switch index {
+	  case 0:
+		self.bidView?.isHidden = false
+		self.askView?.isHidden = true
+		self.historyView?.isHidden = true
+		self.segmentedContainerView.bringSubviewToFront(self.bidView!)
+	  case 1:
+		self.bidView?.isHidden = true
+		self.askView?.isHidden = false
+		self.historyView?.isHidden = true
+		self.segmentedContainerView.bringSubviewToFront(self.askView!)
+	  case 2:
+		self.bidView?.isHidden = true
+		self.askView?.isHidden = true
+		self.historyView?.isHidden = false
+		self.segmentedContainerView.bringSubviewToFront(self.historyView!)
+		
+	  default:
+		break
+	  }
+
+	}
+	self.segmentedControl.selectedIndex = 0
+	self.segmentedControl.onSegmentChanged?(0)
+	
+//	self.segmentedControl.selectedSegmentIndex = 0
+//	self.tapOnSegmentedControl(self.segmentedControl)
   }
   
   func setData() {

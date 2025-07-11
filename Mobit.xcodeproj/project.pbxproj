@@ -112,6 +112,7 @@
 		C17DB9722DA5FAF000DA673A /* InvestmentTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17DB9702DA5FAF000DA673A /* InvestmentTableViewCell.swift */; };
 		C17DB9732DA5FAF000DA673A /* InvestmentTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = C17DB9712DA5FAF000DA673A /* InvestmentTableViewCell.xib */; };
 		C17DC0D22E2094DF00E35D3F /* FirebaseCMCResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17DC0D12E2094DF00E35D3F /* FirebaseCMCResponseDTO.swift */; };
+		C17DC0F42E20E6E700E35D3F /* NeumorphicSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17DC0F32E20E6E700E35D3F /* NeumorphicSegmentedControl.swift */; };
 		C17E08332D2A62BC0029A8D0 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C17E08322D2A62BC0029A8D0 /* Colors.xcassets */; };
 		C17E08352D2A64EE0029A8D0 /* ColorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */; };
 		C17E8E252E1F5EED0082E7DC /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = C17E8E242E1F5EED0082E7DC /* FirebaseDatabase */; };
@@ -266,6 +267,7 @@
 		C17DB9702DA5FAF000DA673A /* InvestmentTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestmentTableViewCell.swift; sourceTree = "<group>"; };
 		C17DB9712DA5FAF000DA673A /* InvestmentTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = InvestmentTableViewCell.xib; sourceTree = "<group>"; };
 		C17DC0D12E2094DF00E35D3F /* FirebaseCMCResponseDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseCMCResponseDTO.swift; sourceTree = "<group>"; };
+		C17DC0F32E20E6E700E35D3F /* NeumorphicSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeumorphicSegmentedControl.swift; sourceTree = "<group>"; };
 		C17E08322D2A62BC0029A8D0 /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
 		C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtension.swift; sourceTree = "<group>"; };
 		C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseCMCResponse.swift; sourceTree = "<group>"; };
@@ -445,8 +447,8 @@
 		3133E25C2C3F6979000D4B1A /* Common */ = {
 			isa = PBXGroup;
 			children = (
-				C154CA172D97D5F8006923BD /* Utils */,
 				31B742072D5A3BBB00706340 /* tradingview.html */,
+				C154CA172D97D5F8006923BD /* Utils */,
 				C18EED4D2D55A81A0038BBF7 /* Extensions */,
 				31B741EE2D53A37600706340 /* ViewRule.swift */,
 				311E33F92C46068C0054C6BC /* ErrorType.swift */,
@@ -767,6 +769,7 @@
 				C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */,
 				C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */,
 				C15DCD2A2DF2CAFD007544D8 /* ImageViewExtension.swift */,
+				C17DC0F32E20E6E700E35D3F /* NeumorphicSegmentedControl.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -1016,6 +1019,7 @@
 				311E33FA2C46068C0054C6BC /* ErrorType.swift in Sources */,
 				31E208042C4677CB000BFEBC /* AppTabBarCoordinator.swift in Sources */,
 				99C20A582C48D35C009276E7 /* DividerLineView.swift in Sources */,
+				C17DC0F42E20E6E700E35D3F /* NeumorphicSegmentedControl.swift in Sources */,
 				3133E2682C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift in Sources */,
 				3128610A2DFE7FFC00541A6A /* MobitTabBarViewController.swift in Sources */,
 				31F33FD32DDA1D4C003D533A /* MobitAlertViewController.swift in Sources */,
@@ -1236,7 +1240,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				NEW_SETTING = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.kando.Mobit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1275,7 +1279,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				NEW_SETTING = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.kando.Mobit;
 				PRODUCT_NAME = "$(TARGET_NAME)";

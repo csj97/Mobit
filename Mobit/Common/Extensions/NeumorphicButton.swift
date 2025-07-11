@@ -12,15 +12,15 @@ class NeumorphicButton: UIButton {
   
   override init(frame: CGRect) {
 	super.init(frame: frame)
-	setupNeumorphism()
+	setupNeumorphicStyle()
   }
   
   required init?(coder: NSCoder) {
 	super.init(coder: coder)
-	setupNeumorphism()
+	setupNeumorphicStyle()
   }
   
-  private func setupNeumorphism() {
+  private func setupNeumorphicStyle() {
 	// 기본 스타일
 	backgroundColor = UIColor(red: 0.925, green: 0.941, blue: 0.953, alpha: 1.0) // #ecf0f3
 	layer.cornerRadius = 16
@@ -49,5 +49,32 @@ class NeumorphicButton: UIButton {
 	super.layoutSubviews()
 	layer.sublayers?.first?.frame = bounds
 	layer.sublayers?.first?.cornerRadius = layer.cornerRadius
+  }
+  
+  // 눌렀을 때 오목한 효과
+  override var isHighlighted: Bool {
+	didSet {
+	  if isHighlighted {
+		animatePressedIn()
+	  } else {
+		animatePressedOut()
+	  }
+	}
+  }
+  
+  private func animatePressedIn() {
+	UIView.animate(withDuration: 0.1) {
+	  self.layer.shadowOffset = CGSize(width: 2, height: 2)
+	  self.layer.shadowOpacity = 0.2
+	  self.transform = CGAffineTransform(scaleX: 0.97, y: 0.97)
+	}
+  }
+  
+  private func animatePressedOut() {
+	UIView.animate(withDuration: 0.1) {
+	  self.layer.shadowOffset = CGSize(width: 5, height: 5)
+	  self.layer.shadowOpacity = 0.4
+	  self.transform = .identity
+	}
   }
 }
