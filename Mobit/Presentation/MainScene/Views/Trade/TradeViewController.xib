@@ -142,10 +142,10 @@
                     </constraints>
                 </view>
                 <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="FD0-zH-lWO" customClass="MobitSegmentedControl" customModule="Mobit" customModuleProvider="target">
-                    <rect key="frame" x="0.0" y="207.33333333333334" width="393" height="31"/>
+                    <rect key="frame" x="0.0" y="207.33333333333334" width="393" height="41"/>
                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     <constraints>
-                        <constraint firstAttribute="height" constant="30" id="xLC-B5-GxI"/>
+                        <constraint firstAttribute="height" constant="40" id="xLC-B5-GxI"/>
                     </constraints>
                     <segments>
                         <segment title="주문"/>
@@ -158,14 +158,14 @@
                     </connections>
                 </segmentedControl>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="HVG-Yp-SCj" userLabel="Divider View">
-                    <rect key="frame" x="0.0" y="237.33333333333334" width="393" height="1"/>
+                    <rect key="frame" x="0.0" y="247.33333333333334" width="393" height="1"/>
                     <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="1" id="jDs-YD-pHT"/>
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="om4-Hj-cJa" userLabel="Container View">
-                    <rect key="frame" x="0.0" y="238.33333333333331" width="393" height="613.66666666666674"/>
+                    <rect key="frame" x="0.0" y="248.33333333333331" width="393" height="603.66666666666674"/>
                     <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                 </view>
             </subviews>

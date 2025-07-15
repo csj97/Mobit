@@ -26,7 +26,7 @@ class CryptoDetailCoordinator: BaseCoordinator {
   }
   
   func start() {
-    let reactor = CryptoDetailReactor(
+    let reactor = TradeReactor(
       selectCrypto: self.selectCrypto,
 	  cmcInformation: self.cmcInformation,
       cryptoDetailUseCase: CryptoDetailUseCase(

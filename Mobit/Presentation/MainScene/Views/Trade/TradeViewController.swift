@@ -36,7 +36,7 @@ class TradeViewController: UIViewController, ViewRule {
   
   weak var coordinator: CryptoDetailCoordinator?
   weak var delegate: MainCoordinatorDelegate?
-  var reactor: CryptoDetailReactor
+  var reactor: TradeReactor
   var orderView: TradeOrderView? = nil
   var chartView: TradeChartView? = nil
   var informationView: TradeInformationView? = nil
@@ -47,7 +47,7 @@ class TradeViewController: UIViewController, ViewRule {
   var arrowImage: UIImage = UIImage()
   var arrowColor: UIColor = .clear
   
-  init(reactor: CryptoDetailReactor) {
+  init(reactor: TradeReactor) {
 	self.reactor = reactor
 	super.init(nibName: nil, bundle: nil)
   }
@@ -109,8 +109,8 @@ class TradeViewController: UIViewController, ViewRule {
 	self.segmentedContainerView.addSubview(informationView)
 	
 	self.segmentedControl.setSegmentedControl(
-	  normalColor: .mobitColors(.lightGrayBG),
-	  selectedColor: .white
+	  normalColor: .white,
+	  selectedColor: .mobitColors(.lightGrayBG)
 	)
 	
 	orderView.snp.makeConstraints { make in
@@ -205,14 +205,17 @@ class TradeViewController: UIViewController, ViewRule {
 	  orderView?.isHidden = false
 	  chartView?.isHidden = true
 	  informationView?.isHidden = true
+	  self.reactor.action.onNext(.setSelectedWholeTab(selectedWholeTab: .trade))
 	case 1:
 	  orderView?.isHidden = true
 	  chartView?.isHidden = false
 	  informationView?.isHidden = true
+	  self.reactor.action.onNext(.setSelectedWholeTab(selectedWholeTab: .chart))
 	case 2:
 	  orderView?.isHidden = true
 	  chartView?.isHidden = true
 	  informationView?.isHidden = false
+	  self.reactor.action.onNext(.setSelectedWholeTab(selectedWholeTab: .info))
 	  
 	default:
 	  break
@@ -264,12 +267,16 @@ class TradeViewController: UIViewController, ViewRule {
 	alert.addAction(okAction)
 	self.present(alert, animated: true, completion: nil)
   }
+  
+  func setSegmentedColor(color: UIColor) {
+	
+  }
 }
 
 // MARK: Reactor - View
 extension TradeViewController {
   
-  func bind(reactor: CryptoDetailReactor) {
+  func bind(reactor: TradeReactor) {
 	
 	reactor.state.map { $0.cryptoCellInfo }
 	  .distinctUntilChanged()
@@ -277,6 +284,18 @@ extension TradeViewController {
 	  .subscribe(onNext: { [weak self] cellInfo in
 		guard let self = self else { return }
 		self.setCrypto(crypto: cellInfo)
+	  })
+	  .disposed(by: self.disposeBag)
+	
+	reactor.state.map { $0.selectedWholeTab }
+	  .distinctUntilChanged()
+	  .observe(on: MainScheduler.instance)
+	  .subscribe (onNext: { [weak self] tab in
+		guard let self = self else { return }
+		self.segmentedControl.setSegmentedControl(
+		  normalColor: .white,
+		  selectedColor: .mobitColors(.lightGrayBG)
+		)
 	  })
 	  .disposed(by: self.disposeBag)
   }

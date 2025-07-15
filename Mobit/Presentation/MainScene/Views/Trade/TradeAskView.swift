@@ -19,7 +19,7 @@ class TradeAskView: UIView, ViewRule {
   @IBOutlet weak var totalPriceTextField: UITextField!
   @IBOutlet weak var inputAmountTFView: UIView!
   
-  weak var reactor: CryptoDetailReactor? = nil
+  weak var reactor: TradeReactor? = nil
   var callBack: ((OrderResult) -> ())? = nil
   var disposeBag = DisposeBag()
   var cryptoInfo: CryptoCellInfo? = nil {
@@ -39,7 +39,7 @@ class TradeAskView: UIView, ViewRule {
   }
   
   static func instanceFromNib(
-	reactor: CryptoDetailReactor,
+	reactor: TradeReactor,
 	disposeBag: DisposeBag,
 	callBack: @escaping (OrderResult) -> ()
   ) ->  TradeAskView {
@@ -218,7 +218,7 @@ class TradeAskView: UIView, ViewRule {
 	self.totalPriceTextField.text = nil
   }
   
-  func bind(reactor: CryptoDetailReactor) {
+  func bind(reactor: TradeReactor) {
 	reactor.state.map { $0.cryptoCellInfo }
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)

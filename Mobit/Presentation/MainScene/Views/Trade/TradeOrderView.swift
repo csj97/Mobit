@@ -21,7 +21,7 @@ class TradeOrderView: UIView, ViewRule {
   var dataSource: UITableViewDiffableDataSource<TableViewSection, OrderUnit>?
   var prevClosingPrice: Double? = nil
   var isFirstInput: Bool = false
-  var reactor: CryptoDetailReactor? = nil
+  var reactor: TradeReactor? = nil
   private let cellIndentifier = "OrderBookCell"
   var callback: ((OrderResult) -> ())? = nil
   
@@ -37,7 +37,7 @@ class TradeOrderView: UIView, ViewRule {
   }
   
   static func instanceFromNib(
-	reactor: CryptoDetailReactor,
+	reactor: TradeReactor,
 	callback: @escaping (OrderResult) -> ()
   ) -> TradeOrderView {
 	
@@ -275,7 +275,7 @@ class TradeOrderView: UIView, ViewRule {
 // MARK: Reactor - View
 extension TradeOrderView {
   
-  func bind(reactor: CryptoDetailReactor) {
+  func bind(reactor: TradeReactor) {
 	reactor.state.map { $0.obTicker }
 	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)
 	  .distinctUntilChanged()

@@ -14,7 +14,7 @@ class TradeHistoryView: UIView, ViewRule {
   @IBOutlet weak var noHistoryView: UIView!
   
   var disposeBag = DisposeBag()
-  var reactor: CryptoDetailReactor? = nil
+  var reactor: TradeReactor? = nil
   var transaction: [TransactionInfo]? = nil
   var callBack: (() -> ())? = nil
   
@@ -23,7 +23,7 @@ class TradeHistoryView: UIView, ViewRule {
   }
   
   static func instanceFromNib(
-	reactor: CryptoDetailReactor,
+	reactor: TradeReactor,
 	callBack: @escaping () -> ()
   ) -> TradeHistoryView {
 	
