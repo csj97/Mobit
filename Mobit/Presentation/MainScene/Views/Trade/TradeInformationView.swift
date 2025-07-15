@@ -11,7 +11,8 @@ import RxSwift
 
 class TradeInformationView: UIView, ViewRule {
   
-  @IBOutlet weak var cryptoImageView: UIImageView!
+    @IBOutlet weak var cryptoTagCollectionView: UICollectionView!
+    @IBOutlet weak var cryptoImageView: UIImageView!
   @IBOutlet weak var marketNameLabel: UILabel!
   @IBOutlet weak var basicInfoView: UIView!
   @IBOutlet weak var priceInfoView: UIView!
@@ -27,12 +28,12 @@ class TradeInformationView: UIView, ViewRule {
   @IBOutlet weak var lowest52WeekPriceLabel: UILabel!
   
   var symbol: String? = nil
-  var reactor: CryptoDetailReactor? = nil
+  var reactor: TradeReactor? = nil
   var disposeBag = DisposeBag()
-  private var cryptoQuotesInfo: CryptoQuoteResponse? = nil
+  private var cmcInformation: FirebaseCMCResponse? = nil
   
   static func instanceFromNib(
-	reactor: CryptoDetailReactor
+	reactor: TradeReactor
   ) -> TradeInformationView {
 	
 	let selfView = UINib(
@@ -64,6 +65,7 @@ class TradeInformationView: UIView, ViewRule {
   func setUI() {
 	guard let cmcInformation = self.reactor?.cmcInformation else { return }
 	
+	self.cmcInformation = cmcInformation
 	let iconURL = URL(string: cmcInformation.iconURL)!
 	self.cryptoImageView.load(from: iconURL)
 	self.marketNameLabel.text = cmcInformation.name
@@ -89,6 +91,14 @@ class TradeInformationView: UIView, ViewRule {
   }
   
   func setData() {
+	self.cryptoTagCollectionView.register(
+	  UINib(nibName: "TradeInfoCollectionViewCell", bundle: nil),
+	  forCellWithReuseIdentifier: "TradeInfoCollectionViewCell"
+	)
+
+	self.cryptoTagCollectionView.delegate = self
+	self.cryptoTagCollectionView.dataSource = self
+	
 	guard let reactor = self.reactor else { return }
 	self.bind(reactor: reactor)
   }
@@ -97,6 +107,31 @@ class TradeInformationView: UIView, ViewRule {
 // MARK: Reactor - View
 extension TradeInformationView {
   
-  func bind(reactor: CryptoDetailReactor) {
+  func bind(reactor: TradeReactor) {
+  }
+}
+
+
+extension TradeInformationView: UICollectionViewDelegate, UICollectionViewDataSource {
+  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+	return self.cmcInformation?.tags?.count ?? 0
+  }
+  
+  func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+	guard let cell = collectionView.dequeueReusableCell(
+	  withReuseIdentifier: "TradeInfoCollectionViewCell",
+	  for: indexPath
+	) as? TradeInfoCollectionViewCell else {
+	  return UICollectionViewCell()
+	}
+	
+	guard let tags = self.cmcInformation?.tags else {
+	  return UICollectionViewCell()
+	}
+	
+	let tag = tags[indexPath.row]
+	cell.configure(tag: tag)
+	
+	return cell
   }
 }

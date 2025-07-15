@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="TradeInfoCollectionViewCell" id="gTV-IL-0wX" customClass="TradeInfoCollectionViewCell" customModule="Mobit" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="203" height="60"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                <rect key="frame" x="0.0" y="0.0" width="203" height="60"/>
+                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="jgJ-AB-nTR">
+                        <rect key="frame" x="0.0" y="0.0" width="203" height="60"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="TAGS" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="azW-ty-C2o">
+                                <rect key="frame" x="10" y="10" width="183" height="40"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="azW-ty-C2o" firstAttribute="top" secondItem="jgJ-AB-nTR" secondAttribute="top" constant="10" id="2Mx-82-f2O"/>
+                            <constraint firstItem="azW-ty-C2o" firstAttribute="leading" secondItem="jgJ-AB-nTR" secondAttribute="leading" constant="10" id="SgT-v2-tiL"/>
+                            <constraint firstAttribute="trailing" secondItem="azW-ty-C2o" secondAttribute="trailing" constant="10" id="ZEH-ga-sPg"/>
+                            <constraint firstAttribute="bottom" secondItem="azW-ty-C2o" secondAttribute="bottom" constant="10" id="uya-Mf-2ZT"/>
+                        </constraints>
+                    </view>
+                </subviews>
+            </view>
+            <viewLayoutGuide key="safeArea" id="ZTg-uK-7eu"/>
+            <constraints>
+                <constraint firstItem="jgJ-AB-nTR" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" id="Mv7-tq-I3f"/>
+                <constraint firstAttribute="bottom" secondItem="jgJ-AB-nTR" secondAttribute="bottom" id="SVb-7s-9Eu"/>
+                <constraint firstAttribute="trailing" secondItem="jgJ-AB-nTR" secondAttribute="trailing" id="Tal-Kz-nB3"/>
+                <constraint firstItem="jgJ-AB-nTR" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" id="aP7-Zo-SZb"/>
+            </constraints>
+            <size key="customSize" width="203" height="102"/>
+            <connections>
+                <outlet property="cryptoTagLabel" destination="azW-ty-C2o" id="2X4-s9-azm"/>
+            </connections>
+            <point key="canvasLocation" x="208.3969465648855" y="11.267605633802818"/>
+        </collectionViewCell>
+    </objects>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>
