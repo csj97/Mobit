@@ -45,7 +45,7 @@
 		31B742102D5B939000706340 /* TradeHistoryTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B7420D2D5B939000706340 /* TradeHistoryTableViewCell.swift */; };
 		31B742122D5B967F00706340 /* TradeHistoryInformation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B742112D5B967F00706340 /* TradeHistoryInformation.swift */; };
 		31D644482C7257F900C7F96D /* CryptoDetailCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D644472C7257F900C7F96D /* CryptoDetailCoordinator.swift */; };
-		31D6444A2C72587B00C7F96D /* CryptoDetailReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D644492C72587B00C7F96D /* CryptoDetailReactor.swift */; };
+		31D6444A2C72587B00C7F96D /* TradeReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D644492C72587B00C7F96D /* TradeReactor.swift */; };
 		31D6444D2C72590C00C7F96D /* CryptoDetailUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D6444C2C72590C00C7F96D /* CryptoDetailUseCase.swift */; };
 		31D6444F2C72595000C7F96D /* CryptoDetailRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D6444E2C72595000C7F96D /* CryptoDetailRepository.swift */; };
 		31DC41E02CD9196400F0FFF2 /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = 31DC41DF2CD9196400F0FFF2 /* Starscream */; };
@@ -101,6 +101,10 @@
 		C15DCD2B2DF2CAFD007544D8 /* ImageViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C15DCD2A2DF2CAFD007544D8 /* ImageViewExtension.swift */; };
 		C17424C42D4600A8009861CC /* UserDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17424C32D4600A8009861CC /* UserDataManager.swift */; };
 		C17424C62D460478009861CC /* MobitUserInformation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17424C52D460478009861CC /* MobitUserInformation.swift */; };
+		C174D89E2E24BAD40015B6ED /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = C174D89D2E24BAD40015B6ED /* FirebaseCrashlytics */; };
+		C174D8A22E24DBEC0015B6ED /* TradeInfoCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = C174D8A12E24DBEC0015B6ED /* TradeInfoCollectionViewCell.xib */; };
+		C174D8A32E24DBEC0015B6ED /* TradeInfoCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C174D8A02E24DBEC0015B6ED /* TradeInfoCollectionViewCell.swift */; };
+		C174D8A52E24E8920015B6ED /* LabelExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C174D8A42E24E8920015B6ED /* LabelExtension.swift */; };
 		C17BA2B72DF5B576001AF72D /* MobitLaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2B62DF5B576001AF72D /* MobitLaunchScreen.xib */; };
 		C17BA2BB2DF5B6D9001AF72D /* esamanru-OTF-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2BA2DF5B6D9001AF72D /* esamanru-OTF-Medium.otf */; };
 		C17BA2BC2DF5B6D9001AF72D /* esamanru-OTF-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2B82DF5B6D9001AF72D /* esamanru-OTF-Bold.otf */; };
@@ -117,6 +121,7 @@
 		C17E08352D2A64EE0029A8D0 /* ColorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */; };
 		C17E8E252E1F5EED0082E7DC /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = C17E8E242E1F5EED0082E7DC /* FirebaseDatabase */; };
 		C17E8E272E1F60D50082E7DC /* FirebaseCMCResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */; };
+		C18E3FED2E25E8DC00B9E5D0 /* GradientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18E3FEC2E25E8DC00B9E5D0 /* GradientView.swift */; };
 		C18EED4F2D55A82B0038BBF7 /* MobitSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */; };
 		C18EED512D55FE3D0038BBF7 /* TradeBidView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED502D55FE3D0038BBF7 /* TradeBidView.swift */; };
 		C18EED532D55FE450038BBF7 /* TradeBidView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C18EED522D55FE450038BBF7 /* TradeBidView.xib */; };
@@ -214,7 +219,7 @@
 		31B7420E2D5B939000706340 /* TradeHistoryTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeHistoryTableViewCell.xib; sourceTree = "<group>"; };
 		31B742112D5B967F00706340 /* TradeHistoryInformation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeHistoryInformation.swift; sourceTree = "<group>"; };
 		31D644472C7257F900C7F96D /* CryptoDetailCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailCoordinator.swift; sourceTree = "<group>"; };
-		31D644492C72587B00C7F96D /* CryptoDetailReactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailReactor.swift; sourceTree = "<group>"; };
+		31D644492C72587B00C7F96D /* TradeReactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeReactor.swift; sourceTree = "<group>"; };
 		31D6444C2C72590C00C7F96D /* CryptoDetailUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailUseCase.swift; sourceTree = "<group>"; };
 		31D6444E2C72595000C7F96D /* CryptoDetailRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailRepository.swift; sourceTree = "<group>"; };
 		31DC41E12CD9197700F0FFF2 /* NewWebSocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewWebSocketManager.swift; sourceTree = "<group>"; };
@@ -256,6 +261,9 @@
 		C15DCD2A2DF2CAFD007544D8 /* ImageViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewExtension.swift; sourceTree = "<group>"; };
 		C17424C32D4600A8009861CC /* UserDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataManager.swift; sourceTree = "<group>"; };
 		C17424C52D460478009861CC /* MobitUserInformation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitUserInformation.swift; sourceTree = "<group>"; };
+		C174D8A02E24DBEC0015B6ED /* TradeInfoCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeInfoCollectionViewCell.swift; sourceTree = "<group>"; };
+		C174D8A12E24DBEC0015B6ED /* TradeInfoCollectionViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeInfoCollectionViewCell.xib; sourceTree = "<group>"; };
+		C174D8A42E24E8920015B6ED /* LabelExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelExtension.swift; sourceTree = "<group>"; };
 		C17BA2B62DF5B576001AF72D /* MobitLaunchScreen.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MobitLaunchScreen.xib; sourceTree = "<group>"; };
 		C17BA2B82DF5B6D9001AF72D /* esamanru-OTF-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "esamanru-OTF-Bold.otf"; sourceTree = "<group>"; };
 		C17BA2B92DF5B6D9001AF72D /* esamanru-OTF-Light.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "esamanru-OTF-Light.otf"; sourceTree = "<group>"; };
@@ -271,6 +279,7 @@
 		C17E08322D2A62BC0029A8D0 /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
 		C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtension.swift; sourceTree = "<group>"; };
 		C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseCMCResponse.swift; sourceTree = "<group>"; };
+		C18E3FEC2E25E8DC00B9E5D0 /* GradientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientView.swift; sourceTree = "<group>"; };
 		C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitSegmentedControl.swift; sourceTree = "<group>"; };
 		C18EED502D55FE3D0038BBF7 /* TradeBidView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeBidView.swift; sourceTree = "<group>"; };
 		C18EED522D55FE450038BBF7 /* TradeBidView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeBidView.xib; sourceTree = "<group>"; };
@@ -308,6 +317,7 @@
 				99C20A5B2C48DE40009276E7 /* SwiftJWT in Frameworks */,
 				99C20A862C4A27F1009276E7 /* ReactorKit in Frameworks */,
 				3133E2772C3F7192000D4B1A /* FlexLayout in Frameworks */,
+				C174D89E2E24BAD40015B6ED /* FirebaseCrashlytics in Frameworks */,
 				3128610D2DFF004100541A6A /* SkeletonView in Frameworks */,
 				31F33FCA2DDA1ACE003D533A /* GoogleMobileAds in Frameworks */,
 				31DC41E02CD9196400F0FFF2 /* Starscream in Frameworks */,
@@ -522,6 +532,8 @@
 				31B741F82D53AAAC00706340 /* TradeChartView.xib */,
 				C19ED6E82DE31648001ACCF9 /* TradeInformationView.swift */,
 				C19ED6EA2DE31653001ACCF9 /* TradeInformationView.xib */,
+				C174D8A02E24DBEC0015B6ED /* TradeInfoCollectionViewCell.swift */,
+				C174D8A12E24DBEC0015B6ED /* TradeInfoCollectionViewCell.xib */,
 				31B7420D2D5B939000706340 /* TradeHistoryTableViewCell.swift */,
 				31B7420E2D5B939000706340 /* TradeHistoryTableViewCell.xib */,
 				367271B02C7B305500F9D86E /* OrderBookCell.swift */,
@@ -699,7 +711,7 @@
 			isa = PBXGroup;
 			children = (
 				99C20A822C4A2787009276E7 /* MainReactor.swift */,
-				31D644492C72587B00C7F96D /* CryptoDetailReactor.swift */,
+				31D644492C72587B00C7F96D /* TradeReactor.swift */,
 			);
 			path = Reactors;
 			sourceTree = "<group>";
@@ -767,9 +779,11 @@
 				36E771922D75AF1E00739CDE /* MobitTextField.swift */,
 				31B742022D5A2CAC00706340 /* ViewExtension.swift */,
 				C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */,
+				C174D8A42E24E8920015B6ED /* LabelExtension.swift */,
 				C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */,
 				C15DCD2A2DF2CAFD007544D8 /* ImageViewExtension.swift */,
 				C17DC0F32E20E6E700E35D3F /* NeumorphicSegmentedControl.swift */,
+				C18E3FEC2E25E8DC00B9E5D0 /* GradientView.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -785,6 +799,7 @@
 				3133E2212C3E2355000D4B1A /* Frameworks */,
 				3133E2222C3E2355000D4B1A /* Resources */,
 				31E208302C46C7A6000BFEBC /* Embed Frameworks */,
+				C174D89F2E24BB060015B6ED /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -810,6 +825,7 @@
 				3128610C2DFF004100541A6A /* SkeletonView */,
 				5FA880EA2E1A598100F22F9C /* FirebaseAnalytics */,
 				C17E8E242E1F5EED0082E7DC /* FirebaseDatabase */,
+				C174D89D2E24BAD40015B6ED /* FirebaseCrashlytics */,
 			);
 			productName = Mobit;
 			productReference = 3133E2242C3E2355000D4B1A /* Mobit.app */;
@@ -927,6 +943,7 @@
 				31F33FD42DDA1D4C003D533A /* MobitAlertViewController.xib in Resources */,
 				C17BA2B72DF5B576001AF72D /* MobitLaunchScreen.xib in Resources */,
 				C17DB9732DA5FAF000DA673A /* InvestmentTableViewCell.xib in Resources */,
+				C174D8A22E24DBEC0015B6ED /* TradeInfoCollectionViewCell.xib in Resources */,
 				31B741F72D53AA7600706340 /* TradeOrderView.xib in Resources */,
 				31B741F92D53AAAC00706340 /* TradeChartView.xib in Resources */,
 				C17BA2BB2DF5B6D9001AF72D /* esamanru-OTF-Medium.otf in Resources */,
@@ -962,6 +979,32 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		C174D89F2E24BB060015B6ED /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist",
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
+				"$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}.debug.dylib",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"${CONFIGURATION}\" != \"Debug\" ]; then\n\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		3133E2202C3E2355000D4B1A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -975,6 +1018,7 @@
 				99C20A792C490B08009276E7 /* CryptoDTO.swift in Sources */,
 				367271B12C7B305500F9D86E /* OrderBookCell.swift in Sources */,
 				99C20A762C490A3C009276E7 /* MainRepository.swift in Sources */,
+				C18E3FED2E25E8DC00B9E5D0 /* GradientView.swift in Sources */,
 				998849E62C5379960073A27D /* CryptoTicker.swift in Sources */,
 				3133E2702C3F7098000D4B1A /* MainUseCase.swift in Sources */,
 				99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */,
@@ -991,6 +1035,7 @@
 				C17424C62D460478009861CC /* MobitUserInformation.swift in Sources */,
 				3133E2662C3F6A44000D4B1A /* BaseCoordinator.swift in Sources */,
 				C17424C42D4600A8009861CC /* UserDataManager.swift in Sources */,
+				C174D8A32E24DBEC0015B6ED /* TradeInfoCollectionViewCell.swift in Sources */,
 				31B741F52D53AA6C00706340 /* TradeOrderView.swift in Sources */,
 				C17E08352D2A64EE0029A8D0 /* ColorExtension.swift in Sources */,
 				31B742012D5A2AC400706340 /* ButtonExtension.swift in Sources */,
@@ -1029,7 +1074,7 @@
 				31B7420A2D5A46B300706340 /* LeakAvoider.swift in Sources */,
 				C17CF4A02DA4DD6500CDF76D /* InvestReactor.swift in Sources */,
 				99C20AB22C4F6A04009276E7 /* Environment.swift in Sources */,
-				31D6444A2C72587B00C7F96D /* CryptoDetailReactor.swift in Sources */,
+				31D6444A2C72587B00C7F96D /* TradeReactor.swift in Sources */,
 				C19ED6E52DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift in Sources */,
 				3133E22A2C3E2355000D4B1A /* SceneDelegate.swift in Sources */,
 				31D6444F2C72595000C7F96D /* CryptoDetailRepository.swift in Sources */,
@@ -1042,6 +1087,7 @@
 				311E33FC2C4608800054C6BC /* MainViewController.swift in Sources */,
 				99C20A832C4A2787009276E7 /* MainReactor.swift in Sources */,
 				367271AD2C7B2DA600F9D86E /* OrderBookResponse.swift in Sources */,
+				C174D8A52E24E8920015B6ED /* LabelExtension.swift in Sources */,
 				99C20A5D2C48DF11009276E7 /* CoinTableViewCell.swift in Sources */,
 				C1AEA1AF2D66E982001E2A9E /* CalculationUtil.swift in Sources */,
 				36E771932D75AF1E00739CDE /* MobitTextField.swift in Sources */,
@@ -1225,6 +1271,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = L8AX56G69N;
 				ENABLE_TESTING_SEARCH_PATHS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1604,6 +1651,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 99C20A842C4A27F1009276E7 /* XCRemoteSwiftPackageReference "ReactorKit" */;
 			productName = ReactorKit;
+		};
+		C174D89D2E24BAD40015B6ED /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FirebaseCrashlytics;
 		};
 		C17E8E242E1F5EED0082E7DC /* FirebaseDatabase */ = {
 			isa = XCSwiftPackageProductDependency;
