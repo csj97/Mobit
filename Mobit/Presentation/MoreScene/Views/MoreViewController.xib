@@ -42,6 +42,13 @@
                         <constraint firstItem="4EK-3N-Sdd" firstAttribute="centerX" secondItem="Of0-zp-4hq" secondAttribute="centerX" id="vJF-xQ-Esb"/>
                     </constraints>
                 </view>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hbU-B8-WIe" userLabel="Gradient View" customClass="GradientView" customModule="Mobit" customModuleProvider="target">
+                    <rect key="frame" x="0.0" y="112.66666666666667" width="393" height="20.000000000000014"/>
+                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="20" id="K29-4d-XGm"/>
+                    </constraints>
+                </view>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="앱 버전 v.1.2.0" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="sRb-9r-BlS">
                     <rect key="frame" x="20" y="701" width="353" height="17"/>
                     <fontDescription key="fontDescription" type="system" pointSize="14"/>
@@ -114,7 +121,10 @@
             <color key="backgroundColor" systemColor="systemBackgroundColor"/>
             <constraints>
                 <constraint firstItem="sRb-9r-BlS" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="20" id="6Hf-dg-A8V"/>
+                <constraint firstItem="hbU-B8-WIe" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="6vg-U0-ezC"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="bottom" secondItem="sRb-9r-BlS" secondAttribute="bottom" constant="100" id="858-WP-sch"/>
+                <constraint firstItem="QOk-eo-dGP" firstAttribute="top" secondItem="Of0-zp-4hq" secondAttribute="bottom" constant="32" id="AaN-op-6AO"/>
+                <constraint firstItem="hbU-B8-WIe" firstAttribute="top" secondItem="Of0-zp-4hq" secondAttribute="bottom" id="E1h-X2-fpq"/>
                 <constraint firstAttribute="bottom" secondItem="Gdd-ng-g83" secondAttribute="bottom" id="EB0-X9-Nac"/>
                 <constraint firstAttribute="trailing" secondItem="Gdd-ng-g83" secondAttribute="trailing" id="HBp-2D-uql"/>
                 <constraint firstItem="Gdd-ng-g83" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="HI2-39-dPc"/>
@@ -123,10 +133,10 @@
                 <constraint firstItem="Gdd-ng-g83" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="dNd-1I-EBL"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="QOk-eo-dGP" secondAttribute="trailing" constant="20" id="kcL-qI-4NW"/>
                 <constraint firstItem="4EK-3N-Sdd" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" constant="16" id="nUf-mt-cg5"/>
-                <constraint firstItem="QOk-eo-dGP" firstAttribute="top" secondItem="Of0-zp-4hq" secondAttribute="bottom" constant="32" id="oWn-Fe-K3z"/>
                 <constraint firstItem="Of0-zp-4hq" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="pPi-gU-n0L"/>
                 <constraint firstItem="QOk-eo-dGP" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="20" id="uxJ-bZ-zWN"/>
                 <constraint firstItem="Of0-zp-4hq" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="veW-Gd-hAQ"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="hbU-B8-WIe" secondAttribute="trailing" id="wmQ-Ey-6rl"/>
             </constraints>
             <point key="canvasLocation" x="132" y="-11"/>
         </view>

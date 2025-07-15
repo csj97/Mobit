@@ -76,4 +76,21 @@ extension UIView {
 	  self.layer.masksToBounds = newValue
 	}
   }
+  
+  func setGradientView() {
+	let gradientLayer = CAGradientLayer()
+	gradientLayer.frame = self.bounds
+	
+	// 색상 설정 (흰색 투명 -> 흰색 불투명)
+	gradientLayer.colors = [
+	  UIColor.white.withAlphaComponent(0.0).cgColor, // #ffffff, 0% 투명
+	  UIColor.white.withAlphaComponent(1.0).cgColor  // #ffffff, 100% 불투명
+	]
+	
+	// 방향 위에서 아래로
+	gradientLayer.startPoint = CGPoint(x: 0.5, y: 0.0)
+	gradientLayer.endPoint = CGPoint(x: 0.5, y: 1.0)
+	
+	self.layer.insertSublayer(gradientLayer, at: 0)
+  }
 }

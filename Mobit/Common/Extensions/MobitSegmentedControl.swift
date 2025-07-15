@@ -35,10 +35,12 @@ class MobitSegmentedControl: UISegmentedControl {
 	
 	// 텍스트 색상 설정
 	let normalAttributes: [NSAttributedString.Key: Any] = [
-	  .foregroundColor: UIColor.black
+	  .foregroundColor: UIColor.black,
+	  .font: UIFont.systemFont(ofSize: 14, weight: .regular)
 	]
 	let selectedAttributes: [NSAttributedString.Key: Any] = [
-	  .foregroundColor: UIColor.black
+	  .foregroundColor: UIColor.darkGray,
+	  .font: UIFont.systemFont(ofSize: 16, weight: .bold)
 	]
 	
 	setTitleTextAttributes(normalAttributes, for: .normal)
