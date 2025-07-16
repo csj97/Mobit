@@ -57,6 +57,7 @@ class InvestmentViewController: UIViewController, ViewRule {
   func setUI() {
 	self.transactionTableview.delegate = self
 	self.transactionTableview.dataSource = self
+	self.transactionTableview.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 80, right: 0)
 	
 	self.transactionTableview.register(
 	  UINib(nibName: "InvestmentTableViewCell", bundle: nil),

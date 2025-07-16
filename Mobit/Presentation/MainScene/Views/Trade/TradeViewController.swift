@@ -210,12 +210,14 @@ class TradeViewController: UIViewController, ViewRule {
   
   func setFavoriteButton() {
 	let emptyStar = UIImage(systemName: "star")
-	let fillStar = UIImage(systemName: "star.fill")?.withTintColor(.systemYellow)
+	let fillStar = UIImage(systemName: "star.fill")?.withRenderingMode(.alwaysTemplate)
+	
 	let isFavorite = UserDataManager.userFavoriteList.contains(
 	  where: { $0 == self.reactor.selectCrypto.market }
 	)
 	let starImage = isFavorite ? fillStar : emptyStar
 	
+	self.favoriteButton.tintColor = .systemYellow
 	self.favoriteButton.setImage(starImage, for: .normal)
   }
   

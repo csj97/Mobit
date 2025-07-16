@@ -194,6 +194,8 @@ class MainViewController: UIViewController {
 	let nib = UINib(nibName: "MainCryptoTableViewCell", bundle: nil)
 	self.tableView.register(nib, forCellReuseIdentifier: self.cellIndentifier)
 	self.tableView.keyboardDismissMode = .onDrag
+	
+	self.tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 80, right: 0)
     
     self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoCellInfo>(
       tableView: self.tableView
