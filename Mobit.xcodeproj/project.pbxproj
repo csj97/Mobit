@@ -135,6 +135,8 @@
 		C19ED6E92DE31648001ACCF9 /* TradeInformationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E82DE31648001ACCF9 /* TradeInformationView.swift */; };
 		C19ED6EB2DE31653001ACCF9 /* TradeInformationView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C19ED6EA2DE31653001ACCF9 /* TradeInformationView.xib */; };
 		C1AEA1AF2D66E982001E2A9E /* CalculationUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */; };
+		C1B8F3BC2E272E6800C46734 /* SelfSizingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */; };
+		C1B8F3BF2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */; };
 		C1DF71172E16407E002E89E1 /* MainCryptoTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1DF71152E16407E002E89E1 /* MainCryptoTableViewCell.swift */; };
 		C1DF71182E16407E002E89E1 /* MainCryptoTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1DF71162E16407E002E89E1 /* MainCryptoTableViewCell.xib */; };
 		C1E12D402D7C29AF003C76F0 /* DoubleExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */; };
@@ -293,6 +295,8 @@
 		C19ED6E82DE31648001ACCF9 /* TradeInformationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeInformationView.swift; sourceTree = "<group>"; };
 		C19ED6EA2DE31653001ACCF9 /* TradeInformationView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeInformationView.xib; sourceTree = "<group>"; };
 		C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationUtil.swift; sourceTree = "<group>"; };
+		C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfSizingViews.swift; sourceTree = "<group>"; };
+		C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitNeumorphicSegmentedControl.swift; sourceTree = "<group>"; };
 		C1DF71152E16407E002E89E1 /* MainCryptoTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCryptoTableViewCell.swift; sourceTree = "<group>"; };
 		C1DF71162E16407E002E89E1 /* MainCryptoTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainCryptoTableViewCell.xib; sourceTree = "<group>"; };
 		C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoubleExtension.swift; sourceTree = "<group>"; };
@@ -458,6 +462,7 @@
 			isa = PBXGroup;
 			children = (
 				31B742072D5A3BBB00706340 /* tradingview.html */,
+				C1B8F3BD2E27615500C46734 /* CustomViews */,
 				C154CA172D97D5F8006923BD /* Utils */,
 				C18EED4D2D55A81A0038BBF7 /* Extensions */,
 				31B741EE2D53A37600706340 /* ViewRule.swift */,
@@ -747,6 +752,7 @@
 			children = (
 				C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */,
 				C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */,
+				C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -773,19 +779,27 @@
 			isa = PBXGroup;
 			children = (
 				31B742002D5A2ABD00706340 /* ButtonExtension.swift */,
-				310865052E1EC3F40089D67A /* NeumorphicButton.swift */,
 				C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */,
-				C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */,
-				36E771922D75AF1E00739CDE /* MobitTextField.swift */,
 				31B742022D5A2CAC00706340 /* ViewExtension.swift */,
 				C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */,
 				C174D8A42E24E8920015B6ED /* LabelExtension.swift */,
 				C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */,
 				C15DCD2A2DF2CAFD007544D8 /* ImageViewExtension.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		C1B8F3BD2E27615500C46734 /* CustomViews */ = {
+			isa = PBXGroup;
+			children = (
+				310865052E1EC3F40089D67A /* NeumorphicButton.swift */,
+				C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */,
+				36E771922D75AF1E00739CDE /* MobitTextField.swift */,
+				C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */,
 				C17DC0F32E20E6E700E35D3F /* NeumorphicSegmentedControl.swift */,
 				C18E3FEC2E25E8DC00B9E5D0 /* GradientView.swift */,
 			);
-			path = Extensions;
+			path = CustomViews;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1034,6 +1048,7 @@
 				31B742102D5B939000706340 /* TradeHistoryTableViewCell.swift in Sources */,
 				C17424C62D460478009861CC /* MobitUserInformation.swift in Sources */,
 				3133E2662C3F6A44000D4B1A /* BaseCoordinator.swift in Sources */,
+				C1B8F3BC2E272E6800C46734 /* SelfSizingViews.swift in Sources */,
 				C17424C42D4600A8009861CC /* UserDataManager.swift in Sources */,
 				C174D8A32E24DBEC0015B6ED /* TradeInfoCollectionViewCell.swift in Sources */,
 				31B741F52D53AA6C00706340 /* TradeOrderView.swift in Sources */,
@@ -1076,6 +1091,7 @@
 				99C20AB22C4F6A04009276E7 /* Environment.swift in Sources */,
 				31D6444A2C72587B00C7F96D /* TradeReactor.swift in Sources */,
 				C19ED6E52DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift in Sources */,
+				C1B8F3BF2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift in Sources */,
 				3133E22A2C3E2355000D4B1A /* SceneDelegate.swift in Sources */,
 				31D6444F2C72595000C7F96D /* CryptoDetailRepository.swift in Sources */,
 				C17BA2BF2DF5B8FB001AF72D /* MobitLaunchScreen.swift in Sources */,

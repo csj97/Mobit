@@ -17,7 +17,7 @@ class TradeInfoCollectionViewCell: UICollectionViewCell {
   }
   
   func configure(tag: String) {
-	self.layer.cornerRadius = 18
+	self.layer.cornerRadius = 16
 	self.layer.borderWidth = 1
 	self.layer.borderColor = UIColor.lightGray.cgColor
 	self.layer.masksToBounds = true

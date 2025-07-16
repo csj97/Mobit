@@ -11,8 +11,8 @@ import RxSwift
 
 class TradeInformationView: UIView, ViewRule {
   
-    @IBOutlet weak var cryptoTagCollectionView: UICollectionView!
-    @IBOutlet weak var cryptoImageView: UIImageView!
+  @IBOutlet weak var cryptoTagCollectionView: SelfSizingCollectionView!
+  @IBOutlet weak var cryptoImageView: UIImageView!
   @IBOutlet weak var marketNameLabel: UILabel!
   @IBOutlet weak var basicInfoView: UIView!
   @IBOutlet weak var priceInfoView: UIView!
@@ -51,6 +51,11 @@ class TradeInformationView: UIView, ViewRule {
 	selfView.setUI()
 	selfView.setData()
 	selfView.configure()
+	
+	DispatchQueue.main.async {
+	  selfView.setNeedsLayout()
+	  selfView.layoutIfNeeded()
+	}
 	
 	return selfView
   }
@@ -131,6 +136,7 @@ extension TradeInformationView: UICollectionViewDelegate, UICollectionViewDataSo
 	
 	let tag = tags[indexPath.row]
 	cell.configure(tag: tag)
+	cell.layoutIfNeeded()
 	
 	return cell
   }

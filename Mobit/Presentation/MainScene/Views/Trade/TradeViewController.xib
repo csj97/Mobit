@@ -17,8 +17,8 @@
                 <outlet property="cryptoPrice" destination="YAR-Rz-3PG" id="nZm-Ew-rxb"/>
                 <outlet property="cryptoUpDownArrowImageView" destination="BzX-h7-aIN" id="zWc-MI-LFQ"/>
                 <outlet property="favoriteButton" destination="EI6-Qj-2rT" id="MdS-sQ-AI4"/>
+                <outlet property="mobitSegmentedControl" destination="ZMF-zH-Gij" id="PIY-5J-K2v"/>
                 <outlet property="segmentedContainerView" destination="om4-Hj-cJa" id="7MX-53-aZo"/>
-                <outlet property="segmentedControl" destination="FD0-zH-lWO" id="YeN-kZ-msO"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
         </placeholder>
@@ -141,22 +141,13 @@
                         <constraint firstAttribute="bottom" secondItem="wDR-2Q-tFi" secondAttribute="bottom" id="yjx-4X-8Og"/>
                     </constraints>
                 </view>
-                <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="FD0-zH-lWO" customClass="MobitSegmentedControl" customModule="Mobit" customModuleProvider="target">
-                    <rect key="frame" x="0.0" y="207.33333333333334" width="393" height="41"/>
-                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZMF-zH-Gij" customClass="MobitNeumorphicSegmentedControl" customModule="Mobit" customModuleProvider="target">
+                    <rect key="frame" x="0.0" y="207.33333333333334" width="393" height="40"/>
+                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     <constraints>
-                        <constraint firstAttribute="height" constant="40" id="xLC-B5-GxI"/>
+                        <constraint firstAttribute="height" constant="40" id="FdO-4d-mrW"/>
                     </constraints>
-                    <segments>
-                        <segment title="주문"/>
-                        <segment title="차트"/>
-                        <segment title="정보"/>
-                    </segments>
-                    <color key="selectedSegmentTintColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                    <connections>
-                        <action selector="tapOnSegmentedControl:" destination="-1" eventType="valueChanged" id="8Nm-MB-fMf"/>
-                    </connections>
-                </segmentedControl>
+                </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="HVG-Yp-SCj" userLabel="Divider View">
                     <rect key="frame" x="0.0" y="247.33333333333334" width="393" height="1"/>
                     <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -175,22 +166,22 @@
                 <constraint firstItem="xWf-v8-Qze" firstAttribute="top" secondItem="9Pa-No-d3Z" secondAttribute="bottom" id="2Cc-RB-b1W"/>
                 <constraint firstItem="om4-Hj-cJa" firstAttribute="top" secondItem="HVG-Yp-SCj" secondAttribute="bottom" id="2GC-4f-mpa"/>
                 <constraint firstItem="VqE-1C-Oab" firstAttribute="trailing" secondItem="fnl-2z-Ty3" secondAttribute="trailing" id="3eh-gO-iHB"/>
+                <constraint firstItem="ZMF-zH-Gij" firstAttribute="top" secondItem="VqE-1C-Oab" secondAttribute="bottom" constant="15" id="5nD-Hu-ugt"/>
                 <constraint firstItem="om4-Hj-cJa" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="EWk-EQ-4y5"/>
+                <constraint firstItem="HVG-Yp-SCj" firstAttribute="top" secondItem="ZMF-zH-Gij" secondAttribute="bottom" id="Joa-9A-Jyn"/>
                 <constraint firstItem="9Pa-No-d3Z" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="Jrh-bm-poR"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="xWf-v8-Qze" secondAttribute="trailing" id="Kxb-jG-vVd"/>
                 <constraint firstAttribute="trailing" secondItem="9Pa-No-d3Z" secondAttribute="trailing" id="LbT-Ho-M5d"/>
-                <constraint firstItem="FD0-zH-lWO" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="Lyz-j3-Lza"/>
+                <constraint firstItem="ZMF-zH-Gij" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="O2K-P7-Uau"/>
                 <constraint firstAttribute="bottom" secondItem="om4-Hj-cJa" secondAttribute="bottom" id="Tkf-d3-Ic4"/>
                 <constraint firstItem="9Pa-No-d3Z" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="Wmr-Mk-Irx"/>
                 <constraint firstItem="xWf-v8-Qze" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" id="XCZ-Oj-QT9"/>
-                <constraint firstItem="FD0-zH-lWO" firstAttribute="top" secondItem="VqE-1C-Oab" secondAttribute="bottom" constant="15" id="d8q-Ku-B2v"/>
                 <constraint firstItem="xWf-v8-Qze" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="dGF-ns-als"/>
+                <constraint firstItem="ZMF-zH-Gij" firstAttribute="trailing" secondItem="fnl-2z-Ty3" secondAttribute="trailing" id="fON-go-rfg"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="HVG-Yp-SCj" secondAttribute="trailing" id="hxA-Z9-pXt"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="om4-Hj-cJa" secondAttribute="trailing" id="jCv-Y8-Emw"/>
                 <constraint firstItem="HVG-Yp-SCj" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="mht-c9-dxf"/>
                 <constraint firstItem="VqE-1C-Oab" firstAttribute="top" secondItem="xWf-v8-Qze" secondAttribute="bottom" id="qHP-TY-YI0"/>
-                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="FD0-zH-lWO" secondAttribute="trailing" id="s1P-44-9hG"/>
-                <constraint firstItem="HVG-Yp-SCj" firstAttribute="top" secondItem="FD0-zH-lWO" secondAttribute="bottom" id="tpV-mq-mE3"/>
                 <constraint firstItem="VqE-1C-Oab" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="vGE-fH-1e9"/>
             </constraints>
             <point key="canvasLocation" x="130.53435114503816" y="-11.267605633802818"/>

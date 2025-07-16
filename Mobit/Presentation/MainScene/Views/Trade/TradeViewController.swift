@@ -31,7 +31,7 @@ class TradeViewController: UIViewController, ViewRule {
   @IBOutlet weak var cryptoChangedPrice: UILabel!
   @IBOutlet weak var cryptoUpDownArrowImageView: UIImageView!
   @IBOutlet weak var favoriteButton: UIButton!
-  @IBOutlet weak var segmentedControl: MobitSegmentedControl!
+  @IBOutlet weak var mobitSegmentedControl: MobitNeumorphicSegmentedControl!
   @IBOutlet weak var segmentedContainerView: UIView!
   
   weak var coordinator: CryptoDetailCoordinator?
@@ -108,11 +108,6 @@ class TradeViewController: UIViewController, ViewRule {
 	self.segmentedContainerView.addSubview(chartView)
 	self.segmentedContainerView.addSubview(informationView)
 	
-	self.segmentedControl.setSegmentedControl(
-	  normalColor: .white,
-	  selectedColor: .mobitColors(.lightGrayBG)
-	)
-	
 	orderView.snp.makeConstraints { make in
 	  make.edges.equalToSuperview()
 	}
@@ -123,8 +118,33 @@ class TradeViewController: UIViewController, ViewRule {
 	  make.edges.equalToSuperview()
 	}
 	
-	self.segmentedControl.selectedSegmentIndex = 0
-	self.tapOnSegmentedControl(self.segmentedControl)
+	self.mobitSegmentedControl.segments = ["주문", "차트", "정보"]
+	self.mobitSegmentedControl.onSegmentChanged = { [weak self] index in
+	  guard let self = self else { return }
+	  switch index {
+	  case 0:
+		orderView.isHidden = false
+		chartView.isHidden = true
+		informationView.isHidden = true
+		self.reactor.action.onNext(.setSelectedWholeTab(selectedWholeTab: .trade))
+	  case 1:
+		orderView.isHidden = true
+		chartView.isHidden = false
+		informationView.isHidden = true
+		self.reactor.action.onNext(.setSelectedWholeTab(selectedWholeTab: .chart))
+	  case 2:
+		orderView.isHidden = true
+		chartView.isHidden = true
+		informationView.isHidden = false
+		self.reactor.action.onNext(.setSelectedWholeTab(selectedWholeTab: .info))
+		
+	  default:
+		break
+	  }
+	}
+	
+	self.mobitSegmentedControl.selectedIndex = 0
+	self.mobitSegmentedControl.onSegmentChanged?(self.mobitSegmentedControl.selectedIndex)
   }
   
   func setCrypto(crypto: CryptoCellInfo? = nil) {
@@ -199,29 +219,6 @@ class TradeViewController: UIViewController, ViewRule {
 	self.favoriteButton.setImage(starImage, for: .normal)
   }
   
-  @IBAction func tapOnSegmentedControl(_ sender: UISegmentedControl) {
-	switch sender.selectedSegmentIndex {
-	case 0:
-	  orderView?.isHidden = false
-	  chartView?.isHidden = true
-	  informationView?.isHidden = true
-	  self.reactor.action.onNext(.setSelectedWholeTab(selectedWholeTab: .trade))
-	case 1:
-	  orderView?.isHidden = true
-	  chartView?.isHidden = false
-	  informationView?.isHidden = true
-	  self.reactor.action.onNext(.setSelectedWholeTab(selectedWholeTab: .chart))
-	case 2:
-	  orderView?.isHidden = true
-	  chartView?.isHidden = true
-	  informationView?.isHidden = false
-	  self.reactor.action.onNext(.setSelectedWholeTab(selectedWholeTab: .info))
-	  
-	default:
-	  break
-	}
-  }
-  
   @IBAction func tapOnFavoriteButton(_ sender: UIButton) {
 	let isFavorite = UserDataManager.userFavoriteList.contains(
 	  where: { $0 == self.reactor.selectCrypto.market }
@@ -292,10 +289,6 @@ extension TradeViewController {
 	  .observe(on: MainScheduler.instance)
 	  .subscribe (onNext: { [weak self] tab in
 		guard let self = self else { return }
-		self.segmentedControl.setSegmentedControl(
-		  normalColor: .white,
-		  selectedColor: .mobitColors(.lightGrayBG)
-		)
 	  })
 	  .disposed(by: self.disposeBag)
   }
