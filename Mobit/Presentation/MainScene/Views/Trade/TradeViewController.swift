@@ -123,16 +123,19 @@ class TradeViewController: UIViewController, ViewRule {
 	  guard let self = self else { return }
 	  switch index {
 	  case 0:
+		MobitAnalyticsUtil.sendScreen(event: .trade_order)
 		orderView.isHidden = false
 		chartView.isHidden = true
 		informationView.isHidden = true
 		self.reactor.action.onNext(.setSelectedWholeTab(selectedWholeTab: .trade))
 	  case 1:
+		MobitAnalyticsUtil.sendScreen(event: .trade_chart)
 		orderView.isHidden = true
 		chartView.isHidden = false
 		informationView.isHidden = true
 		self.reactor.action.onNext(.setSelectedWholeTab(selectedWholeTab: .chart))
 	  case 2:
+		MobitAnalyticsUtil.sendScreen(event: .trade_info)
 		orderView.isHidden = true
 		chartView.isHidden = true
 		informationView.isHidden = false

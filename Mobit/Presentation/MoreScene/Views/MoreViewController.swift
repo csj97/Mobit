@@ -55,6 +55,9 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
   }
   
   @IBAction func tapOnChargeMoney(_ sender: NeumorphicButton) {
+	
+	MobitAnalyticsUtil.sendScreen(event: .more_charge)
+	
 	self.show(
 	  alertType: .canCancel,
 	  title: "안내",
@@ -83,6 +86,8 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
    ⭐️ 그로 인해 발생한 어떠한 손실에 대해서도 본 앱은 책임지지 않습니다.
    """
 	
+	MobitAnalyticsUtil.sendScreen(event: .more_notice)
+	
 	self.show(
 	  alertType: .onlyConfirm,
 	  titleAlignment: .center,
@@ -98,6 +103,9 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
 	투자하신 거래 내역이 모두 초기화되며,
 	보유 금액도 0원이 됩니다.
 	"""
+	
+	MobitAnalyticsUtil.sendScreen(event: . more_init_data)
+	
 	self.show(
 	  alertType: .canCancel,
 	  titleAlignment: .center,

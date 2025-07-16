@@ -90,6 +90,13 @@ class TradeBidView: UIView, ViewRule {
 	self.totalPriceTextField.text = String(totalPrice)
   }
   
+  /// 초기화 버튼
+  @IBAction func tapOnInitButton(_ sender: UIButton) {
+	self.inputAmount = 0
+	self.inputTradeAmount.text = ""
+	self.totalPriceTextField.text = ""
+  }
+  
   @IBAction func tapOnBidButton(_ sender: UIButton) {
 	guard let marketName = self.cryptoInfo?.market,
 		  let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
@@ -340,12 +347,12 @@ class TradeBidView: UIView, ViewRule {
 extension TradeBidView: UITextFieldDelegate {
   
   enum InputType: String {
-	  case amount, totalPrice
+	case amount, totalPrice
   }
-
+  
   func inputType(for textField: UITextField) -> InputType? {
-	  guard let id = textField.accessibilityIdentifier else { return nil }
-	  return InputType(rawValue: id)
+	guard let id = textField.accessibilityIdentifier else { return nil }
+	return InputType(rawValue: id)
   }
   
   /// 텍스트 필드에 텍스트가 변경될 때, 호출

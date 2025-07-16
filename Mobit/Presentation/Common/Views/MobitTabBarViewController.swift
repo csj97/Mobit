@@ -56,6 +56,17 @@ class MobitTabBarViewController: UIViewController {
   private func switchToTab(index: Int) {
 	let newVC = viewControllers[index]
 	
+	if index == 0 {
+	  // 거래소
+	  MobitAnalyticsUtil.sendScreen(event: .exchange_tab)
+	} else if index == 1 {
+	  // 투자내역
+	  MobitAnalyticsUtil.sendScreen(event: .investment_tab)
+	} else if index == 2 {
+	  // 더보기
+	  MobitAnalyticsUtil.sendScreen(event: .more_tab)
+	}
+	
 	if currentViewController != nil {
 	  currentViewController?.willMove(toParent: nil)
 	  currentViewController?.view.removeFromSuperview()
@@ -69,7 +80,6 @@ class MobitTabBarViewController: UIViewController {
 	
 	newVC.view.snp.makeConstraints { make in
 	  make.top.bottom.leading.trailing.equalToSuperview()
-//	  make.bottom.equalTo(mobitTabBar.snp.top)
 	}
 	
 	newVC.didMove(toParent: self)

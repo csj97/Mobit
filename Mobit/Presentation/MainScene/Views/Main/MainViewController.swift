@@ -553,6 +553,7 @@ extension MainViewController: UITableViewDelegate {
 	  where: { $0.symbol == symbol }
 	) else { return }
 	
+	MobitAnalyticsUtil.sendScreen(event: .trade_screen)
     self.coordinator?.pushCryptoDetailVC(
       selectCrypto: cryptoCellInfo[indexPath.row],
 	  cmcInformation: cmcInformation

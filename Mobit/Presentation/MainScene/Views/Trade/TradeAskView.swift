@@ -120,6 +120,13 @@ class TradeAskView: UIView, ViewRule {
 	self.totalPriceTextField.text = String(floor(krwAvailablePrice)).addComma()
   }
   
+  /// 초기화 버튼
+  @IBAction func tapOnInitButton(_ sender: UIButton) {
+	self.inputAmount = 0
+	self.inputTradeAmount.text = ""
+	self.totalPriceTextField.text = ""
+  }
+  
   @IBAction func tapOnAskButton(_ sender: UIButton) {
 	self.endEditing(true)
 	
