@@ -67,8 +67,8 @@
 		36E7718F2D7595A700739CDE /* CallbackResultEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E7718E2D7595A700739CDE /* CallbackResultEnums.swift */; };
 		36E771932D75AF1E00739CDE /* MobitTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E771922D75AF1E00739CDE /* MobitTextField.swift */; };
 		5F657F792E06B0E80065A029 /* MobitAPIKeys.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 5F657F782E06B0E80065A029 /* MobitAPIKeys.xcconfig */; };
-		5FA880E32E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA880E12E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.swift */; };
-		5FA880E42E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5FA880E22E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.xib */; };
+		5FA880E32E1A3D0B00F22F9C /* NoticeForceUpdateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA880E12E1A3D0B00F22F9C /* NoticeForceUpdateViewController.swift */; };
+		5FA880E42E1A3D0B00F22F9C /* NoticeForceUpdateViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5FA880E22E1A3D0B00F22F9C /* NoticeForceUpdateViewController.xib */; };
 		5FA880E62E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA880E52E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift */; };
 		5FA880E82E1A58E700F22F9C /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5FA880E72E1A58E700F22F9C /* GoogleService-Info.plist */; };
 		5FA880EB2E1A598100F22F9C /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5FA880EA2E1A598100F22F9C /* FirebaseAnalytics */; };
@@ -138,6 +138,10 @@
 		C1B8F3BC2E272E6800C46734 /* SelfSizingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */; };
 		C1B8F3BF2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */; };
 		C1B8F3C12E2783EA00C46734 /* MobitAnalyticsUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */; };
+		C1CD3A5F2E28C3090049699B /* mobitCommunity.html in Resources */ = {isa = PBXBuildFile; fileRef = C1CD3A5E2E28C3090049699B /* mobitCommunity.html */; };
+		C1CD3A622E28C3CD0049699B /* MobitCommunityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CD3A602E28C3CD0049699B /* MobitCommunityViewController.swift */; };
+		C1CD3A632E28C3CD0049699B /* MobitCommunityViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1CD3A612E28C3CD0049699B /* MobitCommunityViewController.xib */; };
+		C1CD3A652E28C8CE0049699B /* MobitCommunityCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CD3A642E28C8CE0049699B /* MobitCommunityCoordinator.swift */; };
 		C1DF71172E16407E002E89E1 /* MainCryptoTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1DF71152E16407E002E89E1 /* MainCryptoTableViewCell.swift */; };
 		C1DF71182E16407E002E89E1 /* MainCryptoTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1DF71162E16407E002E89E1 /* MainCryptoTableViewCell.xib */; };
 		C1E12D402D7C29AF003C76F0 /* DoubleExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */; };
@@ -242,8 +246,8 @@
 		36E7718E2D7595A700739CDE /* CallbackResultEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallbackResultEnums.swift; sourceTree = "<group>"; };
 		36E771922D75AF1E00739CDE /* MobitTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitTextField.swift; sourceTree = "<group>"; };
 		5F657F782E06B0E80065A029 /* MobitAPIKeys.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MobitAPIKeys.xcconfig; sourceTree = "<group>"; };
-		5FA880E12E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoticeForceUpdateViewControlelrViewController.swift; sourceTree = "<group>"; };
-		5FA880E22E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = NoticeForceUpdateViewControlelrViewController.xib; sourceTree = "<group>"; };
+		5FA880E12E1A3D0B00F22F9C /* NoticeForceUpdateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoticeForceUpdateViewController.swift; sourceTree = "<group>"; };
+		5FA880E22E1A3D0B00F22F9C /* NoticeForceUpdateViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = NoticeForceUpdateViewController.xib; sourceTree = "<group>"; };
 		5FA880E52E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoticeAppUpdateCoordinator.swift; sourceTree = "<group>"; };
 		5FA880E72E1A58E700F22F9C /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		998849E12C524AAA0073A27D /* CryptoCellInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoCellInfo.swift; sourceTree = "<group>"; };
@@ -299,6 +303,10 @@
 		C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfSizingViews.swift; sourceTree = "<group>"; };
 		C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitNeumorphicSegmentedControl.swift; sourceTree = "<group>"; };
 		C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitAnalyticsUtil.swift; sourceTree = "<group>"; };
+		C1CD3A5E2E28C3090049699B /* mobitCommunity.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = mobitCommunity.html; sourceTree = "<group>"; };
+		C1CD3A602E28C3CD0049699B /* MobitCommunityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitCommunityViewController.swift; sourceTree = "<group>"; };
+		C1CD3A612E28C3CD0049699B /* MobitCommunityViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MobitCommunityViewController.xib; sourceTree = "<group>"; };
+		C1CD3A642E28C8CE0049699B /* MobitCommunityCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitCommunityCoordinator.swift; sourceTree = "<group>"; };
 		C1DF71152E16407E002E89E1 /* MainCryptoTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCryptoTableViewCell.swift; sourceTree = "<group>"; };
 		C1DF71162E16407E002E89E1 /* MainCryptoTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainCryptoTableViewCell.xib; sourceTree = "<group>"; };
 		C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoubleExtension.swift; sourceTree = "<group>"; };
@@ -463,7 +471,7 @@
 		3133E25C2C3F6979000D4B1A /* Common */ = {
 			isa = PBXGroup;
 			children = (
-				31B742072D5A3BBB00706340 /* tradingview.html */,
+				C1CD3A5D2E28C2D10049699B /* HTML */,
 				C1B8F3BD2E27615500C46734 /* CustomViews */,
 				C154CA172D97D5F8006923BD /* Utils */,
 				C18EED4D2D55A81A0038BBF7 /* Extensions */,
@@ -621,6 +629,8 @@
 			children = (
 				31F33FCD2DDA1C09003D533A /* MoreViewController.swift */,
 				31F33FCE2DDA1C09003D533A /* MoreViewController.xib */,
+				C1CD3A602E28C3CD0049699B /* MobitCommunityViewController.swift */,
+				C1CD3A612E28C3CD0049699B /* MobitCommunityViewController.xib */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -629,6 +639,7 @@
 			isa = PBXGroup;
 			children = (
 				31E208162C46C441000BFEBC /* MoreCoordinator.swift */,
+				C1CD3A642E28C8CE0049699B /* MobitCommunityCoordinator.swift */,
 			);
 			path = Coordinator;
 			sourceTree = "<group>";
@@ -657,8 +668,8 @@
 			isa = PBXGroup;
 			children = (
 				311E33FB2C4608800054C6BC /* MainViewController.swift */,
-				5FA880E12E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.swift */,
-				5FA880E22E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.xib */,
+				5FA880E12E1A3D0B00F22F9C /* NoticeForceUpdateViewController.swift */,
+				5FA880E22E1A3D0B00F22F9C /* NoticeForceUpdateViewController.xib */,
 				99C20A5C2C48DF11009276E7 /* CoinTableViewCell.swift */,
 				C1DF71152E16407E002E89E1 /* MainCryptoTableViewCell.swift */,
 				C1DF71162E16407E002E89E1 /* MainCryptoTableViewCell.xib */,
@@ -803,6 +814,15 @@
 				C18E3FEC2E25E8DC00B9E5D0 /* GradientView.swift */,
 			);
 			path = CustomViews;
+			sourceTree = "<group>";
+		};
+		C1CD3A5D2E28C2D10049699B /* HTML */ = {
+			isa = PBXGroup;
+			children = (
+				31B742072D5A3BBB00706340 /* tradingview.html */,
+				C1CD3A5E2E28C3090049699B /* mobitCommunity.html */,
+			);
+			path = HTML;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -956,7 +976,8 @@
 				5FA880E82E1A58E700F22F9C /* GoogleService-Info.plist in Resources */,
 				31B741FF2D58D67800706340 /* TradeHistoryView.xib in Resources */,
 				C1DF71182E16407E002E89E1 /* MainCryptoTableViewCell.xib in Resources */,
-				5FA880E42E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.xib in Resources */,
+				C1CD3A5F2E28C3090049699B /* mobitCommunity.html in Resources */,
+				5FA880E42E1A3D0B00F22F9C /* NoticeForceUpdateViewController.xib in Resources */,
 				31F33FD42DDA1D4C003D533A /* MobitAlertViewController.xib in Resources */,
 				C17BA2B72DF5B576001AF72D /* MobitLaunchScreen.xib in Resources */,
 				C17DB9732DA5FAF000DA673A /* InvestmentTableViewCell.xib in Resources */,
@@ -974,6 +995,7 @@
 				3133E2312C3E2357000D4B1A /* Assets.xcassets in Resources */,
 				C18EED532D55FE450038BBF7 /* TradeBidView.xib in Resources */,
 				31F33FD02DDA1C09003D533A /* MoreViewController.xib in Resources */,
+				C1CD3A632E28C3CD0049699B /* MobitCommunityViewController.xib in Resources */,
 				31B7420F2D5B939000706340 /* TradeHistoryTableViewCell.xib in Resources */,
 				C19ED6EB2DE31653001ACCF9 /* TradeInformationView.xib in Resources */,
 				31B741ED2D524F7000706340 /* TradeViewController.xib in Resources */,
@@ -1028,7 +1050,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				31F33FCF2DDA1C09003D533A /* MoreViewController.swift in Sources */,
-				5FA880E32E1A3D0B00F22F9C /* NoticeForceUpdateViewControlelrViewController.swift in Sources */,
+				5FA880E32E1A3D0B00F22F9C /* NoticeForceUpdateViewController.swift in Sources */,
 				C1DF71172E16407E002E89E1 /* MainCryptoTableViewCell.swift in Sources */,
 				312861062DFE749200541A6A /* MobitTabBar.swift in Sources */,
 				C1E12D402D7C29AF003C76F0 /* DoubleExtension.swift in Sources */,
@@ -1047,6 +1069,7 @@
 				C17DB9722DA5FAF000DA673A /* InvestmentTableViewCell.swift in Sources */,
 				31E208072C4678B9000BFEBC /* MainCoordinator.swift in Sources */,
 				C154CA192D97D63D006923BD /* MarketDataServiceUtil.swift in Sources */,
+				C1CD3A622E28C3CD0049699B /* MobitCommunityViewController.swift in Sources */,
 				31E208102C46C2FE000BFEBC /* InvestmentCoordinator.swift in Sources */,
 				31B742102D5B939000706340 /* TradeHistoryTableViewCell.swift in Sources */,
 				C17424C62D460478009861CC /* MobitUserInformation.swift in Sources */,
@@ -1086,6 +1109,7 @@
 				C17DC0F42E20E6E700E35D3F /* NeumorphicSegmentedControl.swift in Sources */,
 				3133E2682C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift in Sources */,
 				3128610A2DFE7FFC00541A6A /* MobitTabBarViewController.swift in Sources */,
+				C1CD3A652E28C8CE0049699B /* MobitCommunityCoordinator.swift in Sources */,
 				31F33FD32DDA1D4C003D533A /* MobitAlertViewController.swift in Sources */,
 				31B742032D5A2CAC00706340 /* ViewExtension.swift in Sources */,
 				31B742122D5B967F00706340 /* TradeHistoryInformation.swift in Sources */,

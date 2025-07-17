@@ -4,6 +4,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -43,7 +44,7 @@
                         <constraint firstAttribute="bottom" secondItem="ylj-d0-zZ7" secondAttribute="bottom" constant="20" id="Z8C-AG-mtd"/>
                     </constraints>
                 </view>
-                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Ryi-yk-Mln">
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Ryi-yk-Mln" userLabel="투자내역 view">
                     <rect key="frame" x="0.0" y="112.99999999999999" width="393" height="222.66666666666663"/>
                     <subviews>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="30" translatesAutoresizingMaskIntoConstraints="NO" id="kPO-6r-89s">
@@ -142,7 +143,7 @@
                             </subviews>
                         </stackView>
                     </subviews>
-                    <color key="backgroundColor" systemColor="systemGray6Color"/>
+                    <color key="backgroundColor" name="white_F8FAFC"/>
                     <constraints>
                         <constraint firstItem="kPO-6r-89s" firstAttribute="top" secondItem="Ryi-yk-Mln" secondAttribute="top" constant="20" id="Iaf-cg-3SR"/>
                         <constraint firstAttribute="bottom" secondItem="kPO-6r-89s" secondAttribute="bottom" constant="20" id="gcf-Xj-kvn"/>
@@ -150,14 +151,14 @@
                         <constraint firstItem="kPO-6r-89s" firstAttribute="leading" secondItem="Ryi-yk-Mln" secondAttribute="leading" constant="20" id="snq-7R-57F"/>
                     </constraints>
                 </view>
-                <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="xs5-6g-hcy" userLabel="Divider View">
-                    <rect key="frame" x="24" y="335.66666666666669" width="345" height="1"/>
-                    <color key="backgroundColor" systemColor="systemGray3Color"/>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="xs5-6g-hcy" userLabel="Divider View">
+                    <rect key="frame" x="0.0" y="335.66666666666669" width="393" height="1"/>
+                    <color key="backgroundColor" name="line_light_gray"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="1" id="ADB-bA-5C8"/>
                     </constraints>
                 </view>
-                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="EYj-UQ-OML">
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="EYj-UQ-OML" userLabel="리스트뷰">
                     <rect key="frame" x="0.0" y="336.66666666666669" width="393" height="515.33333333333326"/>
                     <subviews>
                         <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="none" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="vcj-0Q-9QG">
@@ -202,8 +203,8 @@
                 <constraint firstItem="OVA-w0-ApO" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="TNp-e5-AXO"/>
                 <constraint firstItem="rwH-Pi-cIy" firstAttribute="top" secondItem="EYj-UQ-OML" secondAttribute="top" id="Tp4-uD-Qwm"/>
                 <constraint firstItem="OVA-w0-ApO" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="Vee-vn-2DM"/>
-                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="xs5-6g-hcy" secondAttribute="trailing" constant="24" id="WEb-eP-0KG"/>
-                <constraint firstItem="xs5-6g-hcy" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="24" id="a7u-qI-9mt"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="xs5-6g-hcy" secondAttribute="trailing" id="WEb-eP-0KG"/>
+                <constraint firstItem="xs5-6g-hcy" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="a7u-qI-9mt"/>
                 <constraint firstItem="rwH-Pi-cIy" firstAttribute="leading" secondItem="EYj-UQ-OML" secondAttribute="leading" id="aiy-Nh-j8I"/>
                 <constraint firstItem="EYj-UQ-OML" firstAttribute="top" secondItem="xs5-6g-hcy" secondAttribute="bottom" id="caY-ed-JyG"/>
                 <constraint firstItem="rwH-Pi-cIy" firstAttribute="bottom" secondItem="EYj-UQ-OML" secondAttribute="bottom" id="kHh-rn-ZdI"/>
@@ -216,14 +217,14 @@
         </view>
     </objects>
     <resources>
+        <namedColor name="line_light_gray">
+            <color red="0.79607843137254897" green="0.81176470588235294" blue="0.83137254901960789" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+        </namedColor>
+        <namedColor name="white_F8FAFC">
+            <color red="0.97254901960784312" green="0.98039215686274506" blue="0.9882352941176471" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-        </systemColor>
-        <systemColor name="systemGray3Color">
-            <color red="0.78039215689999997" green="0.78039215689999997" blue="0.80000000000000004" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-        </systemColor>
-        <systemColor name="systemGray6Color">
-            <color red="0.94901960780000005" green="0.94901960780000005" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>

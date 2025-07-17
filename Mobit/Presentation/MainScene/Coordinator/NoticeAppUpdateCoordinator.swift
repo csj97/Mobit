@@ -18,7 +18,7 @@ class NoticeAppUpdateCoordinator: BaseCoordinator {
   }
   
   func start() {
-	let noticeVC = NoticeForceUpdateViewControlelrViewController()
+	let noticeVC = NoticeForceUpdateViewController()
 	noticeVC.hidesBottomBarWhenPushed = true
 	noticeVC.delegate = self
 	

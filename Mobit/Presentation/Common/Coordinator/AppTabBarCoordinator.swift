@@ -27,12 +27,14 @@ class AppTabBarCoordinator: BaseCoordinator {
 	// 투자내역 화면
 	let investNavigation = UINavigationController()
 	let investmentCoordinator = InvestmentCoordinator(navigationController: investNavigation)
+	investmentCoordinator.delegate = self
 	self.childCoordinators.append(investmentCoordinator)
 	investmentCoordinator.start()
 	
 	// 더보기 화면
 	let moreNavigation = UINavigationController()
 	let moreCoordinator = MoreCoordinator(navigationController: moreNavigation)
+	moreCoordinator.delegate = self
 	self.childCoordinators.append(moreCoordinator)
 	moreCoordinator.start()
 	

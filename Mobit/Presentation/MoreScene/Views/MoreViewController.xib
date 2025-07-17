@@ -27,11 +27,11 @@
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Of0-zp-4hq" userLabel="Navi Bar">
-                    <rect key="frame" x="0.0" y="0.0" width="393" height="112.66666666666667"/>
+                    <rect key="frame" x="0.0" y="0.0" width="393" height="115"/>
                     <subviews>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="더보기" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4EK-3N-Sdd">
-                            <rect key="frame" x="173" y="75" width="47" height="21.666666666666671"/>
-                            <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                            <rect key="frame" x="170.66666666666666" y="75" width="52" height="24"/>
+                            <fontDescription key="fontDescription" type="boldSystem" pointSize="20"/>
                             <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             <nil key="highlightedColor"/>
                         </label>
@@ -43,7 +43,7 @@
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hbU-B8-WIe" userLabel="Gradient View" customClass="GradientView" customModule="Mobit" customModuleProvider="target">
-                    <rect key="frame" x="0.0" y="112.66666666666667" width="393" height="20.000000000000014"/>
+                    <rect key="frame" x="0.0" y="115" width="393" height="20"/>
                     <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="20" id="K29-4d-XGm"/>
@@ -56,7 +56,7 @@
                     <nil key="highlightedColor"/>
                 </label>
                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="16" translatesAutoresizingMaskIntoConstraints="NO" id="QOk-eo-dGP">
-                    <rect key="frame" x="20" y="144.66666666666666" width="353" height="193.99999999999997"/>
+                    <rect key="frame" x="20" y="147" width="353" height="264"/>
                     <subviews>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="LmI-xJ-5oP" customClass="NeumorphicButton" customModule="Mobit" customModuleProvider="target">
                             <rect key="frame" x="0.0" y="0.0" width="353" height="54"/>
@@ -87,7 +87,7 @@
                             </connections>
                         </button>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="bME-qa-wuz" customClass="NeumorphicButton" customModule="Mobit" customModuleProvider="target">
-                            <rect key="frame" x="0.0" y="140.00000000000003" width="353" height="54"/>
+                            <rect key="frame" x="0.0" y="140" width="353" height="54"/>
                             <constraints>
                                 <constraint firstAttribute="height" constant="54" id="lEr-8z-W8D"/>
                             </constraints>
@@ -98,6 +98,20 @@
                             </buttonConfiguration>
                             <connections>
                                 <action selector="tapOnInvestInitButton:" destination="-1" eventType="touchUpInside" id="P4s-Ji-pgg"/>
+                            </connections>
+                        </button>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="JqY-uf-HDI" customClass="NeumorphicButton" customModule="Mobit" customModuleProvider="target">
+                            <rect key="frame" x="0.0" y="210" width="353" height="54"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="54" id="FYf-y4-lgX"/>
+                            </constraints>
+                            <color key="tintColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <state key="normal" title="Button"/>
+                            <buttonConfiguration key="configuration" style="plain" title="MOBIT 이용자 커뮤니티">
+                                <fontDescription key="titleFontDescription" type="system" weight="medium" pointSize="18"/>
+                            </buttonConfiguration>
+                            <connections>
+                                <action selector="tapOnCommunity:" destination="-1" eventType="touchUpInside" id="XMA-hy-6ij"/>
                             </connections>
                         </button>
                     </subviews>

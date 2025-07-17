@@ -123,6 +123,11 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
 	}
   }
   
+  /// MOBIT 이용자 커뮤니티
+  @IBAction func tapOnCommunity(_ sender: NeumorphicButton) {
+	self.coordinator?.pushMobitCommunityViewController()
+  }
+  
   /// 현재 사용 중인 앱 버전
   func updateVersionLabel() {
 	let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
