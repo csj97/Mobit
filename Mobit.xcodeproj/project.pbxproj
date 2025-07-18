@@ -138,7 +138,7 @@
 		C1B8F3BC2E272E6800C46734 /* SelfSizingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */; };
 		C1B8F3BF2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */; };
 		C1B8F3C12E2783EA00C46734 /* MobitAnalyticsUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */; };
-		C1CD3A5F2E28C3090049699B /* mobitCommunity.html in Resources */ = {isa = PBXBuildFile; fileRef = C1CD3A5E2E28C3090049699B /* mobitCommunity.html */; };
+		C1CD3A5F2E28C3090049699B /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = C1CD3A5E2E28C3090049699B /* index.html */; };
 		C1CD3A622E28C3CD0049699B /* MobitCommunityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CD3A602E28C3CD0049699B /* MobitCommunityViewController.swift */; };
 		C1CD3A632E28C3CD0049699B /* MobitCommunityViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1CD3A612E28C3CD0049699B /* MobitCommunityViewController.xib */; };
 		C1CD3A652E28C8CE0049699B /* MobitCommunityCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CD3A642E28C8CE0049699B /* MobitCommunityCoordinator.swift */; };
@@ -303,7 +303,7 @@
 		C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfSizingViews.swift; sourceTree = "<group>"; };
 		C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitNeumorphicSegmentedControl.swift; sourceTree = "<group>"; };
 		C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitAnalyticsUtil.swift; sourceTree = "<group>"; };
-		C1CD3A5E2E28C3090049699B /* mobitCommunity.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = mobitCommunity.html; sourceTree = "<group>"; };
+		C1CD3A5E2E28C3090049699B /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 		C1CD3A602E28C3CD0049699B /* MobitCommunityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitCommunityViewController.swift; sourceTree = "<group>"; };
 		C1CD3A612E28C3CD0049699B /* MobitCommunityViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MobitCommunityViewController.xib; sourceTree = "<group>"; };
 		C1CD3A642E28C8CE0049699B /* MobitCommunityCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitCommunityCoordinator.swift; sourceTree = "<group>"; };
@@ -361,7 +361,7 @@
 		3133E21B2C3E2355000D4B1A = {
 			isa = PBXGroup;
 			children = (
-				C1CD3A5E2E28C3090049699B /* mobitCommunity.html */,
+				C1CD3A5E2E28C3090049699B /* index.html */,
 				3133E2262C3E2355000D4B1A /* Mobit */,
 				3133E23D2C3E2357000D4B1A /* MobitTests */,
 				3133E2472C3E2357000D4B1A /* MobitUITests */,
@@ -976,7 +976,7 @@
 				5FA880E82E1A58E700F22F9C /* GoogleService-Info.plist in Resources */,
 				31B741FF2D58D67800706340 /* TradeHistoryView.xib in Resources */,
 				C1DF71182E16407E002E89E1 /* MainCryptoTableViewCell.xib in Resources */,
-				C1CD3A5F2E28C3090049699B /* mobitCommunity.html in Resources */,
+				C1CD3A5F2E28C3090049699B /* index.html in Resources */,
 				5FA880E42E1A3D0B00F22F9C /* NoticeForceUpdateViewController.xib in Resources */,
 				31F33FD42DDA1D4C003D533A /* MobitAlertViewController.xib in Resources */,
 				C17BA2B72DF5B576001AF72D /* MobitLaunchScreen.xib in Resources */,

@@ -51,7 +51,7 @@ class MobitCommunityViewController: UIViewController, UIScrollViewDelegate, Mobi
   }
   
   private func loadLocalHTML() {
-	if let url = Bundle.main.url(forResource: "mobitCommunity", withExtension: "html") {
+	if let url = Bundle.main.url(forResource: "index", withExtension: "html") {
 //	  mobitWebView.loadFileURL(url, allowingReadAccessTo: url)
 	  mobitWebView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
 	}
