@@ -1,71 +1,12 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MOBIT 이용자 게시판</title>
+  <link rel="stylesheet" href="style.css" />
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
-  <style>
-	* {
-	  box-sizing: border-box;
-	}
-
-	body {
-	  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-	  margin: 0;
-	  padding: 1rem;
-	  background-color: #fff;
-	  color: #222;
-	  line-height: 1.6;
-	}
-
-	h1 {
-	  font-size: 1.5rem;
-	  margin-bottom: 0.5rem;
-	}
-
-	h5 {
-	  font-size: 0.95rem;
-	  font-weight: 400;
-	  margin: 0.3rem 0;
-	}
-
-	textarea {
-	  width: 100%;
-	  padding: 0.8rem;
-	  margin-top: 1rem;
-	  font-size: 1rem;
-	  border: 1px solid #ccc;
-	  border-radius: 8px;
-	  resize: vertical;
-	}
-
-	button {
-	  margin-top: 0.7rem;
-	  padding: 0.8rem 1.2rem;
-	  font-size: 1rem;
-	  border: none;
-	  border-radius: 8px;
-	  background-color: #4f6ef7;
-	  color: white;
-	  width: 100%;
-	}
-
-	#postsContainer {
-	  margin-top: 2rem;
-	}
-
-	.post {
-	  border: 1px solid #eee;
-	  padding: 0.8rem;
-	  margin-bottom: 1rem;
-	  border-radius: 8px;
-	  background-color: #fafafa;
-	  font-size: 0.95rem;
-	}
-  </style>
 </head>
 
 <body>
@@ -80,72 +21,6 @@
 
   <div id="postsContainer"></div>
 
-  <script>
-	// Firebase 설정
-	const firebaseConfig = {
-	  apiKey: "AIzaSyDJFg9IG6icp5Ut9MhGT4a4vFzBMQu5KNo",
-	  authDomain: "mobitcommunity.firebaseapp.com",
-	  projectId: "mobitcommunity",
-	  storageBucket: "mobitcommunity.appspot.com",
-	  messagingSenderId: "888002207996",
-	  appId: "1:888002207996:web:00ca349d5d2ea5a1fbf779",
-	  measurementId: "G-S13KKYM1EY"
-	};
-
-	firebase.initializeApp(firebaseConfig);
-	const db = firebase.firestore();
-
-	// 글 등록
-	function submitPost() {
-	  const content = document.getElementById("postContent").value.trim();
-	  if (!content) return alert("내용을 입력하세요");
-
-	  db.collection("posts").add({
-		content,
-		createdAt: firebase.firestore.FieldValue.serverTimestamp()
-	  }).then(() => {
-		document.getElementById("postContent").value = "";
-		loadPosts();
-		
-		// ✅ iOS 네이티브로 콜백 전송
-		window.webkit.messageHandlers.MobitCommunity.postMessage({
-		  type: "success",
-		  content: content
-		});
-	  }).catch(err => {
-		console.error("글 저장 실패:", err);
-		
-		// ✅ iOS 네이티브로 콜백 전송
-		window.webkit.messageHandlers.MobitCommunity.postMessage({
-		  type: "failure",
-		  content: content
-		});
-	  });
-	}
-
-	// 글 목록 불러오기
-	function loadPosts() {
-	  db.collection("posts")
-		.orderBy("createdAt", "desc")
-		.get()
-		.then(snapshot => {
-		  const container = document.getElementById("postsContainer");
-		  container.innerHTML = "";
-		  snapshot.forEach(doc => {
-			const post = doc.data();
-			const div = document.createElement("div");
-			div.className = "post";
-			div.textContent = post.content;
-			container.appendChild(div);
-		  });
-		}).catch(err => {
-		  console.error("글 로딩 실패:", err);
-		});
-	}
-
-	// 초기 로딩
-	loadPosts();
-  </script>
+  <script src="app.js"></script>
 </body>
-
 </html>
