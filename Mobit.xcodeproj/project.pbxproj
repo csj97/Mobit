@@ -361,6 +361,7 @@
 		3133E21B2C3E2355000D4B1A = {
 			isa = PBXGroup;
 			children = (
+				C1CD3A5E2E28C3090049699B /* mobitCommunity.html */,
 				3133E2262C3E2355000D4B1A /* Mobit */,
 				3133E23D2C3E2357000D4B1A /* MobitTests */,
 				3133E2472C3E2357000D4B1A /* MobitUITests */,
@@ -820,7 +821,6 @@
 			isa = PBXGroup;
 			children = (
 				31B742072D5A3BBB00706340 /* tradingview.html */,
-				C1CD3A5E2E28C3090049699B /* mobitCommunity.html */,
 			);
 			path = HTML;
 			sourceTree = "<group>";
