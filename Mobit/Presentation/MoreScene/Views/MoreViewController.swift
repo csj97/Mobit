@@ -5,23 +5,19 @@
 //  Created by 조성재 on 5/18/25.
 //
 
-import GoogleMobileAds
 import RxCocoa
 import RxSwift
 import UIKit
 
-class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
+class MoreViewController: MobitBaseViewController {
   
   @IBOutlet weak var naviBar: UIView!
   @IBOutlet weak var chargeMoneyButton: NeumorphicButton!
   @IBOutlet weak var userNoticeButton: NeumorphicButton!
   @IBOutlet weak var investInitButton: NeumorphicButton!
-  @IBOutlet weak var loadingIndicator: UIActivityIndicatorView!
-  @IBOutlet weak var loadingView: UIView!
   @IBOutlet weak var versionLabel: UILabel!
   
   weak var coordinator: MoreCoordinator?
-  private var rewardedAd: RewardedAd?
   
   override func viewDidLoad() {
 	super.viewDidLoad()
@@ -37,21 +33,10 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
   func setUI() {
 	self.navigationController?.navigationBar.isHidden = true
     self.naviBar.layer.applyShadow(color: .lightGray, alpha: 0.3, x: 0, y: 3, blur: 12)
-    
-	self.makeBorderLine(self.chargeMoneyButton)
-	self.makeBorderLine(self.userNoticeButton)
-	self.makeBorderLine(self.investInitButton)
-	self.loadingView.isHidden = true
   }
   
   func setData() {
 	self.updateVersionLabel()
-  }
-  
-  func makeBorderLine(_ button: UIButton) {
-	button.layer.borderWidth = 1
-    button.layer.borderColor = UIColor.clear.cgColor
-	button.layer.cornerRadius = 16
   }
   
   @IBAction func tapOnChargeMoney(_ sender: NeumorphicButton) {
@@ -64,8 +49,9 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
 	  content: "본 광고를 시청하시면 모의투자 금액\n1천만원이 보유 금액으로 추가됩니다."
 	) { isOk in
 	  if isOk {
-		Task {
-		  await self.loadRewardedAd()
+		RewardedAdManager.shared.showAd(from: self) {
+		  self.show(alertType: .onlyConfirm, content: "충전이 완료 되었습니다.", callBack: nil)
+		  UserDataManager.userInformation?.userAvailableBalance += 10000000
 		}
 	  } else {
 		
@@ -123,6 +109,11 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
 	}
   }
   
+  /// MOBIT 이용자 커뮤니티
+  @IBAction func tapOnCommunity(_ sender: NeumorphicButton) {
+	self.coordinator?.pushMobitCommunityViewController()
+  }
+  
   /// 현재 사용 중인 앱 버전
   func updateVersionLabel() {
 	let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
@@ -135,50 +126,5 @@ class MoreViewController: UIViewController, ViewRule, MobitAlertDelegate {
     }
     
     self.versionLabel.text = "앱 버전: \(fixedVersion)"
-  }
-  
-  /// Google 보상형 광고 load
-  func loadRewardedAd() async {
-	do {
-	  self.loadingIndicator.startAnimating()
-	  self.loadingView.isHidden = false
-	  rewardedAd = try await RewardedAd.load(
-		with: "ca-app-pub-3498168241675848/9517873690",
-		request: Request()
-	  )
-	  rewardedAd?.fullScreenContentDelegate = self
-	  rewardedAd?.present(from: nil, userDidEarnRewardHandler: {
-		print("did earn reward")
-	  })
-	} catch {
-	  print("Rewarded ad failed to load with error: \(error.localizedDescription)")
-	}
-  }
-}
-
-extension MoreViewController: FullScreenContentDelegate {
-  /// Tells the delegate that the ad failed to present full screen content.
-  func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
-	print("Ad did fail to present full screen content.")
-	self.show(
-	  alertType: .onlyConfirm,
-	  content: "Google AD load에 실패하였습니다.\n다시 시도 해주세요.",
-	  callBack: nil
-	)
-  }
-  
-  /// Tells the delegate that the ad will present full screen content.
-  func adWillPresentFullScreenContent(_ ad: FullScreenPresentingAd) {
-	print("Ad will present full screen content.")
-	
-	self.loadingIndicator.stopAnimating()
-	self.loadingView.isHidden = true
-  }
-  
-  /// Tells the delegate that the ad dismissed full screen content.
-  func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
-	print("광고 끝! 돈 충전해줄게요!!")
-	self.show(alertType: .onlyConfirm, content: "충전이 완료 되었습니다.", callBack: nil)
-	UserDataManager.userInformation?.userAvailableBalance += 10000000
   }
 }

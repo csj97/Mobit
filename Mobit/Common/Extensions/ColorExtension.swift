@@ -29,6 +29,12 @@ extension UIColor {
 	  return UIColor(named: "line_light_gray")!
 	case .mobitPrimary:
 	  return UIColor(named: "mobit_primary")!
+	case .white_FBFBFB:
+	  return UIColor(named: "white_FBFBFB")!
+	case .white_F8FAFC:
+	  return UIColor(named: "white_F8FAFC")!
+	case .blue_E8F9FF:
+	  return UIColor(named: "blue_E8F9FF")!
     }
   }
   
@@ -42,6 +48,9 @@ extension UIColor {
 	case yellowBG
 	case lineLightGray
 	case mobitPrimary
+	case white_FBFBFB
+	case white_F8FAFC
+	case blue_E8F9FF
   }
   
   convenience init(hex: String) {

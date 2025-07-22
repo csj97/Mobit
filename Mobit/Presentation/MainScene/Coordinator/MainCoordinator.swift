@@ -53,7 +53,9 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
   }
   
   func pushNoticeAppUpdateVC() {
-	let noticeAppUpdateCoordinator = NoticeAppUpdateCoordinator(navigationController: self.navigationController)
+	let noticeAppUpdateCoordinator = NoticeAppUpdateCoordinator(
+	  navigationController: self.navigationController
+	)
 	self.childCoordinators.append(noticeAppUpdateCoordinator)
 	noticeAppUpdateCoordinator.delegate = self
 	noticeAppUpdateCoordinator.start()

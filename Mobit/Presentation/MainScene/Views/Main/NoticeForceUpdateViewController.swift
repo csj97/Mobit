@@ -7,7 +7,7 @@
 
 import UIKit
 
-class NoticeForceUpdateViewControlelrViewController: UIViewController {
+class NoticeForceUpdateViewController: UIViewController {
   
   weak var coordinator: NoticeAppUpdateCoordinator?
   weak var delegate: MainCoordinatorDelegate?
