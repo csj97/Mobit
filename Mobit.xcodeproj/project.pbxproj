@@ -311,7 +311,7 @@
 		C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfSizingViews.swift; sourceTree = "<group>"; };
 		C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitNeumorphicSegmentedControl.swift; sourceTree = "<group>"; };
 		C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitAnalyticsUtil.swift; sourceTree = "<group>"; };
-		C1CD3A5E2E28C3090049699B /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
+		C1CD3A5E2E28C3090049699B /* index.html */ = {isa = PBXFileReference; indentWidth = 2; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 		C1CD3A602E28C3CD0049699B /* MobitCommunityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitCommunityViewController.swift; sourceTree = "<group>"; };
 		C1CD3A612E28C3CD0049699B /* MobitCommunityViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MobitCommunityViewController.xib; sourceTree = "<group>"; };
 		C1CD3A642E28C8CE0049699B /* MobitCommunityCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitCommunityCoordinator.swift; sourceTree = "<group>"; };
@@ -374,14 +374,15 @@
 			isa = PBXGroup;
 			children = (
 				C1CD3A5E2E28C3090049699B /* index.html */,
-				C15B93492E29ED910064212B /* style.css */,
 				C15B934B2E29EDA10064212B /* app.js */,
+				C15B93492E29ED910064212B /* style.css */,
 				3133E2262C3E2355000D4B1A /* Mobit */,
 				3133E23D2C3E2357000D4B1A /* MobitTests */,
 				3133E2472C3E2357000D4B1A /* MobitUITests */,
 				3133E2252C3E2355000D4B1A /* Products */,
 				31E208312C46C89C000BFEBC /* Frameworks */,
 			);
+			indentWidth = 2;
 			sourceTree = "<group>";
 		};
 		3133E2252C3E2355000D4B1A /* Products */ = {
