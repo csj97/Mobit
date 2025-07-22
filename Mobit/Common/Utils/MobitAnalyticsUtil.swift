@@ -11,6 +11,7 @@ import FirebaseAnalytics
 enum MobitAnalyticsEventType: String {
   case exchange_tab = "거래소 화면"
   case investment_tab = "투자내역 화면"
+  case investment_charge = "투자내역 충전 버튼"
   case more_tab = "더보기 화면"
   case trade_screen = "트레이드 화면"
   case trade_order = "코인 주문 탭"

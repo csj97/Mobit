@@ -12,7 +12,7 @@ import PinLayout
 import ReactorKit
 import UIKit
 
-class InvestmentViewController: UIViewController, ViewRule {
+class InvestmentViewController: MobitBaseViewController {
   @IBOutlet weak var transactionTableview: UITableView!
   @IBOutlet weak var totalUserBalance: UILabel!
   @IBOutlet weak var totalEvalProfitLoss: UILabel!
@@ -112,6 +112,24 @@ class InvestmentViewController: UIViewController, ViewRule {
 	}
 	self.totalEvalProfitLoss.text = totalEvalProfitLossString + " 원"
 	self.totalBuyPrice.text = totalBuyPriceString + " 원"
+  }
+    
+  /// 충전하기 버튼 클릭
+  @IBAction func tapOnChargeButton(_ sender: NeumorphicButton) {
+	MobitAnalyticsUtil.sendScreen(event: .investment_charge)
+	
+	self.show(
+	  alertType: .canCancel,
+	  title: "안내",
+	  content: "본 광고를 시청하시면 모의투자 금액\n1천만원이 보유 금액으로 추가됩니다."
+	) { isOk in
+	  if isOk {
+		RewardedAdManager.shared.showAd(from: self) {
+		  self.show(alertType: .onlyConfirm, content: "충전이 완료 되었습니다.", callBack: nil)
+		  UserDataManager.userInformation?.userAvailableBalance += 10000000
+		}
+	  }
+	}
   }
 }
 

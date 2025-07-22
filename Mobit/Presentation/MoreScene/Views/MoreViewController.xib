@@ -13,8 +13,6 @@
             <connections>
                 <outlet property="chargeMoneyButton" destination="LmI-xJ-5oP" id="DsW-pj-xo9"/>
                 <outlet property="investInitButton" destination="bME-qa-wuz" id="d3O-dI-qUA"/>
-                <outlet property="loadingIndicator" destination="qQX-RO-VsG" id="6dl-Is-qgp"/>
-                <outlet property="loadingView" destination="Gdd-ng-g83" id="Pm3-NM-biD"/>
                 <outlet property="naviBar" destination="Of0-zp-4hq" id="3y1-Am-NZ3"/>
                 <outlet property="userNoticeButton" destination="PIX-eV-2no" id="62w-8Q-z3j"/>
                 <outlet property="versionLabel" destination="sRb-9r-BlS" id="7H0-jE-1fK"/>
@@ -116,20 +114,6 @@
                         </button>
                     </subviews>
                 </stackView>
-                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Gdd-ng-g83" userLabel="Loading View">
-                    <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
-                    <subviews>
-                        <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="large" translatesAutoresizingMaskIntoConstraints="NO" id="qQX-RO-VsG">
-                            <rect key="frame" x="178" y="407.66666666666669" width="37" height="37"/>
-                            <color key="color" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                        </activityIndicatorView>
-                    </subviews>
-                    <color key="backgroundColor" white="0.0" alpha="0.10000000000000001" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                    <constraints>
-                        <constraint firstItem="qQX-RO-VsG" firstAttribute="centerX" secondItem="Gdd-ng-g83" secondAttribute="centerX" id="bSB-Ll-IZT"/>
-                        <constraint firstItem="qQX-RO-VsG" firstAttribute="centerY" secondItem="Gdd-ng-g83" secondAttribute="centerY" id="eSe-Nn-tRA"/>
-                    </constraints>
-                </view>
             </subviews>
             <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
             <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -139,12 +123,8 @@
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="bottom" secondItem="sRb-9r-BlS" secondAttribute="bottom" constant="100" id="858-WP-sch"/>
                 <constraint firstItem="QOk-eo-dGP" firstAttribute="top" secondItem="Of0-zp-4hq" secondAttribute="bottom" constant="32" id="AaN-op-6AO"/>
                 <constraint firstItem="hbU-B8-WIe" firstAttribute="top" secondItem="Of0-zp-4hq" secondAttribute="bottom" id="E1h-X2-fpq"/>
-                <constraint firstAttribute="bottom" secondItem="Gdd-ng-g83" secondAttribute="bottom" id="EB0-X9-Nac"/>
-                <constraint firstAttribute="trailing" secondItem="Gdd-ng-g83" secondAttribute="trailing" id="HBp-2D-uql"/>
-                <constraint firstItem="Gdd-ng-g83" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="HI2-39-dPc"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="Of0-zp-4hq" secondAttribute="trailing" id="Ipr-AD-BrT"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="sRb-9r-BlS" secondAttribute="trailing" constant="20" id="cjp-7C-meN"/>
-                <constraint firstItem="Gdd-ng-g83" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="dNd-1I-EBL"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="QOk-eo-dGP" secondAttribute="trailing" constant="20" id="kcL-qI-4NW"/>
                 <constraint firstItem="4EK-3N-Sdd" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" constant="16" id="nUf-mt-cg5"/>
                 <constraint firstItem="Of0-zp-4hq" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="pPi-gU-n0L"/>
