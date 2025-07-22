@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol ViewRule {
-  func setUI()
-  func setData()
+@objc protocol ViewRule {
+  @objc optional func setUI()
+  @objc optional func setData()
 }

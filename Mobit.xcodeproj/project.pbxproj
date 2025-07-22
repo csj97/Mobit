@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -112,6 +112,7 @@
 		C17BA2BC2DF5B6D9001AF72D /* esamanru-OTF-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2B82DF5B6D9001AF72D /* esamanru-OTF-Bold.otf */; };
 		C17BA2BD2DF5B6D9001AF72D /* esamanru-OTF-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2B92DF5B6D9001AF72D /* esamanru-OTF-Light.otf */; };
 		C17BA2BF2DF5B8FB001AF72D /* MobitLaunchScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17BA2BE2DF5B8FB001AF72D /* MobitLaunchScreen.swift */; };
+		C17BB4182E2F27A400BDAA0F /* MobitBaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17BB4172E2F27A400BDAA0F /* MobitBaseViewController.swift */; };
 		C17CF49C2DA4DAE900CDF76D /* InvestmentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17CF49A2DA4DAE900CDF76D /* InvestmentViewController.swift */; };
 		C17CF49D2DA4DAE900CDF76D /* InvestmentViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C17CF49B2DA4DAE900CDF76D /* InvestmentViewController.xib */; };
 		C17CF4A02DA4DD6500CDF76D /* InvestReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17CF49F2DA4DD6500CDF76D /* InvestReactor.swift */; };
@@ -123,6 +124,7 @@
 		C17E08352D2A64EE0029A8D0 /* ColorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */; };
 		C17E8E252E1F5EED0082E7DC /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = C17E8E242E1F5EED0082E7DC /* FirebaseDatabase */; };
 		C17E8E272E1F60D50082E7DC /* FirebaseCMCResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */; };
+		C18A84F92E2E1C6D00E49070 /* MobitConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18A84F82E2E1C6D00E49070 /* MobitConstants.swift */; };
 		C18E3FED2E25E8DC00B9E5D0 /* GradientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18E3FEC2E25E8DC00B9E5D0 /* GradientView.swift */; };
 		C18EED4F2D55A82B0038BBF7 /* MobitSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */; };
 		C18EED512D55FE3D0038BBF7 /* TradeBidView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED502D55FE3D0038BBF7 /* TradeBidView.swift */; };
@@ -280,6 +282,7 @@
 		C17BA2B92DF5B6D9001AF72D /* esamanru-OTF-Light.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "esamanru-OTF-Light.otf"; sourceTree = "<group>"; };
 		C17BA2BA2DF5B6D9001AF72D /* esamanru-OTF-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "esamanru-OTF-Medium.otf"; sourceTree = "<group>"; };
 		C17BA2BE2DF5B8FB001AF72D /* MobitLaunchScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitLaunchScreen.swift; sourceTree = "<group>"; };
+		C17BB4172E2F27A400BDAA0F /* MobitBaseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitBaseViewController.swift; sourceTree = "<group>"; };
 		C17CF49A2DA4DAE900CDF76D /* InvestmentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestmentViewController.swift; sourceTree = "<group>"; };
 		C17CF49B2DA4DAE900CDF76D /* InvestmentViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = InvestmentViewController.xib; sourceTree = "<group>"; };
 		C17CF49F2DA4DD6500CDF76D /* InvestReactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestReactor.swift; sourceTree = "<group>"; };
@@ -290,6 +293,7 @@
 		C17E08322D2A62BC0029A8D0 /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
 		C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtension.swift; sourceTree = "<group>"; };
 		C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseCMCResponse.swift; sourceTree = "<group>"; };
+		C18A84F82E2E1C6D00E49070 /* MobitConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitConstants.swift; sourceTree = "<group>"; };
 		C18E3FEC2E25E8DC00B9E5D0 /* GradientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientView.swift; sourceTree = "<group>"; };
 		C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitSegmentedControl.swift; sourceTree = "<group>"; };
 		C18EED502D55FE3D0038BBF7 /* TradeBidView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeBidView.swift; sourceTree = "<group>"; };
@@ -315,6 +319,10 @@
 		C1DF71162E16407E002E89E1 /* MainCryptoTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainCryptoTableViewCell.xib; sourceTree = "<group>"; };
 		C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoubleExtension.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		C18A84FA2E2E1F1300E49070 /* Advertisement */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Advertisement; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		3133E2212C3E2355000D4B1A /* Frameworks */ = {
@@ -487,6 +495,7 @@
 				99C20AB12C4F6A04009276E7 /* Environment.swift */,
 				C17424C32D4600A8009861CC /* UserDataManager.swift */,
 				31B742092D5A46B300706340 /* LeakAvoider.swift */,
+				C18A84F82E2E1C6D00E49070 /* MobitConstants.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -770,10 +779,10 @@
 		C154CA172D97D5F8006923BD /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				C18A84FA2E2E1F1300E49070 /* Advertisement */,
 				C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */,
 				C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */,
 				C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */,
-				C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -813,6 +822,8 @@
 		C1B8F3BD2E27615500C46734 /* CustomViews */ = {
 			isa = PBXGroup;
 			children = (
+				C17BB4172E2F27A400BDAA0F /* MobitBaseViewController.swift */,
+				C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */,
 				310865052E1EC3F40089D67A /* NeumorphicButton.swift */,
 				C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */,
 				36E771922D75AF1E00739CDE /* MobitTextField.swift */,
@@ -847,6 +858,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C18A84FA2E2E1F1300E49070 /* Advertisement */,
 			);
 			name = Mobit;
 			packageProductDependencies = (
@@ -1068,6 +1082,7 @@
 				C18E3FED2E25E8DC00B9E5D0 /* GradientView.swift in Sources */,
 				998849E62C5379960073A27D /* CryptoTicker.swift in Sources */,
 				3133E2702C3F7098000D4B1A /* MainUseCase.swift in Sources */,
+				C17BB4182E2F27A400BDAA0F /* MobitBaseViewController.swift in Sources */,
 				99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */,
 				C19ED6E92DE31648001ACCF9 /* TradeInformationView.swift in Sources */,
 				31D644482C7257F900C7F96D /* CryptoDetailCoordinator.swift in Sources */,
@@ -1080,6 +1095,7 @@
 				C1CD3A622E28C3CD0049699B /* MobitCommunityViewController.swift in Sources */,
 				31E208102C46C2FE000BFEBC /* InvestmentCoordinator.swift in Sources */,
 				31B742102D5B939000706340 /* TradeHistoryTableViewCell.swift in Sources */,
+				C18A84F92E2E1C6D00E49070 /* MobitConstants.swift in Sources */,
 				C17424C62D460478009861CC /* MobitUserInformation.swift in Sources */,
 				3133E2662C3F6A44000D4B1A /* BaseCoordinator.swift in Sources */,
 				C1B8F3BC2E272E6800C46734 /* SelfSizingViews.swift in Sources */,
