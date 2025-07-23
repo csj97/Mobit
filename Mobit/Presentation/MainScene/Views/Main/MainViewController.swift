@@ -28,7 +28,7 @@ enum CryptoSortType: String {
   case tradeVolumeDescending = "거래대금↓"
 }
 
-class MainViewController: UIViewController {
+class MainViewController: MobitBaseViewController {
   // coordinator <-> viewcontroller 강한 참조 사이클 방지
   weak var coordinator: MainCoordinator?
   var dataSource: UITableViewDiffableDataSource<TableViewSection, CryptoCellInfo>?
@@ -195,7 +195,7 @@ class MainViewController: UIViewController {
 	self.tableView.register(nib, forCellReuseIdentifier: self.cellIndentifier)
 	self.tableView.keyboardDismissMode = .onDrag
 	
-	self.tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 80, right: 0)
+	self.tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 70, right: 0)
     
     self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoCellInfo>(
       tableView: self.tableView

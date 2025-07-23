@@ -17,35 +17,39 @@ class MobitBaseViewController: UIViewController, MobitAlertDelegate, LoadingIndi
   private var indicatorViewTag: Int { return 999_999 }  // 유일한 태그로 구분
 
   func showLoadingIndicator() {
-	guard let windowScene = UIApplication.shared.connectedScenes
+	DispatchQueue.main.async {
+	  guard let windowScene = UIApplication.shared.connectedScenes
 		.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
-	  let window = windowScene.windows.first(where: { $0.isKeyWindow }) else {
+			let window = windowScene.windows.first(where: { $0.isKeyWindow }) else {
 		return
+	  }
+	  // 이미 있는 경우 중복 생성 방지
+	  if window.viewWithTag(self.indicatorViewTag) != nil { return }
+	  
+	  let overlay = UIView(frame: window.bounds)
+	  overlay.backgroundColor = UIColor.black.withAlphaComponent(0.3)
+	  overlay.tag = self.indicatorViewTag
+	  
+	  let spinner = UIActivityIndicatorView(style: .large)
+	  spinner.color = .white
+	  spinner.startAnimating()
+	  spinner.center = overlay.center
+	  
+	  overlay.addSubview(spinner)
+	  window.addSubview(overlay)
 	}
-	// 이미 있는 경우 중복 생성 방지
-	if window.viewWithTag(indicatorViewTag) != nil { return }
-
-	let overlay = UIView(frame: window.bounds)
-	overlay.backgroundColor = UIColor.black.withAlphaComponent(0.3)
-	overlay.tag = indicatorViewTag
-
-	let spinner = UIActivityIndicatorView(style: .large)
-	spinner.color = .white
-	spinner.startAnimating()
-	spinner.center = overlay.center
-
-	overlay.addSubview(spinner)
-	window.addSubview(overlay)
   }
   
   func hideLoadingIndicator() {
-	guard let windowScene = UIApplication.shared.connectedScenes
+	DispatchQueue.main.async {
+	  guard let windowScene = UIApplication.shared.connectedScenes
 		.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
-	  let window = windowScene.windows.first(where: { $0.isKeyWindow }) else {
+			let window = windowScene.windows.first(where: { $0.isKeyWindow }) else {
 		return
-	}
-	if let overlay = window.viewWithTag(indicatorViewTag) {
-	  overlay.removeFromSuperview()
+	  }
+	  if let overlay = window.viewWithTag(self.indicatorViewTag) {
+		overlay.removeFromSuperview()
+	  }
 	}
   }
 }

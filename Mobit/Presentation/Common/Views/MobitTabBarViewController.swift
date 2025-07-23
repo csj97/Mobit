@@ -28,7 +28,7 @@ class MobitTabBarViewController: UIViewController {
   /// 탭바 상단 Radius 처리
   override func viewDidLayoutSubviews() {
 	super.viewDidLayoutSubviews()
-	mobitTabBar.layer.cornerRadius = 20
+	mobitTabBar.layer.cornerRadius = 30
 //	mobitTabBar.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
   }
   
@@ -44,7 +44,7 @@ class MobitTabBarViewController: UIViewController {
 	  make.leading.equalToSuperview().offset(10)
 	  make.trailing.equalToSuperview().offset(-10)
 	  make.bottom.equalToSuperview().offset(-20)
-	  make.height.equalTo(80)
+	  make.height.equalTo(65)
 	}
   }
   
