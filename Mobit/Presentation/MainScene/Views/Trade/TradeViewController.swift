@@ -23,7 +23,7 @@ enum OrderType: Codable, Equatable {
   case bid
 }
 
-class TradeViewController: UIViewController, ViewRule {
+class TradeViewController: MobitBaseViewController {
   
   @IBOutlet weak var cryptoMarketName: UILabel!
   @IBOutlet weak var cryptoPrice: UILabel!
@@ -150,6 +150,31 @@ class TradeViewController: UIViewController, ViewRule {
 	self.mobitSegmentedControl.onSegmentChanged?(self.mobitSegmentedControl.selectedIndex)
   }
   
+  func setData() {
+	NotificationCenter.default.addObserver(
+		self, selector: #selector(viewDidBecomeActive),
+		name: UIApplication.didBecomeActiveNotification,
+		object: nil
+	)
+	NotificationCenter.default.addObserver(
+		self, selector: #selector(viewWillResignActive),
+		name: UIApplication.willResignActiveNotification,
+		object: nil
+	)
+  }
+  
+  /// 앱 상태가 백그라운드에서 Active 상태로 전환 되면 택시 상태를 조회하여 복구
+  @objc func viewDidBecomeActive() {
+	print("Mobit Main - viewDidBecomeActive")
+	self.hideLoadingIndicator()
+  }
+  
+  /// 앱이 In-Active 상태로 전환
+  @objc func viewWillResignActive() {
+	print("Mobit Main - viewWillResignActive")
+  }
+  
+  
   func setCrypto(crypto: CryptoCellInfo? = nil) {
 	self.prevClosingPrice = crypto?.prevPrice
 	let numberFormatter = NumberFormatter()
@@ -206,9 +231,6 @@ class TradeViewController: UIViewController, ViewRule {
 	self.cryptoChangedPrice.textColor = tradeColor
 	self.cryptoUpDownArrowImageView.image = arrowImage
 	self.cryptoUpDownArrowImageView.tintColor = arrowColor
-  }
-  
-  func setData() {
   }
   
   func setFavoriteButton() {

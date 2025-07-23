@@ -8,7 +8,7 @@
 import Foundation
 import FirebaseAnalytics
 
-enum MobitAnalyticsEventType: String {
+enum MobitAnalyticsScreenEventType: String {
   case exchange_tab = "거래소 화면"
   case investment_tab = "투자내역 화면"
   case investment_charge = "투자내역 충전 버튼"
@@ -29,13 +29,32 @@ enum MobitAnalyticsEventType: String {
   }
 }
 
+enum MobitAnalyticsRewardEventType: String {
+  case reward_present = "광고 시청 시작"
+  case reward_finish = "광고 시청 완료"
+  case reward_failed = "광고 로드 실패"
+  case reward_close = "광고 조기 종료"
+  
+  var sendRewardEventName: String {
+	return self.rawValue
+  }
+}
+
 class MobitAnalyticsUtil {
-  static func sendScreen(event: MobitAnalyticsEventType) {
+  static func sendScreen(event: MobitAnalyticsScreenEventType) {
 	print("MOBIT AnalyticsEvent : \(event.sendScreenName)")
 	
 	Analytics.logEvent(
 	  AnalyticsEventScreenView,
 	  parameters: [AnalyticsParameterScreenName: event.sendScreenName]
 	)
+  }
+  
+  static func sendAdEvent(event: MobitAnalyticsRewardEventType) {
+	Analytics.logEvent(
+	  AnalyticsEventAdImpression,
+	  parameters: [AnalyticsParameterAdUnitName: event.sendRewardEventName]
+	)
+	print("MOBIT Analytics [광고] - \(event.sendRewardEventName)")
   }
 }

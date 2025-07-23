@@ -34,6 +34,7 @@ final class RewardedAdManager: NSObject {	// NSObject 상속 이유 : Obj-C 호�
 		rewardedAd?.fullScreenContentDelegate = self
 		await rewardedAd?.present(from: viewController, userDidEarnRewardHandler: {
 		  print("광고 끝! 돈 충전해줄게요!!")
+		  MobitAnalyticsUtil.sendAdEvent(event: .reward_finish)
 		  self.rewardCompletion?()
 		})
 	  } catch {
@@ -67,6 +68,7 @@ final class RewardedAdManager: NSObject {	// NSObject 상속 이유 : Obj-C 호�
 extension RewardedAdManager: FullScreenContentDelegate {
   func adWillPresentFullScreenContent(_ ad: FullScreenPresentingAd) {
 	print("Ad will present")
+	MobitAnalyticsUtil.sendAdEvent(event: .reward_present)
 	guard let presentingVC = self.presentingVC else { return }
 	self.hideLoadingIndicator(in: presentingVC)
   }
@@ -74,12 +76,13 @@ extension RewardedAdManager: FullScreenContentDelegate {
   // 광고 닫힘 후 처리
   func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
 	print("Ad dismissed")
+	MobitAnalyticsUtil.sendAdEvent(event: .reward_close)
   }
 
   /// 광고 로드 실패
   func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
 	print("Ad failed to present: \(error.localizedDescription)")
-	
+	MobitAnalyticsUtil.sendAdEvent(event: .reward_failed)
 	guard let presentingVC = self.presentingVC else { return }
 	self.hideLoadingIndicator(in: presentingVC)
 	self.showFailAlert(in: presentingVC)

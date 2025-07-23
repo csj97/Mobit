@@ -23,18 +23,18 @@ class CustomWindow: UIWindow {
   
   /// [Background & Foreground] Observers
   private func setupObservers() {
-	  NotificationCenter.default.addObserver(
-		  self,
-		  selector: #selector(mobitDidBecomeActive),
-		  name: UIApplication.didBecomeActiveNotification,
-		  object: nil
-	  )
-	  NotificationCenter.default.addObserver(
-		  self,
-		  selector: #selector(mobitWillResignActive),
-		  name: UIApplication.willResignActiveNotification,
-		  object: nil
-	  )
+	NotificationCenter.default.addObserver(
+	  self,
+	  selector: #selector(mobitDidBecomeActive),
+	  name: UIApplication.didBecomeActiveNotification,
+	  object: nil
+	)
+	NotificationCenter.default.addObserver(
+	  self,
+	  selector: #selector(mobitWillResignActive),
+	  name: UIApplication.willResignActiveNotification,
+	  object: nil
+	)
   }
   
   
@@ -44,7 +44,7 @@ class CustomWindow: UIWindow {
 	  guard let controllable = self.getSocketControllableController() else { return }
 	  controllable.resumeSocket()
 	}
-//	getVisibleController()?.resumeSocket()
+	//	getVisibleController()?.resumeSocket()
   }
   
   // 앱이 백그라운드로 전환될 때
@@ -53,7 +53,7 @@ class CustomWindow: UIWindow {
 	  guard let controllableVC = self.getSocketControllableController() else { return }
 	  controllableVC.pauseSocket()
 	}
-//	getVisibleController()?.pauseSocket()
+	//	getVisibleController()?.pauseSocket()
   }
   
   private func getVisibleController(from vc: UIViewController?) -> UIViewController? {
@@ -69,14 +69,14 @@ class CustomWindow: UIWindow {
   }
   
   private func getSocketControllableController() -> SocketControllable? {
-	  guard let rootVC = UIApplication.shared.connectedScenes
-		  .compactMap({ $0 as? UIWindowScene })
-		  .flatMap({ $0.windows })
-		  .first(where: { $0.isKeyWindow })?.rootViewController else {
-		  return nil
-	  }
-
-	  let visibleVC = getVisibleController(from: rootVC)
-	  return visibleVC as? SocketControllable
+	guard let rootVC = UIApplication.shared.connectedScenes
+	  .compactMap({ $0 as? UIWindowScene })
+	  .flatMap({ $0.windows })
+	  .first(where: { $0.isKeyWindow })?.rootViewController else {
+	  return nil
+	}
+	
+	let visibleVC = getVisibleController(from: rootVC)
+	return visibleVC as? SocketControllable
   }
 }
