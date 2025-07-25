@@ -38,6 +38,15 @@ enum MobitAnalyticsRewardEventType: String {
   var sendRewardEventName: String {
 	return self.rawValue
   }
+  
+  var firebaseEventName: String {
+	switch self {
+	case .reward_present: return "ad_reward_started"
+	case .reward_finish: return "ad_reward_completed"
+	case .reward_failed: return "ad_reward_failed"
+	case .reward_close: return "ad_reward_closed"
+	}
+  }
 }
 
 class MobitAnalyticsUtil {
@@ -52,8 +61,8 @@ class MobitAnalyticsUtil {
   
   static func sendAdEvent(event: MobitAnalyticsRewardEventType) {
 	Analytics.logEvent(
-	  AnalyticsEventAdImpression,
-	  parameters: [AnalyticsParameterAdUnitName: event.sendRewardEventName]
+	  event.firebaseEventName,
+	  parameters: ["ad_status": event.sendRewardEventName]
 	)
 	print("MOBIT Analytics [광고] - \(event.sendRewardEventName)")
   }
