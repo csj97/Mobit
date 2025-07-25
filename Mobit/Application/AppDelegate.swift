@@ -20,7 +20,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 	
 	MobileAds.shared.start(completionHandler: nil)
 	// 순서대로, 13mini(H), 13mini(C)
-	MobileAds.shared.requestConfiguration.testDeviceIdentifiers = ["B9169A22-1CEE-40F7-8128-976F17201053", "7271EAFB-AA2B-4C34-81C5-26499236950A"]
+	MobileAds.shared.requestConfiguration.testDeviceIdentifiers = [
+	  "B9169A22-1CEE-40F7-8128-976F17201053",
+	  "7271EAFB-AA2B-4C34-81C5-26499236950A"
+	]
 	
 	requestATT()
     checkFirstLaunch()
