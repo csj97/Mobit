@@ -21,6 +21,7 @@ class OrderBookCell: UITableViewCell {
   let obPrice: UILabel = UILabel().then {
     $0.text = "0"
     $0.textAlignment = .right
+	$0.textColor = .black
     $0.font = UIFont.systemFont(ofSize: 12)
     $0.adjustsFontSizeToFitWidth = true
     $0.minimumScaleFactor = 0.3
@@ -29,6 +30,7 @@ class OrderBookCell: UITableViewCell {
   let obChangeRate: UILabel = UILabel().then {
     $0.text = "0.0%"
     $0.textAlignment = .right
+	$0.textColor = .black
     $0.font = UIFont.systemFont(ofSize: 12)
     $0.adjustsFontSizeToFitWidth = true
     $0.minimumScaleFactor = 0.5
@@ -37,6 +39,7 @@ class OrderBookCell: UITableViewCell {
   let obSizeLabel: UILabel = UILabel().then {
     $0.text = "0.0"
     $0.textAlignment = .left
+	$0.textColor = .black
     $0.font = UIFont.systemFont(ofSize: 10)
     $0.adjustsFontSizeToFitWidth = true
     $0.minimumScaleFactor = 0.5

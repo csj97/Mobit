@@ -142,7 +142,7 @@ class NeumorphicSegmentedControl: UIView {
 	
 	for (index, button) in buttons.enumerated() {
 	  let isSelected = (index == selectedIndex)
-	  button.setTitleColor(isSelected ? .white : .label, for: .normal)
+	  button.setTitleColor(isSelected ? .white : .black, for: .normal)
 	  button.titleLabel?.font = isSelected ? .systemFont(ofSize: 14, weight: .bold) : .systemFont(ofSize: 12, weight: .regular)
 	}
 	

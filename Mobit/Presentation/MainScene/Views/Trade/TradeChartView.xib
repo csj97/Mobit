@@ -5,7 +5,6 @@
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
-        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -25,7 +24,7 @@
                 </wkWebView>
             </subviews>
             <viewLayoutGuide key="safeArea" id="mZC-xE-jaU"/>
-            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
             <constraints>
                 <constraint firstItem="mZC-xE-jaU" firstAttribute="bottom" secondItem="cdq-g9-sAC" secondAttribute="bottom" id="HGS-iT-anY"/>
                 <constraint firstItem="cdq-g9-sAC" firstAttribute="leading" secondItem="mZC-xE-jaU" secondAttribute="leading" id="Kcd-Zt-IxS"/>
@@ -39,9 +38,4 @@
             <point key="canvasLocation" x="2433" y="-13"/>
         </view>
     </objects>
-    <resources>
-        <systemColor name="systemBackgroundColor">
-            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-        </systemColor>
-    </resources>
 </document>
