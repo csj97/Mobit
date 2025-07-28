@@ -123,19 +123,19 @@ class TradeViewController: MobitBaseViewController {
 	  guard let self = self else { return }
 	  switch index {
 	  case 0:
-		MobitAnalyticsUtil.sendScreen(event: .trade_order)
+		MobitAnalyticsUtil.sendScreenEvent(event: .trade_order)
 		orderView.isHidden = false
 		chartView.isHidden = true
 		informationView.isHidden = true
 		self.reactor.action.onNext(.setSelectedWholeTab(selectedWholeTab: .trade))
 	  case 1:
-		MobitAnalyticsUtil.sendScreen(event: .trade_chart)
+		MobitAnalyticsUtil.sendScreenEvent(event: .trade_chart)
 		orderView.isHidden = true
 		chartView.isHidden = false
 		informationView.isHidden = true
 		self.reactor.action.onNext(.setSelectedWholeTab(selectedWholeTab: .chart))
 	  case 2:
-		MobitAnalyticsUtil.sendScreen(event: .trade_info)
+		MobitAnalyticsUtil.sendScreenEvent(event: .trade_info)
 		orderView.isHidden = true
 		chartView.isHidden = true
 		informationView.isHidden = false
@@ -165,13 +165,13 @@ class TradeViewController: MobitBaseViewController {
   
   /// 앱 상태가 백그라운드에서 Active 상태로 전환 되면 택시 상태를 조회하여 복구
   @objc func viewDidBecomeActive() {
-	print("Mobit Main - viewDidBecomeActive")
+	// print("Mobit Main - viewDidBecomeActive")
 	self.hideLoadingIndicator()
   }
   
   /// 앱이 In-Active 상태로 전환
   @objc func viewWillResignActive() {
-	print("Mobit Main - viewWillResignActive")
+	// print("Mobit Main - viewWillResignActive")
   }
   
   

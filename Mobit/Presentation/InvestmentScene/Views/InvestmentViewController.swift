@@ -116,7 +116,7 @@ class InvestmentViewController: MobitBaseViewController {
     
   /// 충전하기 버튼 클릭
   @IBAction func tapOnChargeButton(_ sender: NeumorphicButton) {
-	MobitAnalyticsUtil.sendScreen(event: .investment_charge)
+	MobitAnalyticsUtil.sendScreenEvent(event: .investment_charge)
 	
 	self.show(
 	  alertType: .canCancel,
@@ -124,10 +124,13 @@ class InvestmentViewController: MobitBaseViewController {
 	  content: "본 광고를 시청하시면 모의투자 금액\n1천만원이 보유 금액으로 추가됩니다."
 	) { isOk in
 	  if isOk {
+		MobitAnalyticsUtil.sendClickEvent(event: .ad_click_confirm)
 		RewardedAdManager.shared.showAd(from: self) {
 		  self.show(alertType: .onlyConfirm, content: "충전이 완료 되었습니다.", callBack: nil)
 		  UserDataManager.userInformation?.userAvailableBalance += 10000000
 		}
+	  } else {
+		MobitAnalyticsUtil.sendClickEvent(event: .ad_click_cancel)
 	  }
 	}
   }
@@ -199,9 +202,9 @@ extension InvestmentViewController: UITableViewDataSource, UITableViewDelegate {
 	let userValidTransactionList = UserDataManager.userValidTransactionList
 	let selectedCryptoMarketName = self.cryptos[indexPath.row].staticData.marketName
 	let selectedValidTransaction = userValidTransactionList?.filter { $0.marketName == selectedCryptoMarketName }
-	print("===========================")
-	print(selectedValidTransaction)
-	print("===========================")
+//	print("===========================")
+//	print(selectedValidTransaction)
+//	print("===========================")
 	
 	// 터치하면 디테일 화면으로 이동
 //	let selectedCrypto = CryptoCellInfo(

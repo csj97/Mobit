@@ -58,13 +58,13 @@ class MobitTabBarViewController: UIViewController {
 	
 	if index == 0 {
 	  // 거래소
-	  MobitAnalyticsUtil.sendScreen(event: .exchange_tab)
+	  MobitAnalyticsUtil.sendScreenEvent(event: .exchange_tab)
 	} else if index == 1 {
 	  // 투자내역
-	  MobitAnalyticsUtil.sendScreen(event: .investment_tab)
+	  MobitAnalyticsUtil.sendScreenEvent(event: .investment_tab)
 	} else if index == 2 {
 	  // 더보기
-	  MobitAnalyticsUtil.sendScreen(event: .more_tab)
+	  MobitAnalyticsUtil.sendScreenEvent(event: .more_tab)
 	}
 	
 	if currentViewController != nil {

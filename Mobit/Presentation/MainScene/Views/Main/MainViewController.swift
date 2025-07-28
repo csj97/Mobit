@@ -163,7 +163,7 @@ class MainViewController: MobitBaseViewController {
 	}
 	
 	guard let transactionHistory = UserDataManager.userTransactionList else { return }
-	print(transactionHistory)
+	// print(transactionHistory)
   }
   
   override func viewDidLayoutSubviews() {
@@ -553,7 +553,7 @@ extension MainViewController: UITableViewDelegate {
 	  where: { $0.symbol == symbol }
 	) else { return }
 	
-	MobitAnalyticsUtil.sendScreen(event: .trade_screen)
+	MobitAnalyticsUtil.sendScreenEvent(event: .trade_screen)
     self.coordinator?.pushCryptoDetailVC(
       selectCrypto: cryptoCellInfo[indexPath.row],
 	  cmcInformation: cmcInformation

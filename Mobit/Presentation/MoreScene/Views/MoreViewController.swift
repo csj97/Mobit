@@ -41,7 +41,7 @@ class MoreViewController: MobitBaseViewController {
   
   @IBAction func tapOnChargeMoney(_ sender: NeumorphicButton) {
 	
-	MobitAnalyticsUtil.sendScreen(event: .more_charge)
+	MobitAnalyticsUtil.sendScreenEvent(event: .more_charge)
 	
 	self.show(
 	  alertType: .canCancel,
@@ -49,12 +49,13 @@ class MoreViewController: MobitBaseViewController {
 	  content: "본 광고를 시청하시면 모의투자 금액\n1천만원이 보유 금액으로 추가됩니다."
 	) { isOk in
 	  if isOk {
+		MobitAnalyticsUtil.sendClickEvent(event: .ad_click_confirm)
 		RewardedAdManager.shared.showAd(from: self) {
 		  self.show(alertType: .onlyConfirm, content: "충전이 완료 되었습니다.", callBack: nil)
 		  UserDataManager.userInformation?.userAvailableBalance += 10000000
 		}
 	  } else {
-		
+		MobitAnalyticsUtil.sendClickEvent(event: .ad_click_cancel)
 	  }
 	}
   }
@@ -72,7 +73,7 @@ class MoreViewController: MobitBaseViewController {
    ⭐️ 그로 인해 발생한 어떠한 손실에 대해서도 본 앱은 책임지지 않습니다.
    """
 	
-	MobitAnalyticsUtil.sendScreen(event: .more_notice)
+	MobitAnalyticsUtil.sendScreenEvent(event: .more_notice)
 	
 	self.show(
 	  alertType: .onlyConfirm,
@@ -90,7 +91,7 @@ class MoreViewController: MobitBaseViewController {
 	보유 금액도 0원이 됩니다.
 	"""
 	
-	MobitAnalyticsUtil.sendScreen(event: . more_init_data)
+	MobitAnalyticsUtil.sendScreenEvent(event: . more_init_data)
 	
 	self.show(
 	  alertType: .canCancel,

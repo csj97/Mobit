@@ -201,19 +201,19 @@ class TradeOrderView: UIView, ViewRule {
   @IBAction func tapOnSegmentedControl(_ sender: MobitSegmentedControl) {
     switch sender.selectedSegmentIndex {
     case 0:
-	  MobitAnalyticsUtil.sendScreen(event: .trade_order_buy)
+	  MobitAnalyticsUtil.sendScreenEvent(event: .trade_order_buy)
       self.bidView?.isHidden = false
       self.askView?.isHidden = true
 	  self.historyView?.isHidden = true
 	  self.segmentedContainerView.bringSubviewToFront(self.bidView!)
     case 1:
-	  MobitAnalyticsUtil.sendScreen(event: .trade_order_sell)
+	  MobitAnalyticsUtil.sendScreenEvent(event: .trade_order_sell)
       self.bidView?.isHidden = true
       self.askView?.isHidden = false
 	  self.historyView?.isHidden = true
 	  self.segmentedContainerView.bringSubviewToFront(self.askView!)
     case 2:
-	  MobitAnalyticsUtil.sendScreen(event: .trade_order_history)
+	  MobitAnalyticsUtil.sendScreenEvent(event: .trade_order_history)
       self.bidView?.isHidden = true
       self.askView?.isHidden = true
 	  self.historyView?.isHidden = false
@@ -307,6 +307,6 @@ extension TradeOrderView {
 	
 extension TradeOrderView: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-	print("clicked")
+	// print("clicked")
   }
 }
