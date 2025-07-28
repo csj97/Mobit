@@ -68,31 +68,31 @@ extension MobitCommunityViewController: WKScriptMessageHandler {
 	_ userContentController: WKUserContentController,
 	didReceive message: WKScriptMessage
   ) {
-	 
-	 // 기존 브릿지 처리 코드
-	 if message.name == javascriptBridgeInterfaceName {
-		 
-		 guard let bridge = message.body as? [String: Any] else {
-			 print("❌ 메시지 파싱 실패: \(message.body)")
-			 return
-		 }
-		 
-		 guard let type = bridge["type"] as? String else {
-			 print("❌ type 파싱 실패")
-			 return
-		 }
-		 
-		 switch type {
-		 case "none":
-		   self.show(alertType: .onlyConfirm, title: "안내", content: "내용을 입력해 주세요.", callBack: nil)
-		 case "success":
-			 self.show(alertType: .onlyConfirm, title: "안내", content: "개발자에게 성공적으로 전달되었습니다.", callBack: nil)
-		 case "failure":
-			 self.show(alertType: .onlyConfirm, title: "안내", content: "등록에 실패하였습니다.", callBack: nil)
-		 default:
-			 self.show(alertType: .onlyConfirm, title: "안내", content: "알 수 없는 에러 발생", callBack: nil)
-		 }
-	 }
+	
+	// 기존 브릿지 처리 코드
+	if message.name == javascriptBridgeInterfaceName {
+	  
+	  guard let bridge = message.body as? [String: Any] else {
+		Log.error("❌ 메시지 파싱 실패: \(message.body)")
+		return
+	  }
+	  
+	  guard let type = bridge["type"] as? String else {
+		Log.error("❌ type 파싱 실패")
+		return
+	  }
+	  
+	  switch type {
+	  case "none":
+		self.show(alertType: .onlyConfirm, title: "안내", content: "내용을 입력해 주세요.", callBack: nil)
+	  case "success":
+		self.show(alertType: .onlyConfirm, title: "안내", content: "개발자에게 성공적으로 전달되었습니다.", callBack: nil)
+	  case "failure":
+		self.show(alertType: .onlyConfirm, title: "안내", content: "등록에 실패하였습니다.", callBack: nil)
+	  default:
+		self.show(alertType: .onlyConfirm, title: "안내", content: "알 수 없는 에러 발생", callBack: nil)
+	  }
+	}
   }
 }
 
@@ -108,28 +108,28 @@ extension MobitCommunityViewController: WKNavigationDelegate {
   }
   
   func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-	print("🌐 HTML 로딩 완료")
+	Log.info("🌐 HTML 로딩 완료")
 	
 	// JavaScript 환경 확인
 	webView.evaluateJavaScript("typeof window.webkit !== 'undefined'") { (result, error) in
-	  print("webkit 사용 가능: \(result ?? "nil")")
+	  Log.info("webkit 사용 가능: \(result ?? "nil")")
 	}
 	
 	webView.evaluateJavaScript("typeof window.webkit.messageHandlers !== 'undefined'") { (result, error) in
-	  print("messageHandlers 사용 가능: \(result ?? "nil")")
+	  Log.info("messageHandlers 사용 가능: \(result ?? "nil")")
 	}
 	
 	webView.evaluateJavaScript("typeof window.webkit.messageHandlers.MobitCommunity !== 'undefined'") { (result, error) in
-	  print("MobitCommunity 핸들러 사용 가능: \(result ?? "nil")")
+	  Log.info("MobitCommunity 핸들러 사용 가능: \(result ?? "nil")")
 	}
   }
   
   func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-	  print("❌ 웹뷰 로딩 실패: \(error)")
+	Log.error("❌ 웹뷰 로딩 실패: \(error)")
   }
   
   func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-	  print("❌ 웹뷰 프로비저널 로딩 실패: \(error)")
+	Log.error("❌ 웹뷰 프로비저널 로딩 실패: \(error)")
   }
 }
 

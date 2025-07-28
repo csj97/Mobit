@@ -49,7 +49,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 	  )
 	} else {
 	  guard let userInfo = UserDataManager.userInformation else { return }
-	  print("지금 내돈 : \(userInfo.userAvailableBalance)")
+	  // print("지금 내돈 : \(userInfo.userAvailableBalance)")
 	}
   }
   

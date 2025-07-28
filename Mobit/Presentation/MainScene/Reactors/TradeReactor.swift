@@ -138,7 +138,7 @@ extension TradeReactor {
             
             observer.onNext(.setCryptoInfo(cryptoInfo: updatedCryptoCellInfo))
           } catch {
-            print("Crypto Detail Ticker websocket receive decoding error : \(error.localizedDescription)")
+			Log.error("Crypto Detail Ticker websocket receive decoding error : \(error.localizedDescription)")
           }
         } onError: { error in
           observer.onError(error)
@@ -191,7 +191,7 @@ extension TradeReactor {
             let obTicker = orderBookDTO.toDomain()
             observer.onNext(.setOrderBookInfo(obTicker: obTicker))
           } catch {
-            print("orderbook websocket receive decoding error : \(error.localizedDescription)")
+			Log.error("orderbook websocket receive decoding error : \(error.localizedDescription)")
           }
         } onError: { error in
           observer.onError(error)

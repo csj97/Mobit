@@ -223,7 +223,7 @@ extension MainReactor {
 		case .next:
 		  break
 		case .error(let error):
-		  print("error : \(error.localizedDescription)")
+		  Log.error("error : \(error.localizedDescription)")
 		}
 	  }.disposed(by: self.disposeBag)
 	
@@ -416,7 +416,7 @@ extension MainReactor {
             )
             
           } catch {
-            print("MainReactor ticker websocket receive decoding error : \(error.localizedDescription)")
+			Log.error("MainReactor ticker websocket receive decoding error : \(error.localizedDescription)")
           }
         } onError: { error in
           observer.onError(error)
@@ -601,18 +601,18 @@ extension MainReactor {
   
   /// 파이어베이스에서 CMC 코인 정보 가져오기
   func downloadFromFirebase(completion: @escaping ([String: [String: Any]]) -> Void) {
-	  let path = firebaseDB.child("CMCResponse").child("cryptoInformations")
-	  
-	  path.observeSingleEvent(of: .value) { snapshot in
-		  guard let value = snapshot.value as? [String: [String: Any]] else {
-			  print("❌ 데이터 변환 실패")
-			  completion([:])
-			  return
-		  }
-		  print("✅ \(value.values.count)개 데이터 불러오기 성공")
-		  
-		  completion(value)
+	let path = firebaseDB.child("CMCResponse").child("cryptoInformations")
+	
+	path.observeSingleEvent(of: .value) { snapshot in
+	  guard let value = snapshot.value as? [String: [String: Any]] else {
+		Log.error("❌ 데이터 변환 실패")
+		completion([:])
+		return
 	  }
+	  Log.info("✅ \(value.values.count)개 데이터 불러오기 성공")
+	  
+	  completion(value)
+	}
   }
   
   /// Data Model에 맞게 디코딩
@@ -630,7 +630,7 @@ extension MainReactor {
 	  return dto.toDomain()
 	  
 	} catch {
-	  print("❌ 디코딩 실패: \(error)")
+	  Log.error("❌ 디코딩 실패: \(error)")
 	  return nil
 	}
   }

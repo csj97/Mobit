@@ -43,7 +43,7 @@ class CryptoDetailRepository: CryptoDetailRepositoryProtocol {
 			  observer.onError(ErrorType.unknownError)
 			}
 		  case .failure(let error):
-			print(error.localizedDescription)
+			Log.error(error.localizedDescription)
 		  }
 		}
 	  return Disposables.create {

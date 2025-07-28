@@ -61,20 +61,20 @@ class NewWebSocketManager: WebSocketDelegate {
   func disconnect(manual: Bool = false) {
 	guard socket != nil else { return }
 	isManuallyDisconnected = manual
-	print("Disconnecting...")
+	Log.info("Disconnecting...")
     socket.disconnect()
   }
   
   func reconnectIfNeeded() {
 	guard !isManuallyDisconnected else { return }
-	print("ReConnecting...")
+	Log.info("ReConnecting...")
 	self.connect()
   }
   
   /// Message 전송
   func sendMessage(codes: [String], socketType: SocketType) {
 	guard isConnected, socket != nil else {
-      print("WebSocket is not connected")
+	  Log.info("WebSocket is not connected")
       
       return
     }
@@ -93,7 +93,7 @@ class NewWebSocketManager: WebSocketDelegate {
     }
     
     socket.write(data: data) {
-      print("code data send success")
+	  Log.info("code data send success")
     }
   }
   
@@ -112,10 +112,10 @@ class NewWebSocketManager: WebSocketDelegate {
 	  dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
 
 	  let koreaTimeString = dateFormatter.string(from: Date())
-	  print("------------------------------------------------------")
-	  print("현재시간 : \(koreaTimeString)")
-      print("WebSocket connected")
-	  print("------------------------------------------------------")
+	  Log.info("------------------------------------------------------")
+	  Log.info("현재시간 : \(koreaTimeString)")
+	  Log.info("WebSocket connected")
+	  Log.info("------------------------------------------------------")
     case .disconnected(let reason, let code):
       isConnected = false
 	  
@@ -124,12 +124,12 @@ class NewWebSocketManager: WebSocketDelegate {
 	  dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
 
 	  let koreaTimeString = dateFormatter.string(from: Date())
-	  print("------------------------------------------------------")
-	  print("현재시간 : \(koreaTimeString)")
-      print("WebSocket disconnected: \(reason) with code: \(code)")
-	  print("------------------------------------------------------")
+	  Log.info("------------------------------------------------------")
+	  Log.info("현재시간 : \(koreaTimeString)")
+	  Log.info("WebSocket disconnected: \(reason) with code: \(code)")
+	  Log.info("------------------------------------------------------")
     case .text(let text):
-      print("Received text: \(text)")
+	  Log.info("Received text: \(text)")
       
     case .binary(let data):
       switch self.socketType {
@@ -142,7 +142,7 @@ class NewWebSocketManager: WebSocketDelegate {
       
     case .error(let error):
       isConnected = false
-      print("WebSocket error: \(String(describing: error))")
+	  Log.info("WebSocket error: \(String(describing: error))")
       
     case .cancelled:
       isConnected = false
@@ -152,10 +152,10 @@ class NewWebSocketManager: WebSocketDelegate {
 	  dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
 
 	  let koreaTimeString = dateFormatter.string(from: Date())
-	  print("------------------------------------------------------")
-	  print("현재시간 : \(koreaTimeString)")
-	  print("WebSocket connection cancelled")
-	  print("------------------------------------------------------")
+	  Log.info("------------------------------------------------------")
+	  Log.info("현재시간 : \(koreaTimeString)")
+	  Log.info("WebSocket connection cancelled")
+	  Log.info("------------------------------------------------------")
 	  
       
       
@@ -163,13 +163,13 @@ class NewWebSocketManager: WebSocketDelegate {
       break // Ping/Pong 이벤트는 보통 생략 가능
       
     case .viabilityChanged(let isViable):
-      print("Connection viability changed: \(isViable)")
+	  Log.info("Connection viability changed: \(isViable)")
       
     case .reconnectSuggested(let shouldReconnect):
-      print("Reconnect suggested: \(shouldReconnect)")
+	  Log.info("Reconnect suggested: \(shouldReconnect)")
       
     case .peerClosed:
-      print("Peer closed connection")
+	  Log.info("Peer closed connection")
     }
   }
   

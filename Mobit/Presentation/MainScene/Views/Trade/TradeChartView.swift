@@ -113,7 +113,7 @@ extension TradeChartView: WKNavigationDelegate {
 	webView.evaluateJavaScript(script) { [weak self] (_, error) in
 	  guard let self = self else { return }
 	  if let error = error {
-		print("JavaScript 실행 오류: \(error)")
+		Log.error("JavaScript 실행 오류: \(error)")
 	  }
 	}
   }

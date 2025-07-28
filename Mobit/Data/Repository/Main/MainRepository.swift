@@ -41,7 +41,7 @@ class MainRepository: MainRepositoryProtocol {
               observer.onError(ErrorType.unknownError)
             }
           case .failure(let error):
-            print(error.localizedDescription)
+			Log.error(error.localizedDescription)
           }
         }
       return Disposables.create {
@@ -70,7 +70,7 @@ class MainRepository: MainRepositoryProtocol {
 				observer.onNext(cryptoTickerList.toDomain())
 				observer.onCompleted()
 			  } catch {
-				print("❌ 디코딩 실패: \(error)")
+				Log.error("❌ 디코딩 실패: \(error)")
 				observer.onError(ErrorType.dataMappingError)
 			  }
 			  
@@ -82,7 +82,7 @@ class MainRepository: MainRepositoryProtocol {
             }
             
           case .failure(let error):
-            print(error.localizedDescription)
+			Log.error(error.localizedDescription)
 			observer.onError(error)
           }
         }
