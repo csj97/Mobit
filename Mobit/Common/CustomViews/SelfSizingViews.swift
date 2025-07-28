@@ -16,6 +16,7 @@ class SelfSizingCollectionView: UICollectionView {
   
   override func layoutSubviews() {
 	super.layoutSubviews()
+	self.backgroundColor = .white
 	invalidateIntrinsicContentSize()
   }
 }
@@ -28,6 +29,7 @@ class SelfSizingTableView: UITableView {
   
   override func layoutSubviews() {
 	super.layoutSubviews()
+	self.backgroundColor = .white
 	invalidateIntrinsicContentSize()
   }
 }

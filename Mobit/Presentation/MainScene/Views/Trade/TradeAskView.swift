@@ -70,6 +70,19 @@ class TradeAskView: UIView, ViewRule {
 	self.marketNameLabels.forEach({ $0.text = marketName })
 	self.inputTradeAmount.keyboardType = .decimalPad
 	self.totalPriceTextField.keyboardType = .numberPad
+	
+	self.inputTradeAmount.attributedPlaceholder = NSAttributedString(
+	  string: "0",
+	  attributes: [
+		.foregroundColor: UIColor.lightGray
+	  ]
+	)
+	self.totalPriceTextField.attributedPlaceholder = NSAttributedString(
+	  string: "0",
+	  attributes: [
+		.foregroundColor: UIColor.lightGray
+	  ]
+	)
   }
   
   func setData() {

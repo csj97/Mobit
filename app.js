@@ -16,7 +16,15 @@ const database = firebase.database();
 // 글 등록
 function submitPost() {
   const content = getInputVal("postContent");
-  if (!content) return alert("내용을 입력하세요");
+  if (!content) {
+    if (window.webkit?.messageHandlers?.MobitCommunity) {
+      window.webkit.messageHandlers.MobitCommunity.postMessage({
+        type: "none",
+        content: content
+      });
+    }
+    return alert("내용을 입력하세요");
+  }
 
   const postRef = database.ref("mobit_community").push(); // 고유 key 생성
   postRef

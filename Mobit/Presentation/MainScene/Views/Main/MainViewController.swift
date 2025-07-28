@@ -194,6 +194,8 @@ class MainViewController: MobitBaseViewController {
 	let nib = UINib(nibName: "MainCryptoTableViewCell", bundle: nil)
 	self.tableView.register(nib, forCellReuseIdentifier: self.cellIndentifier)
 	self.tableView.keyboardDismissMode = .onDrag
+	self.tableView.backgroundColor = .white
+	self.tableView.backgroundView = nil
 	
 	self.tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 70, right: 0)
     

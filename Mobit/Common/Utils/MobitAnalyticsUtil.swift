@@ -90,8 +90,6 @@ enum MobitAnalyticsRewardEventType: Int, MobitAnalyticsEventRule {
 	case .reward_close: return "reward_close"
 	}
   }
-<<<<<<< Updated upstream
-=======
   
   var value: String {
 	switch self {
@@ -121,7 +119,6 @@ enum MobitAnalyticsClickEventType: Int, MobitAnalyticsEventRule {
 	case .ad_click_confirm: return "광고 안내 팝업 확인"
 	}
   }
->>>>>>> Stashed changes
 }
 
 class MobitAnalyticsUtil {
@@ -132,13 +129,6 @@ class MobitAnalyticsUtil {
   
   /// 광고 이벤트
   static func sendAdEvent(event: MobitAnalyticsRewardEventType) {
-<<<<<<< Updated upstream
-	Analytics.logEvent(
-	  AnalyticsEventAdImpression,
-	  parameters: [AnalyticsParameterAdUnitName: event.sendRewardEventName]
-	)
-	print("MOBIT Analytics [광고] - \(event.sendRewardEventName)")
-=======
 	self.sendBaseLegacyEvent(eventName: "mobit_ad_event", type: event)
   }
   
@@ -158,6 +148,5 @@ class MobitAnalyticsUtil {
 	Log.info("MOBIT Analytics [Event Name] - \(eventName)")
 	Log.info("MOBIT Analytics [Event Type] - \(type.key)")
 	Log.info("MOBIT Analytics [Event Info] - \(type.value)")
->>>>>>> Stashed changes
   }
 }

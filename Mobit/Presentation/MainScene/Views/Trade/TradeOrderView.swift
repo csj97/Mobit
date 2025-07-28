@@ -12,10 +12,10 @@ import SkeletonView
 
 class TradeOrderView: UIView, ViewRule {
   
-  @IBOutlet weak var orderbookTableView: UITableView!
-//  @IBOutlet weak var segmentedControl: MobitSegmentedControl!
-    @IBOutlet weak var segmentedControl: NeumorphicSegmentedControl!
-    @IBOutlet weak var segmentedContainerView: UIView!
+  @IBOutlet weak var orderbookTableView: SelfSizingTableView!
+  //  @IBOutlet weak var segmentedControl: MobitSegmentedControl!
+  @IBOutlet weak var segmentedControl: NeumorphicSegmentedControl!
+  @IBOutlet weak var segmentedContainerView: UIView!
   
   var disposeBag = DisposeBag()
   var dataSource: UITableViewDiffableDataSource<TableViewSection, OrderUnit>?
@@ -148,9 +148,6 @@ class TradeOrderView: UIView, ViewRule {
 	}
 	self.segmentedControl.selectedIndex = 0
 	self.segmentedControl.onSegmentChanged?(0)
-	
-//	self.segmentedControl.selectedSegmentIndex = 0
-//	self.tapOnSegmentedControl(self.segmentedControl)
   }
   
   func setData() {

@@ -36,7 +36,7 @@
                             </connections>
                         </button>
                     </subviews>
-                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     <constraints>
                         <constraint firstItem="Oae-q9-rtm" firstAttribute="leading" secondItem="gXg-ql-WWL" secondAttribute="leading" id="Qn8-l2-qZl"/>
                         <constraint firstItem="Oae-q9-rtm" firstAttribute="top" secondItem="gXg-ql-WWL" secondAttribute="top" id="Z6N-pZ-KhK"/>
@@ -51,7 +51,7 @@
                 </view>
             </subviews>
             <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
-            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
             <constraints>
                 <constraint firstItem="flm-Db-v2Y" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="81n-hF-8ua"/>
                 <constraint firstItem="gXg-ql-WWL" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="J4m-5K-otN"/>
