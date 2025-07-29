@@ -101,6 +101,12 @@
 		C15B934A2E29ED910064212B /* style.css in Resources */ = {isa = PBXBuildFile; fileRef = C15B93492E29ED910064212B /* style.css */; };
 		C15B934C2E29EDA10064212B /* app.js in Resources */ = {isa = PBXBuildFile; fileRef = C15B934B2E29EDA10064212B /* app.js */; };
 		C15DCD2B2DF2CAFD007544D8 /* ImageViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C15DCD2A2DF2CAFD007544D8 /* ImageViewExtension.swift */; };
+		C16FAE6A2E38A4C6003C5AD1 /* UserPNLHistoryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16FAE692E38A4C6003C5AD1 /* UserPNLHistoryModel.swift */; };
+		C16FAE6D2E38B4B9003C5AD1 /* PNLViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C16FAE6C2E38B4B9003C5AD1 /* PNLViewController.xib */; };
+		C16FAE6E2E38B4B9003C5AD1 /* PNLViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16FAE6B2E38B4B9003C5AD1 /* PNLViewController.swift */; };
+		C16FAE712E38B530003C5AD1 /* PNLTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = C16FAE702E38B530003C5AD1 /* PNLTableViewCell.xib */; };
+		C16FAE722E38B530003C5AD1 /* PNLTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16FAE6F2E38B530003C5AD1 /* PNLTableViewCell.swift */; };
+		C16FAE742E38BC54003C5AD1 /* PNLCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16FAE732E38BC54003C5AD1 /* PNLCoordinator.swift */; };
 		C17424C42D4600A8009861CC /* UserDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17424C32D4600A8009861CC /* UserDataManager.swift */; };
 		C17424C62D460478009861CC /* MobitUserInformation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17424C52D460478009861CC /* MobitUserInformation.swift */; };
 		C174D89E2E24BAD40015B6ED /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = C174D89D2E24BAD40015B6ED /* FirebaseCrashlytics */; };
@@ -273,6 +279,12 @@
 		C15B93492E29ED910064212B /* style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = style.css; sourceTree = "<group>"; };
 		C15B934B2E29EDA10064212B /* app.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = app.js; sourceTree = "<group>"; };
 		C15DCD2A2DF2CAFD007544D8 /* ImageViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewExtension.swift; sourceTree = "<group>"; };
+		C16FAE692E38A4C6003C5AD1 /* UserPNLHistoryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPNLHistoryModel.swift; sourceTree = "<group>"; };
+		C16FAE6B2E38B4B9003C5AD1 /* PNLViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PNLViewController.swift; sourceTree = "<group>"; };
+		C16FAE6C2E38B4B9003C5AD1 /* PNLViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PNLViewController.xib; sourceTree = "<group>"; };
+		C16FAE6F2E38B530003C5AD1 /* PNLTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PNLTableViewCell.swift; sourceTree = "<group>"; };
+		C16FAE702E38B530003C5AD1 /* PNLTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PNLTableViewCell.xib; sourceTree = "<group>"; };
+		C16FAE732E38BC54003C5AD1 /* PNLCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PNLCoordinator.swift; sourceTree = "<group>"; };
 		C17424C32D4600A8009861CC /* UserDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataManager.swift; sourceTree = "<group>"; };
 		C17424C52D460478009861CC /* MobitUserInformation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitUserInformation.swift; sourceTree = "<group>"; };
 		C174D8A02E24DBEC0015B6ED /* TradeInfoCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeInfoCollectionViewCell.swift; sourceTree = "<group>"; };
@@ -610,6 +622,7 @@
 			isa = PBXGroup;
 			children = (
 				31E2080F2C46C2FE000BFEBC /* InvestmentCoordinator.swift */,
+				C16FAE732E38BC54003C5AD1 /* PNLCoordinator.swift */,
 			);
 			path = Coordinator;
 			sourceTree = "<group>";
@@ -621,6 +634,10 @@
 				C17CF49B2DA4DAE900CDF76D /* InvestmentViewController.xib */,
 				C17DB9702DA5FAF000DA673A /* InvestmentTableViewCell.swift */,
 				C17DB9712DA5FAF000DA673A /* InvestmentTableViewCell.xib */,
+				C16FAE6B2E38B4B9003C5AD1 /* PNLViewController.swift */,
+				C16FAE6C2E38B4B9003C5AD1 /* PNLViewController.xib */,
+				C16FAE6F2E38B530003C5AD1 /* PNLTableViewCell.swift */,
+				C16FAE702E38B530003C5AD1 /* PNLTableViewCell.xib */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -775,6 +792,7 @@
 				C17424C52D460478009861CC /* MobitUserInformation.swift */,
 				C19ED6E42DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift */,
 				C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */,
+				C16FAE692E38A4C6003C5AD1 /* UserPNLHistoryModel.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -1003,6 +1021,7 @@
 				C1DF71182E16407E002E89E1 /* MainCryptoTableViewCell.xib in Resources */,
 				C1CD3A5F2E28C3090049699B /* index.html in Resources */,
 				5FA880E42E1A3D0B00F22F9C /* NoticeForceUpdateViewController.xib in Resources */,
+				C16FAE6D2E38B4B9003C5AD1 /* PNLViewController.xib in Resources */,
 				31F33FD42DDA1D4C003D533A /* MobitAlertViewController.xib in Resources */,
 				C17BA2B72DF5B576001AF72D /* MobitLaunchScreen.xib in Resources */,
 				C17DB9732DA5FAF000DA673A /* InvestmentTableViewCell.xib in Resources */,
@@ -1012,6 +1031,7 @@
 				C17BA2BB2DF5B6D9001AF72D /* esamanru-OTF-Medium.otf in Resources */,
 				C17BA2BC2DF5B6D9001AF72D /* esamanru-OTF-Bold.otf in Resources */,
 				C17BA2BD2DF5B6D9001AF72D /* esamanru-OTF-Light.otf in Resources */,
+				C16FAE712E38B530003C5AD1 /* PNLTableViewCell.xib in Resources */,
 				C18EED572D55FE610038BBF7 /* TradeAskView.xib in Resources */,
 				3128610F2DFF125A00541A6A /* PrivacyInfo.xcprivacy in Resources */,
 				31B742082D5A3BC400706340 /* tradingview.html in Resources */,
@@ -1078,6 +1098,8 @@
 				31F33FCF2DDA1C09003D533A /* MoreViewController.swift in Sources */,
 				5FA880E32E1A3D0B00F22F9C /* NoticeForceUpdateViewController.swift in Sources */,
 				C17EAE382E374515006ACA44 /* Log.swift in Sources */,
+				C16FAE722E38B530003C5AD1 /* PNLTableViewCell.swift in Sources */,
+				C16FAE6E2E38B4B9003C5AD1 /* PNLViewController.swift in Sources */,
 				C1DF71172E16407E002E89E1 /* MainCryptoTableViewCell.swift in Sources */,
 				312861062DFE749200541A6A /* MobitTabBar.swift in Sources */,
 				C1E12D402D7C29AF003C76F0 /* DoubleExtension.swift in Sources */,
@@ -1098,6 +1120,7 @@
 				31E208072C4678B9000BFEBC /* MainCoordinator.swift in Sources */,
 				C154CA192D97D63D006923BD /* MarketDataServiceUtil.swift in Sources */,
 				C1CD3A622E28C3CD0049699B /* MobitCommunityViewController.swift in Sources */,
+				C16FAE6A2E38A4C6003C5AD1 /* UserPNLHistoryModel.swift in Sources */,
 				31E208102C46C2FE000BFEBC /* InvestmentCoordinator.swift in Sources */,
 				31B742102D5B939000706340 /* TradeHistoryTableViewCell.swift in Sources */,
 				C18A84F92E2E1C6D00E49070 /* MobitConstants.swift in Sources */,
@@ -1140,6 +1163,7 @@
 				3128610A2DFE7FFC00541A6A /* MobitTabBarViewController.swift in Sources */,
 				C1CD3A652E28C8CE0049699B /* MobitCommunityCoordinator.swift in Sources */,
 				31F33FD32DDA1D4C003D533A /* MobitAlertViewController.swift in Sources */,
+				C16FAE742E38BC54003C5AD1 /* PNLCoordinator.swift in Sources */,
 				31B742032D5A2CAC00706340 /* ViewExtension.swift in Sources */,
 				31B742122D5B967F00706340 /* TradeHistoryInformation.swift in Sources */,
 				3133E2282C3E2355000D4B1A /* AppDelegate.swift in Sources */,

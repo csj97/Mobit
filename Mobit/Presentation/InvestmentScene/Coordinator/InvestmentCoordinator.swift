@@ -38,6 +38,17 @@ class InvestmentCoordinator: BaseCoordinator {
 	
 	self.delegate?.mainCoordinatorDidRequestHideTabBar()
   }
+  
+  func pushPnlVC() {
+	let pnlCoordinator = PNLCoordinator(
+	  navigationController: self.navigationController
+	)
+	self.childCoordinators.append(pnlCoordinator)
+	pnlCoordinator.delegate = self
+	pnlCoordinator.start()
+	
+	self.delegate?.mainCoordinatorDidRequestHideTabBar()
+  }
 }
 
 extension InvestmentCoordinator: MainCoordinatorDelegate {

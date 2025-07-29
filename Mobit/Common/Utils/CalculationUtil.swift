@@ -86,4 +86,10 @@ class CalculationUtil {
 	let tradingFee = 0.05
 	return tradingPrice * tradingFee
   }
+  
+  /// 실현손익 계산
+  /// 실현손익 = (매도가 - 매수가)  * 수량
+  func calcPnl(entryPrice: Double, exitPrice: Double, quantity: Double) -> Double {
+	return (exitPrice - entryPrice) * quantity
+  }
 }

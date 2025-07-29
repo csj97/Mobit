@@ -171,65 +171,85 @@ class TradeAskView: UIView, ViewRule {
   
 	// 체결 내역은 말그대로 체결된 내역이 전부 보여야 한다.
 	// 매수 내역은 현재 가지고 있는 매매 기록에 대해서만 나와야한다.
-	if let postStaticTransaction = postStaticTransaction {
-	  if inputAmount > 0, inputAmount <= crypto.staticData.holdingQuantity {
-		
-		if let totalPrice = Double(self.totalPriceTextField.text ?? "0"),
-		   totalPrice < 500 {
-		  self.callBack?(.alert(title: "알림", message: "500원 이상 매수/매도 가능합니다."))
-		  return
-		}
-		
-		let formatter = DateFormatter()
-		formatter.dateFormat = "MM.dd HH:mm"
-		formatter.locale = Locale(identifier: "ko_KR") // 한국 시간 기준
-		let currentTime = Date()
-		let executedDate = formatter.string(from: currentTime)
-		
-		self.callBack?(.alert(title: "알림", message: "매도 되었습니다."))
-		self.initTextFieldValue()
-		
-		let newTransaction: TransactionInfo = TransactionInfo(
-		  marketName: crypto.staticData.marketName,
-		  orderType: .ask,
-		  executedDate: executedDate,
-		  executedPrice: currentPrice,
-		  executedQuantity: self.inputAmount,
-		  executedAmount: currentPrice * self.inputAmount
-		)
-		UserDataManager.userTransactionList?.append(newTransaction)
-		
-		if self.inputAmount < postStaticTransaction.holdingQuantity {
-		  let newHoldingQuantity = postStaticTransaction.holdingQuantity - self.inputAmount
-		  let newBuyAmount = newHoldingQuantity * postStaticTransaction.averageBuyPrice
-		
-		  let newCryptoStaticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
-			marketName: crypto.staticData.marketName,
-			holdingQuantity: newHoldingQuantity,
-			averageBuyPrice: postStaticTransaction.averageBuyPrice,
-			buyAmount: newBuyAmount
-		  )
-		  
-		  // 사용자 계좌 반영
-		  UserDataManager.userInformation?.userAvailableBalance += executedTotalPrice
-		  // 매도 후, 보유하고 있는 코인 매매정보 업데이트
-		  MarketDataServiceUtil.shared.fetchData(
-			data: newCryptoStaticData,
-			currentPrice: currentPrice
-		  )
-		} else {
-		  // 사용자 계좌 반영
-		  UserDataManager.userInformation?.userAvailableBalance += executedTotalPrice
-		  // 전량 매도
-		  UserDataManager.userCryptoList?.remove(at: transactionIndex)
-		}
-		
-		self.updateCryptoData()
-		self.callBack?(.updateHistory)
-		
-	  } else {
-		self.callBack?(.alert(title: "알림", message: "주문 수량을 재설정 해주세요."))
+	guard let postStaticTransaction = postStaticTransaction else { return }
+	
+	if inputAmount > 0, inputAmount <= crypto.staticData.holdingQuantity {
+	  
+	  if let totalPrice = Double(self.totalPriceTextField.text ?? "0"),
+		 totalPrice < 500 {
+		self.callBack?(.alert(title: "알림", message: "500원 이상 매수/매도 가능합니다."))
+		return
 	  }
+	  
+	  let formatter = DateFormatter()
+	  formatter.dateFormat = "MM.dd HH:mm"
+	  formatter.locale = Locale(identifier: "ko_KR") // 한국 시간 기준
+	  let currentTime = Date()
+	  let executedDate = formatter.string(from: currentTime)
+	  
+	  self.callBack?(.alert(title: "알림", message: "매도 되었습니다."))
+	  self.initTextFieldValue()
+	  
+	  let newTransaction: TransactionInfo = TransactionInfo(
+		marketName: crypto.staticData.marketName,
+		orderType: .ask,
+		executedDate: executedDate,
+		executedPrice: currentPrice,
+		executedQuantity: self.inputAmount,
+		executedAmount: currentPrice * self.inputAmount
+	  )
+	  UserDataManager.userTransactionList?.append(newTransaction)
+	  
+	  // 부분 매도
+	  if self.inputAmount < postStaticTransaction.holdingQuantity {
+		let newHoldingQuantity = postStaticTransaction.holdingQuantity - self.inputAmount
+		let newBuyAmount = newHoldingQuantity * postStaticTransaction.averageBuyPrice
+		
+		let newCryptoStaticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
+		  marketName: crypto.staticData.marketName,
+		  holdingQuantity: newHoldingQuantity,
+		  averageBuyPrice: postStaticTransaction.averageBuyPrice,
+		  buyAmount: newBuyAmount
+		)
+		
+		// 사용자 계좌 반영
+		UserDataManager.userInformation?.userAvailableBalance += executedTotalPrice
+		// 매도 후, 보유하고 있는 코인 매매정보 업데이트
+		MarketDataServiceUtil.shared.fetchData(
+		  data: newCryptoStaticData,
+		  currentPrice: currentPrice
+		)
+	  } else {
+		// 전체 매도
+		// 사용자 계좌 반영
+		UserDataManager.userInformation?.userAvailableBalance += executedTotalPrice
+		// 전량 매도
+		UserDataManager.userCryptoList?.remove(at: transactionIndex)
+	  }
+	  
+	  // 실현손익 계산
+	  let pnl = calcUtil.calcPnl(
+		entryPrice: postStaticTransaction.averageBuyPrice,
+		exitPrice: currentPrice,
+		quantity: self.inputAmount
+	  )
+	  
+	  let pnlHistory = UserPNLHistoryModel(
+		marketName: crypto.staticData.marketName,
+		entryPrice: postStaticTransaction.averageBuyPrice,
+		exitPrice: currentPrice,
+		transactionDate: executedDate,
+		orderQuantity: self.inputAmount,
+		pnl: pnl
+	  )
+	  
+	  UserDataManager.userPNLHistory?.append(pnlHistory)
+	  
+	  self.updateCryptoData()
+	  self.callBack?(.updateHistory)
+	  
+	} else {
+	  self.callBack?(.alert(title: "알림", message: "주문 수량을 재설정 해주세요."))
 	}
   }
   

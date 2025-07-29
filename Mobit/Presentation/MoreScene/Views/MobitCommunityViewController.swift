@@ -58,7 +58,7 @@ class MobitCommunityViewController: UIViewController, UIScrollViewDelegate, Mobi
   }
   
   @IBAction func tapOnNavigationBack(_ sender: UIButton) {
-	self.navigationController?.popViewController(animated: true)
+	self.coordinator?.navigationController.popViewController(animated: true)
   }
 }
 

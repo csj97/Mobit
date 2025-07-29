@@ -36,12 +36,27 @@
                             <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             <nil key="highlightedColor"/>
                         </label>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="j8j-qW-aVh">
+                            <rect key="frame" x="343" y="63" width="36" height="36"/>
+                            <constraints>
+                                <constraint firstAttribute="width" constant="36" id="dhc-H7-EaW"/>
+                                <constraint firstAttribute="height" constant="36" id="m2t-Qu-x8r"/>
+                            </constraints>
+                            <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                            <state key="normal" image="list.clipboard" catalog="system"/>
+                            <connections>
+                                <action selector="tapOnPnlButton:" destination="-1" eventType="touchUpInside" id="sxN-kb-Kqh"/>
+                            </connections>
+                        </button>
                     </subviews>
                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     <constraints>
+                        <constraint firstItem="j8j-qW-aVh" firstAttribute="centerY" secondItem="ylj-d0-zZ7" secondAttribute="centerY" id="6Ud-Pw-M57"/>
                         <constraint firstItem="ylj-d0-zZ7" firstAttribute="leading" secondItem="OVA-w0-ApO" secondAttribute="leading" id="GTd-c5-1wD"/>
                         <constraint firstAttribute="trailing" secondItem="ylj-d0-zZ7" secondAttribute="trailing" id="NGF-Xd-zmX"/>
                         <constraint firstAttribute="bottom" secondItem="ylj-d0-zZ7" secondAttribute="bottom" constant="20" id="Z8C-AG-mtd"/>
+                        <constraint firstAttribute="trailing" secondItem="j8j-qW-aVh" secondAttribute="trailing" constant="14" id="jkq-VH-jMp"/>
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Ryi-yk-Mln" userLabel="투자내역 view">
@@ -237,6 +252,7 @@
         </view>
     </objects>
     <resources>
+        <image name="list.clipboard" catalog="system" width="98" height="128"/>
         <namedColor name="line_light_gray">
             <color red="0.79607843137254897" green="0.81176470588235294" blue="0.83137254901960789" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
         </namedColor>

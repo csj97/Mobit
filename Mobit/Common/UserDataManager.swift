@@ -83,7 +83,7 @@ class UserDataManager: NSObject {
 	}
   }
   
-  /// 사용자가 매수한 코인 정보
+  /// 사용자가 매수한 코인 정보 (현재)
   static var userCryptoList: [CryptoTransactionDataModel]? {
     get {
       let defaults = UserDefaults.standard
@@ -100,6 +100,26 @@ class UserDataManager: NSObject {
 	  }
 	  userCryptoListSubject.onNext(newValue)
     }
+  }
+  
+  /// 사용자 거래 내역 (실현손익 P&L 확인 가능한 목록)
+  /// 매수 금액, 매도 금액, 매도 시간, 실현 손익
+  static var userPNLHistory: [UserPNLHistoryModel]? {
+	get {
+	  let defaults = UserDefaults.standard
+	  if let data = defaults.data(forKey: "user-pnl-list") {
+		let decodedData = try? JSONDecoder().decode([UserPNLHistoryModel].self, from: data)
+		return decodedData
+	  }
+	  return []
+	}
+	set {
+	  let defaults = UserDefaults.standard
+	  if let encodedData = try? JSONEncoder().encode(newValue) {
+		defaults.set(encodedData, forKey: "user-pnl-list")
+	  }
+	  // userCryptoListSubject.onNext(newValue)
+	}
   }
   
   static var userInformation: MobitUserInformation? {

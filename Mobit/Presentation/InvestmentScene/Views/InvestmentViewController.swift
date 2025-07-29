@@ -134,6 +134,12 @@ class InvestmentViewController: MobitBaseViewController {
 	  }
 	}
   }
+  
+  /// P&L 버튼 클릭
+  @IBAction func tapOnPnlButton(_ sender: UIButton) {
+	self.coordinator?.pushPnlVC()
+  }
+    
 }
 
 // MARK: Reactor - View
