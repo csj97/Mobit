@@ -137,6 +137,7 @@ class InvestmentViewController: MobitBaseViewController {
   
   /// P&L 버튼 클릭
   @IBAction func tapOnPnlButton(_ sender: UIButton) {
+	MobitAnalyticsUtil.sendScreenEvent(event: .investment_pnl)
 	self.coordinator?.pushPnlVC()
   }
     

@@ -19,6 +19,7 @@ enum MobitAnalyticsScreenEventType: Int, MobitAnalyticsEventRule {
   case exchange_tab
   case investment_tab
   case investment_charge
+  case investment_pnl
   case more_tab
   case trade_screen
   case trade_order
@@ -36,6 +37,7 @@ enum MobitAnalyticsScreenEventType: Int, MobitAnalyticsEventRule {
 	case .exchange_tab: return "exchange_tab"
 	case .investment_tab: return "investment_tab"
 	case .investment_charge: return "investment_charge"
+	case .investment_pnl: return "investment_pnl"
 	case .more_tab: return "more_tab"
 	case .trade_screen: return "trade_screen"
 	case .trade_order: return "trade_order"
@@ -55,6 +57,7 @@ enum MobitAnalyticsScreenEventType: Int, MobitAnalyticsEventRule {
 	case .exchange_tab: return "거래소 화면"
 	case .investment_tab: return "투자내역 화면"
 	case .investment_charge: return "투자내역 충전 버튼"
+	case .investment_pnl: return "투자내역 P&L 버튼"
 	case .more_tab: return "더보기 화면"
 	case .trade_screen: return "트레이드 화면"
 	case .trade_order: return "코인 주문 탭"
