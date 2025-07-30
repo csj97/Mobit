@@ -35,7 +35,6 @@ final class RewardedAdManager: NSObject {	// NSObject 상속 이유 : Obj-C 호�
 		await rewardedAd?.present(from: viewController, userDidEarnRewardHandler: {
 		  Log.info("광고 끝! 돈 충전해줄게요!!")
 		  MobitAnalyticsUtil.sendAdEvent(event: .reward_finish)
-		  self.rewardCompletion?()
 		})
 	  } catch {
 		Log.info("Rewarded ad load error: \(error.localizedDescription)")
@@ -77,6 +76,7 @@ extension RewardedAdManager: FullScreenContentDelegate {
   func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
 	Log.info("Ad dismissed")
 	MobitAnalyticsUtil.sendAdEvent(event: .reward_close)
+	self.rewardCompletion?()
   }
 
   /// 광고 로드 실패

@@ -15,6 +15,7 @@
                 <outlet property="confirmButton" destination="vWT-aP-MGu" id="Aht-Iu-BWQ"/>
                 <outlet property="contentLabel" destination="hh1-03-XZL" id="5pG-45-wnC"/>
                 <outlet property="dimView" destination="BCl-fP-Gln" id="eVq-cA-Fsh"/>
+                <outlet property="dividerView" destination="sXy-FG-jKx" id="9bx-pB-6oL"/>
                 <outlet property="labelStackView" destination="Hza-Le-BAP" id="msC-Jt-BS6"/>
                 <outlet property="titleLabel" destination="Waz-t0-1lM" id="uTe-wL-hYb"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>

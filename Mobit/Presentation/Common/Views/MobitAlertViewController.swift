@@ -19,7 +19,8 @@ class MobitAlertViewController: UIViewController {
   @IBOutlet weak var contentLabel: UILabel!
   @IBOutlet weak var cancelButton: UIButton!
   @IBOutlet weak var confirmButton: UIButton!
-  @IBOutlet weak var dimView: UIView!
+    @IBOutlet weak var dividerView: UIView!
+    @IBOutlet weak var dimView: UIView!
   
   var callBack: ((Bool) -> ())? = nil
   var delegate: MobitAlertDelegate?
@@ -70,8 +71,9 @@ class MobitAlertViewController: UIViewController {
 	  self.cancelButton.isHidden = true
 	}
 	
-	if title == nil {
+	if title == "" {
 	  self.titleLabel.isHidden = true
+	  self.dividerView.isHidden = true
 	} else {
 	  self.titleLabel.text = title
 	}

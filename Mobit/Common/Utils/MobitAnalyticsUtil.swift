@@ -99,7 +99,7 @@ enum MobitAnalyticsRewardEventType: Int, MobitAnalyticsEventRule {
 	case .reward_present: return "광고 시청 시작"
 	case .reward_finish: return "광고 시청 완료"
 	case .reward_failed: return "광고 로드 실패"
-	case .reward_close: return "광고 조기 종료"
+	case .reward_close: return "광고 닫기 버튼"
 	}
   }
 }
