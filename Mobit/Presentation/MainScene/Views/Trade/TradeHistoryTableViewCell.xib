@@ -108,7 +108,7 @@
                         </subviews>
                     </stackView>
                 </subviews>
-                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                 <constraints>
                     <constraint firstItem="Qig-wF-W5S" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="5" id="DrS-DF-Ky0"/>
                     <constraint firstAttribute="trailing" secondItem="Qig-wF-W5S" secondAttribute="trailing" constant="5" id="cEm-GD-RCH"/>
@@ -117,6 +117,7 @@
                 </constraints>
             </tableViewCellContentView>
             <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
+            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
             <connections>
                 <outlet property="marketName" destination="zJJ-PV-LL8" id="9n3-tK-edW"/>
                 <outlet property="orderTypeLabel" destination="GUC-fC-6v7" id="CGR-zF-6Eg"/>

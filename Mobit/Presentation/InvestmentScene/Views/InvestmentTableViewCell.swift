@@ -17,6 +17,7 @@ class InvestmentTableViewCell: UITableViewCell {
   @IBOutlet weak var cryptoBuyPrice: UILabel!
   @IBOutlet weak var cryptoProfitRate: UILabel!
   @IBOutlet weak var bgView: UIView!
+  @IBOutlet weak var dividerView: UIView!
     
   override func awakeFromNib() {
 	super.awakeFromNib()
@@ -29,7 +30,7 @@ class InvestmentTableViewCell: UITableViewCell {
 	// Configure the view for the selected state
   }
   
-  func configure(crypto: CryptoTransactionDataModel) {
+  func configure(crypto: CryptoTransactionDataModel, isLast: Bool) {
 	self.cryptoName.text = "\(crypto.staticData.marketName)"
 	self.cryptoAmount.text = "\(crypto.staticData.holdingQuantity.formatSignificantDigits())"
 	self.cryptoAveragePrice.text = "\(crypto.staticData.averageBuyPrice.formatSignificantDigits(digits: 4))"
@@ -39,15 +40,20 @@ class InvestmentTableViewCell: UITableViewCell {
 	self.cryptoEvalLoss.text = "\(crypto.dynamicData.evaluationProfitLoss.formatSignificantDigits(digits: 2))"
 	self.cryptoProfitRate.text = "\(crypto.dynamicData.profitRate.formatSignificantDigits())"
 	
-	self.bgView.layer.borderWidth = 0.5
-	self.bgView.layer.borderColor = UIColor.mobitColors(.lineLightGray).cgColor
-	
 	if crypto.dynamicData.profitRate > 0 {
-	  self.bgView.backgroundColor = .systemGreen.withAlphaComponent(0.05)
+	  // self.bgView.backgroundColor = .systemGreen.withAlphaComponent(0.05)
+	  self.cryptoProfitRate.textColor = .systemGreen
+	  self.cryptoEvalLoss.textColor = .systemGreen
 	} else if crypto.dynamicData.profitRate == 0 {
-	  self.bgView.backgroundColor = .white
+	  // self.bgView.backgroundColor = .white
+	  self.cryptoProfitRate.textColor = .black
+	  self.cryptoEvalLoss.textColor = .black
 	} else {
-	  self.bgView.backgroundColor = .systemRed.withAlphaComponent(0.05)
+	  self.cryptoProfitRate.textColor = .systemRed
+	  self.cryptoEvalLoss.textColor = .systemRed
+	  // self.bgView.backgroundColor = .systemRed.withAlphaComponent(0.05)
 	}
+	
+	if isLast { self.dividerView.isHidden = true }
   }
 }

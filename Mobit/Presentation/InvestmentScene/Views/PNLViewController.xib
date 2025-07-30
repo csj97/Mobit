@@ -5,7 +5,6 @@
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
-        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -54,20 +53,20 @@
                         <constraint firstItem="47b-Sb-xNJ" firstAttribute="leading" secondItem="haE-u4-9FL" secondAttribute="leading" id="qrT-7y-aux"/>
                     </constraints>
                 </view>
-                <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="5qW-jz-p3q" customClass="SelfSizingTableView" customModule="Mobit" customModuleProvider="target">
-                    <rect key="frame" x="0.0" y="131" width="393" height="687"/>
-                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="none" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="5qW-jz-p3q" customClass="SelfSizingTableView" customModule="Mobit" customModuleProvider="target">
+                    <rect key="frame" x="0.0" y="111" width="393" height="707"/>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                 </tableView>
             </subviews>
             <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
-            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
             <constraints>
                 <constraint firstItem="5qW-jz-p3q" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="ABk-zp-jJO"/>
                 <constraint firstItem="haE-u4-9FL" firstAttribute="trailing" secondItem="fnl-2z-Ty3" secondAttribute="trailing" id="Lbi-bv-O3K"/>
                 <constraint firstItem="haE-u4-9FL" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" id="ORg-Tq-Gx7"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="5qW-jz-p3q" secondAttribute="trailing" id="SNG-bo-T6M"/>
                 <constraint firstItem="haE-u4-9FL" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="T0n-B8-e8U"/>
-                <constraint firstItem="5qW-jz-p3q" firstAttribute="top" secondItem="haE-u4-9FL" secondAttribute="bottom" constant="20" id="Y0A-iR-8qh"/>
+                <constraint firstItem="5qW-jz-p3q" firstAttribute="top" secondItem="haE-u4-9FL" secondAttribute="bottom" id="Y0A-iR-8qh"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="bottom" secondItem="5qW-jz-p3q" secondAttribute="bottom" id="iG5-V3-cp1"/>
             </constraints>
             <point key="canvasLocation" x="13" y="-11"/>
@@ -75,8 +74,5 @@
     </objects>
     <resources>
         <image name="arrow.backward" catalog="system" width="128" height="95"/>
-        <systemColor name="systemBackgroundColor">
-            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-        </systemColor>
     </resources>
 </document>

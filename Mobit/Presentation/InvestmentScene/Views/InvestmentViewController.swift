@@ -197,8 +197,9 @@ extension InvestmentViewController: UITableViewDataSource, UITableViewDelegate {
 		return UITableViewCell()
 	}
 	
+	let isLast = (indexPath.row == self.cryptos.count - 1)
 	let crypto = self.cryptos[indexPath.row]
-	cell.configure(crypto: crypto)
+	cell.configure(crypto: crypto, isLast: isLast)
 	cell.selectionStyle = .none
 	
 	return cell

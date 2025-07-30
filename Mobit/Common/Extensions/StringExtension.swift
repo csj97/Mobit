@@ -10,6 +10,10 @@ import Foundation
 extension String {
   /// 콤마 (기본), origin default true
   func addComma(showOrigin: Bool = true) -> String {
+	guard let doubleValue = Double(self) else {
+	  return self // 숫자로 변환 실패 시 원본 반환
+	}
+	
 	let numberFormatter = NumberFormatter()
 	numberFormatter.numberStyle = .decimal
 	numberFormatter.locale = Locale(identifier: "en_US")
@@ -26,11 +30,11 @@ extension String {
 		let formatter = "#,##0."
 		let zeroCount = Array(repeating: "0", count: decimalCount).joined()
 		numberFormatter.positiveFormat = formatter + zeroCount
+		numberFormatter.negativeFormat = "-\(formatter)\(zeroCount)"
 	  }
 	}
 	
-	let result = numberFormatter.string(from: NSNumber(value: Double(self) ?? 0)) ?? ""
-	return result
+	return numberFormatter.string(from: NSNumber(value: doubleValue)) ?? self
   }
   
   /// 숫자만 거르기

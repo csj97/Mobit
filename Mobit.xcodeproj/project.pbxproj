@@ -132,6 +132,7 @@
 		C17E8E272E1F60D50082E7DC /* FirebaseCMCResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */; };
 		C17EAE382E374515006ACA44 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17EAE372E374515006ACA44 /* Log.swift */; };
 		C18A84F92E2E1C6D00E49070 /* MobitConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18A84F82E2E1C6D00E49070 /* MobitConstants.swift */; };
+		C18B1DCB2E39A36F00E25DCE /* NeumorphicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18B1DCA2E39A36F00E25DCE /* NeumorphicView.swift */; };
 		C18E3FED2E25E8DC00B9E5D0 /* GradientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18E3FEC2E25E8DC00B9E5D0 /* GradientView.swift */; };
 		C18EED4F2D55A82B0038BBF7 /* MobitSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */; };
 		C18EED512D55FE3D0038BBF7 /* TradeBidView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED502D55FE3D0038BBF7 /* TradeBidView.swift */; };
@@ -308,6 +309,7 @@
 		C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseCMCResponse.swift; sourceTree = "<group>"; };
 		C17EAE372E374515006ACA44 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		C18A84F82E2E1C6D00E49070 /* MobitConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitConstants.swift; sourceTree = "<group>"; };
+		C18B1DCA2E39A36F00E25DCE /* NeumorphicView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeumorphicView.swift; sourceTree = "<group>"; };
 		C18E3FEC2E25E8DC00B9E5D0 /* GradientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientView.swift; sourceTree = "<group>"; };
 		C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitSegmentedControl.swift; sourceTree = "<group>"; };
 		C18EED502D55FE3D0038BBF7 /* TradeBidView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeBidView.swift; sourceTree = "<group>"; };
@@ -847,6 +849,7 @@
 				C17BB4172E2F27A400BDAA0F /* MobitBaseViewController.swift */,
 				C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */,
 				310865052E1EC3F40089D67A /* NeumorphicButton.swift */,
+				C18B1DCA2E39A36F00E25DCE /* NeumorphicView.swift */,
 				C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */,
 				36E771922D75AF1E00739CDE /* MobitTextField.swift */,
 				C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */,
@@ -1172,6 +1175,7 @@
 				99C20AB22C4F6A04009276E7 /* Environment.swift in Sources */,
 				31D6444A2C72587B00C7F96D /* TradeReactor.swift in Sources */,
 				C19ED6E52DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift in Sources */,
+				C18B1DCB2E39A36F00E25DCE /* NeumorphicView.swift in Sources */,
 				C1B8F3BF2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift in Sources */,
 				3133E22A2C3E2355000D4B1A /* SceneDelegate.swift in Sources */,
 				31D6444F2C72595000C7F96D /* CryptoDetailRepository.swift in Sources */,

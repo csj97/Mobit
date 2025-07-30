@@ -12,9 +12,9 @@ import UIKit
 class MoreViewController: MobitBaseViewController {
   
   @IBOutlet weak var naviBar: UIView!
-  @IBOutlet weak var chargeMoneyButton: NeumorphicButton!
-  @IBOutlet weak var userNoticeButton: NeumorphicButton!
-  @IBOutlet weak var investInitButton: NeumorphicButton!
+  @IBOutlet weak var chargeMoneyButton: UIButton!
+  @IBOutlet weak var userNoticeButton: UIButton!
+  @IBOutlet weak var investInitButton: UIButton!
   @IBOutlet weak var versionLabel: UILabel!
   
   weak var coordinator: MoreCoordinator?
@@ -32,14 +32,14 @@ class MoreViewController: MobitBaseViewController {
   
   func setUI() {
 	self.navigationController?.navigationBar.isHidden = true
-    self.naviBar.layer.applyShadow(color: .lightGray, alpha: 0.3, x: 0, y: 3, blur: 12)
+	self.naviBar.layer.applyShadow(color: .lightGray, alpha: 0.3, x: 0, y: 10, blur: 20)
   }
   
   func setData() {
 	self.updateVersionLabel()
   }
   
-  @IBAction func tapOnChargeMoney(_ sender: NeumorphicButton) {
+  @IBAction func tapOnChargeMoney(_ sender: UIButton) {
 	
 	MobitAnalyticsUtil.sendScreenEvent(event: .more_charge)
 	
@@ -60,7 +60,7 @@ class MoreViewController: MobitBaseViewController {
 	}
   }
   
-  @IBAction func tapOnUserNoticeButton(_ sender: NeumorphicButton) {
+  @IBAction func tapOnUserNoticeButton(_ sender: UIButton) {
 	let noticeContent = """
    사용자는 이 앱에서 실제 금전적인 자산을 입금하거나 출금할 수 없으며,
    모든 거래 및 수익/손실은 가상의 수치일 뿐, 
@@ -84,12 +84,12 @@ class MoreViewController: MobitBaseViewController {
 	)
   }
   
-  @IBAction func tapOnInvestInitButton(_ sender: NeumorphicButton) {
+  @IBAction func tapOnInvestInitButton(_ sender: UIButton) {
 	
 	let noticeContent = """
-	투자하신 거래 내역이 모두 초기화되며,
-	보유 금액도 0원이 됩니다.
-	"""
+  투자하신 거래 내역이 모두 초기화되며,
+  보유 금액도 0원이 됩니다.
+ """
 	
 	MobitAnalyticsUtil.sendScreenEvent(event: . more_init_data)
 	
@@ -111,21 +111,21 @@ class MoreViewController: MobitBaseViewController {
   }
   
   /// MOBIT 이용자 커뮤니티
-  @IBAction func tapOnCommunity(_ sender: NeumorphicButton) {
+  @IBAction func tapOnCommunity(_ sender: UIButton) {
 	self.coordinator?.pushMobitCommunityViewController()
   }
   
   /// 현재 사용 중인 앱 버전
   func updateVersionLabel() {
 	let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
-    let versionParts = currentVersion.split(separator: ".")
-    var fixedVersion = currentVersion
-    
-    if versionParts.count == 2 {
-        // 1.2 → 1.2.0 으로 변환
-        fixedVersion = currentVersion + ".0"
-    }
-    
-    self.versionLabel.text = "앱 버전: \(fixedVersion)"
+	let versionParts = currentVersion.split(separator: ".")
+	var fixedVersion = currentVersion
+	
+	if versionParts.count == 2 {
+	  // 1.2 → 1.2.0 으로 변환
+	  fixedVersion = currentVersion + ".0"
+	}
+	
+	self.versionLabel.text = "앱 버전: \(fixedVersion)"
   }
 }

@@ -38,7 +38,8 @@ class PNLViewController: MobitBaseViewController {
   }
   
   func setData() {
-	self.pnlHistoryDatas = UserDataManager.userPNLHistory ?? []
+	// 최신순을 위해 reversed
+	self.pnlHistoryDatas = UserDataManager.userPNLHistory?.reversed() ?? []
 	self.pnlTableView.reloadData()
   }
   
