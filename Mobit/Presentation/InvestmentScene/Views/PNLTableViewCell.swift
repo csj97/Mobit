@@ -30,8 +30,8 @@ class PNLTableViewCell: UITableViewCell {
 	self.marketNameLabel.text = pnlHistory.marketName
 	self.pnlLabel.text = "\(pnlHistory.pnl.formatSignificantDigits(digits: 2))".addComma() + " ₩"
 	self.quantityLabel.text = "\(pnlHistory.orderQuantity.formatSignificantDigits(digits: 2))".addComma()
-	self.entryPriceLabel.text = "\(pnlHistory.entryPrice.formatSignificantDigits(digits: 2))".addComma() + " ₩"
-	self.exitPriceLabel.text = "\(pnlHistory.exitPrice.formatSignificantDigits(digits: 2))".addComma() + " ₩"
+	self.entryPriceLabel.text = "\(pnlHistory.entryPrice.formatSignificantDigits(digits: 2))".addComma()
+	self.exitPriceLabel.text = "\(pnlHistory.exitPrice.formatSignificantDigits(digits: 2))".addComma()
 	self.transactionDateLabel.text = "\(pnlHistory.transactionDate)"
 	
 	if pnlHistory.pnl > 0 {
