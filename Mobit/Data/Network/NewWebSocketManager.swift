@@ -36,7 +36,7 @@ class NewWebSocketManager: WebSocketDelegate {
     attributes: .concurrent
   )
   private var socket: WebSocket!
-  private var isConnected = false
+  private(set) var isConnected = false
   var socketType: SocketType = .ticker
   
   convenience init(socketType: SocketType) {

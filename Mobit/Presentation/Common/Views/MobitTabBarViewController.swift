@@ -85,6 +85,12 @@ class MobitTabBarViewController: UIViewController {
 	newVC.didMove(toParent: self)
 	currentViewController = newVC
   }
+  
+  func controlSocket(appState: AppState) {
+	if let vc = (currentViewController as? UINavigationController)?.visibleViewController as? SocketControllable {
+	  appState == .foreground ? vc.resumeSocket() : vc.pauseSocket()
+	}
+  }
 }
 
 extension CALayer {

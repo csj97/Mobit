@@ -343,5 +343,7 @@ extension TradeViewController: SocketControllable {
 	
 	tickerSocketManager.reconnectIfNeeded()
 	orderBookSocketManager.reconnectIfNeeded()
+	self.reactor.action.onNext(.connectTickerSocket)
+	self.reactor.action.onNext(.connectOrderBookSocket)
   }
 }

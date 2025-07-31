@@ -29,8 +29,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 	  self.appCoordinator = AppCoordinator(navigationController: navigationController)
 	  self.appCoordinator?.start()
 	}
-    
-    
   }
 
   func sceneDidDisconnect(_ scene: UIScene) {

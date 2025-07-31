@@ -292,6 +292,8 @@ class MainViewController: MobitBaseViewController {
   }
   
   @objc private func tapOnSortButton(_ sender: UIButton) {
+	self.resumeSocket()
+	
     // 직전 선택 버튼 해제
     if let prevSortedButton = self.prevSortedButton,
        prevSortedButton !== sender {
@@ -601,21 +603,13 @@ extension MainViewController: UISearchBarDelegate {
 // MARK: - WebSocket Pause & Resume
 extension MainViewController: SocketControllable {
   func pauseSocket() {
-	guard let socketManager = self.reactor.socketManager else {
-	  self.reactor.socketManager?.disconnect()
-	  return
-	}
-	
-	socketManager.disconnect(manual: false)
+	self.reactor.socketManager?.disconnect()
+	self.reactor.socketManager?.disconnect(manual: false)
   }
   
   func resumeSocket() {
-	guard let socketManager = self.reactor.socketManager
-	else {
-	  self.reactor.action.onNext(.loadCrypto(selectedTab: self.selectedTab))
-	  return
-	}
-	
-	socketManager.reconnectIfNeeded()
+	guard self.reactor.socketManager?.isConnected == false else { return }
+	self.reactor.socketManager?.reconnectIfNeeded()
+	self.reactor.action.onNext(.loadCrypto(selectedTab: self.selectedTab))
   }
 }
