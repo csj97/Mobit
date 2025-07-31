@@ -122,7 +122,7 @@ class MainViewController: MobitBaseViewController {
   
   let noFavoriteLabel: UILabel = UILabel().then {
 	$0.text = "즐겨찾기 설정된 코인이 없습니다."
-	$0.font = UIFont(name: "esamanru-OTF-Medium", size: 14)
+	$0.font = UIFont.systemFont(ofSize: 14, weight: .regular)
 	$0.textAlignment = .center
 	$0.textColor = .black
   }
@@ -452,7 +452,7 @@ class MainViewController: MobitBaseViewController {
 
 		  flex.addItem(self.noFavoriteView)
 			.position(.absolute)
-			.top(0).bottom(0).left(0).right(0)
+			.top(0).bottom(80).left(0).right(0)
 			.justifyContent(.center)
 			.alignItems(.center)
 			.backgroundColor(.white)
