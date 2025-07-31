@@ -10,7 +10,8 @@ import UIKit
 class PNLViewController: MobitBaseViewController {
   
   @IBOutlet weak var pnlTableView: SelfSizingTableView!
-  
+    @IBOutlet weak var noResultView: UIView!
+    
   weak var coordinator: PNLCoordinator?
   weak var delegate: MainCoordinatorDelegate?
 
@@ -39,8 +40,13 @@ class PNLViewController: MobitBaseViewController {
   
   func setData() {
 	// 최신순을 위해 reversed
-	self.pnlHistoryDatas = UserDataManager.userPNLHistory?.reversed() ?? []
-	self.pnlTableView.reloadData()
+	if let datas = UserDataManager.userPNLHistory, datas.count > 0 {
+	  self.noResultView.isHidden = true
+	  self.pnlHistoryDatas = datas.reversed()
+	  self.pnlTableView.reloadData()
+	} else {
+	  self.noResultView.isHidden = false
+	}
   }
   
   @IBAction func tapOnBackButton(_ sender: UIButton) {

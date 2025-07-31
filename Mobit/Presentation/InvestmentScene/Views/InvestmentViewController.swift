@@ -104,11 +104,11 @@ class InvestmentViewController: MobitBaseViewController {
 	self.totalUserBalance.text = totalUserBalanceString + " 원"
 	self.totalProfitRate.text = totalProfitRateString + " %"
 	if totalProfitRate < 0 {
-	  self.totalProfitRate.textColor = .blue
+	  self.totalProfitRate.textColor = .systemBlue
 	} else if totalProfitRate == 0 {
 	  self.totalProfitRate.textColor = .black
 	} else {
-	  self.totalProfitRate.textColor = .red
+	  self.totalProfitRate.textColor = .systemRed
 	}
 	self.totalEvalProfitLoss.text = totalEvalProfitLossString + " 원"
 	self.totalBuyPrice.text = totalBuyPriceString + " 원"

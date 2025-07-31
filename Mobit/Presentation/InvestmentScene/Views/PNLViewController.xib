@@ -5,11 +5,13 @@
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="PNLViewController" customModule="Mobit" customModuleProvider="target">
             <connections>
+                <outlet property="noResultView" destination="rD0-el-fTk" id="iFr-yy-QMs"/>
                 <outlet property="pnlTableView" destination="5qW-jz-p3q" id="wq4-m5-vyY"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
@@ -57,22 +59,45 @@
                     <rect key="frame" x="0.0" y="111" width="393" height="707"/>
                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                 </tableView>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rD0-el-fTk" userLabel="NO RESULT VIEW">
+                    <rect key="frame" x="0.0" y="111" width="393" height="707"/>
+                    <subviews>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="실현손익 내역이 없습니다." textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Kw2-SY-gKi">
+                            <rect key="frame" x="124" y="345" width="145" height="17"/>
+                            <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                            <color key="textColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                    </subviews>
+                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    <constraints>
+                        <constraint firstItem="Kw2-SY-gKi" firstAttribute="centerX" secondItem="rD0-el-fTk" secondAttribute="centerX" id="9XH-DB-cld"/>
+                        <constraint firstItem="Kw2-SY-gKi" firstAttribute="centerY" secondItem="rD0-el-fTk" secondAttribute="centerY" id="GXj-k2-8Oy"/>
+                    </constraints>
+                </view>
             </subviews>
             <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
             <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
             <constraints>
                 <constraint firstItem="5qW-jz-p3q" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="ABk-zp-jJO"/>
+                <constraint firstItem="rD0-el-fTk" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="DuY-dQ-DuQ"/>
                 <constraint firstItem="haE-u4-9FL" firstAttribute="trailing" secondItem="fnl-2z-Ty3" secondAttribute="trailing" id="Lbi-bv-O3K"/>
                 <constraint firstItem="haE-u4-9FL" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" id="ORg-Tq-Gx7"/>
+                <constraint firstItem="rD0-el-fTk" firstAttribute="trailing" secondItem="fnl-2z-Ty3" secondAttribute="trailing" id="RnD-6J-yfi"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="5qW-jz-p3q" secondAttribute="trailing" id="SNG-bo-T6M"/>
                 <constraint firstItem="haE-u4-9FL" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="T0n-B8-e8U"/>
                 <constraint firstItem="5qW-jz-p3q" firstAttribute="top" secondItem="haE-u4-9FL" secondAttribute="bottom" id="Y0A-iR-8qh"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="bottom" secondItem="5qW-jz-p3q" secondAttribute="bottom" id="iG5-V3-cp1"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="bottom" secondItem="rD0-el-fTk" secondAttribute="bottom" id="juy-XT-GrU"/>
+                <constraint firstItem="rD0-el-fTk" firstAttribute="top" secondItem="haE-u4-9FL" secondAttribute="bottom" id="k1R-rm-aeP"/>
             </constraints>
             <point key="canvasLocation" x="13" y="-11"/>
         </view>
     </objects>
     <resources>
         <image name="arrow.backward" catalog="system" width="128" height="95"/>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
     </resources>
 </document>

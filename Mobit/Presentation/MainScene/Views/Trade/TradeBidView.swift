@@ -203,8 +203,8 @@ class TradeBidView: UIView, ViewRule {
 	  
 	  // 기존 매수 내역의 (평균매수가, 매수금액, 보유수량)
 	  let averageBuyPrice = calcUtil.calcAverBuyPrice(for: marketName)
-	  let buyAmount = calcUtil.calcBuyAmount()
-	  let holdingQuantity = calcUtil.calcHoldingQuantity()
+	  let buyAmount = calcUtil.cumulCalcBuyAmount()
+	  let holdingQuantity = calcUtil.cumulCalcHoldingQuantity()
 	  let newBuyAmount = floor(currentPrice * self.inputAmount)
 	  
 	  // 새 정적 데이터

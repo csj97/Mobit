@@ -41,17 +41,17 @@ class InvestmentTableViewCell: UITableViewCell {
 	self.cryptoProfitRate.text = "\(crypto.dynamicData.profitRate.formatSignificantDigits(digits: 2))" + " %"
 	
 	if crypto.dynamicData.profitRate > 0 {
-	  // self.bgView.backgroundColor = .systemGreen.withAlphaComponent(0.05)
-	  self.cryptoProfitRate.textColor = .systemGreen
-	  self.cryptoEvalLoss.textColor = .systemGreen
+	  // +
+	  self.cryptoProfitRate.textColor = .systemRed
+	  self.cryptoEvalLoss.textColor = .systemRed
 	} else if crypto.dynamicData.profitRate == 0 {
-	  // self.bgView.backgroundColor = .white
+	  // 보합
 	  self.cryptoProfitRate.textColor = .black
 	  self.cryptoEvalLoss.textColor = .black
 	} else {
-	  self.cryptoProfitRate.textColor = .systemRed
-	  self.cryptoEvalLoss.textColor = .systemRed
-	  // self.bgView.backgroundColor = .systemRed.withAlphaComponent(0.05)
+	  // -
+	  self.cryptoProfitRate.textColor = .systemBlue
+	  self.cryptoEvalLoss.textColor = .systemBlue
 	}
 	
 	if isLast { self.dividerView.isHidden = true }

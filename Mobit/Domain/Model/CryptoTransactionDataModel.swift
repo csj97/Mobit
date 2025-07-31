@@ -45,7 +45,7 @@ struct ValidTransactionInfo: Codable, Equatable {
   // 매수 & 매도 +- 계산해서 토탈 0이 되면 통으로 삭제
   struct Transaction: Codable, Equatable {
 	let orderType: OrderType
-	let quantity: Double
+	var quantity: Double
 	let buyPrice: Double
   }
 }
@@ -73,6 +73,6 @@ extension ValidTransactionInfo {
   }
   
   var isFullySoldOut: Bool {
-	totalHoldingQuantity == 0
+	abs(totalHoldingQuantity) < 0.000001
   }
 }

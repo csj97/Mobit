@@ -144,8 +144,9 @@ class TradeAskView: UIView, ViewRule {
 	self.endEditing(true)
 	
 	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
+		  let marketName = self.reactor?.selectCrypto.market,
 		  let crypto = UserDataManager.userCryptoList?.compactMap({ $0 }).first(
-			where: { $0.staticData.marketName == self.reactor?.selectCrypto.market }
+			where: { $0.staticData.marketName == marketName }
 		  )
 	else {
 	  self.callBack?(.alert(title: "알림", message: "매도 수량을 확인 해주세요."))
@@ -199,6 +200,19 @@ class TradeAskView: UIView, ViewRule {
 		executedAmount: currentPrice * self.inputAmount
 	  )
 	  UserDataManager.userTransactionList?.append(newTransaction)
+	  
+	  let newValidTransactionData = ValidTransactionInfo.Transaction(
+		orderType: .ask,
+		quantity: self.inputAmount,
+		buyPrice: currentPrice
+	  )
+	  
+	  MarketDataServiceUtil.shared.addValidTransactionData(
+		for: marketName,
+		orderType: .ask,
+		postValidTransactionList: UserDataManager.userValidTransactionList,
+		newValidTransactionData: newValidTransactionData
+	  )
 	  
 	  // 부분 매도
 	  if self.inputAmount < postStaticTransaction.holdingQuantity {

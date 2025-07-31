@@ -35,9 +35,9 @@ class PNLTableViewCell: UITableViewCell {
 	self.transactionDateLabel.text = "\(pnlHistory.transactionDate)"
 	
 	if pnlHistory.pnl > 0 {
-	  self.pnlLabel.textColor = .systemGreen
-	} else if pnlHistory.pnl < 0 {
 	  self.pnlLabel.textColor = .systemRed
+	} else if pnlHistory.pnl < 0 {
+	  self.pnlLabel.textColor = .systemBlue
 	} else {
 	  self.pnlLabel.textColor = .black
 	}
