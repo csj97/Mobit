@@ -587,7 +587,7 @@ extension MainViewController: UISearchBarDelegate {
 	if searchText.isEmpty {
 	  self.applySnapshot(cellInfos: cellInfos)
 	} else {
-	  let filteredArray = cellInfos.filter { $0.cryptoName.contains(searchText) }
+	  let filteredArray = cellInfos.filter { $0.cryptoName.contains(searchText) || $0.market.contains(searchText) }
 	  self.applySnapshot(cellInfos: filteredArray)
 	}
   }
