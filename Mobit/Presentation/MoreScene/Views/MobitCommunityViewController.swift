@@ -51,9 +51,12 @@ class MobitCommunityViewController: UIViewController, UIScrollViewDelegate, Mobi
   }
   
   private func loadLocalHTML() {
-	if let url = Bundle.main.url(forResource: "index", withExtension: "html") {
-//	  mobitWebView.loadFileURL(url, allowingReadAccessTo: url)
-	  mobitWebView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
+//	if let url = Bundle.main.url(forResource: "index", withExtension: "html") {
+//	  mobitWebView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
+//	}
+	if let url = URL(string: "https://csj97.github.io/Mobit/") {
+	  let request = URLRequest(url: url)
+	  mobitWebView.load(request)
 	}
   }
   
@@ -89,6 +92,9 @@ extension MobitCommunityViewController: WKScriptMessageHandler {
 		self.show(alertType: .onlyConfirm, title: "안내", content: "개발자에게 성공적으로 전달되었습니다.", callBack: nil)
 	  case "failure":
 		self.show(alertType: .onlyConfirm, title: "안내", content: "등록에 실패하였습니다.", callBack: nil)
+	  case "log":
+		let content = bridge["content"] as? String
+		self.show(alertType: .onlyConfirm, title: "안내", content: content ?? "알 수 없는 에러 발생", callBack: nil)
 	  default:
 		self.show(alertType: .onlyConfirm, title: "안내", content: "알 수 없는 에러 발생", callBack: nil)
 	  }
@@ -109,6 +115,10 @@ extension MobitCommunityViewController: WKNavigationDelegate {
   
   func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
 	Log.info("🌐 HTML 로딩 완료")
+	
+	let uuid = UIDevice.current.identifierForVendor?.uuidString ?? "unknown"
+	let jsCode = "window.setDeviceUUID('\(uuid)');"
+	webView.evaluateJavaScript(jsCode, completionHandler: nil)
 	
 	// JavaScript 환경 확인
 	webView.evaluateJavaScript("typeof window.webkit !== 'undefined'") { (result, error) in
