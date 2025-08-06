@@ -16,6 +16,12 @@ class PNLTableViewCell: UITableViewCell {
   @IBOutlet weak var exitPriceLabel: UILabel!
   @IBOutlet weak var transactionDateLabel: UILabel!
   
+  var shareCallBack: (() -> ())? = nil
+  
+  deinit {
+	print("deinit : " + String(describing: type(of: self)))
+  }
+  
   override func awakeFromNib() {
 	super.awakeFromNib()
 	// Initialization code
@@ -43,5 +49,9 @@ class PNLTableViewCell: UITableViewCell {
 	}
 	
 	self.layer.cornerRadius = 8
+  }
+  
+  @IBAction func tapOnShareButton(_ sender: UIButton) {
+	self.shareCallBack?()
   }
 }

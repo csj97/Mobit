@@ -146,6 +146,8 @@
 		C19ED6E72DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E62DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift */; };
 		C19ED6E92DE31648001ACCF9 /* TradeInformationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E82DE31648001ACCF9 /* TradeInformationView.swift */; };
 		C19ED6EB2DE31653001ACCF9 /* TradeInformationView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C19ED6EA2DE31653001ACCF9 /* TradeInformationView.xib */; };
+		C19F77972E41A2EA00863159 /* PNLShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19F77962E41A2EA00863159 /* PNLShareView.swift */; };
+		C19F77992E41A2F300863159 /* PNLShareView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C19F77982E41A2F300863159 /* PNLShareView.xib */; };
 		C1AEA1AF2D66E982001E2A9E /* CalculationUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */; };
 		C1B8F3BC2E272E6800C46734 /* SelfSizingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */; };
 		C1B8F3BF2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */; };
@@ -323,6 +325,8 @@
 		C19ED6E62DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoQuoteResponseDTO.swift; sourceTree = "<group>"; };
 		C19ED6E82DE31648001ACCF9 /* TradeInformationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeInformationView.swift; sourceTree = "<group>"; };
 		C19ED6EA2DE31653001ACCF9 /* TradeInformationView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeInformationView.xib; sourceTree = "<group>"; };
+		C19F77962E41A2EA00863159 /* PNLShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PNLShareView.swift; sourceTree = "<group>"; };
+		C19F77982E41A2F300863159 /* PNLShareView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PNLShareView.xib; sourceTree = "<group>"; };
 		C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationUtil.swift; sourceTree = "<group>"; };
 		C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfSizingViews.swift; sourceTree = "<group>"; };
 		C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitNeumorphicSegmentedControl.swift; sourceTree = "<group>"; };
@@ -640,6 +644,8 @@
 				C16FAE6C2E38B4B9003C5AD1 /* PNLViewController.xib */,
 				C16FAE6F2E38B530003C5AD1 /* PNLTableViewCell.swift */,
 				C16FAE702E38B530003C5AD1 /* PNLTableViewCell.xib */,
+				C19F77962E41A2EA00863159 /* PNLShareView.swift */,
+				C19F77982E41A2F300863159 /* PNLShareView.xib */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1040,6 +1046,7 @@
 				31B742082D5A3BC400706340 /* tradingview.html in Resources */,
 				3133E2342C3E2357000D4B1A /* LaunchScreen.storyboard in Resources */,
 				5F657F792E06B0E80065A029 /* MobitAPIKeys.xcconfig in Resources */,
+				C19F77992E41A2F300863159 /* PNLShareView.xib in Resources */,
 				3133E2312C3E2357000D4B1A /* Assets.xcassets in Resources */,
 				C18EED532D55FE450038BBF7 /* TradeBidView.xib in Resources */,
 				31F33FD02DDA1C09003D533A /* MoreViewController.xib in Resources */,
@@ -1166,6 +1173,7 @@
 				3128610A2DFE7FFC00541A6A /* MobitTabBarViewController.swift in Sources */,
 				C1CD3A652E28C8CE0049699B /* MobitCommunityCoordinator.swift in Sources */,
 				31F33FD32DDA1D4C003D533A /* MobitAlertViewController.swift in Sources */,
+				C19F77972E41A2EA00863159 /* PNLShareView.swift in Sources */,
 				C16FAE742E38BC54003C5AD1 /* PNLCoordinator.swift in Sources */,
 				31B742032D5A2CAC00706340 /* ViewExtension.swift in Sources */,
 				31B742122D5B967F00706340 /* TradeHistoryInformation.swift in Sources */,
