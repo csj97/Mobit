@@ -162,7 +162,7 @@
                                 </constraints>
                             </stackView>
                         </subviews>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="PhI-Cj-ece" secondAttribute="bottom" constant="15" id="7BA-OX-N3f"/>
                             <constraint firstItem="7Xe-NN-YW5" firstAttribute="top" secondItem="iHx-qk-Ur0" secondAttribute="top" constant="20" id="Ada-76-zzo"/>
@@ -213,9 +213,6 @@
     <resources>
         <systemColor name="opaqueSeparatorColor">
             <color red="0.77647058820000003" green="0.77647058820000003" blue="0.7843137255" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-        </systemColor>
-        <systemColor name="systemBackgroundColor">
-            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
     </resources>
 </document>

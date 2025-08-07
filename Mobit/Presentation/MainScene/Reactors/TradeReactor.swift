@@ -18,15 +18,18 @@ class TradeReactor: Reactor {
 	case trade, chart, info
   }
   
-  let selectCrypto: CryptoCellInfo
+  // ReactorKit 외부에서 mutation을 주입하려면 이게 필요
+  private let mutationSubject = PublishSubject<TradeMutation>()
+  private var firebaseDB = Database.database().reference()
   private let cryptoDetailUseCase: CryptoDetailUseCase
   private let disposeBag = DisposeBag()
   
+  let selectCrypto: CryptoCellInfo
   let initialState: TradeState = TradeState()
   var tickerSocketManager: NewWebSocketManager? = nil
   var orderBookSocketManager: NewWebSocketManager? = nil
   var cmcInformation: FirebaseCMCResponse
-  private var firebaseDB = Database.database().reference()
+  
   
   init(
     selectCrypto: CryptoCellInfo,
@@ -36,6 +39,11 @@ class TradeReactor: Reactor {
     self.selectCrypto = selectCrypto
 	self.cmcInformation = cmcInformation
     self.cryptoDetailUseCase = cryptoDetailUseCase
+	
+	UserDataManager.userCryptoListObservable
+	  .map { TradeMutation.setUserCrypto($0) }
+	  .bind(to: mutationSubject)
+	  .disposed(by: disposeBag)
   }
 }
 
@@ -45,6 +53,7 @@ extension TradeReactor {
     case connectOrderBookSocket
 	case getCryptoInformation
 	case setSelectedWholeTab(selectedWholeTab: SelectedWholeTab)
+	case loadTransactions
   }
   
   enum TradeMutation {
@@ -52,6 +61,7 @@ extension TradeReactor {
     case setOrderBookInfo(obTicker: Orderbook)
 	case setCryptoInformation(cryptoQuoteResponse: CryptoQuoteResponse)
 	case setSelectedWholeTab(tab: SelectedWholeTab)
+	case setUserCrypto([CryptoTransactionDataModel]?)
   }
   
   struct TradeState {
@@ -59,6 +69,8 @@ extension TradeReactor {
     var obTicker: Orderbook?
 	var cryptoQuotesInfo: CryptoQuoteResponse? = nil
 	var selectedWholeTab: SelectedWholeTab = .trade
+	var cryptoTransactionDatas: [CryptoTransactionDataModel] = []
+
   }
 }
 
@@ -77,11 +89,13 @@ extension TradeReactor {
 	  
 	case .setSelectedWholeTab(let tab):
 	  return self.setSelectedWholeTab(tab: tab)
+	  
+	case .loadTransactions:
+	  return .just(.setUserCrypto(UserDataManager.userCryptoList))
     }
   }
   
-  func reduce(state: TradeState,
-              mutation: TradeMutation) -> TradeState {
+  func reduce(state: TradeState, mutation: TradeMutation) -> TradeState {
     var newState = state
     
     switch mutation {
@@ -93,6 +107,8 @@ extension TradeReactor {
 	  newState.cryptoQuotesInfo = cryptoQuotesResponse
 	case .setSelectedWholeTab(let tab):
 	  newState.selectedWholeTab = tab
+	case .setUserCrypto(let cryptoTransactionDatas):
+	  newState.cryptoTransactionDatas = cryptoTransactionDatas ?? []
     }
     
     return newState
@@ -239,4 +255,10 @@ extension TradeReactor {
     return transformMarket
   }
   
+  func transform(mutation: Observable<TradeMutation>) -> Observable<TradeMutation> {
+	return Observable.merge(
+	  mutation,                      // 원래 액션 기반의 내부 스트림
+	  mutationSubject.asObservable() // 외부 이벤트 기반의 스트림
+	)
+  }
 }

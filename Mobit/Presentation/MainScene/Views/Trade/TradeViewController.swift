@@ -47,6 +47,8 @@ class TradeViewController: MobitBaseViewController {
   var arrowImage: UIImage = UIImage()
   var arrowColor: UIColor = .clear
   
+  var cryptoData: [CryptoTransactionDataModel] = []
+  
   init(reactor: TradeReactor) {
 	self.reactor = reactor
 	super.init(nibName: nil, bundle: nil)
@@ -231,6 +233,11 @@ class TradeViewController: MobitBaseViewController {
 	self.cryptoChangedPrice.textColor = tradeColor
 	self.cryptoUpDownArrowImageView.image = arrowImage
 	self.cryptoUpDownArrowImageView.tintColor = arrowColor
+	
+	self.fetchUserCryptoList(
+	  marketName: selectCrypto.market,
+	  currentPrice: tradePrice
+	)
   }
   
   func setFavoriteButton() {
@@ -292,8 +299,34 @@ class TradeViewController: MobitBaseViewController {
 	self.present(alert, animated: true, completion: nil)
   }
   
-  func setSegmentedColor(color: UIColor) {
+  /// crypto socket 업데이트 될 때, 매수 목록 fetch
+  func fetchUserCryptoList(
+	marketName: String,
+	currentPrice: Double?
+  ) {
+	guard let updateCryptoIndex = UserDataManager.userCryptoList?
+	  .firstIndex(where: { $0.staticData.marketName == marketName }),
+		  let currentPrice = currentPrice,
+		  let averageBuyPrice = UserDataManager.userCryptoList?[updateCryptoIndex].staticData.averageBuyPrice,
+		  let holdingQuantity = UserDataManager.userCryptoList?[updateCryptoIndex].staticData.holdingQuantity
+	else { return }
 	
+	UserDataManager.userCryptoList?[updateCryptoIndex].dynamicData.profitRate = MarketDataServiceUtil.shared.fetchProfitRate(
+	  for: marketName,
+	  currentPrice: currentPrice,
+	  averageBuyPrice: averageBuyPrice
+	)
+	UserDataManager.userCryptoList?[updateCryptoIndex].dynamicData.evaluationPrice = MarketDataServiceUtil.shared.fetchEvalPrice(
+	  for: marketName,
+	  currentPrice: currentPrice,
+	  holdingQuantity: holdingQuantity
+	)
+	UserDataManager.userCryptoList?[updateCryptoIndex].dynamicData.evaluationProfitLoss = MarketDataServiceUtil.shared.fetchEvalProfitLoss(
+	  for: marketName,
+	  currentPrice: currentPrice,
+	  holdingQuantity: holdingQuantity,
+	  averageBuyPrice: averageBuyPrice
+	)
   }
 }
 

@@ -123,7 +123,7 @@ extension PNLViewController: UITableViewDelegate, UITableViewDataSource {
 * 코인명 : \(pnlHistory.marketName)
 * 수익률 : \(roi) 
 * P&L  : \(pnl)
-* 매수가 : \(entryPrice)
+* 매수평균가 : \(entryPrice)
 * 매도가 : \(exitPrice)
 * 거래일 : \(pnlHistory.transactionDate)
 """

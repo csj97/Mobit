@@ -13,22 +13,26 @@ import SkeletonView
 class TradeOrderView: UIView, ViewRule {
   
   @IBOutlet weak var orderbookTableView: SelfSizingTableView!
-  //  @IBOutlet weak var segmentedControl: MobitSegmentedControl!
   @IBOutlet weak var segmentedControl: NeumorphicSegmentedControl!
   @IBOutlet weak var segmentedContainerView: UIView!
-  
+  @IBOutlet weak var cryptoAveragePrice: UILabel!
+  @IBOutlet weak var cryptoEvalPrice: UILabel!
+  @IBOutlet weak var cryptoEvalLoss: UILabel!
+  @IBOutlet weak var cryptoProfitRate: UILabel!
+  @IBOutlet weak var investLiveView: UIView!
+    
   var disposeBag = DisposeBag()
   var dataSource: UITableViewDiffableDataSource<TableViewSection, OrderUnit>?
   var prevClosingPrice: Double? = nil
   var isFirstInput: Bool = false
   var reactor: TradeReactor? = nil
-  private let cellIndentifier = "OrderBookCell"
   var callback: ((OrderResult) -> ())? = nil
-  
+  var cryptoInvestData: CryptoTransactionDataModel? = nil
   var bidView: TradeBidView? = nil
   var askView: TradeAskView? = nil
   var historyView: TradeHistoryView? = nil
   
+  private let cellIndentifier = "OrderBookCell"
   private var askMaxSize: Double? = 0
   private var bidMaxSize: Double? = 0
   
@@ -54,8 +58,8 @@ class TradeOrderView: UIView, ViewRule {
 	
 	selfView.reactor = reactor
 	selfView.callback = callback
-	selfView.setUI()
 	selfView.setData()
+	selfView.setUI()
 	
 	return selfView
   }
@@ -65,13 +69,9 @@ class TradeOrderView: UIView, ViewRule {
   }
   
   func setUI() {
-//	self.segmentedControl.setSegmentedControl(
-//	  normalColor: .mobitColors(.lightGrayBG),
-//	  selectedColor: .white
-//	)
 	
 	guard let reactor = self.reactor else { return }
-	historyView = TradeHistoryView.instanceFromNib(reactor: reactor) { [weak self] in }
+	historyView = TradeHistoryView.instanceFromNib(reactor: reactor) { }
 	bidView = TradeBidView.instanceFromNib(
 	  reactor: reactor,
 	  disposeBag: self.disposeBag
@@ -109,12 +109,12 @@ class TradeOrderView: UIView, ViewRule {
 	bidView.snp.makeConstraints { make in
       make.top.leading.equalToSuperview().offset(10)
 	  make.trailing.equalToSuperview().offset(-10)
-	  make.bottom.greaterThanOrEqualToSuperview()
+	  make.bottom.equalToSuperview()
 	}
 	askView.snp.makeConstraints { make in
 	  make.top.leading.equalToSuperview().offset(10)
 	  make.trailing.equalToSuperview().offset(-10)
-	  make.bottom.greaterThanOrEqualToSuperview()
+	  make.bottom.equalToSuperview()
 	}
 	historyView.snp.makeConstraints { make in
 	  make.top.leading.equalToSuperview().offset(10)
@@ -124,21 +124,25 @@ class TradeOrderView: UIView, ViewRule {
 	
 	self.segmentedControl.segments = ["매수", "매도", "거래내역"]
 	self.segmentedControl.onSegmentChanged = { index in
+	  self.investLiveView.isHidden = self.cryptoInvestData == nil
 	  switch index {
 	  case 0:
 		self.bidView?.isHidden = false
 		self.askView?.isHidden = true
 		self.historyView?.isHidden = true
+		self.investLiveView.isHidden = self.cryptoInvestData == nil
 		self.segmentedContainerView.bringSubviewToFront(self.bidView!)
 	  case 1:
 		self.bidView?.isHidden = true
 		self.askView?.isHidden = false
 		self.historyView?.isHidden = true
+		self.investLiveView.isHidden = self.cryptoInvestData == nil
 		self.segmentedContainerView.bringSubviewToFront(self.askView!)
 	  case 2:
 		self.bidView?.isHidden = true
 		self.askView?.isHidden = true
 		self.historyView?.isHidden = false
+		self.investLiveView.isHidden = true
 		self.segmentedContainerView.bringSubviewToFront(self.historyView!)
 		
 	  default:
@@ -153,6 +157,7 @@ class TradeOrderView: UIView, ViewRule {
   func setData() {
 	guard let reactor = self.reactor else { return }
 	self.bind(reactor: reactor)
+	reactor.action.onNext(.loadTransactions)
 	self.prevClosingPrice = self.reactor?.selectCrypto.prevPrice
 	
 	self.orderbookTableView.register(
@@ -195,34 +200,24 @@ class TradeOrderView: UIView, ViewRule {
 	orderbookTableView.delegate = self
   }
   
-  @IBAction func tapOnSegmentedControl(_ sender: MobitSegmentedControl) {
-    switch sender.selectedSegmentIndex {
-    case 0:
-	  MobitAnalyticsUtil.sendScreenEvent(event: .trade_order_buy)
-      self.bidView?.isHidden = false
-      self.askView?.isHidden = true
-	  self.historyView?.isHidden = true
-	  self.segmentedContainerView.bringSubviewToFront(self.bidView!)
-    case 1:
-	  MobitAnalyticsUtil.sendScreenEvent(event: .trade_order_sell)
-      self.bidView?.isHidden = true
-      self.askView?.isHidden = false
-	  self.historyView?.isHidden = true
-	  self.segmentedContainerView.bringSubviewToFront(self.askView!)
-    case 2:
-	  MobitAnalyticsUtil.sendScreenEvent(event: .trade_order_history)
-      self.bidView?.isHidden = true
-      self.askView?.isHidden = true
-	  self.historyView?.isHidden = false
-	  self.segmentedContainerView.bringSubviewToFront(self.historyView!)
-      
-    default:
-      break
-    }
-  }
-  
-  func setCrypto(crypto: CryptoCellInfo? = nil) {
+  func setInvestLiveData(data: CryptoTransactionDataModel) {
+	self.cryptoInvestData = data
 	
+	self.cryptoAveragePrice.text = "\(data.staticData.averageBuyPrice.formatSignificantDigits(digits: 4))".addComma()
+	self.cryptoEvalPrice.text = "\(data.dynamicData.evaluationPrice.formatSignificantDigits())".addComma() + " KRW"
+	self.cryptoEvalLoss.text = "\(data.dynamicData.evaluationProfitLoss.formatSignificantDigits(digits: 2))".addComma() + " KRW"
+	self.cryptoProfitRate.text = "\(data.dynamicData.profitRate.formatSignificantDigits(digits: 2))".addComma() + " %"
+	
+	var textColor: UIColor = .black
+	if data.dynamicData.evaluationProfitLoss < 0 {
+	  textColor = .systemBlue
+	} else if data.dynamicData.evaluationProfitLoss > 0 {
+	  textColor = .systemRed
+	} else {
+	  textColor = .black
+	}
+	self.cryptoEvalLoss.textColor = textColor
+	self.cryptoProfitRate.textColor = textColor
   }
   
   /// TableViewDiffableDataSource Snapshot Update
@@ -298,6 +293,31 @@ extension TradeOrderView {
 		  self.applySnapshot(orderDatas: orderDatas)
 		}
 	  )
+	  .disposed(by: self.disposeBag)
+	
+	reactor.state.map { $0.cryptoTransactionDatas }
+	  .compactMap { $0 }
+	  .distinctUntilChanged()
+	  .observe(on: MainScheduler.instance)
+	  .subscribe(onNext: { [weak self] cryptos in
+		guard let self else { return }
+		
+		// 거래 내역에선 업데이트 안하기 때문
+		guard self.segmentedControl.selectedIndex != 2 else {
+		  self.investLiveView.isHidden = true
+		  return
+		}
+		guard let cryptoInvestData = cryptos.first(where: {
+		  $0.staticData.marketName ==  reactor.selectCrypto.market
+		}) else {
+		  self.cryptoInvestData = nil
+		  self.investLiveView.isHidden = true
+		  return
+		}
+		
+		self.investLiveView.isHidden = false
+		self.setInvestLiveData(data: cryptoInvestData)
+	  })
 	  .disposed(by: self.disposeBag)
   }
 }
