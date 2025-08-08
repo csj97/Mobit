@@ -38,6 +38,10 @@ class TradeAskView: UIView, ViewRule {
 	print("deinit : \(String(describing: type(of: self)))")
   }
   
+  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+	self.endEditing(true)
+  }
+  
   static func instanceFromNib(
 	reactor: TradeReactor,
 	disposeBag: DisposeBag,

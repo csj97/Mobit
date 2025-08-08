@@ -29,7 +29,7 @@ class TradeBidView: UIView, ViewRule {
   }
   
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-	print(#function)
+	self.endEditing(true)
   }
   
   static func instanceFromNib(
