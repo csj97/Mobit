@@ -10,7 +10,7 @@ import Foundation
 // Main TableViewCell에 사용되는 정보
 struct CryptoCellInfo: Hashable {
   var identifier: UUID = UUID()
-  var cryptoName: String  // 종목명
+  var cryptoName: String?  // 종목명
   var market: String    // 종목 구분 코드 BTC-KRW
   var marketEvent: MarketEvent?
   var prevPrice: Double?

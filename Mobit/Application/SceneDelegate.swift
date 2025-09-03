@@ -26,6 +26,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 	DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 3) {
 	  self.window?.rootViewController = navigationController
 	  
+	  AppDataManager.shared.downloadFromFirebase()
+	  
 	  self.appCoordinator = AppCoordinator(navigationController: navigationController)
 	  self.appCoordinator?.start()
 	}

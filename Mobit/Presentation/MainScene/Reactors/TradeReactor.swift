@@ -29,7 +29,7 @@ class TradeReactor: Reactor {
   var tickerSocketManager: NewWebSocketManager? = nil
   var orderBookSocketManager: NewWebSocketManager? = nil
   var cmcInformation: FirebaseCMCResponse
-  
+  var cmcList: [FirebaseCMCResponse]?
   
   init(
     selectCrypto: CryptoCellInfo,

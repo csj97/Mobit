@@ -157,10 +157,10 @@ class MainViewController: MobitBaseViewController {
     
     self.bind(reactor: self.reactor)
 	
-	self.reactor.downloadFromFirebase { response in
-	  let cmcList = response.compactMap { self.reactor.parseToCryptoData(dict: $0.value) }
-	  self.reactor.cmcList = cmcList
-	}
+//	self.reactor.downloadFromFirebase { response in
+//	  let cmcList = response.compactMap { self.reactor.parseToCryptoData(dict: $0.value) }
+//	  self.reactor.cmcList = cmcList
+//	}
 	
 	guard let transactionHistory = UserDataManager.userTransactionList else { return }
 	// print(transactionHistory)
@@ -229,6 +229,8 @@ class MainViewController: MobitBaseViewController {
 		snapshot.appendItems([])
 	  }
 	  
+	  self.dataSource?.apply(snapshot, animatingDifferences: false)
+	  
 	  guard let userCryptoList = UserDataManager.userCryptoList else { return }
 	  let userMarketNames = userCryptoList.map { $0.staticData.marketName }
 	  let filteredCellInfos = cellInfos?.filter {
@@ -241,8 +243,6 @@ class MainViewController: MobitBaseViewController {
 		  currentPrice: cellInfo.tradePrice
 		)
 	  })
-	  
-	  self.dataSource?.apply(snapshot, animatingDifferences: false)
 	}
   }
   
@@ -520,47 +520,49 @@ extension MainViewController: View {
 extension MainViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 	
-	var cryptoCellInfo = reactor.currentState.cryptoCellInfos
+	var cryptoCellInfos = reactor.currentState.cryptoCellInfos
 	
 	if let searchText = self.searchBar.text, !searchText.isEmpty {
+	  // 검색할 때
 	  let lowerCasedSearchText = searchText.lowercased()
 	  
 	  if self.selectedTab == .favorite {
 		let favoriteMarketNames = UserDataManager.userFavoriteList
 		
 		// 즐겨찾기 코인 찾아오기
-		cryptoCellInfo = cryptoCellInfo.filter {
+		cryptoCellInfos = cryptoCellInfos.filter {
 		  favoriteMarketNames.contains($0.market)
 		}
 		
 		// 즐겨찾기 코인 중에서 검색 결과 도출
-		cryptoCellInfo = cryptoCellInfo.filter {
+		cryptoCellInfos = cryptoCellInfos.filter {
 		  $0.cryptoName.lowercased().contains(lowerCasedSearchText)
 		  || $0.market.lowercased().contains(lowerCasedSearchText)
 		}
 	  } else {
-		cryptoCellInfo = cryptoCellInfo.filter {
+		cryptoCellInfos = cryptoCellInfos.filter {
 		  $0.cryptoName.lowercased().contains(lowerCasedSearchText)
 		  || $0.market.lowercased().contains(lowerCasedSearchText)
 		}
 	  }
 	} else {
+	  // 검색 안할 떄
 	  if self.selectedTab == .favorite {
 		let favoriteMarketNames = UserDataManager.userFavoriteList
-		cryptoCellInfo = cryptoCellInfo.filter { favoriteMarketNames.contains($0.market) }
+		cryptoCellInfos = cryptoCellInfos.filter { favoriteMarketNames.contains($0.market) }
 	  }
 	}
 	
-	let selectCrypto = cryptoCellInfo[indexPath.row]
+	let selectCrypto = cryptoCellInfos[indexPath.row]
 	let symbol = selectCrypto.market.replacingOccurrences(of: "/KRW", with: "")
-	guard let cmcInformation = self.reactor.cmcList?.first(
-	  where: { $0.symbol == symbol }
-	) else { return }
+//	guard let cmcInformation = self.reactor.cmcList?.first(
+//	  where: { $0.symbol == symbol }
+//	) else { return }
 	
 	MobitAnalyticsUtil.sendScreenEvent(event: .trade_screen)
     self.coordinator?.pushCryptoDetailVC(
-      selectCrypto: cryptoCellInfo[indexPath.row],
-	  cmcInformation: cmcInformation
+      selectCrypto: cryptoCellInfos[indexPath.row],
+	  cmcSymbol: symbol
     )
 	
 	if let searchText = self.searchBar.text, !searchText.isEmpty {

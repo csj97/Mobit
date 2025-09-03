@@ -140,6 +140,7 @@ class TradeBidView: UIView, ViewRule {
   func updateTransaction(marketName: String, completion: @escaping () -> ()) {
 	
 	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
+		  let cryptoName = self.cryptoInfo?.cryptoName,
 		  let userBalance = UserDataManager.userInformation?.userAvailableBalance
 	else { return }
 	
@@ -210,6 +211,7 @@ class TradeBidView: UIView, ViewRule {
 	  // 새 정적 데이터
 	  let newCryptoStaticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
 		marketName: marketName,
+		cryptoName: cryptoName,
 		holdingQuantity: holdingQuantity,
 		averageBuyPrice: averageBuyPrice,
 		buyAmount: buyAmount
@@ -248,6 +250,7 @@ class TradeBidView: UIView, ViewRule {
 	  
 	  let newCryptoStaticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
 		marketName: marketName,
+		cryptoName: cryptoName,
 		holdingQuantity: holdingQuantity,
 		averageBuyPrice: averageBuyPrice,
 		buyAmount: buyAmount

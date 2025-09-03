@@ -225,6 +225,7 @@ class TradeAskView: UIView, ViewRule {
 		
 		let newCryptoStaticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
 		  marketName: crypto.staticData.marketName,
+		  cryptoName: crypto.staticData.cryptoName,
 		  holdingQuantity: newHoldingQuantity,
 		  averageBuyPrice: postStaticTransaction.averageBuyPrice,
 		  buyAmount: newBuyAmount

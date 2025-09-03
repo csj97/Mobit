@@ -21,11 +21,16 @@ extension MainCoordinatorDelegate {
 class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate {
   var childCoordinators = [BaseCoordinator]()
   var navigationController: UINavigationController
+  var dataManager: AppDataManager
   weak var delegate: MainCoordinatorDelegate?
   
-  init(navigationController: UINavigationController) {
-    self.navigationController = navigationController
-    self.navigationController.isNavigationBarHidden = true
+  init(
+	navigationController: UINavigationController,
+	dataManager: AppDataManager
+  ) {
+	self.navigationController = navigationController
+	self.navigationController.isNavigationBarHidden = true
+	self.dataManager = dataManager
   }
   
   func start() {
@@ -38,8 +43,12 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
   
   func pushCryptoDetailVC(
 	selectCrypto: CryptoCellInfo,
-	cmcInformation: FirebaseCMCResponse
+	cmcSymbol: String
   ) {
+	guard let cmcInformation = self.dataManager.cachedCMCList.first(
+	  where: { $0.symbol == cmcSymbol }
+	) else { return }
+	
     let cryptoDetailCoordinator = CryptoDetailCoordinator(
 	  selectCrypto: selectCrypto,
 	  cmcInformation: cmcInformation,

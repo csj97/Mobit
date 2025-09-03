@@ -19,14 +19,20 @@ class AppTabBarCoordinator: BaseCoordinator {
   func start() {
 	// 메인화면
 	let mainNavigation = UINavigationController()
-	let mainCoordinator = MainCoordinator(navigationController: mainNavigation)
+	let mainCoordinator = MainCoordinator(
+	  navigationController: mainNavigation,
+	  dataManager: AppDataManager.shared
+	)
 	mainCoordinator.delegate = self
 	self.childCoordinators.append(mainCoordinator)
 	mainCoordinator.start()
 	
 	// 투자내역 화면
 	let investNavigation = UINavigationController()
-	let investmentCoordinator = InvestmentCoordinator(navigationController: investNavigation)
+	let investmentCoordinator = InvestmentCoordinator(
+	  navigationController: investNavigation,
+	  dataManager: AppDataManager.shared
+	)
 	investmentCoordinator.delegate = self
 	self.childCoordinators.append(investmentCoordinator)
 	investmentCoordinator.start()

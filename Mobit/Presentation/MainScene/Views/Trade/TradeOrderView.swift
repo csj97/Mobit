@@ -15,6 +15,7 @@ class TradeOrderView: UIView, ViewRule {
   @IBOutlet weak var orderbookTableView: SelfSizingTableView!
   @IBOutlet weak var segmentedControl: NeumorphicSegmentedControl!
   @IBOutlet weak var segmentedContainerView: UIView!
+  @IBOutlet weak var segmentedContainerStackView: UIStackView!
   @IBOutlet weak var cryptoAveragePrice: UILabel!
   @IBOutlet weak var cryptoEvalPrice: UILabel!
   @IBOutlet weak var cryptoEvalLoss: UILabel!
@@ -102,53 +103,41 @@ class TradeOrderView: UIView, ViewRule {
 	
 	guard let bidView = bidView, let askView = askView, let historyView = historyView else { return }
 	
-	self.segmentedContainerView.addSubview(bidView)
-	self.segmentedContainerView.addSubview(askView)
-	self.segmentedContainerView.addSubview(historyView)
+	self.segmentedContainerStackView.addArrangedSubview(bidView)
+	self.segmentedContainerStackView.addArrangedSubview(askView)
+	self.segmentedContainerStackView.addArrangedSubview(historyView)
 	
-	bidView.snp.makeConstraints { make in
-      make.top.leading.equalToSuperview().offset(10)
-	  make.trailing.equalToSuperview().offset(-10)
-	  make.bottom.equalToSuperview()
-	}
-	askView.snp.makeConstraints { make in
-	  make.top.leading.equalToSuperview().offset(10)
-	  make.trailing.equalToSuperview().offset(-10)
-	  make.bottom.equalToSuperview()
-	}
-	historyView.snp.makeConstraints { make in
-	  make.top.leading.equalToSuperview().offset(10)
-	  make.trailing.equalToSuperview().offset(-10)
-	  make.bottom.equalToSuperview()
-	}
+	bidView.isHidden = true
+	askView.isHidden = true
+	historyView.isHidden = true
 	
 	self.segmentedControl.segments = ["매수", "매도", "거래내역"]
 	self.segmentedControl.onSegmentChanged = { index in
 	  self.investLiveView.isHidden = self.cryptoInvestData == nil
 	  switch index {
 	  case 0:
-		self.bidView?.isHidden = false
-		self.askView?.isHidden = true
-		self.historyView?.isHidden = true
+		bidView.isHidden = false
+		askView.isHidden = true
+		historyView.isHidden = true
 		self.investLiveView.isHidden = self.cryptoInvestData == nil
-		self.segmentedContainerView.bringSubviewToFront(self.bidView!)
+		
 	  case 1:
-		self.bidView?.isHidden = true
-		self.askView?.isHidden = false
-		self.historyView?.isHidden = true
+		bidView.isHidden = true
+		askView.isHidden = false
+		historyView.isHidden = true
 		self.investLiveView.isHidden = self.cryptoInvestData == nil
-		self.segmentedContainerView.bringSubviewToFront(self.askView!)
 	  case 2:
-		self.bidView?.isHidden = true
-		self.askView?.isHidden = true
-		self.historyView?.isHidden = false
+		bidView.isHidden = true
+		askView.isHidden = true
+		historyView.isHidden = false
 		self.investLiveView.isHidden = true
-		self.segmentedContainerView.bringSubviewToFront(self.historyView!)
 		
 	  default:
 		break
 	  }
-
+	  
+	  self.layoutIfNeeded()
+	  self.segmentedContainerStackView.layoutIfNeeded()
 	}
 	self.segmentedControl.selectedIndex = 0
 	self.segmentedControl.onSegmentChanged?(0)

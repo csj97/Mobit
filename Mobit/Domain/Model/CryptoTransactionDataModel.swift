@@ -14,6 +14,7 @@ struct CryptoTransactionDataModel: Codable, Equatable {
   /// 거래 정보 (정적)
   struct CryptoTransactionStaticData: Codable, Equatable {
 	let marketName: String          // 코인 마켓 이름 (예: "BTC-USDT")
+	var cryptoName: String		 // 코인 이름 (예: "비트코인")
 	var holdingQuantity: Double     // 보유 수량
 	var averageBuyPrice: Double     // 매수 평균가
 	var buyAmount: Double           // 매수 총액

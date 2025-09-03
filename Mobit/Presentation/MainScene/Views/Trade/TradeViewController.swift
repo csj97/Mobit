@@ -9,6 +9,7 @@ import UIKit
 import SnapKit
 import ReactorKit
 import RxSwift
+import Charts
 
 struct OrderUnit: Hashable {
   var identifier: UUID = UUID()
@@ -163,6 +164,11 @@ class TradeViewController: MobitBaseViewController {
 		name: UIApplication.willResignActiveNotification,
 		object: nil
 	)
+	
+//	self.reactor.downloadFromFirebase { response in
+//	  let cmcList = response.compactMap { self.reactor.parseToCryptoData(dict: $0.value) }
+//	  self.reactor.cmcList = cmcList
+//	}
   }
   
   /// 앱 상태가 백그라운드에서 Active 상태로 전환 되면 택시 상태를 조회하여 복구
@@ -187,7 +193,12 @@ class TradeViewController: MobitBaseViewController {
 		  let signedChangeRate = selectCrypto.signedChangeRate,
 		  let changePrice = selectCrypto.changePrice else { return }
 	
-	self.cryptoMarketName.text = "\(selectCrypto.cryptoName)(\(selectCrypto.market))"
+	if let cryptoName = selectCrypto.cryptoName {
+	  self.cryptoMarketName.text = "\(cryptoName)(\(selectCrypto.market))"
+	} else {
+	  self.cryptoMarketName.text = "\(selectCrypto.market)"
+	}
+	
 	if tradePrice < 1 {
 	  self.cryptoPrice.text = self.formatTradePrice(tradePrice)
 	} else {
