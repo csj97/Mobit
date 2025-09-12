@@ -209,15 +209,13 @@ extension InvestmentViewController: UITableViewDataSource, UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 	let userValidTransactionList = UserDataManager.userValidTransactionList
 	let selectedCryptoMarketName = self.cryptos[indexPath.row].staticData.marketName
-	let selectedCryptoName = self.cryptos[indexPath.row].staticData.cryptoName
-	// let selectedValidTransaction = userValidTransactionList?.filter { $0.marketName == selectedCryptoMarketName }
-//	print("===========================")
-//	print(selectedValidTransaction)
-//	print("===========================")
+	
+	guard let selectedCryptoName = self.cryptos[indexPath.row].staticData.cryptoName else { return }
 	
 	// 터치하면 디테일 화면으로 이동
 	let symbol = selectedCryptoMarketName.replacingOccurrences(of: "/KRW", with: "")
 	let selectedCrypto = CryptoCellInfo(
+	  cryptoName: selectedCryptoName,
 	  market: selectedCryptoMarketName
 	)
 

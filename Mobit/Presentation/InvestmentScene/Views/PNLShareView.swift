@@ -100,11 +100,13 @@ class PNLShareView: UIView {
   
   @IBAction func tapOnSaveButton(_ sender: UIButton) {
 	guard let saveImg = makeShareImage() else { return }
+	MobitAnalyticsUtil.sendClickEvent(event: .pnl_click_save)
 	self.callBack?(.save(saveImg: saveImg))
   }
   
   @IBAction func tapOnShareButton(_ sender: UIButton) {
 	guard let shareImg = makeShareImage() else { return }
+	MobitAnalyticsUtil.sendClickEvent(event: .pnl_click_share)
 	self.callBack?(.share(shareImg: shareImg))
   }
   

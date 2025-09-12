@@ -17,6 +17,7 @@ class MarketDataServiceUtil {
   ) {
 	fetchAll(
 	  for: data.marketName,
+	  cryptoName: data.cryptoName,
 	  currentPrice: currentPrice,
 	  holdingQuantity: data.holdingQuantity,
 	  averageBuyPrice: data.averageBuyPrice,
@@ -67,6 +68,7 @@ class MarketDataServiceUtil {
   /// Static & Dynamic Data Fetch
   func fetchAll(
 	for marketName: String,
+	cryptoName: String?,
 	currentPrice: Double,
 	holdingQuantity: Double,
 	averageBuyPrice: Double,
@@ -75,6 +77,7 @@ class MarketDataServiceUtil {
 	// 정적 데이터 업데이트
 	fetchStaticData(
 	  for: marketName,
+	  cryptoName: cryptoName,
 	  averageBuyAmount: averageBuyPrice,
 	  holdingQuantity: holdingQuantity,
 	  buyAmount: buyAmount
@@ -103,6 +106,7 @@ class MarketDataServiceUtil {
   /// 정적 데이터 업데이트 (평균매수가, 개수, 매수금액)
   func fetchStaticData(
 	for marketName: String,
+	cryptoName: String?,
 	averageBuyAmount: Double,
 	holdingQuantity: Double,
 	buyAmount: Double
@@ -110,6 +114,7 @@ class MarketDataServiceUtil {
 	if var userCryptoList = UserDataManager.userCryptoList,
 	   let index = userCryptoList.firstIndex(where: { $0.staticData.marketName == marketName }) {
 	  
+	  userCryptoList[index].staticData.cryptoName = cryptoName
 	  userCryptoList[index].staticData.averageBuyPrice = averageBuyAmount
 	  userCryptoList[index].staticData.holdingQuantity = holdingQuantity
 	  userCryptoList[index].staticData.buyAmount = buyAmount
@@ -129,6 +134,7 @@ class MarketDataServiceUtil {
 	UserDataManager.userTransactionList = newTransactionList
   }
   
+  /// 현재 진행중인 거래 데이터
   func addValidTransactionData(
 	for marketName: String,
 	orderType: OrderType,

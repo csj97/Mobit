@@ -193,11 +193,12 @@ class TradeViewController: MobitBaseViewController {
 		  let signedChangeRate = selectCrypto.signedChangeRate,
 		  let changePrice = selectCrypto.changePrice else { return }
 	
-	if let cryptoName = selectCrypto.cryptoName {
-	  self.cryptoMarketName.text = "\(cryptoName)(\(selectCrypto.market))"
-	} else {
-	  self.cryptoMarketName.text = "\(selectCrypto.market)"
-	}
+	self.cryptoMarketName.text = "\(selectCrypto.cryptoName)(\(selectCrypto.market))"
+//	if let cryptoName = selectCrypto.cryptoName {
+//	  self.cryptoMarketName.text = "\(cryptoName)(\(selectCrypto.market))"
+//	} else {
+//	  self.cryptoMarketName.text = "\(selectCrypto.market)"
+//	}
 	
 	if tradePrice < 1 {
 	  self.cryptoPrice.text = self.formatTradePrice(tradePrice)

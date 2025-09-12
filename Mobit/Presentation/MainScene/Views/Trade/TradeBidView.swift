@@ -138,7 +138,7 @@ class TradeBidView: UIView, ViewRule {
   }
   
   func updateTransaction(marketName: String, completion: @escaping () -> ()) {
-	
+	 
 	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
 		  let cryptoName = self.cryptoInfo?.cryptoName,
 		  let userBalance = UserDataManager.userInformation?.userAvailableBalance

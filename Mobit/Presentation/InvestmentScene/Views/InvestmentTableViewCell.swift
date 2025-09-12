@@ -54,6 +54,7 @@ class InvestmentTableViewCell: UITableViewCell {
 	  self.cryptoEvalLoss.textColor = .systemBlue
 	}
 	
-	if isLast { self.dividerView.isHidden = true }
+	self.dividerView.isHidden = isLast
+	
   }
 }

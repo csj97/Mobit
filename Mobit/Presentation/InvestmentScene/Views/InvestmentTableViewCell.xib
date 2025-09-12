@@ -5,7 +5,6 @@
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
-        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -177,9 +176,21 @@
                     </view>
                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="juc-Zd-ArT">
                         <rect key="frame" x="10" y="188" width="300" height="1"/>
-                        <color key="backgroundColor" systemColor="opaqueSeparatorColor"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="img_dot_pattern_line" translatesAutoresizingMaskIntoConstraints="NO" id="PKz-h7-UHg">
+                                <rect key="frame" x="0.0" y="0.0" width="300" height="1"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="1" id="ePj-lS-ZBn"/>
+                                </constraints>
+                            </imageView>
+                        </subviews>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstAttribute="height" constant="1" id="4OE-xW-2Ll"/>
+                            <constraint firstItem="PKz-h7-UHg" firstAttribute="leading" secondItem="juc-Zd-ArT" secondAttribute="leading" id="Hxl-VA-Dzd"/>
+                            <constraint firstAttribute="bottom" secondItem="PKz-h7-UHg" secondAttribute="bottom" id="IiY-BB-5pd"/>
+                            <constraint firstAttribute="trailing" secondItem="PKz-h7-UHg" secondAttribute="trailing" id="c3c-sv-4vZ"/>
+                            <constraint firstItem="PKz-h7-UHg" firstAttribute="top" secondItem="juc-Zd-ArT" secondAttribute="top" id="n0g-gw-iD7"/>
                         </constraints>
                     </view>
                 </subviews>
@@ -211,8 +222,6 @@
         </tableViewCell>
     </objects>
     <resources>
-        <systemColor name="opaqueSeparatorColor">
-            <color red="0.77647058820000003" green="0.77647058820000003" blue="0.7843137255" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-        </systemColor>
+        <image name="img_dot_pattern_line" width="295" height="1"/>
     </resources>
 </document>
