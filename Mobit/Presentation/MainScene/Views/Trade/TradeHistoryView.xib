@@ -31,20 +31,21 @@
                     </constraints>
                 </view>
                 <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="uzF-bX-XJ3" customClass="SelfSizingTableView" customModule="Mobit" customModuleProvider="target">
-                    <rect key="frame" x="0.0" y="69" width="393" height="783"/>
+                    <rect key="frame" x="10" y="69" width="373" height="783"/>
                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    <color key="sectionIndexBackgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                 </tableView>
             </subviews>
             <viewLayoutGuide key="safeArea" id="bGA-sz-911"/>
             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
             <constraints>
                 <constraint firstItem="hSj-2l-Ump" firstAttribute="top" secondItem="bGA-sz-911" secondAttribute="top" constant="10" id="3z1-r7-Lu8"/>
-                <constraint firstAttribute="trailing" secondItem="uzF-bX-XJ3" secondAttribute="trailing" id="8O1-4n-fSR"/>
+                <constraint firstAttribute="trailing" secondItem="uzF-bX-XJ3" secondAttribute="trailing" constant="10" id="8O1-4n-fSR"/>
                 <constraint firstItem="hSj-2l-Ump" firstAttribute="leading" secondItem="vLo-HX-bLa" secondAttribute="leading" id="HJj-Zu-htk"/>
                 <constraint firstItem="uzF-bX-XJ3" firstAttribute="top" secondItem="bGA-sz-911" secondAttribute="top" constant="10" id="MSf-fS-Ijd"/>
                 <constraint firstAttribute="bottom" secondItem="hSj-2l-Ump" secondAttribute="bottom" id="QU4-Kn-rYv"/>
                 <constraint firstAttribute="trailing" secondItem="hSj-2l-Ump" secondAttribute="trailing" id="ZMg-Bo-YEm"/>
-                <constraint firstItem="uzF-bX-XJ3" firstAttribute="leading" secondItem="vLo-HX-bLa" secondAttribute="leading" id="bVA-b4-jey"/>
+                <constraint firstItem="uzF-bX-XJ3" firstAttribute="leading" secondItem="vLo-HX-bLa" secondAttribute="leading" constant="10" id="bVA-b4-jey"/>
                 <constraint firstAttribute="bottom" secondItem="uzF-bX-XJ3" secondAttribute="bottom" id="y27-1z-8p7"/>
             </constraints>
             <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
