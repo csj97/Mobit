@@ -108,11 +108,15 @@ enum MobitAnalyticsRewardEventType: Int, MobitAnalyticsEventRule {
 enum MobitAnalyticsClickEventType: Int, MobitAnalyticsEventRule {
   case ad_click_cancel
   case ad_click_confirm
+  case pnl_click_save
+  case pnl_click_share
   
   var key: String {
 	switch self {
 	case .ad_click_cancel: return "ad_click_cancel"
 	case .ad_click_confirm: return "ad_click_confirm"
+	case .pnl_click_save: return "pnl_click_save"
+	case .pnl_click_share: return "pnl_click_share"
 	}
   }
   
@@ -120,6 +124,8 @@ enum MobitAnalyticsClickEventType: Int, MobitAnalyticsEventRule {
 	switch self {
 	case .ad_click_cancel: return "광고 안내 팝업 취소"
 	case .ad_click_confirm: return "광고 안내 팝업 확인"
+	case .pnl_click_save: return "P&L 저장 클릭"
+	case .pnl_click_share: return "P&L 공유 클릭"
 	}
   }
 }
