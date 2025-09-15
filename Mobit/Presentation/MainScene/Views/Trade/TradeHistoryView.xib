@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -15,10 +15,10 @@
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
             <subviews>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hSj-2l-Ump" userLabel="NO HISTORY View">
-                    <rect key="frame" x="0.0" y="69" width="393" height="783"/>
+                    <rect key="frame" x="0.0" y="128" width="393" height="724"/>
                     <subviews>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="내역이 없습니다." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="NzF-oq-nI2">
-                            <rect key="frame" x="150.33333333333334" y="383" width="92.666666666666657" height="17"/>
+                            <rect key="frame" x="150.33333333333334" y="353.66666666666669" width="92.666666666666657" height="17"/>
                             <fontDescription key="fontDescription" type="system" pointSize="14"/>
                             <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             <nil key="highlightedColor"/>
@@ -26,12 +26,13 @@
                     </subviews>
                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     <constraints>
+                        <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="500" id="0i9-Vc-5wV"/>
                         <constraint firstItem="NzF-oq-nI2" firstAttribute="centerY" secondItem="hSj-2l-Ump" secondAttribute="centerY" id="c9K-B8-u5z"/>
                         <constraint firstItem="NzF-oq-nI2" firstAttribute="centerX" secondItem="hSj-2l-Ump" secondAttribute="centerX" id="cg7-SU-laY"/>
                     </constraints>
                 </view>
                 <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="uzF-bX-XJ3" customClass="SelfSizingTableView" customModule="Mobit" customModuleProvider="target">
-                    <rect key="frame" x="10" y="69" width="373" height="783"/>
+                    <rect key="frame" x="10" y="138" width="373" height="714"/>
                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     <color key="sectionIndexBackgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                 </tableView>
@@ -42,7 +43,7 @@
                 <constraint firstItem="hSj-2l-Ump" firstAttribute="top" secondItem="bGA-sz-911" secondAttribute="top" constant="10" id="3z1-r7-Lu8"/>
                 <constraint firstAttribute="trailing" secondItem="uzF-bX-XJ3" secondAttribute="trailing" constant="10" id="8O1-4n-fSR"/>
                 <constraint firstItem="hSj-2l-Ump" firstAttribute="leading" secondItem="vLo-HX-bLa" secondAttribute="leading" id="HJj-Zu-htk"/>
-                <constraint firstItem="uzF-bX-XJ3" firstAttribute="top" secondItem="bGA-sz-911" secondAttribute="top" constant="10" id="MSf-fS-Ijd"/>
+                <constraint firstItem="uzF-bX-XJ3" firstAttribute="top" secondItem="bGA-sz-911" secondAttribute="top" constant="20" id="MSf-fS-Ijd"/>
                 <constraint firstAttribute="bottom" secondItem="hSj-2l-Ump" secondAttribute="bottom" id="QU4-Kn-rYv"/>
                 <constraint firstAttribute="trailing" secondItem="hSj-2l-Ump" secondAttribute="trailing" id="ZMg-Bo-YEm"/>
                 <constraint firstItem="uzF-bX-XJ3" firstAttribute="leading" secondItem="vLo-HX-bLa" secondAttribute="leading" constant="10" id="bVA-b4-jey"/>
