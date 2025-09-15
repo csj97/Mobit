@@ -28,7 +28,7 @@ final class RewardedAdManager: NSObject {	// NSObject 상속 이유 : Obj-C 호�
 		self.showLoadingIndicator(in: viewController)
 		
 		rewardedAd = try await RewardedAd.load(
-		  with: MobitConstants.googleAdType,
+		  with: MobitConstants.rewardAdType,
 		  request: Request()
 		)
 		rewardedAd?.fullScreenContentDelegate = self

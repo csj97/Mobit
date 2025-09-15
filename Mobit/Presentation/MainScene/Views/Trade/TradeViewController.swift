@@ -10,6 +10,7 @@ import SnapKit
 import ReactorKit
 import RxSwift
 import Charts
+import GoogleMobileAds
 
 struct OrderUnit: Hashable {
   var identifier: UUID = UUID()
@@ -34,6 +35,7 @@ class TradeViewController: MobitBaseViewController {
   @IBOutlet weak var favoriteButton: UIButton!
   @IBOutlet weak var mobitSegmentedControl: MobitNeumorphicSegmentedControl!
   @IBOutlet weak var segmentedContainerView: UIView!
+  @IBOutlet weak var bannerContainerView: UIView!
   
   weak var coordinator: CryptoDetailCoordinator?
   weak var delegate: MainCoordinatorDelegate?
@@ -75,6 +77,7 @@ class TradeViewController: MobitBaseViewController {
 	super.viewDidLoad()
 	setUI()
 	setData()
+	loadBannerADView()
 	
 	self.bind(reactor: self.reactor)
   }
@@ -169,6 +172,19 @@ class TradeViewController: MobitBaseViewController {
 //	  let cmcList = response.compactMap { self.reactor.parseToCryptoData(dict: $0.value) }
 //	  self.reactor.cmcList = cmcList
 //	}
+  }
+  
+  func loadBannerADView() {
+	let bannerView = BannerView(adSize: AdSizeBanner)
+	bannerView.adUnitID = MobitConstants.bannerAdType
+	bannerView.rootViewController = self
+	self.bannerContainerView.addSubview(bannerView)
+	
+	bannerView.snp.makeConstraints { make in
+	  make.edges.equalToSuperview()
+	}
+	
+	bannerView.load(Request())
   }
   
   /// 앱 상태가 백그라운드에서 Active 상태로 전환 되면 택시 상태를 조회하여 복구
@@ -391,4 +407,8 @@ extension TradeViewController: SocketControllable {
 	self.reactor.action.onNext(.connectTickerSocket)
 	self.reactor.action.onNext(.connectOrderBookSocket)
   }
+}
+
+extension TradeViewController {
+  
 }
