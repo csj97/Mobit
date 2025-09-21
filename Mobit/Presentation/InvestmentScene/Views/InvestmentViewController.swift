@@ -22,6 +22,7 @@ class InvestmentViewController: MobitBaseViewController {
   @IBOutlet weak var noResultView: UIView!
     
   weak var coordinator: InvestmentCoordinator?
+  var dataSource: UITableViewDiffableDataSource<TableViewSection, CryptoTransactionDataModel>?
   var disposeBag = DisposeBag()
   var reactor: InvestReactor
   var cryptos: [CryptoTransactionDataModel] = []
@@ -48,6 +49,7 @@ class InvestmentViewController: MobitBaseViewController {
 	super.viewDidLoad()
 	setUI()
 	setData()
+	setTableView()
   }
   
   override func viewDidLayoutSubviews() {
@@ -55,19 +57,57 @@ class InvestmentViewController: MobitBaseViewController {
   }
   
   func setUI() {
-	self.transactionTableview.delegate = self
-	self.transactionTableview.dataSource = self
+//	self.transactionTableview.delegate = self
+//	self.transactionTableview.dataSource = self
 	self.transactionTableview.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 70, right: 0)
-	
-	self.transactionTableview.register(
-	  UINib(nibName: "InvestmentTableViewCell", bundle: nil),
-	  forCellReuseIdentifier: "InvestmentTableViewCell"
-	)
   }
   
   func setData() {
 	self.bind(reactor: self.reactor)
 	self.reactor.action.onNext(.loadTransactions)
+  }
+  
+  func setTableView() {
+	let nib = UINib(nibName: "InvestmentTableViewCell", bundle: nil)
+	self.transactionTableview.register(nib, forCellReuseIdentifier: "InvestmentTableViewCell")
+	self.transactionTableview.register(
+	  UINib(nibName: "InvestmentTableViewCell", bundle: nil),
+	  forCellReuseIdentifier: "InvestmentTableViewCell"
+	)
+	
+	self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoTransactionDataModel>(tableView: self.transactionTableview, cellProvider: { tableView, indexPath, cryptoTransacDataModel in
+	  
+	  guard let cell = self.transactionTableview.dequeueReusableCell(
+		withIdentifier: "InvestmentTableViewCell",
+		for: indexPath
+	  ) as? InvestmentTableViewCell else { return UITableViewCell() }
+	  
+	  let isLast = (indexPath.row == self.cryptos.count - 1)
+	  let crypto = self.cryptos[indexPath.row]
+	  cell.configure(crypto: crypto, isLast: isLast)
+	  cell.selectionStyle = .none
+	  
+	  return cell
+	})
+	
+	self.dataSource?.defaultRowAnimation = .fade
+	self.transactionTableview.dataSource = self.dataSource
+	self.transactionTableview.delegate = self
+  }
+  
+  func applySnapshot(cryptoTransacDataModel: [CryptoTransactionDataModel]?) {
+	DispatchQueue.main.async {
+	  // tableview에 들어가는 section, item 초기화
+	  var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, CryptoTransactionDataModel>()
+	  snapshot.appendSections([.invest])
+	  if let cryptoTransacDataModel = cryptoTransacDataModel, !cryptoTransacDataModel.isEmpty {
+		snapshot.appendItems(cryptoTransacDataModel, toSection: .invest)
+	  } else {
+		snapshot.appendItems([])
+	  }
+	  
+	  self.dataSource?.apply(snapshot, animatingDifferences: false)
+	}
   }
   
   func updateTotalDatas(cryptos: [CryptoTransactionDataModel]) {
@@ -148,10 +188,12 @@ extension InvestmentViewController: View {
   func bind(reactor: InvestReactor) {
 	reactor.state.map { $0.cryptos }
 	  .compactMap { $0 }
+	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] cryptos in
 		guard let self else { return }
+		guard !self.isScrolling else { return }
 		
 		guard cryptos.count != 0 else {
 		  self.noResultView.isHidden = false
@@ -168,16 +210,19 @@ extension InvestmentViewController: View {
 		  self.pendingUpdate = nil
 		  self.cryptos = cryptos
 		  self.updateTotalDatas(cryptos: cryptos)
-		  self.transactionTableview.reloadData()
+		  self.applySnapshot(cryptoTransacDataModel: cryptos)
+//		  self.transactionTableview.reloadData()
 		}
 	  })
 	  .disposed(by: self.disposeBag)
 	
 	reactor.state.map { $0.userAvailableBalance }
+	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] userAvailableBalance in
 		guard let self else { return }
+		guard !self.isScrolling else { return }
 		self.userAvailableBalance = userAvailableBalance
 		self.updateTotalDatas(cryptos: self.cryptos)
 	  })
@@ -185,26 +230,26 @@ extension InvestmentViewController: View {
   }
 }
 
-extension InvestmentViewController: UITableViewDataSource, UITableViewDelegate {
-  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-	return self.cryptos.count
-  }
-  
-  func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-	guard let cell = tableView.dequeueReusableCell(
-	  withIdentifier: "InvestmentTableViewCell",
-		for: indexPath
-	) as? InvestmentTableViewCell else {
-		return UITableViewCell()
-	}
-	
-	let isLast = (indexPath.row == self.cryptos.count - 1)
-	let crypto = self.cryptos[indexPath.row]
-	cell.configure(crypto: crypto, isLast: isLast)
-	cell.selectionStyle = .none
-	
-	return cell
-  }
+extension InvestmentViewController: UITableViewDelegate {
+//  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+//	return self.cryptos.count
+//  }
+//  
+//  func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+//	guard let cell = tableView.dequeueReusableCell(
+//	  withIdentifier: "InvestmentTableViewCell",
+//		for: indexPath
+//	) as? InvestmentTableViewCell else {
+//		return UITableViewCell()
+//	}
+//	
+//	let isLast = (indexPath.row == self.cryptos.count - 1)
+//	let crypto = self.cryptos[indexPath.row]
+//	cell.configure(crypto: crypto, isLast: isLast)
+//	cell.selectionStyle = .none
+//	
+//	return cell
+//  }
   
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 	let userValidTransactionList = UserDataManager.userValidTransactionList
@@ -235,7 +280,8 @@ extension InvestmentViewController {
 	  isScrolling = false
 	  if let update = pendingUpdate {
 		  self.cryptos = update
-		  self.transactionTableview.reloadData()
+		self.applySnapshot(cryptoTransacDataModel: update)
+//		  self.transactionTableview.reloadData()
 		  pendingUpdate = nil
 	  }
   }

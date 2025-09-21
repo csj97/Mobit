@@ -16,6 +16,7 @@ import SkeletonView
 
 enum TableViewSection: CaseIterable {
   case main
+  case invest
 }
 
 enum CryptoSortType: String {
@@ -472,7 +473,8 @@ extension MainViewController: View {
 	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)
       .distinctUntilChanged()
       .observe(on: MainScheduler.instance)
-      .subscribe(onNext: { cellInfos in
+      .subscribe(onNext: { [weak self] cellInfos in
+		guard let self else { return }
 		guard !self.isSocketUpdating else { return }
 		let searchText = self.searchBar.text?.lowercased() ?? ""
 		let isSearching = !searchText.isEmpty
@@ -516,7 +518,9 @@ extension MainViewController: View {
   }
 }
 
-// MARK: TableView Delegate
+
+// MARK: - TableView Delegate
+
 extension MainViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 	
@@ -582,6 +586,9 @@ extension MainViewController: UITableViewDelegate {
     isSocketUpdating = false
   }
 }
+
+
+// MARK: - UISearchBarDelegate
 
 extension MainViewController: UISearchBarDelegate {
   func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {

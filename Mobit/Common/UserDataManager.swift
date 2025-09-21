@@ -88,17 +88,29 @@ class UserDataManager: NSObject {
     get {
       let defaults = UserDefaults.standard
 	  if let data = defaults.data(forKey: "user-crypto-list") {
-		let decodedData = try? JSONDecoder().decode([CryptoTransactionDataModel].self, from: data)
+		var decodedData = (try? JSONDecoder().decode([CryptoTransactionDataModel].self, from: data)) ?? []
+		for i in decodedData.indices {
+		  // identifier 없으면 새 UUID 부여
+		  if decodedData[i].identifier == UUID() { // 초기값이 Optional → nil 처리
+			decodedData[i].identifier = UUID()
+		  }
+		}
 		return decodedData
 	  }
 	  return []
     }
     set {
 	  let defaults = UserDefaults.standard
+	  var newValueWithUUID = newValue ?? []
+	  for i in newValueWithUUID.indices {
+		  if newValueWithUUID[i].identifier == UUID() { // 초기값이면 새 UUID
+			newValueWithUUID[i].identifier = UUID()
+		  }
+	  }
 	  if let encodedData = try? JSONEncoder().encode(newValue) {
 		defaults.set(encodedData, forKey: "user-crypto-list")
 	  }
-	  userCryptoListSubject.onNext(newValue)
+	  userCryptoListSubject.onNext(newValueWithUUID)
     }
   }
   
