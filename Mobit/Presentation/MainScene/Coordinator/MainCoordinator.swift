@@ -14,8 +14,8 @@ protocol MainCoordinatorDelegate: AnyObject {
 
 /// optional로 사용할 수 있게 처리
 extension MainCoordinatorDelegate {
-	func mainCoordinatorDidRequestHideTabBar() { }
-	func mainCoordinatorDidRequestShowTabBar() { }
+  func mainCoordinatorDidRequestHideTabBar() { }
+  func mainCoordinatorDidRequestShowTabBar() { }
 }
 
 class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate {
@@ -43,11 +43,16 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
   
   func pushCryptoDetailVC(
 	selectCrypto: CryptoCellInfo,
-	cmcSymbol: String
+	cmcSymbol: String,
+	completion: ((String?) -> Void)?
   ) {
 	guard let cmcInformation = self.dataManager.cachedCMCList.first(
 	  where: { $0.symbol == cmcSymbol }
-	) else { return }
+	) else {
+	  let message = "해당 코인에 대한 정보 업데이트가 필요합니다.\n빠른 시일내에 해결하겠습니다."
+	  completion?(message)
+	  return
+	}
 	
     let cryptoDetailCoordinator = CryptoDetailCoordinator(
 	  selectCrypto: selectCrypto,
@@ -59,6 +64,8 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
     cryptoDetailCoordinator.start()
 	
 	self.delegate?.mainCoordinatorDidRequestHideTabBar()
+	
+	completion?(nil)
   }
   
   func pushNoticeAppUpdateVC() {

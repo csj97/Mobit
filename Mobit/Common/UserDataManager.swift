@@ -85,33 +85,64 @@ class UserDataManager: NSObject {
   
   /// 사용자가 매수한 코인 정보 (현재)
   static var userCryptoList: [CryptoTransactionDataModel]? {
-    get {
-      let defaults = UserDefaults.standard
-	  if let data = defaults.data(forKey: "user-crypto-list") {
-		var decodedData = (try? JSONDecoder().decode([CryptoTransactionDataModel].self, from: data)) ?? []
-		for i in decodedData.indices {
-		  // identifier 없으면 새 UUID 부여
-		  if decodedData[i].identifier == UUID() { // 초기값이 Optional → nil 처리
-			decodedData[i].identifier = UUID()
-		  }
-		}
-		return decodedData
-	  }
-	  return []
-    }
-    set {
+	get {
 	  let defaults = UserDefaults.standard
-	  var newValueWithUUID = newValue ?? []
-	  for i in newValueWithUUID.indices {
-		  if newValueWithUUID[i].identifier == UUID() { // 초기값이면 새 UUID
-			newValueWithUUID[i].identifier = UUID()
+	  guard let data = defaults.data(forKey: "user-crypto-list") else { return [] }
+	  
+	  do {
+		let decodedData = try JSONDecoder().decode([CryptoTransactionDataModel].self, from: data)
+		return decodedData
+	  } catch {
+		// Decoding 실패
+		// Legacy -> Migrate
+		if let legacy = try? JSONDecoder().decode([LegacyModel].self, from: data) {
+		  let migrated: [CryptoTransactionDataModel] = legacy.map { item in
+			let staticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
+			  identifier: UUID(),
+			  marketName: item.staticData.marketName,
+			  cryptoName: item.staticData.cryptoName,
+			  holdingQuantity: item.staticData.holdingQuantity,
+			  averageBuyPrice: item.staticData.averageBuyPrice,
+			  buyAmount: item.staticData.buyAmount
+			)
+			let dynamicData = CryptoTransactionDataModel.CryptoTransactionDynamicData(
+			  identifier: UUID(),
+			  marketName: item.dynamicData.marketName,
+			  profitRate: item.dynamicData.profitRate,
+			  evaluationProfitLoss: item.dynamicData.evaluationProfitLoss,
+			  evaluationPrice: item.dynamicData.evaluationPrice
+			)
+			return CryptoTransactionDataModel(
+			  identifier: UUID(),
+			  staticData: staticData,
+			  dynamicData: dynamicData
+			)
 		  }
+		  
+		  // migration 데이터 저장 **성공시에만 덮어쓰기
+		  if let migratedDataEncode = try? JSONEncoder().encode(migrated) {
+			defaults.set(migratedDataEncode, forKey: "user-crypto-list")
+		  }
+		  
+		  return migrated
+		} else {
+		  // 최신 모델 디코딩 실패 + 레거시 마이그레이션 실패
+		  // 빈 배열로 덮어쓰지 않고, nil로 반환해서 호출 측에서 처리하도록
+		  return nil
+		}
 	  }
+	}
+	set {
+	  let defaults = UserDefaults.standard
+	  
+	  // nil이면 아무 작업하지 않음 (덮어쓰기 방지)
+	  guard let newValue = newValue else { return }
+	  
 	  if let encodedData = try? JSONEncoder().encode(newValue) {
 		defaults.set(encodedData, forKey: "user-crypto-list")
 	  }
-	  userCryptoListSubject.onNext(newValueWithUUID)
-    }
+	  userCryptoListSubject.onNext(newValue)
+	}
   }
   
   /// 사용자 거래 내역 (실현손익 P&L 확인 가능한 목록)

@@ -146,6 +146,10 @@ class MainViewController: MobitBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     self.view.backgroundColor = .white
+	
+	// DiffableDataSource 사용을 위해 Hashable하게 데이터 모델이 수정됨에 따라 데이터 안정화를 위한 덮어쓰기
+	let list = UserDataManager.userCryptoList
+	UserDataManager.userCryptoList = list
     
     self.addViews()
     
@@ -566,14 +570,24 @@ extension MainViewController: UITableViewDelegate {
 	MobitAnalyticsUtil.sendScreenEvent(event: .trade_screen)
     self.coordinator?.pushCryptoDetailVC(
       selectCrypto: cryptoCellInfos[indexPath.row],
-	  cmcSymbol: symbol
+	  cmcSymbol: symbol,
+	  completion: { [weak self] errorMsg in
+		guard let self else { return }
+		if let errorMsg = errorMsg {
+		  self.show(
+			alertType: .onlyConfirm,
+			title: "안내",
+			content: errorMsg,
+			callBack: nil)
+		} else {
+		  if let searchText = self.searchBar.text, !searchText.isEmpty {
+			self.searchBar.text = ""
+			self.searchBar.resignFirstResponder()
+		  }
+		  self.reactor.action.onNext(.disconnectSocket)
+		}
+	  }
     )
-	
-	if let searchText = self.searchBar.text, !searchText.isEmpty {
-	  self.searchBar.text = ""
-	  self.searchBar.resignFirstResponder()
-	}
-	self.reactor.action.onNext(.disconnectSocket)
   }
   
   /// 스크롤 시작되면 소켓 업데이트 일시정지

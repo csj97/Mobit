@@ -7,6 +7,26 @@
 
 import Foundation
 
+struct LegacyModel: Codable {
+  let staticData: LegacyStatic
+  let dynamicData: LegacyDynamic
+}
+
+struct LegacyStatic: Codable {
+  let marketName: String
+  let cryptoName: String?
+  let holdingQuantity: Double
+  let averageBuyPrice: Double
+  let buyAmount: Double
+}
+
+struct LegacyDynamic: Codable {
+  let marketName: String
+  let profitRate: Double
+  let evaluationProfitLoss: Double
+  let evaluationPrice: Double
+}
+
 struct CryptoTransactionDataModel: Codable, Equatable, Hashable {
   var identifier: UUID = UUID()
   var staticData: CryptoTransactionStaticData
