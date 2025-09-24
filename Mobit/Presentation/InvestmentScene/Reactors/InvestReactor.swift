@@ -69,8 +69,8 @@ extension InvestReactor {
   func reduce(state: InvestReactorState, mutation: InvestMutation) -> InvestReactorState {
 	var newState = state
 	switch mutation {
-	case .setUserCrypto(let crypto):
-	  newState.cryptos = crypto ?? []
+	case .setUserCrypto(let cryptos):
+	  newState.cryptos = cryptos ?? []
 	case .setUserAvailableBalance(let userAvailableBalance):
 	  newState.userAvailableBalance = userAvailableBalance
 	}

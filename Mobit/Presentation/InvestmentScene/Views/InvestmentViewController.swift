@@ -75,6 +75,8 @@ class InvestmentViewController: MobitBaseViewController {
 	  forCellReuseIdentifier: "InvestmentTableViewCell"
 	)
 	
+	self.transactionTableview.bounces = false
+	
 	self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoTransactionDataModel>(tableView: self.transactionTableview, cellProvider: { tableView, indexPath, cryptoTransacDataModel in
 	  
 	  guard let cell = self.transactionTableview.dequeueReusableCell(
@@ -188,7 +190,7 @@ extension InvestmentViewController: View {
   func bind(reactor: InvestReactor) {
 	reactor.state.map { $0.cryptos }
 	  .compactMap { $0 }
-	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)
+	  .throttle(.milliseconds(300), scheduler: MainScheduler.instance)
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] cryptos in
@@ -211,7 +213,6 @@ extension InvestmentViewController: View {
 		  self.cryptos = cryptos
 		  self.updateTotalDatas(cryptos: cryptos)
 		  self.applySnapshot(cryptoTransacDataModel: cryptos)
-//		  self.transactionTableview.reloadData()
 		}
 	  })
 	  .disposed(by: self.disposeBag)
@@ -231,26 +232,6 @@ extension InvestmentViewController: View {
 }
 
 extension InvestmentViewController: UITableViewDelegate {
-//  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-//	return self.cryptos.count
-//  }
-//  
-//  func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-//	guard let cell = tableView.dequeueReusableCell(
-//	  withIdentifier: "InvestmentTableViewCell",
-//		for: indexPath
-//	) as? InvestmentTableViewCell else {
-//		return UITableViewCell()
-//	}
-//	
-//	let isLast = (indexPath.row == self.cryptos.count - 1)
-//	let crypto = self.cryptos[indexPath.row]
-//	cell.configure(crypto: crypto, isLast: isLast)
-//	cell.selectionStyle = .none
-//	
-//	return cell
-//  }
-  
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 	let userValidTransactionList = UserDataManager.userValidTransactionList
 	let selectedCryptoMarketName = self.cryptos[indexPath.row].staticData.marketName
@@ -277,12 +258,10 @@ extension InvestmentViewController {
   }
 
   func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-	  isScrolling = false
-	  if let update = pendingUpdate {
-		  self.cryptos = update
-		self.applySnapshot(cryptoTransacDataModel: update)
-//		  self.transactionTableview.reloadData()
-		  pendingUpdate = nil
-	  }
+	if let update = pendingUpdate {
+	  self.cryptos = update
+	  pendingUpdate = nil
+	}
+	isScrolling = false
   }
 }
