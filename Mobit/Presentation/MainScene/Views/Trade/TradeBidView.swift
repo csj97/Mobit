@@ -5,6 +5,7 @@
 //  Created by 조성재 on 2/7/25.
 //
 
+import AVFoundation
 import UIKit
 import RxSwift
 
@@ -98,9 +99,15 @@ class TradeBidView: UIView, ViewRule {
   }
   
   @IBAction func tapOnBidButton(_ sender: UIButton) {
+	self.endEditing(true)
+	
+	let vibrator = UIImpactFeedbackGenerator(style: .medium)
+	vibrator.impactOccurred()
+	
 	guard let marketName = self.cryptoInfo?.market,
 		  let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
-		  let userBalance = UserDataManager.userInformation?.userAvailableBalance
+		  let userBalance = UserDataManager.userInformation?.userAvailableBalance,
+		  inputAmount > 0
 	else {
 	  callBack?(.alert(title: "알림", message: "매수 금액을 입력해주세요"))
 	  return
@@ -113,7 +120,8 @@ class TradeBidView: UIView, ViewRule {
 	if executedTotalPrice > 0.0, userBalance >= executedTotalPrice {
 	  self.updateTransaction(marketName: marketName) {
 		self.initTextFieldValue()
-		self.callBack?(.alert(title: "알림", message: "매수 되었습니다."))
+		self.callBack?(.successLottie)
+		// self.callBack?(.alert(title: "알림", message: "매수 되었습니다."))
 		self.callBack?(.updateHistory)
 	  }
 	} else {
@@ -315,6 +323,7 @@ class TradeBidView: UIView, ViewRule {
   func initTextFieldValue() {
 	self.inputTradeAmount.text = nil
 	self.totalPriceTextField.text = nil
+	self.inputAmount = 0
   }
   
   func bind(reactor: TradeReactor) {

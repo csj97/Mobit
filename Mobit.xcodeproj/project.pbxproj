@@ -151,6 +151,9 @@
 		C19F77992E41A2F300863159 /* PNLShareView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C19F77982E41A2F300863159 /* PNLShareView.xib */; };
 		C1A0150A2E49B0DD00B7A7C6 /* LineChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A015092E49B0DD00B7A7C6 /* LineChartView.swift */; };
 		C1AEA1AF2D66E982001E2A9E /* CalculationUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */; };
+		C1B327702E85140500E50C50 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = C1B3276F2E85140500E50C50 /* Lottie */; };
+		C1B327832E85157E00E50C50 /* MobitLottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B327822E85157E00E50C50 /* MobitLottieView.swift */; };
+		C1B327852E8523F400E50C50 /* SkeletonDiffableDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B327842E8523F400E50C50 /* SkeletonDiffableDataSource.swift */; };
 		C1B8F3BC2E272E6800C46734 /* SelfSizingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */; };
 		C1B8F3BF2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */; };
 		C1B8F3C12E2783EA00C46734 /* MobitAnalyticsUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */; };
@@ -332,6 +335,8 @@
 		C19F77982E41A2F300863159 /* PNLShareView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PNLShareView.xib; sourceTree = "<group>"; };
 		C1A015092E49B0DD00B7A7C6 /* LineChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineChartView.swift; sourceTree = "<group>"; };
 		C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationUtil.swift; sourceTree = "<group>"; };
+		C1B327822E85157E00E50C50 /* MobitLottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitLottieView.swift; sourceTree = "<group>"; };
+		C1B327842E8523F400E50C50 /* SkeletonDiffableDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkeletonDiffableDataSource.swift; sourceTree = "<group>"; };
 		C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfSizingViews.swift; sourceTree = "<group>"; };
 		C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitNeumorphicSegmentedControl.swift; sourceTree = "<group>"; };
 		C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitAnalyticsUtil.swift; sourceTree = "<group>"; };
@@ -346,6 +351,7 @@
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C18A84FA2E2E1F1300E49070 /* Advertisement */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Advertisement; sourceTree = "<group>"; };
+		C1B327712E85141500E50C50 /* Lotties */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Lotties; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -368,6 +374,7 @@
 				99C20A862C4A27F1009276E7 /* ReactorKit in Frameworks */,
 				3133E2772C3F7192000D4B1A /* FlexLayout in Frameworks */,
 				C174D89E2E24BAD40015B6ED /* FirebaseCrashlytics in Frameworks */,
+				C1B327702E85140500E50C50 /* Lottie in Frameworks */,
 				3128610D2DFF004100541A6A /* SkeletonView in Frameworks */,
 				31F33FCA2DDA1ACE003D533A /* GoogleMobileAds in Frameworks */,
 				31DC41E02CD9196400F0FFF2 /* Starscream in Frameworks */,
@@ -456,6 +463,7 @@
 		3133E2572C3F696A000D4B1A /* Resource */ = {
 			isa = PBXGroup;
 			children = (
+				C1B327712E85141500E50C50 /* Lotties */,
 				C17BA2AB2DF5A9F0001AF72D /* Fonts */,
 				3133E2302C3E2357000D4B1A /* Assets.xcassets */,
 				C17E08322D2A62BC0029A8D0 /* Colors.xcassets */,
@@ -814,11 +822,12 @@
 			isa = PBXGroup;
 			children = (
 				C18A84FA2E2E1F1300E49070 /* Advertisement */,
+				C1852D022E67E05200A989B4 /* AppDataManager.swift */,
 				C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */,
 				C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */,
 				C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */,
 				C17EAE372E374515006ACA44 /* Log.swift */,
-				C1852D022E67E05200A989B4 /* AppDataManager.swift */,
+				C1B327842E8523F400E50C50 /* SkeletonDiffableDataSource.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -863,6 +872,7 @@
 				310865052E1EC3F40089D67A /* NeumorphicButton.swift */,
 				C18B1DCA2E39A36F00E25DCE /* NeumorphicView.swift */,
 				C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */,
+				C1B327822E85157E00E50C50 /* MobitLottieView.swift */,
 				36E771922D75AF1E00739CDE /* MobitTextField.swift */,
 				C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */,
 				C17DC0F32E20E6E700E35D3F /* NeumorphicSegmentedControl.swift */,
@@ -898,6 +908,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				C18A84FA2E2E1F1300E49070 /* Advertisement */,
+				C1B327712E85141500E50C50 /* Lotties */,
 			);
 			name = Mobit;
 			packageProductDependencies = (
@@ -920,6 +931,7 @@
 				5FA880EA2E1A598100F22F9C /* FirebaseAnalytics */,
 				C17E8E242E1F5EED0082E7DC /* FirebaseDatabase */,
 				C174D89D2E24BAD40015B6ED /* FirebaseCrashlytics */,
+				C1B3276F2E85140500E50C50 /* Lottie */,
 			);
 			productName = Mobit;
 			productReference = 3133E2242C3E2355000D4B1A /* Mobit.app */;
@@ -1011,6 +1023,7 @@
 				31F33FC82DDA1ACE003D533A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 				3128610B2DFF004100541A6A /* XCRemoteSwiftPackageReference "SkeletonView" */,
 				5FA880E92E1A598100F22F9C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				C1B3276E2E85140500E50C50 /* XCRemoteSwiftPackageReference "lottie-ios" */,
 			);
 			productRefGroup = 3133E2252C3E2355000D4B1A /* Products */;
 			projectDirPath = "";
@@ -1143,6 +1156,7 @@
 				C17424C62D460478009861CC /* MobitUserInformation.swift in Sources */,
 				3133E2662C3F6A44000D4B1A /* BaseCoordinator.swift in Sources */,
 				C1B8F3BC2E272E6800C46734 /* SelfSizingViews.swift in Sources */,
+				C1B327852E8523F400E50C50 /* SkeletonDiffableDataSource.swift in Sources */,
 				C17424C42D4600A8009861CC /* UserDataManager.swift in Sources */,
 				C174D8A32E24DBEC0015B6ED /* TradeInfoCollectionViewCell.swift in Sources */,
 				31B741F52D53AA6C00706340 /* TradeOrderView.swift in Sources */,
@@ -1200,6 +1214,7 @@
 				99C20AB42C4F7177009276E7 /* CryptoSocketTicker.swift in Sources */,
 				31E208092C46BF6B000BFEBC /* MainTabBarCoordinator.swift in Sources */,
 				C18EED4F2D55A82B0038BBF7 /* MobitSegmentedControl.swift in Sources */,
+				C1B327832E85157E00E50C50 /* MobitLottieView.swift in Sources */,
 				C18FF26E2D5AEDF7003E95B0 /* StringExtension.swift in Sources */,
 				311E33FC2C4608800054C6BC /* MainViewController.swift in Sources */,
 				99C20A832C4A2787009276E7 /* MainReactor.swift in Sources */,
@@ -1671,6 +1686,14 @@
 				minimumVersion = 3.2.0;
 			};
 		};
+		C1B3276E2E85140500E50C50 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1776,6 +1799,11 @@
 		C17E8E242E1F5EED0082E7DC /* FirebaseDatabase */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FirebaseDatabase;
+		};
+		C1B3276F2E85140500E50C50 /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B3276E2E85140500E50C50 /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

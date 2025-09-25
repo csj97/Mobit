@@ -23,7 +23,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 	self.window?.rootViewController = mobitLaunchScreen
 	self.window?.makeKeyAndVisible()
 	
-	DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 3) {
+	DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1) {
 	  self.window?.rootViewController = navigationController
 	  
 	  AppDataManager.shared.downloadFromFirebase()

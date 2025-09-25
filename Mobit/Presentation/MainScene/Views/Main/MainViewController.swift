@@ -12,7 +12,6 @@ import ReactorKit
 import PinLayout
 import Then
 import UIKit
-import SkeletonView
 
 enum TableViewSection: CaseIterable {
   case main
@@ -60,7 +59,7 @@ class MainViewController: MobitBaseViewController {
   }
   // 원화 버튼
   let krwButton: UIButton = UIButton().then {
-    $0.setTitle("KRW", for: .normal)
+    $0.setTitle("원화마켓", for: .normal)
     $0.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
     $0.setTitleColor(.black, for: .normal)
     $0.setTitleColor(.blue, for: .selected)
@@ -134,10 +133,11 @@ class MainViewController: MobitBaseViewController {
 	$0.backgroundColor = .mobitColors(.lightGrayBG)
   }
   
+  var lottieLoadingView: MobitLottieView? = nil
+  
   // MARK: Life Cycle
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-	// TODO: socket disconnect check
 	
 	// 필요할 때 주석 해제 후, 배포
 	// self.reactor.action.onNext(.checkNewVersion)
@@ -159,15 +159,17 @@ class MainViewController: MobitBaseViewController {
 	self.setButtonGesture()
     
     self.setUpFlexItems()
-    
-    self.bind(reactor: self.reactor)
+	
+	self.playLottie()
+	
+	self.bind(reactor: self.reactor)
 	
 //	self.reactor.downloadFromFirebase { response in
 //	  let cmcList = response.compactMap { self.reactor.parseToCryptoData(dict: $0.value) }
 //	  self.reactor.cmcList = cmcList
 //	}
 	
-	guard let transactionHistory = UserDataManager.userTransactionList else { return }
+	// guard let transactionHistory = UserDataManager.userTransactionList else { return }
 	// print(transactionHistory)
   }
   
@@ -195,6 +197,20 @@ class MainViewController: MobitBaseViewController {
     self.rootContainer.addSubview(self.tableView)
   }
   
+  func playLottie() {
+	lottieLoadingView = MobitLottieView(lottieName: "cryptoLottie", loopMode: .loop)
+	guard let lottieLoadingView = lottieLoadingView else { return }
+	lottieLoadingView.configure()
+	
+	self.view.addSubview(lottieLoadingView)
+	
+	lottieLoadingView.snp.makeConstraints { make in
+	  make.edges.equalToSuperview()
+	}
+	
+	lottieLoadingView.playLottie()
+  }
+  
   func setTableView() {
 	let nib = UINib(nibName: "MainCryptoTableViewCell", bundle: nil)
 	self.tableView.register(nib, forCellReuseIdentifier: self.cellIndentifier)
@@ -213,6 +229,12 @@ class MainViewController: MobitBaseViewController {
         for: indexPath
 	  ) as? MainCryptoTableViewCell else { return UITableViewCell() }
       
+	  if let lottieLoadingView = self.lottieLoadingView {
+		lottieLoadingView.stopLottie()
+		self.lottieLoadingView?.removeFromSuperview()
+		self.lottieLoadingView = nil
+	  }
+	  
       cell.configure(crypto: crypto, isScrolling: self.isSocketUpdating)
       cell.selectionStyle = .none
       return cell

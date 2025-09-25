@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SkeletonView
 
 class MainCryptoTableViewCell: UITableViewCell {
   
@@ -117,6 +118,28 @@ class MainCryptoTableViewCell: UITableViewCell {
 	
 	setNeedsLayout()
 	layoutIfNeeded()
+  }
+  
+  func setupSkeletonView() {
+	// 셀의 모든 서브뷰를 skeletonable로 설정
+	self.isSkeletonable = true
+	self.contentView.isSkeletonable = true
+	
+	// 스켈레톤을 적용할 특정 뷰들 설정
+	self.cryptoName.isSkeletonable = true
+	self.cryptoSymbol.isSkeletonable = true
+	self.cryptoPrice.isSkeletonable = true
+	self.cryptoChangeRate.isSkeletonable = true
+	self.cryptoAccTradePrice.isSkeletonable = true
+	self.isSkeletonable = true
+	self.contentView.isSkeletonable = true
+	
+	// 스켈레톤 스타일
+	cryptoName.skeletonCornerRadius = 4
+	cryptoSymbol.skeletonCornerRadius = 4
+	cryptoPrice.skeletonCornerRadius = 4
+	cryptoChangeRate.skeletonCornerRadius = 4
+	cryptoAccTradePrice.skeletonCornerRadius = 4
   }
   
   /// 1보다 작은 금액 Format 설정

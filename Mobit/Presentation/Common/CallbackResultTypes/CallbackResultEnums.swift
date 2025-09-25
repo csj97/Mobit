@@ -10,6 +10,7 @@ import Foundation
 enum OrderResult {
   case updateHistory
   case alert(title: String, message: String)
+  case successLottie
 }
 
 enum HistoryResult {

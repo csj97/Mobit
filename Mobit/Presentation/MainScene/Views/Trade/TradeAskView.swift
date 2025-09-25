@@ -147,6 +147,9 @@ class TradeAskView: UIView, ViewRule {
   @IBAction func tapOnAskButton(_ sender: UIButton) {
 	self.endEditing(true)
 	
+	let vibrator = UIImpactFeedbackGenerator(style: .medium)
+	vibrator.impactOccurred()
+	
 	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
 		  let marketName = self.reactor?.selectCrypto.market,
 		  let crypto = UserDataManager.userCryptoList?.compactMap({ $0 }).first(
@@ -192,7 +195,8 @@ class TradeAskView: UIView, ViewRule {
 	  let currentTime = Date()
 	  let executedDate = formatter.string(from: currentTime)
 	  
-	  self.callBack?(.alert(title: "알림", message: "매도 되었습니다."))
+	  // self.callBack?(.alert(title: "알림", message: "매도 되었습니다."))
+	  self.callBack?(.successLottie)
 	  self.initTextFieldValue()
 	  
 	  let newTransaction: TransactionInfo = TransactionInfo(
@@ -275,6 +279,7 @@ class TradeAskView: UIView, ViewRule {
   func initTextFieldValue() {
 	self.inputTradeAmount.text = nil
 	self.totalPriceTextField.text = nil
+	self.inputAmount = 0
   }
   
   func bind(reactor: TradeReactor) {

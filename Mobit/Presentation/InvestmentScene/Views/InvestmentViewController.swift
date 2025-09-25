@@ -77,19 +77,21 @@ class InvestmentViewController: MobitBaseViewController {
 	
 	self.transactionTableview.bounces = false
 	
-	self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoTransactionDataModel>(tableView: self.transactionTableview, cellProvider: { tableView, indexPath, cryptoTransacDataModel in
-	  
-	  guard let cell = self.transactionTableview.dequeueReusableCell(
-		withIdentifier: "InvestmentTableViewCell",
-		for: indexPath
-	  ) as? InvestmentTableViewCell else { return UITableViewCell() }
-	  
-	  let isLast = (indexPath.row == self.cryptos.count - 1)
-	  let crypto = self.cryptos[indexPath.row]
-	  cell.configure(crypto: crypto, isLast: isLast)
-	  cell.selectionStyle = .none
-	  
-	  return cell
+	self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoTransactionDataModel>(
+	  tableView: self.transactionTableview,
+	  cellProvider: { tableView, indexPath, cryptoTransacDataModel in
+		
+		guard let cell = self.transactionTableview.dequeueReusableCell(
+		  withIdentifier: "InvestmentTableViewCell",
+		  for: indexPath
+		) as? InvestmentTableViewCell else { return UITableViewCell() }
+		
+		let isLast = (indexPath.row == self.cryptos.count - 1)
+		let crypto = self.cryptos[indexPath.row]
+		cell.configure(crypto: crypto, isLast: isLast)
+		cell.selectionStyle = .none
+		
+		return cell
 	})
 	
 	self.dataSource?.defaultRowAnimation = .fade
@@ -190,7 +192,7 @@ extension InvestmentViewController: View {
   func bind(reactor: InvestReactor) {
 	reactor.state.map { $0.cryptos }
 	  .compactMap { $0 }
-	  .throttle(.milliseconds(300), scheduler: MainScheduler.instance)
+	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] cryptos in
@@ -210,9 +212,9 @@ extension InvestmentViewController: View {
 		  self.pendingUpdate = cryptos
 		} else {
 		  self.pendingUpdate = nil
-		  self.cryptos = cryptos
+		  self.cryptos = cryptos.reversed()
 		  self.updateTotalDatas(cryptos: cryptos)
-		  self.applySnapshot(cryptoTransacDataModel: cryptos)
+		  self.applySnapshot(cryptoTransacDataModel: cryptos.reversed())
 		}
 	  })
 	  .disposed(by: self.disposeBag)

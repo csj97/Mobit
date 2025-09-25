@@ -96,6 +96,25 @@ class TradeViewController: MobitBaseViewController {
 	  switch orderResult {
 	  case .alert(let title, let message):
 		self.showDefaultAlert(title: title, message: message)
+	  case .successLottie:
+		let lottieView = MobitLottieView(
+		  lottieName: "check_blue",
+		  loopMode: .playOnce,
+		  lottieSpeed: 2,
+		  bgColor: .clear
+		)
+		lottieView.configure()
+		
+		self.view.addSubview(lottieView)
+		
+		lottieView.snp.makeConstraints { make in
+		  make.edges.equalToSuperview()
+		}
+		
+		lottieView.playLottie {
+		  lottieView.stopLottie()
+		  lottieView.removeFromSuperview()
+		}
 	  default:
 		break
 	  }
