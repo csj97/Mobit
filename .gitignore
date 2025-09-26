@@ -111,3 +111,4 @@ iOSInjectionProject/
 
 *.xcconfig
 *.DS_Store
+Mobit.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
