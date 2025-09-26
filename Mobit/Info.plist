@@ -215,6 +215,16 @@
 		<string>esamanru-OTF-Bold.otf</string>
 		<string>esamanru-OTF-Light.otf</string>
 		<string>esamanru-OTF-Medium.otf</string>
+		<string>PartialSansKR-Regular.otf</string>
+		<string>SUIT-Bold.otf</string>
+		<string>SUIT-ExtraBold.otf</string>
+		<string>SUIT-ExtraLight.otf</string>
+		<string>SUIT-Heavy.otf</string>
+		<string>SUIT-Light.otf</string>
+		<string>SUIT-Medium.otf</string>
+		<string>SUIT-Regular.otf</string>
+		<string>SUIT-SemiBold.otf</string>
+		<string>SUIT-Thin.otf</string>
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
@@ -233,10 +243,6 @@
 			</array>
 		</dict>
 	</dict>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>맞춤형 광고 제공을 위해 추적 권한이 필요합니다.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>사진을 저장하기 위해 사진 라이브러리 접근 권한이 필요합니다.</string>
 	<key>UPBIT_ACCESS_KEY</key>
 	<string>$(UPBIT_ACCESS_KEY)</string>
 	<key>UPBIT_SECRET_KEY</key>

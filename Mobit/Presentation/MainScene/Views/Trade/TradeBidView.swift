@@ -119,8 +119,8 @@ class TradeBidView: UIView, ViewRule {
 	
 	if executedTotalPrice > 0.0, userBalance >= executedTotalPrice {
 	  self.updateTransaction(marketName: marketName) {
-		self.initTextFieldValue()
 		self.callBack?(.successLottie)
+		self.initTextFieldValue()
 		// self.callBack?(.alert(title: "알림", message: "매수 되었습니다."))
 		self.callBack?(.updateHistory)
 	  }

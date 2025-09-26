@@ -197,11 +197,11 @@ class TradeOrderView: UIView, ViewRule {
   func setInvestLiveData(data: CryptoTransactionDataModel) {
 	self.cryptoInvestData = data
 	
-	self.cryptoAveragePrice.text = "\(data.staticData.averageBuyPrice.formatSignificantDigits(digits: 4))".addComma()
-	self.cryptoHoldingQuantity.text = "\(data.staticData.holdingQuantity.formatSignificantDigits(digits: 2))".addComma()
-	self.cryptoEvalPrice.text = "\(data.dynamicData.evaluationPrice.formatSignificantDigits())".addComma() + " KRW"
-	self.cryptoEvalLoss.text = "\(data.dynamicData.evaluationProfitLoss.formatSignificantDigits(digits: 2))".addComma() + " KRW"
-	self.cryptoProfitRate.text = "\(data.dynamicData.profitRate.formatSignificantDigits(digits: 2))".addComma() + " %"
+	self.cryptoAveragePrice.text = "\(data.staticData.averageBuyPrice.formatSignificantDigits(digits: 4))"
+	self.cryptoHoldingQuantity.text = "\(data.staticData.holdingQuantity.formatSignificantDigits(digits: 2))"
+	self.cryptoEvalPrice.text = "\(data.dynamicData.evaluationPrice.formatSignificantDigits())" + " KRW"
+	self.cryptoEvalLoss.text = "\(data.dynamicData.evaluationProfitLoss.formatSignificantDigits(digits: 0))" + " KRW"
+	self.cryptoProfitRate.text = "\(data.dynamicData.profitRate.formatSignificantDigits(digits: 2))" + " %"
 	
 	var textColor: UIColor = .black
 	if data.dynamicData.evaluationProfitLoss < 0 {

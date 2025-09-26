@@ -195,10 +195,6 @@ class TradeAskView: UIView, ViewRule {
 	  let currentTime = Date()
 	  let executedDate = formatter.string(from: currentTime)
 	  
-	  // self.callBack?(.alert(title: "알림", message: "매도 되었습니다."))
-	  self.callBack?(.successLottie)
-	  self.initTextFieldValue()
-	  
 	  let newTransaction: TransactionInfo = TransactionInfo(
 		marketName: crypto.staticData.marketName,
 		orderType: .ask,
@@ -267,6 +263,11 @@ class TradeAskView: UIView, ViewRule {
 	  )
 	  
 	  UserDataManager.userPNLHistory?.append(pnlHistory)
+	  
+	  
+	  // self.callBack?(.alert(title: "알림", message: "매도 되었습니다."))
+	  self.callBack?(.successLottie)	// 로띠 동작
+	  self.initTextFieldValue()			// 텍스트 필드 초기화
 	  
 	  self.updateCryptoData()
 	  self.callBack?(.updateHistory)

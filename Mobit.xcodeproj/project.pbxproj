@@ -132,6 +132,16 @@
 		C17E8E272E1F60D50082E7DC /* FirebaseCMCResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */; };
 		C17EAE382E374515006ACA44 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17EAE372E374515006ACA44 /* Log.swift */; };
 		C1852D032E67E05200A989B4 /* AppDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1852D022E67E05200A989B4 /* AppDataManager.swift */; };
+		C18650E12E864B71009F3E13 /* PartialSansKR-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E02E864B71009F3E13 /* PartialSansKR-Regular.otf */; };
+		C18650EB2E865A17009F3E13 /* SUIT-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E72E865A17009F3E13 /* SUIT-Medium.otf */; };
+		C18650EC2E865A17009F3E13 /* SUIT-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E22E865A17009F3E13 /* SUIT-Bold.otf */; };
+		C18650ED2E865A17009F3E13 /* SUIT-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E82E865A17009F3E13 /* SUIT-Regular.otf */; };
+		C18650EE2E865A17009F3E13 /* SUIT-Thin.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650EA2E865A17009F3E13 /* SUIT-Thin.otf */; };
+		C18650EF2E865A17009F3E13 /* SUIT-ExtraBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E32E865A17009F3E13 /* SUIT-ExtraBold.otf */; };
+		C18650F02E865A17009F3E13 /* SUIT-SemiBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E92E865A17009F3E13 /* SUIT-SemiBold.otf */; };
+		C18650F12E865A17009F3E13 /* SUIT-Heavy.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E52E865A17009F3E13 /* SUIT-Heavy.otf */; };
+		C18650F22E865A17009F3E13 /* SUIT-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E62E865A17009F3E13 /* SUIT-Light.otf */; };
+		C18650F32E865A17009F3E13 /* SUIT-ExtraLight.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E42E865A17009F3E13 /* SUIT-ExtraLight.otf */; };
 		C18A84F92E2E1C6D00E49070 /* MobitConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18A84F82E2E1C6D00E49070 /* MobitConstants.swift */; };
 		C18B1DCB2E39A36F00E25DCE /* NeumorphicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18B1DCA2E39A36F00E25DCE /* NeumorphicView.swift */; };
 		C18E3FED2E25E8DC00B9E5D0 /* GradientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18E3FEC2E25E8DC00B9E5D0 /* GradientView.swift */; };
@@ -316,6 +326,16 @@
 		C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseCMCResponse.swift; sourceTree = "<group>"; };
 		C17EAE372E374515006ACA44 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		C1852D022E67E05200A989B4 /* AppDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataManager.swift; sourceTree = "<group>"; };
+		C18650E02E864B71009F3E13 /* PartialSansKR-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "PartialSansKR-Regular.otf"; sourceTree = "<group>"; };
+		C18650E22E865A17009F3E13 /* SUIT-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-Bold.otf"; sourceTree = "<group>"; };
+		C18650E32E865A17009F3E13 /* SUIT-ExtraBold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-ExtraBold.otf"; sourceTree = "<group>"; };
+		C18650E42E865A17009F3E13 /* SUIT-ExtraLight.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-ExtraLight.otf"; sourceTree = "<group>"; };
+		C18650E52E865A17009F3E13 /* SUIT-Heavy.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-Heavy.otf"; sourceTree = "<group>"; };
+		C18650E62E865A17009F3E13 /* SUIT-Light.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-Light.otf"; sourceTree = "<group>"; };
+		C18650E72E865A17009F3E13 /* SUIT-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-Medium.otf"; sourceTree = "<group>"; };
+		C18650E82E865A17009F3E13 /* SUIT-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-Regular.otf"; sourceTree = "<group>"; };
+		C18650E92E865A17009F3E13 /* SUIT-SemiBold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-SemiBold.otf"; sourceTree = "<group>"; };
+		C18650EA2E865A17009F3E13 /* SUIT-Thin.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-Thin.otf"; sourceTree = "<group>"; };
 		C18A84F82E2E1C6D00E49070 /* MobitConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitConstants.swift; sourceTree = "<group>"; };
 		C18B1DCA2E39A36F00E25DCE /* NeumorphicView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeumorphicView.swift; sourceTree = "<group>"; };
 		C18E3FEC2E25E8DC00B9E5D0 /* GradientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientView.swift; sourceTree = "<group>"; };
@@ -838,6 +858,16 @@
 				C17BA2B82DF5B6D9001AF72D /* esamanru-OTF-Bold.otf */,
 				C17BA2B92DF5B6D9001AF72D /* esamanru-OTF-Light.otf */,
 				C17BA2BA2DF5B6D9001AF72D /* esamanru-OTF-Medium.otf */,
+				C18650E02E864B71009F3E13 /* PartialSansKR-Regular.otf */,
+				C18650E22E865A17009F3E13 /* SUIT-Bold.otf */,
+				C18650E32E865A17009F3E13 /* SUIT-ExtraBold.otf */,
+				C18650E42E865A17009F3E13 /* SUIT-ExtraLight.otf */,
+				C18650E52E865A17009F3E13 /* SUIT-Heavy.otf */,
+				C18650E62E865A17009F3E13 /* SUIT-Light.otf */,
+				C18650E72E865A17009F3E13 /* SUIT-Medium.otf */,
+				C18650E82E865A17009F3E13 /* SUIT-Regular.otf */,
+				C18650E92E865A17009F3E13 /* SUIT-SemiBold.otf */,
+				C18650EA2E865A17009F3E13 /* SUIT-Thin.otf */,
 			);
 			path = Fonts;
 			sourceTree = "<group>";
@@ -1062,6 +1092,15 @@
 				C16FAE712E38B530003C5AD1 /* PNLTableViewCell.xib in Resources */,
 				C18EED572D55FE610038BBF7 /* TradeAskView.xib in Resources */,
 				3128610F2DFF125A00541A6A /* PrivacyInfo.xcprivacy in Resources */,
+				C18650EB2E865A17009F3E13 /* SUIT-Medium.otf in Resources */,
+				C18650EC2E865A17009F3E13 /* SUIT-Bold.otf in Resources */,
+				C18650ED2E865A17009F3E13 /* SUIT-Regular.otf in Resources */,
+				C18650EE2E865A17009F3E13 /* SUIT-Thin.otf in Resources */,
+				C18650EF2E865A17009F3E13 /* SUIT-ExtraBold.otf in Resources */,
+				C18650F02E865A17009F3E13 /* SUIT-SemiBold.otf in Resources */,
+				C18650F12E865A17009F3E13 /* SUIT-Heavy.otf in Resources */,
+				C18650F22E865A17009F3E13 /* SUIT-Light.otf in Resources */,
+				C18650F32E865A17009F3E13 /* SUIT-ExtraLight.otf in Resources */,
 				31B742082D5A3BC400706340 /* tradingview.html in Resources */,
 				3133E2342C3E2357000D4B1A /* LaunchScreen.storyboard in Resources */,
 				5F657F792E06B0E80065A029 /* MobitAPIKeys.xcconfig in Resources */,
@@ -1073,6 +1112,7 @@
 				C15B934A2E29ED910064212B /* style.css in Resources */,
 				31B7420F2D5B939000706340 /* TradeHistoryTableViewCell.xib in Resources */,
 				C19ED6EB2DE31653001ACCF9 /* TradeInformationView.xib in Resources */,
+				C18650E12E864B71009F3E13 /* PartialSansKR-Regular.otf in Resources */,
 				31B741ED2D524F7000706340 /* TradeViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1410,6 +1450,8 @@
 				INFOPLIST_FILE = Mobit/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "모의비트";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "사진을 저장하기 위해 사진 라이브러리 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "맞춤형 광고 제공을 위해 추적 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
@@ -1449,6 +1491,8 @@
 				INFOPLIST_FILE = Mobit/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "모의비트";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "사진을 저장하기 위해 사진 라이브러리 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "맞춤형 광고 제공을 위해 추적 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;

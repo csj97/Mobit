@@ -157,8 +157,6 @@ class NewWebSocketManager: WebSocketDelegate {
 	  Log.info("WebSocket connection cancelled")
 	  Log.info("------------------------------------------------------")
 	  
-      
-      
     case .ping, .pong:
       break // Ping/Pong 이벤트는 보통 생략 가능
       
