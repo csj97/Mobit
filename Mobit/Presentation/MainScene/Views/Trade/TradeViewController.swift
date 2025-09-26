@@ -65,6 +65,8 @@ class TradeViewController: MobitBaseViewController {
 	self.view.endEditing(true)
   }
   
+  // MARK: - Life Cycles
+  
   override func viewWillAppear(_ animated: Bool) {
 	super.viewWillAppear(animated)
 	self.reactor.action
@@ -86,6 +88,18 @@ class TradeViewController: MobitBaseViewController {
 	super.viewWillDisappear(animated)
 	self.delegate?.mainCoordinatorDidRequestShowTabBar()
   }
+  /// 앱 상태가 백그라운드에서 Active 상태로 전환 되면 택시 상태를 조회하여 복구
+  @objc func viewDidBecomeActive() {
+	// print("Mobit Main - viewDidBecomeActive")
+	self.hideLoadingIndicator()
+  }
+  
+  /// 앱이 In-Active 상태로 전환
+  @objc func viewWillResignActive() {
+	// print("Mobit Main - viewWillResignActive")
+  }
+  
+  // MARK: - UI Setting
   
   func setUI() {
 	setFavoriteButton()
@@ -96,6 +110,32 @@ class TradeViewController: MobitBaseViewController {
 	  switch orderResult {
 	  case .alert(let title, let message):
 		self.showDefaultAlert(title: title, message: message)
+	  case .successLottie:
+		let lottieView = MobitLottieView(
+		  lottieName: "check_deep_blue",
+		  loopMode: .playOnce,
+		  lottieSpeed: 1.7,
+		  bgColor: .white.withAlphaComponent(0.3)
+		)
+		lottieView.configure()
+		
+		self.view.addSubview(lottieView)
+		
+		lottieView.snp.makeConstraints { make in
+		  make.edges.equalToSuperview()
+		}
+		
+		DispatchQueue.main.async {
+		  lottieView.playLottie {
+			UIView.animate(withDuration: 0.4, animations: {
+				lottieView.alpha = 0
+			}, completion: { _ in
+				lottieView.stopLottie()
+				lottieView.removeFromSuperview()
+			})
+		  }
+		}
+		
 	  default:
 		break
 	  }
@@ -156,48 +196,8 @@ class TradeViewController: MobitBaseViewController {
 	self.mobitSegmentedControl.onSegmentChanged?(self.mobitSegmentedControl.selectedIndex)
   }
   
-  func setData() {
-	NotificationCenter.default.addObserver(
-		self, selector: #selector(viewDidBecomeActive),
-		name: UIApplication.didBecomeActiveNotification,
-		object: nil
-	)
-	NotificationCenter.default.addObserver(
-		self, selector: #selector(viewWillResignActive),
-		name: UIApplication.willResignActiveNotification,
-		object: nil
-	)
-	
-//	self.reactor.downloadFromFirebase { response in
-//	  let cmcList = response.compactMap { self.reactor.parseToCryptoData(dict: $0.value) }
-//	  self.reactor.cmcList = cmcList
-//	}
-  }
   
-  func loadBannerADView() {
-	let bannerView = BannerView(adSize: AdSizeBanner)
-	bannerView.adUnitID = MobitConstants.bannerAdType
-	bannerView.rootViewController = self
-	self.bannerContainerView.addSubview(bannerView)
-	
-	bannerView.snp.makeConstraints { make in
-	  make.edges.equalToSuperview()
-	}
-	
-	bannerView.load(Request())
-  }
-  
-  /// 앱 상태가 백그라운드에서 Active 상태로 전환 되면 택시 상태를 조회하여 복구
-  @objc func viewDidBecomeActive() {
-	// print("Mobit Main - viewDidBecomeActive")
-	self.hideLoadingIndicator()
-  }
-  
-  /// 앱이 In-Active 상태로 전환
-  @objc func viewWillResignActive() {
-	// print("Mobit Main - viewWillResignActive")
-  }
-  
+  // MARK: - Data Settings
   
   func setCrypto(crypto: CryptoCellInfo? = nil) {
 	self.prevClosingPrice = crypto?.prevPrice
@@ -281,50 +281,18 @@ class TradeViewController: MobitBaseViewController {
 	self.favoriteButton.setImage(starImage, for: .normal)
   }
   
-  @IBAction func tapOnFavoriteButton(_ sender: UIButton) {
-	let isFavorite = UserDataManager.userFavoriteList.contains(
-	  where: { $0 == self.reactor.selectCrypto.market }
+  /// 백그라운드 포그라운드 노티 설정
+  func setData() {
+	NotificationCenter.default.addObserver(
+		self, selector: #selector(viewDidBecomeActive),
+		name: UIApplication.didBecomeActiveNotification,
+		object: nil
 	)
-	
-	if !isFavorite {
-	  UserDataManager.userFavoriteList.append(self.reactor.selectCrypto.market)
-	} else {
-	  UserDataManager.userFavoriteList.removeAll(
-		where: { $0 == self.reactor.selectCrypto.market }
-	  )
-	}
-	setFavoriteButton()
-  }
-  
-  @IBAction func tapOnNavigationBack(_ sender: UIButton) {
-	self.coordinator?.navigationController.popViewController(animated: true)
-	
-	guard let tickerSocketManager = reactor.tickerSocketManager,
-		  let orderbookSocketManager = reactor.orderBookSocketManager
-	else {
-	  reactor.tickerSocketManager = nil
-	  reactor.orderBookSocketManager = nil
-	  return
-	}
-	
-	tickerSocketManager.disconnect()
-	orderbookSocketManager.disconnect()
-  }
-  
-  /// price format
-  func formatTradePrice(_ tradePrice: Double?, precision: Int = 8) -> String {
-	guard let price = tradePrice else {
-	  return "N/A"  // 값이 없을 때 반환할 기본 문자열
-	}
-	return String(format: "%.\(precision)f", price)
-  }
-  
-  func showDefaultAlert(title: String, message: String) {
-	let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-	let okAction = UIAlertAction(title: "확인", style: .default, handler: nil)
-	
-	alert.addAction(okAction)
-	self.present(alert, animated: true, completion: nil)
+	NotificationCenter.default.addObserver(
+		self, selector: #selector(viewWillResignActive),
+		name: UIApplication.willResignActiveNotification,
+		object: nil
+	)
   }
   
   /// crypto socket 업데이트 될 때, 매수 목록 fetch
@@ -356,6 +324,69 @@ class TradeViewController: MobitBaseViewController {
 	  averageBuyPrice: averageBuyPrice
 	)
   }
+  
+  /// 하단 배너 광고 불러오기
+  func loadBannerADView() {
+	let bannerView = BannerView(adSize: AdSizeBanner)
+	bannerView.adUnitID = MobitConstants.bannerAdType
+	bannerView.rootViewController = self
+	self.bannerContainerView.addSubview(bannerView)
+	
+	bannerView.snp.makeConstraints { make in
+	  make.edges.equalToSuperview()
+	}
+	
+	bannerView.load(Request())
+  }
+  
+  /// price format
+  func formatTradePrice(_ tradePrice: Double?, precision: Int = 8) -> String {
+	guard let price = tradePrice else {
+	  return "N/A"  // 값이 없을 때 반환할 기본 문자열
+	}
+	return String(format: "%.\(precision)f", price)
+  }
+  
+  
+  // MARK: - Button Actions
+  @IBAction func tapOnFavoriteButton(_ sender: UIButton) {
+	let isFavorite = UserDataManager.userFavoriteList.contains(
+	  where: { $0 == self.reactor.selectCrypto.market }
+	)
+	
+	if !isFavorite {
+	  UserDataManager.userFavoriteList.append(self.reactor.selectCrypto.market)
+	} else {
+	  UserDataManager.userFavoriteList.removeAll(
+		where: { $0 == self.reactor.selectCrypto.market }
+	  )
+	}
+	setFavoriteButton()
+  }
+  
+  @IBAction func tapOnNavigationBack(_ sender: UIButton) {
+	self.coordinator?.navigationController.popViewController(animated: true)
+	
+	guard let tickerSocketManager = reactor.tickerSocketManager,
+		  let orderbookSocketManager = reactor.orderBookSocketManager
+	else {
+	  reactor.tickerSocketManager = nil
+	  reactor.orderBookSocketManager = nil
+	  return
+	}
+	
+	tickerSocketManager.disconnect()
+	orderbookSocketManager.disconnect()
+  }
+  
+  func showDefaultAlert(title: String, message: String) {
+	let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+	let okAction = UIAlertAction(title: "확인", style: .default, handler: nil)
+	
+	alert.addAction(okAction)
+	self.present(alert, animated: true, completion: nil)
+  }
+  
 }
 
 // MARK: Reactor - View

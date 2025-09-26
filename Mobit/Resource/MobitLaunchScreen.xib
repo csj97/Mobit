@@ -10,6 +10,11 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="MobitLaunchScreen" customModule="Mobit" customModuleProvider="target">
             <connections>
+                <outlet property="label1" destination="hWb-7X-isr" id="hk2-xi-dyg"/>
+                <outlet property="label2" destination="3EF-SG-Kag" id="t1T-3g-svn"/>
+                <outlet property="label3" destination="CbK-WI-Xc5" id="6L4-wF-Iew"/>
+                <outlet property="label4" destination="M0W-cM-WJy" id="2Br-9M-kXT"/>
+                <outlet property="mobitNameLabel" destination="3wP-Z2-TAb" id="UdW-Oa-sT8"/>
                 <outlet property="view" destination="iN0-l3-epB" id="wm2-DK-QGA"/>
             </connections>
         </placeholder>
@@ -43,7 +48,7 @@
                     <nil key="highlightedColor"/>
                 </label>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="본 앱은 가상의 자산을 기반으로 한 모의투자 시뮬레이터입니다." textAlignment="center" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="M0W-cM-WJy">
-                    <rect key="frame" x="20" y="762" width="353" height="36"/>
+                    <rect key="frame" x="40" y="762" width="313" height="36"/>
                     <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                     <color key="textColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     <nil key="highlightedColor"/>
@@ -55,10 +60,10 @@
                 <constraint firstItem="hWb-7X-isr" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="45" id="6Rc-ob-I7z"/>
                 <constraint firstItem="CbK-WI-Xc5" firstAttribute="leading" secondItem="3wP-Z2-TAb" secondAttribute="trailing" constant="4" id="EhZ-SN-FCY"/>
                 <constraint firstItem="3EF-SG-Kag" firstAttribute="centerY" secondItem="hWb-7X-isr" secondAttribute="centerY" id="a7S-VK-wip"/>
-                <constraint firstItem="M0W-cM-WJy" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="20" id="erO-ST-60c"/>
+                <constraint firstItem="M0W-cM-WJy" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="40" id="erO-ST-60c"/>
                 <constraint firstItem="hWb-7X-isr" firstAttribute="top" secondItem="vUN-kp-3ea" secondAttribute="top" constant="250" id="fLo-t8-fBH"/>
                 <constraint firstItem="3wP-Z2-TAb" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="45" id="gdj-iv-8qT"/>
-                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="M0W-cM-WJy" secondAttribute="trailing" constant="20" id="ncj-81-nZk"/>
+                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="M0W-cM-WJy" secondAttribute="trailing" constant="40" id="ncj-81-nZk"/>
                 <constraint firstItem="3wP-Z2-TAb" firstAttribute="top" secondItem="3EF-SG-Kag" secondAttribute="bottom" constant="10" id="pSO-EL-PHE"/>
                 <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="3EF-SG-Kag" secondAttribute="trailing" constant="20" id="ruA-T7-KPC"/>
                 <constraint firstItem="3EF-SG-Kag" firstAttribute="leading" secondItem="hWb-7X-isr" secondAttribute="trailing" constant="4" id="sqi-8l-QsR"/>

@@ -31,10 +31,10 @@
                     <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="nEE-H1-Ysh">
-                    <rect key="frame" x="25" y="333" width="343" height="186"/>
+                    <rect key="frame" x="25" y="317.66666666666669" width="343" height="217.00000000000006"/>
                     <subviews>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="16" translatesAutoresizingMaskIntoConstraints="NO" id="Hza-Le-BAP" userLabel="Label Stack View">
-                            <rect key="frame" x="14" y="15" width="315" height="105"/>
+                            <rect key="frame" x="14" y="15" width="315" height="136"/>
                             <subviews>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="TITLE" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Waz-t0-1lM" userLabel="Title Label">
                                     <rect key="frame" x="0.0" y="0.0" width="315" height="21.666666666666668"/>
@@ -43,29 +43,36 @@
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="sXy-FG-jKx">
-                                    <rect key="frame" x="0.0" y="37.666666666666686" width="315" height="1"/>
+                                    <rect key="frame" x="0.0" y="37.666666666666629" width="315" height="1"/>
                                     <color key="backgroundColor" white="0.66666666666666663" alpha="0.26226200331125826" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     <constraints>
                                         <constraint firstAttribute="height" constant="1" id="Zgd-sR-U12"/>
                                     </constraints>
                                 </view>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="MOBIT ALERT CONTENTMOBIT ALERT CONTENTMOBIT ALERT CONTENTMOBIT ALERT CONTENT" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hh1-03-XZL" userLabel="Content Label">
-                                    <rect key="frame" x="0.0" y="54.666666666666686" width="315" height="50.333333333333343"/>
-                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                    <rect key="frame" x="0.0" y="54.666666666666629" width="315" height="57.333333333333343"/>
+                                    <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                     <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     <nil key="highlightedColor"/>
                                 </label>
+                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="duK-uc-7Z6" userLabel="Spacing(8)">
+                                    <rect key="frame" x="0.0" y="128" width="315" height="8"/>
+                                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                    <constraints>
+                                        <constraint firstAttribute="height" constant="8" id="oWK-Bb-ljs"/>
+                                    </constraints>
+                                </view>
                             </subviews>
                         </stackView>
                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="S7p-KW-4Yq" userLabel="Divider View">
-                            <rect key="frame" x="0.0" y="135" width="343" height="1"/>
+                            <rect key="frame" x="0.0" y="166" width="343" height="1"/>
                             <color key="backgroundColor" white="0.33333333333333331" alpha="0.10000000000000001" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             <constraints>
                                 <constraint firstAttribute="height" constant="1" id="wI8-t8-qmB"/>
                             </constraints>
                         </view>
                         <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="TUA-TG-ICX" userLabel="Button Stack View">
-                            <rect key="frame" x="0.0" y="136" width="343" height="50"/>
+                            <rect key="frame" x="0.0" y="167" width="343" height="50"/>
                             <subviews>
                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="t4y-uM-wTa">
                                     <rect key="frame" x="0.0" y="0.0" width="171.66666666666666" height="50"/>
@@ -139,8 +146,11 @@
         </view>
     </objects>
     <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
         <systemColor name="tintColor">
-            <color red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.0" green="0.47843137254901963" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>

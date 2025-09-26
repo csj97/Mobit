@@ -18,6 +18,7 @@ class TradeOrderView: UIView, ViewRule {
   @IBOutlet weak var segmentedContainerView: UIView!
   @IBOutlet weak var segmentedContainerStackView: UIStackView!
   @IBOutlet weak var cryptoAveragePrice: UILabel!
+  @IBOutlet weak var cryptoHoldingQuantity: UILabel!
   @IBOutlet weak var cryptoEvalPrice: UILabel!
   @IBOutlet weak var cryptoEvalLoss: UILabel!
   @IBOutlet weak var cryptoProfitRate: UILabel!
@@ -85,8 +86,9 @@ class TradeOrderView: UIView, ViewRule {
 		historyView?.updateHistory()
 	  case .alert(let title, let message):
 		self.callback?(.alert(title: title, message: message))
+	  case .successLottie:
+		self.callback?(.successLottie)
 	  }
-	  
 	}
 	askView = TradeAskView.instanceFromNib(
 	  reactor: reactor,
@@ -99,6 +101,8 @@ class TradeOrderView: UIView, ViewRule {
 		historyView?.updateHistory()
 	  case .alert(let title, let message):
 		self.callback?(.alert(title: title, message: message))
+	  case .successLottie:
+		self.callback?(.successLottie)
 	  }
 	}
 	
@@ -193,10 +197,11 @@ class TradeOrderView: UIView, ViewRule {
   func setInvestLiveData(data: CryptoTransactionDataModel) {
 	self.cryptoInvestData = data
 	
-	self.cryptoAveragePrice.text = "\(data.staticData.averageBuyPrice.formatSignificantDigits(digits: 4))".addComma()
-	self.cryptoEvalPrice.text = "\(data.dynamicData.evaluationPrice.formatSignificantDigits())".addComma() + " KRW"
-	self.cryptoEvalLoss.text = "\(data.dynamicData.evaluationProfitLoss.formatSignificantDigits(digits: 2))".addComma() + " KRW"
-	self.cryptoProfitRate.text = "\(data.dynamicData.profitRate.formatSignificantDigits(digits: 2))".addComma() + " %"
+	self.cryptoAveragePrice.text = "\(data.staticData.averageBuyPrice.formatSignificantDigits(digits: 4))"
+	self.cryptoHoldingQuantity.text = "\(data.staticData.holdingQuantity.formatSignificantDigits(digits: 2))"
+	self.cryptoEvalPrice.text = "\(data.dynamicData.evaluationPrice.formatSignificantDigits())" + " KRW"
+	self.cryptoEvalLoss.text = "\(data.dynamicData.evaluationProfitLoss.formatSignificantDigits(digits: 0))" + " KRW"
+	self.cryptoProfitRate.text = "\(data.dynamicData.profitRate.formatSignificantDigits(digits: 2))" + " %"
 	
 	var textColor: UIColor = .black
 	if data.dynamicData.evaluationProfitLoss < 0 {

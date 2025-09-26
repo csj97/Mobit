@@ -37,7 +37,7 @@ class InvestmentTableViewCell: UITableViewCell {
 	self.cryptoBuyPrice.text = "\(crypto.staticData.buyAmount.formatSignificantDigits())"
 	
 	self.cryptoEvalPrice.text = "\(crypto.dynamicData.evaluationPrice.formatSignificantDigits())"
-	self.cryptoEvalLoss.text = "\(crypto.dynamicData.evaluationProfitLoss.formatSignificantDigits(digits: 2))" + " ₩"
+	self.cryptoEvalLoss.text = "\(crypto.dynamicData.evaluationProfitLoss.formatSignificantDigits(digits: 0))"
 	self.cryptoProfitRate.text = "\(crypto.dynamicData.profitRate.formatSignificantDigits(digits: 2))" + " %"
 	
 	if crypto.dynamicData.profitRate > 0 {

@@ -7,12 +7,34 @@
 
 import Foundation
 
-struct CryptoTransactionDataModel: Codable, Equatable {
+struct LegacyModel: Codable {
+  let staticData: LegacyStatic
+  let dynamicData: LegacyDynamic
+}
+
+struct LegacyStatic: Codable {
+  let marketName: String
+  let cryptoName: String?
+  let holdingQuantity: Double
+  let averageBuyPrice: Double
+  let buyAmount: Double
+}
+
+struct LegacyDynamic: Codable {
+  let marketName: String
+  let profitRate: Double
+  let evaluationProfitLoss: Double
+  let evaluationPrice: Double
+}
+
+struct CryptoTransactionDataModel: Codable, Equatable, Hashable {
+  var identifier: UUID = UUID()
   var staticData: CryptoTransactionStaticData
   var dynamicData: CryptoTransactionDynamicData
   
   /// 거래 정보 (정적)
-  struct CryptoTransactionStaticData: Codable, Equatable {
+  struct CryptoTransactionStaticData: Codable, Equatable, Hashable {
+	var identifier: UUID = UUID()
 	let marketName: String          // 코인 마켓 이름 (예: "BTC-USDT")
 	var cryptoName: String?		 // 코인 이름 (예: "비트코인")
 	var holdingQuantity: Double     // 보유 수량
@@ -25,7 +47,8 @@ struct CryptoTransactionDataModel: Codable, Equatable {
   }
 
   /// 거래 정보 (동적) - 실시간성 업데이트
-  struct CryptoTransactionDynamicData: Codable, Equatable {
+  struct CryptoTransactionDynamicData: Codable, Equatable, Hashable {
+	var identifier: UUID = UUID()
 	let marketName: String
 	var profitRate: Double          // 수익률
 	var evaluationProfitLoss: Double // 평가손익 (얼마 손해, 이익 중인지)

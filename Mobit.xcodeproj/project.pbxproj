@@ -132,6 +132,16 @@
 		C17E8E272E1F60D50082E7DC /* FirebaseCMCResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */; };
 		C17EAE382E374515006ACA44 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17EAE372E374515006ACA44 /* Log.swift */; };
 		C1852D032E67E05200A989B4 /* AppDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1852D022E67E05200A989B4 /* AppDataManager.swift */; };
+		C18650E12E864B71009F3E13 /* PartialSansKR-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E02E864B71009F3E13 /* PartialSansKR-Regular.otf */; };
+		C18650EB2E865A17009F3E13 /* SUIT-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E72E865A17009F3E13 /* SUIT-Medium.otf */; };
+		C18650EC2E865A17009F3E13 /* SUIT-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E22E865A17009F3E13 /* SUIT-Bold.otf */; };
+		C18650ED2E865A17009F3E13 /* SUIT-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E82E865A17009F3E13 /* SUIT-Regular.otf */; };
+		C18650EE2E865A17009F3E13 /* SUIT-Thin.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650EA2E865A17009F3E13 /* SUIT-Thin.otf */; };
+		C18650EF2E865A17009F3E13 /* SUIT-ExtraBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E32E865A17009F3E13 /* SUIT-ExtraBold.otf */; };
+		C18650F02E865A17009F3E13 /* SUIT-SemiBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E92E865A17009F3E13 /* SUIT-SemiBold.otf */; };
+		C18650F12E865A17009F3E13 /* SUIT-Heavy.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E52E865A17009F3E13 /* SUIT-Heavy.otf */; };
+		C18650F22E865A17009F3E13 /* SUIT-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E62E865A17009F3E13 /* SUIT-Light.otf */; };
+		C18650F32E865A17009F3E13 /* SUIT-ExtraLight.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E42E865A17009F3E13 /* SUIT-ExtraLight.otf */; };
 		C18A84F92E2E1C6D00E49070 /* MobitConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18A84F82E2E1C6D00E49070 /* MobitConstants.swift */; };
 		C18B1DCB2E39A36F00E25DCE /* NeumorphicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18B1DCA2E39A36F00E25DCE /* NeumorphicView.swift */; };
 		C18E3FED2E25E8DC00B9E5D0 /* GradientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18E3FEC2E25E8DC00B9E5D0 /* GradientView.swift */; };
@@ -151,6 +161,9 @@
 		C19F77992E41A2F300863159 /* PNLShareView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C19F77982E41A2F300863159 /* PNLShareView.xib */; };
 		C1A0150A2E49B0DD00B7A7C6 /* LineChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A015092E49B0DD00B7A7C6 /* LineChartView.swift */; };
 		C1AEA1AF2D66E982001E2A9E /* CalculationUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */; };
+		C1B327702E85140500E50C50 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = C1B3276F2E85140500E50C50 /* Lottie */; };
+		C1B327832E85157E00E50C50 /* MobitLottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B327822E85157E00E50C50 /* MobitLottieView.swift */; };
+		C1B327852E8523F400E50C50 /* SkeletonDiffableDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B327842E8523F400E50C50 /* SkeletonDiffableDataSource.swift */; };
 		C1B8F3BC2E272E6800C46734 /* SelfSizingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */; };
 		C1B8F3BF2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */; };
 		C1B8F3C12E2783EA00C46734 /* MobitAnalyticsUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */; };
@@ -313,6 +326,16 @@
 		C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseCMCResponse.swift; sourceTree = "<group>"; };
 		C17EAE372E374515006ACA44 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		C1852D022E67E05200A989B4 /* AppDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataManager.swift; sourceTree = "<group>"; };
+		C18650E02E864B71009F3E13 /* PartialSansKR-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "PartialSansKR-Regular.otf"; sourceTree = "<group>"; };
+		C18650E22E865A17009F3E13 /* SUIT-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-Bold.otf"; sourceTree = "<group>"; };
+		C18650E32E865A17009F3E13 /* SUIT-ExtraBold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-ExtraBold.otf"; sourceTree = "<group>"; };
+		C18650E42E865A17009F3E13 /* SUIT-ExtraLight.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-ExtraLight.otf"; sourceTree = "<group>"; };
+		C18650E52E865A17009F3E13 /* SUIT-Heavy.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-Heavy.otf"; sourceTree = "<group>"; };
+		C18650E62E865A17009F3E13 /* SUIT-Light.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-Light.otf"; sourceTree = "<group>"; };
+		C18650E72E865A17009F3E13 /* SUIT-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-Medium.otf"; sourceTree = "<group>"; };
+		C18650E82E865A17009F3E13 /* SUIT-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-Regular.otf"; sourceTree = "<group>"; };
+		C18650E92E865A17009F3E13 /* SUIT-SemiBold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-SemiBold.otf"; sourceTree = "<group>"; };
+		C18650EA2E865A17009F3E13 /* SUIT-Thin.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-Thin.otf"; sourceTree = "<group>"; };
 		C18A84F82E2E1C6D00E49070 /* MobitConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitConstants.swift; sourceTree = "<group>"; };
 		C18B1DCA2E39A36F00E25DCE /* NeumorphicView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeumorphicView.swift; sourceTree = "<group>"; };
 		C18E3FEC2E25E8DC00B9E5D0 /* GradientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientView.swift; sourceTree = "<group>"; };
@@ -332,6 +355,8 @@
 		C19F77982E41A2F300863159 /* PNLShareView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PNLShareView.xib; sourceTree = "<group>"; };
 		C1A015092E49B0DD00B7A7C6 /* LineChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineChartView.swift; sourceTree = "<group>"; };
 		C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationUtil.swift; sourceTree = "<group>"; };
+		C1B327822E85157E00E50C50 /* MobitLottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitLottieView.swift; sourceTree = "<group>"; };
+		C1B327842E8523F400E50C50 /* SkeletonDiffableDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkeletonDiffableDataSource.swift; sourceTree = "<group>"; };
 		C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfSizingViews.swift; sourceTree = "<group>"; };
 		C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitNeumorphicSegmentedControl.swift; sourceTree = "<group>"; };
 		C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitAnalyticsUtil.swift; sourceTree = "<group>"; };
@@ -346,6 +371,7 @@
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C18A84FA2E2E1F1300E49070 /* Advertisement */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Advertisement; sourceTree = "<group>"; };
+		C1B327712E85141500E50C50 /* Lotties */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Lotties; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -368,6 +394,7 @@
 				99C20A862C4A27F1009276E7 /* ReactorKit in Frameworks */,
 				3133E2772C3F7192000D4B1A /* FlexLayout in Frameworks */,
 				C174D89E2E24BAD40015B6ED /* FirebaseCrashlytics in Frameworks */,
+				C1B327702E85140500E50C50 /* Lottie in Frameworks */,
 				3128610D2DFF004100541A6A /* SkeletonView in Frameworks */,
 				31F33FCA2DDA1ACE003D533A /* GoogleMobileAds in Frameworks */,
 				31DC41E02CD9196400F0FFF2 /* Starscream in Frameworks */,
@@ -456,6 +483,7 @@
 		3133E2572C3F696A000D4B1A /* Resource */ = {
 			isa = PBXGroup;
 			children = (
+				C1B327712E85141500E50C50 /* Lotties */,
 				C17BA2AB2DF5A9F0001AF72D /* Fonts */,
 				3133E2302C3E2357000D4B1A /* Assets.xcassets */,
 				C17E08322D2A62BC0029A8D0 /* Colors.xcassets */,
@@ -814,11 +842,12 @@
 			isa = PBXGroup;
 			children = (
 				C18A84FA2E2E1F1300E49070 /* Advertisement */,
+				C1852D022E67E05200A989B4 /* AppDataManager.swift */,
 				C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */,
 				C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */,
 				C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */,
 				C17EAE372E374515006ACA44 /* Log.swift */,
-				C1852D022E67E05200A989B4 /* AppDataManager.swift */,
+				C1B327842E8523F400E50C50 /* SkeletonDiffableDataSource.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -829,6 +858,16 @@
 				C17BA2B82DF5B6D9001AF72D /* esamanru-OTF-Bold.otf */,
 				C17BA2B92DF5B6D9001AF72D /* esamanru-OTF-Light.otf */,
 				C17BA2BA2DF5B6D9001AF72D /* esamanru-OTF-Medium.otf */,
+				C18650E02E864B71009F3E13 /* PartialSansKR-Regular.otf */,
+				C18650E22E865A17009F3E13 /* SUIT-Bold.otf */,
+				C18650E32E865A17009F3E13 /* SUIT-ExtraBold.otf */,
+				C18650E42E865A17009F3E13 /* SUIT-ExtraLight.otf */,
+				C18650E52E865A17009F3E13 /* SUIT-Heavy.otf */,
+				C18650E62E865A17009F3E13 /* SUIT-Light.otf */,
+				C18650E72E865A17009F3E13 /* SUIT-Medium.otf */,
+				C18650E82E865A17009F3E13 /* SUIT-Regular.otf */,
+				C18650E92E865A17009F3E13 /* SUIT-SemiBold.otf */,
+				C18650EA2E865A17009F3E13 /* SUIT-Thin.otf */,
 			);
 			path = Fonts;
 			sourceTree = "<group>";
@@ -863,6 +902,7 @@
 				310865052E1EC3F40089D67A /* NeumorphicButton.swift */,
 				C18B1DCA2E39A36F00E25DCE /* NeumorphicView.swift */,
 				C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */,
+				C1B327822E85157E00E50C50 /* MobitLottieView.swift */,
 				36E771922D75AF1E00739CDE /* MobitTextField.swift */,
 				C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */,
 				C17DC0F32E20E6E700E35D3F /* NeumorphicSegmentedControl.swift */,
@@ -898,6 +938,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				C18A84FA2E2E1F1300E49070 /* Advertisement */,
+				C1B327712E85141500E50C50 /* Lotties */,
 			);
 			name = Mobit;
 			packageProductDependencies = (
@@ -920,6 +961,7 @@
 				5FA880EA2E1A598100F22F9C /* FirebaseAnalytics */,
 				C17E8E242E1F5EED0082E7DC /* FirebaseDatabase */,
 				C174D89D2E24BAD40015B6ED /* FirebaseCrashlytics */,
+				C1B3276F2E85140500E50C50 /* Lottie */,
 			);
 			productName = Mobit;
 			productReference = 3133E2242C3E2355000D4B1A /* Mobit.app */;
@@ -1011,6 +1053,7 @@
 				31F33FC82DDA1ACE003D533A /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 				3128610B2DFF004100541A6A /* XCRemoteSwiftPackageReference "SkeletonView" */,
 				5FA880E92E1A598100F22F9C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				C1B3276E2E85140500E50C50 /* XCRemoteSwiftPackageReference "lottie-ios" */,
 			);
 			productRefGroup = 3133E2252C3E2355000D4B1A /* Products */;
 			projectDirPath = "";
@@ -1049,6 +1092,15 @@
 				C16FAE712E38B530003C5AD1 /* PNLTableViewCell.xib in Resources */,
 				C18EED572D55FE610038BBF7 /* TradeAskView.xib in Resources */,
 				3128610F2DFF125A00541A6A /* PrivacyInfo.xcprivacy in Resources */,
+				C18650EB2E865A17009F3E13 /* SUIT-Medium.otf in Resources */,
+				C18650EC2E865A17009F3E13 /* SUIT-Bold.otf in Resources */,
+				C18650ED2E865A17009F3E13 /* SUIT-Regular.otf in Resources */,
+				C18650EE2E865A17009F3E13 /* SUIT-Thin.otf in Resources */,
+				C18650EF2E865A17009F3E13 /* SUIT-ExtraBold.otf in Resources */,
+				C18650F02E865A17009F3E13 /* SUIT-SemiBold.otf in Resources */,
+				C18650F12E865A17009F3E13 /* SUIT-Heavy.otf in Resources */,
+				C18650F22E865A17009F3E13 /* SUIT-Light.otf in Resources */,
+				C18650F32E865A17009F3E13 /* SUIT-ExtraLight.otf in Resources */,
 				31B742082D5A3BC400706340 /* tradingview.html in Resources */,
 				3133E2342C3E2357000D4B1A /* LaunchScreen.storyboard in Resources */,
 				5F657F792E06B0E80065A029 /* MobitAPIKeys.xcconfig in Resources */,
@@ -1060,6 +1112,7 @@
 				C15B934A2E29ED910064212B /* style.css in Resources */,
 				31B7420F2D5B939000706340 /* TradeHistoryTableViewCell.xib in Resources */,
 				C19ED6EB2DE31653001ACCF9 /* TradeInformationView.xib in Resources */,
+				C18650E12E864B71009F3E13 /* PartialSansKR-Regular.otf in Resources */,
 				31B741ED2D524F7000706340 /* TradeViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1143,6 +1196,7 @@
 				C17424C62D460478009861CC /* MobitUserInformation.swift in Sources */,
 				3133E2662C3F6A44000D4B1A /* BaseCoordinator.swift in Sources */,
 				C1B8F3BC2E272E6800C46734 /* SelfSizingViews.swift in Sources */,
+				C1B327852E8523F400E50C50 /* SkeletonDiffableDataSource.swift in Sources */,
 				C17424C42D4600A8009861CC /* UserDataManager.swift in Sources */,
 				C174D8A32E24DBEC0015B6ED /* TradeInfoCollectionViewCell.swift in Sources */,
 				31B741F52D53AA6C00706340 /* TradeOrderView.swift in Sources */,
@@ -1200,6 +1254,7 @@
 				99C20AB42C4F7177009276E7 /* CryptoSocketTicker.swift in Sources */,
 				31E208092C46BF6B000BFEBC /* MainTabBarCoordinator.swift in Sources */,
 				C18EED4F2D55A82B0038BBF7 /* MobitSegmentedControl.swift in Sources */,
+				C1B327832E85157E00E50C50 /* MobitLottieView.swift in Sources */,
 				C18FF26E2D5AEDF7003E95B0 /* StringExtension.swift in Sources */,
 				311E33FC2C4608800054C6BC /* MainViewController.swift in Sources */,
 				99C20A832C4A2787009276E7 /* MainReactor.swift in Sources */,
@@ -1395,6 +1450,8 @@
 				INFOPLIST_FILE = Mobit/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "모의비트";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "사진을 저장하기 위해 사진 라이브러리 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "맞춤형 광고 제공을 위해 추적 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
@@ -1434,6 +1491,8 @@
 				INFOPLIST_FILE = Mobit/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "모의비트";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "사진을 저장하기 위해 사진 라이브러리 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "맞춤형 광고 제공을 위해 추적 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
@@ -1671,6 +1730,14 @@
 				minimumVersion = 3.2.0;
 			};
 		};
+		C1B3276E2E85140500E50C50 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1776,6 +1843,11 @@
 		C17E8E242E1F5EED0082E7DC /* FirebaseDatabase */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FirebaseDatabase;
+		};
+		C1B3276F2E85140500E50C50 /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B3276E2E85140500E50C50 /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

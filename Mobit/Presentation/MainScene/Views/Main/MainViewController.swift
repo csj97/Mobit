@@ -12,10 +12,10 @@ import ReactorKit
 import PinLayout
 import Then
 import UIKit
-import SkeletonView
 
 enum TableViewSection: CaseIterable {
   case main
+  case invest
 }
 
 enum CryptoSortType: String {
@@ -59,8 +59,8 @@ class MainViewController: MobitBaseViewController {
   }
   // 원화 버튼
   let krwButton: UIButton = UIButton().then {
-    $0.setTitle("KRW", for: .normal)
-    $0.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
+    $0.setTitle("원화마켓", for: .normal)
+    $0.titleLabel?.font = UIFont(name: "SUIT-SemiBold", size: 15)
     $0.setTitleColor(.black, for: .normal)
     $0.setTitleColor(.blue, for: .selected)
     $0.isSelected = true  // default
@@ -77,7 +77,7 @@ class MainViewController: MobitBaseViewController {
   // 관심 버튼
   let favoriteButton: UIButton = UIButton().then {
     $0.setTitle("즐겨찾기", for: .normal)
-    $0.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
+	$0.titleLabel?.font = UIFont(name: "SUIT-SemiBold", size: 15)
     $0.setTitleColor(.black, for: .normal)
     $0.setTitleColor(.blue, for: .selected)
     $0.tag = 2
@@ -86,7 +86,7 @@ class MainViewController: MobitBaseViewController {
   // 현재가 기준 정렬 버튼
   let currentPriceButton: UIButton = UIButton().then {
     $0.setTitle("현재가↓↑", for: .normal)
-    $0.titleLabel?.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
+	$0.titleLabel?.font = UIFont(name: "SUIT-SemiBold", size: 12)
     $0.setTitleColor(.gray, for: .normal)
     $0.setTitleColor(.blue, for: .selected)
     $0.tag = 0
@@ -95,7 +95,7 @@ class MainViewController: MobitBaseViewController {
   // 전일대비
   let previousDayButton: UIButton = UIButton().then {
     $0.setTitle("전일대비↓↑", for: .normal)
-    $0.titleLabel?.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
+	$0.titleLabel?.font = UIFont(name: "SUIT-SemiBold", size: 12)
     $0.setTitleColor(.gray, for: .normal)
     $0.setTitleColor(.blue, for: .selected)
     $0.tag = 1
@@ -104,7 +104,7 @@ class MainViewController: MobitBaseViewController {
   // 거래대금
   let tradingVolumeButton: UIButton = UIButton().then {
     $0.setTitle("거래대금↓↑", for: .normal)
-    $0.titleLabel?.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
+	$0.titleLabel?.font = UIFont(name: "SUIT-SemiBold", size: 12)
     $0.setTitleColor(.gray, for: .normal)
     $0.setTitleColor(.blue, for: .selected)
     $0.tag = 2
@@ -122,7 +122,7 @@ class MainViewController: MobitBaseViewController {
   
   let noFavoriteLabel: UILabel = UILabel().then {
 	$0.text = "즐겨찾기 설정된 코인이 없습니다."
-	$0.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+	$0.font = UIFont(name: "SUIT-Medium", size: 14)
 	$0.textAlignment = .center
 	$0.textColor = .black
   }
@@ -133,18 +133,37 @@ class MainViewController: MobitBaseViewController {
 	$0.backgroundColor = .mobitColors(.lightGrayBG)
   }
   
+  var lottieLoadingView: MobitLottieView? = nil
+  
   // MARK: Life Cycle
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-	// TODO: socket disconnect check
 	
 	// 필요할 때 주석 해제 후, 배포
 	// self.reactor.action.onNext(.checkNewVersion)
+	
+	guard self.selectedTab == .favorite else { return }
+	let favoriteMarketNames = UserDataManager.userFavoriteList
+	if favoriteMarketNames.count == 0 {
+	  self.tableView.isHidden = true
+	  self.noFavoriteView.isHidden = false
+	} else {
+	  let favoriteCellInfos = reactor.currentState.cryptoCellInfos.filter {
+		favoriteMarketNames.contains($0.market)
+	  }
+	  self.tableView.isHidden = false
+	  self.noFavoriteView.isHidden = true
+	  self.applySnapshot(cellInfos: favoriteCellInfos)
+	}
   }
   
   override func viewDidLoad() {
     super.viewDidLoad()
     self.view.backgroundColor = .white
+	
+	// DiffableDataSource 사용을 위해 Hashable하게 데이터 모델이 수정됨에 따라 데이터 안정화를 위한 덮어쓰기
+	let list = UserDataManager.userCryptoList
+	UserDataManager.userCryptoList = list
     
     self.addViews()
     
@@ -154,15 +173,18 @@ class MainViewController: MobitBaseViewController {
 	self.setButtonGesture()
     
     self.setUpFlexItems()
-    
-    self.bind(reactor: self.reactor)
+	
+	// self.playLottie()
+	self.showLoadingIndicator()
+	
+	self.bind(reactor: self.reactor)
 	
 //	self.reactor.downloadFromFirebase { response in
 //	  let cmcList = response.compactMap { self.reactor.parseToCryptoData(dict: $0.value) }
 //	  self.reactor.cmcList = cmcList
 //	}
 	
-	guard let transactionHistory = UserDataManager.userTransactionList else { return }
+	// guard let transactionHistory = UserDataManager.userTransactionList else { return }
 	// print(transactionHistory)
   }
   
@@ -190,6 +212,24 @@ class MainViewController: MobitBaseViewController {
     self.rootContainer.addSubview(self.tableView)
   }
   
+  func playLottie() {
+	lottieLoadingView = MobitLottieView(
+	  lottieName: "loading",
+	  loopMode: .loop,
+	  bgColor: .white.withAlphaComponent(0.3)
+	)
+	guard let lottieLoadingView = lottieLoadingView else { return }
+	lottieLoadingView.configure()
+	
+	self.view.addSubview(lottieLoadingView)
+	
+	lottieLoadingView.snp.makeConstraints { make in
+	  make.edges.equalToSuperview()
+	}
+	
+	lottieLoadingView.playLottie()
+  }
+  
   func setTableView() {
 	let nib = UINib(nibName: "MainCryptoTableViewCell", bundle: nil)
 	self.tableView.register(nib, forCellReuseIdentifier: self.cellIndentifier)
@@ -208,6 +248,13 @@ class MainViewController: MobitBaseViewController {
         for: indexPath
 	  ) as? MainCryptoTableViewCell else { return UITableViewCell() }
       
+//	  if let lottieLoadingView = self.lottieLoadingView {
+//		lottieLoadingView.stopLottie()
+//		self.lottieLoadingView?.removeFromSuperview()
+//		self.lottieLoadingView = nil
+//	  }
+	  self.hideLoadingIndicator()
+	  
       cell.configure(crypto: crypto, isScrolling: self.isSocketUpdating)
       cell.selectionStyle = .none
       return cell
@@ -293,6 +340,17 @@ class MainViewController: MobitBaseViewController {
   
   @objc private func tapOnSortButton(_ sender: UIButton) {
 	self.resumeSocket()
+	
+	guard self.reactor.socketManager?.isConnected == true
+	else {
+	  self.show(
+		alertType: .onlyConfirm,
+		title: "오류",
+		content: "네트워크 연결이 소실되었습니다.\n앱을 종료 후 다시 실행 해주세요.",
+		callBack: nil
+	  )
+	  return
+	}
 	
     // 직전 선택 버튼 해제
     if let prevSortedButton = self.prevSortedButton,
@@ -417,6 +475,7 @@ class MainViewController: MobitBaseViewController {
       searchTextField.do {
         $0.backgroundColor = .clear
         $0.textColor = .black
+		$0.font = UIFont(name: "SUIT-SemiBold", size: 13)
         $0.attributedPlaceholder = NSAttributedString(
           string: "코인명/심볼 검색",
           attributes: [NSAttributedString.Key.foregroundColor: UIColor.lightGray]
@@ -467,12 +526,13 @@ class MainViewController: MobitBaseViewController {
 // MARK: Reactor - View
 extension MainViewController: View {
   func bind(reactor: MainReactor) {
-    
-    reactor.state.map { $0.cryptoCellInfos }
+	
+	reactor.state.map { $0.cryptoCellInfos }
 	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)
-      .distinctUntilChanged()
-      .observe(on: MainScheduler.instance)
-      .subscribe(onNext: { cellInfos in
+	  .distinctUntilChanged()
+	  .observe(on: MainScheduler.instance)
+	  .subscribe(onNext: { [weak self] cellInfos in
+		guard let self else { return }
 		guard !self.isSocketUpdating else { return }
 		let searchText = self.searchBar.text?.lowercased() ?? ""
 		let isSearching = !searchText.isEmpty
@@ -484,11 +544,19 @@ extension MainViewController: View {
 		var baseArray: [CryptoCellInfo]
 		switch self.selectedTab {
 		case .krw:
-			baseArray = cellInfos
+		  baseArray = cellInfos
 		case .favorite:
-			baseArray = favoriteCellInfos
+		  baseArray = favoriteCellInfos
+		  if favoriteCellInfos.count == 0 {
+			self.tableView.isHidden = true
+			self.noFavoriteView.isHidden = false
+		  } else {
+			self.tableView.isHidden = false
+			self.noFavoriteView.isHidden = true
+			self.applySnapshot(cellInfos: favoriteCellInfos)
+		  }
 		}
-
+		
 		var finalArray: [CryptoCellInfo]
 		if isSearching {
 		  finalArray = baseArray.filter {
@@ -498,11 +566,11 @@ extension MainViewController: View {
 		} else {
 		  finalArray = baseArray
 		}
-
+		
 		self.applySnapshot(cellInfos: finalArray)
-
-      })
-      .disposed(by: self.disposeBag)
+		
+	  })
+	  .disposed(by: self.disposeBag)
 	
 	reactor.state.map { $0.isVersionDifferent }
 	  .distinctUntilChanged()
@@ -516,7 +584,9 @@ extension MainViewController: View {
   }
 }
 
-// MARK: TableView Delegate
+
+// MARK: - TableView Delegate
+
 extension MainViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 	
@@ -555,21 +625,28 @@ extension MainViewController: UITableViewDelegate {
 	
 	let selectCrypto = cryptoCellInfos[indexPath.row]
 	let symbol = selectCrypto.market.replacingOccurrences(of: "/KRW", with: "")
-//	guard let cmcInformation = self.reactor.cmcList?.first(
-//	  where: { $0.symbol == symbol }
-//	) else { return }
-	
+
 	MobitAnalyticsUtil.sendScreenEvent(event: .trade_screen)
     self.coordinator?.pushCryptoDetailVC(
       selectCrypto: cryptoCellInfos[indexPath.row],
-	  cmcSymbol: symbol
+	  cmcSymbol: symbol,
+	  completion: { [weak self] errorMsg in
+		guard let self else { return }
+		if let errorMsg = errorMsg {
+		  self.show(
+			alertType: .onlyConfirm,
+			title: "안내",
+			content: errorMsg,
+			callBack: nil)
+		} else {
+		  if let searchText = self.searchBar.text, !searchText.isEmpty {
+			self.searchBar.text = ""
+			self.searchBar.resignFirstResponder()
+		  }
+		  self.reactor.action.onNext(.disconnectSocket)
+		}
+	  }
     )
-	
-	if let searchText = self.searchBar.text, !searchText.isEmpty {
-	  self.searchBar.text = ""
-	  self.searchBar.resignFirstResponder()
-	}
-	self.reactor.action.onNext(.disconnectSocket)
   }
   
   /// 스크롤 시작되면 소켓 업데이트 일시정지
@@ -582,6 +659,9 @@ extension MainViewController: UITableViewDelegate {
     isSocketUpdating = false
   }
 }
+
+
+// MARK: - UISearchBarDelegate
 
 extension MainViewController: UISearchBarDelegate {
   func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
