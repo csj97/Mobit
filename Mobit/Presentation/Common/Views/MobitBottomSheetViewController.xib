@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="MobitBottomSheetViewController" customModule="Mobit" customModuleProvider="target">
+            <connections>
+                <outlet property="stackView" destination="TTG-GM-gU9" id="byx-Vf-yEM"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="TcR-V2-VPb" userLabel="DimView">
+                    <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                    <color key="backgroundColor" white="0.0" alpha="0.14999999999999999" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                </view>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="WmI-CI-Y2d">
+                    <rect key="frame" x="0.0" y="437" width="393" height="381"/>
+                    <subviews>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="제목" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4hw-Pl-Qnd">
+                            <rect key="frame" x="24" y="32" width="345" height="21"/>
+                            <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="18"/>
+                            <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                        <stackView opaque="NO" contentMode="scaleToFill" placeholderIntrinsicWidth="345" placeholderIntrinsicHeight="200" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="TTG-GM-gU9">
+                            <rect key="frame" x="24" y="77" width="345" height="200"/>
+                        </stackView>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="8H3-Qb-aMV">
+                            <rect key="frame" x="24" y="301" width="345" height="56"/>
+                            <color key="backgroundColor" name="mobit_primary"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="56" id="sUV-Pn-ZQZ"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="20"/>
+                            <color key="tintColor" name="white_FBFBFB"/>
+                            <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                            <state key="normal" title="확인"/>
+                            <userDefinedRuntimeAttributes>
+                                <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
+                                    <real key="value" value="12"/>
+                                </userDefinedRuntimeAttribute>
+                            </userDefinedRuntimeAttributes>
+                            <connections>
+                                <action selector="tapOnConfirmButton:" destination="-1" eventType="touchUpInside" id="kOp-m4-5i6"/>
+                            </connections>
+                        </button>
+                    </subviews>
+                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    <constraints>
+                        <constraint firstItem="TTG-GM-gU9" firstAttribute="top" secondItem="4hw-Pl-Qnd" secondAttribute="bottom" constant="24" id="4cX-L6-8nk"/>
+                        <constraint firstAttribute="trailing" secondItem="TTG-GM-gU9" secondAttribute="trailing" constant="24" id="4iW-vJ-V59"/>
+                        <constraint firstItem="TTG-GM-gU9" firstAttribute="leading" secondItem="WmI-CI-Y2d" secondAttribute="leading" constant="24" id="57w-ON-Mwk"/>
+                        <constraint firstItem="4hw-Pl-Qnd" firstAttribute="leading" secondItem="WmI-CI-Y2d" secondAttribute="leading" constant="24" id="STF-rZ-4xh"/>
+                        <constraint firstAttribute="trailing" secondItem="4hw-Pl-Qnd" secondAttribute="trailing" constant="24" id="V9Z-FF-Oz1"/>
+                        <constraint firstItem="8H3-Qb-aMV" firstAttribute="top" secondItem="TTG-GM-gU9" secondAttribute="bottom" constant="24" id="X8e-I7-b24"/>
+                        <constraint firstItem="4hw-Pl-Qnd" firstAttribute="top" secondItem="WmI-CI-Y2d" secondAttribute="top" constant="32" id="flD-qi-cRb"/>
+                        <constraint firstItem="8H3-Qb-aMV" firstAttribute="leading" secondItem="WmI-CI-Y2d" secondAttribute="leading" constant="24" id="hvz-Gk-AH2"/>
+                        <constraint firstAttribute="trailing" secondItem="8H3-Qb-aMV" secondAttribute="trailing" constant="24" id="jJ2-k6-omK"/>
+                        <constraint firstAttribute="bottom" secondItem="8H3-Qb-aMV" secondAttribute="bottom" constant="24" id="uL9-KW-zrH"/>
+                    </constraints>
+                </view>
+            </subviews>
+            <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
+            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+            <constraints>
+                <constraint firstItem="WmI-CI-Y2d" firstAttribute="top" relation="greaterThanOrEqual" secondItem="fnl-2z-Ty3" secondAttribute="top" constant="32" id="7dq-Tc-A1e"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="WmI-CI-Y2d" secondAttribute="trailing" id="R71-Vj-jY6"/>
+                <constraint firstItem="TcR-V2-VPb" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="SHz-Op-hST"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="TcR-V2-VPb" secondAttribute="trailing" id="ZFP-JY-bEx"/>
+                <constraint firstItem="TcR-V2-VPb" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="c9B-xk-z8g"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="bottom" secondItem="WmI-CI-Y2d" secondAttribute="bottom" id="dQ9-NU-1Tm"/>
+                <constraint firstItem="WmI-CI-Y2d" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="l34-QJ-aDy"/>
+                <constraint firstAttribute="bottom" secondItem="TcR-V2-VPb" secondAttribute="bottom" id="u7D-Kg-uVr"/>
+            </constraints>
+            <point key="canvasLocation" x="-135" y="-11"/>
+        </view>
+    </objects>
+    <resources>
+        <namedColor name="mobit_primary">
+            <color red="0.69803921568627447" green="0.6470588235294118" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="white_FBFBFB">
+            <color red="0.98431372549019602" green="0.98431372549019602" blue="0.98431372549019602" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>

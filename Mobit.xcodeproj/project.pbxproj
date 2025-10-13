@@ -113,6 +113,8 @@
 		C174D8A22E24DBEC0015B6ED /* TradeInfoCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = C174D8A12E24DBEC0015B6ED /* TradeInfoCollectionViewCell.xib */; };
 		C174D8A32E24DBEC0015B6ED /* TradeInfoCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C174D8A02E24DBEC0015B6ED /* TradeInfoCollectionViewCell.swift */; };
 		C174D8A52E24E8920015B6ED /* LabelExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C174D8A42E24E8920015B6ED /* LabelExtension.swift */; };
+		C176814A2E9CDAAB00CA825E /* MobitBottomSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17681482E9CDAAB00CA825E /* MobitBottomSheetViewController.swift */; };
+		C176814B2E9CDAAB00CA825E /* MobitBottomSheetViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C17681492E9CDAAB00CA825E /* MobitBottomSheetViewController.xib */; };
 		C17BA2B72DF5B576001AF72D /* MobitLaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2B62DF5B576001AF72D /* MobitLaunchScreen.xib */; };
 		C17BA2BB2DF5B6D9001AF72D /* esamanru-OTF-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2BA2DF5B6D9001AF72D /* esamanru-OTF-Medium.otf */; };
 		C17BA2BC2DF5B6D9001AF72D /* esamanru-OTF-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2B82DF5B6D9001AF72D /* esamanru-OTF-Bold.otf */; };
@@ -308,6 +310,8 @@
 		C174D8A02E24DBEC0015B6ED /* TradeInfoCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeInfoCollectionViewCell.swift; sourceTree = "<group>"; };
 		C174D8A12E24DBEC0015B6ED /* TradeInfoCollectionViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeInfoCollectionViewCell.xib; sourceTree = "<group>"; };
 		C174D8A42E24E8920015B6ED /* LabelExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelExtension.swift; sourceTree = "<group>"; };
+		C17681482E9CDAAB00CA825E /* MobitBottomSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitBottomSheetViewController.swift; sourceTree = "<group>"; };
+		C17681492E9CDAAB00CA825E /* MobitBottomSheetViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MobitBottomSheetViewController.xib; sourceTree = "<group>"; };
 		C17BA2B62DF5B576001AF72D /* MobitLaunchScreen.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MobitLaunchScreen.xib; sourceTree = "<group>"; };
 		C17BA2B82DF5B6D9001AF72D /* esamanru-OTF-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "esamanru-OTF-Bold.otf"; sourceTree = "<group>"; };
 		C17BA2B92DF5B6D9001AF72D /* esamanru-OTF-Light.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "esamanru-OTF-Light.otf"; sourceTree = "<group>"; };
@@ -737,6 +741,8 @@
 				31F33FD22DDA1D4C003D533A /* MobitAlertViewController.xib */,
 				312861052DFE749200541A6A /* MobitTabBar.swift */,
 				312861092DFE7FFC00541A6A /* MobitTabBarViewController.swift */,
+				C17681482E9CDAAB00CA825E /* MobitBottomSheetViewController.swift */,
+				C17681492E9CDAAB00CA825E /* MobitBottomSheetViewController.xib */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1084,6 +1090,7 @@
 				C17BA2B72DF5B576001AF72D /* MobitLaunchScreen.xib in Resources */,
 				C17DB9732DA5FAF000DA673A /* InvestmentTableViewCell.xib in Resources */,
 				C174D8A22E24DBEC0015B6ED /* TradeInfoCollectionViewCell.xib in Resources */,
+				C176814B2E9CDAAB00CA825E /* MobitBottomSheetViewController.xib in Resources */,
 				31B741F72D53AA7600706340 /* TradeOrderView.xib in Resources */,
 				31B741F92D53AAAC00706340 /* TradeChartView.xib in Resources */,
 				C17BA2BB2DF5B6D9001AF72D /* esamanru-OTF-Medium.otf in Resources */,
@@ -1215,6 +1222,7 @@
 				C18EED552D55FE4D0038BBF7 /* TradeAskView.swift in Sources */,
 				31B741EF2D53A37E00706340 /* ViewRule.swift in Sources */,
 				99C20AAE2C4F63E4009276E7 /* WebSocketManager.swift in Sources */,
+				C176814A2E9CDAAB00CA825E /* MobitBottomSheetViewController.swift in Sources */,
 				31B741EC2D524F7000706340 /* TradeViewController.swift in Sources */,
 				C191ECCE2DA79A6700BBA5EB /* CustomWindow.swift in Sources */,
 				99C20AAC2C4F458C009276E7 /* CryptoSocketTickerDTO.swift in Sources */,

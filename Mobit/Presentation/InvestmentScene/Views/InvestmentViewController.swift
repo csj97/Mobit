@@ -12,6 +12,16 @@ import PinLayout
 import ReactorKit
 import UIKit
 
+enum InvestSortType: String {
+  case name = "이름순"		// 이름순
+  case pnlHighToLow = "수익률 높은순"	// 수익률 높은순
+  case pnlLowToHigh = "수익률 낮은순"	// 수익률 낮은순
+  case evalProfitLossHighToLow = "평가손익 높은순"	// 평가손익 높은순
+  case evalProfitLossLowToHigh = "평가손익 낮은순"	// 평가손익 낮은순
+  case evalPriceHighToLow = "평가금액 높은순"	// 평가금액 높은순
+  case evalPriceLowToHigh = "평가금액 낮은순"	// 평가금액 낮은순
+}
+
 class InvestmentViewController: MobitBaseViewController {
   @IBOutlet weak var transactionTableview: UITableView!
   @IBOutlet weak var totalUserBalance: UILabel!
@@ -20,7 +30,8 @@ class InvestmentViewController: MobitBaseViewController {
   @IBOutlet weak var totalBuyPrice: UILabel!
   @IBOutlet weak var availableUserBalance: UILabel!
   @IBOutlet weak var noResultView: UIView!
-    
+  @IBOutlet weak var sortLabel: UILabel!
+  
   weak var coordinator: InvestmentCoordinator?
   var dataSource: UITableViewDiffableDataSource<TableViewSection, CryptoTransactionDataModel>?
   var disposeBag = DisposeBag()
@@ -28,6 +39,12 @@ class InvestmentViewController: MobitBaseViewController {
   var cryptos: [CryptoTransactionDataModel] = []
   var userAvailableBalance: Double = 0
   var pendingUpdate: [CryptoTransactionDataModel]?
+  private var selectedSortType: InvestSortType = .name {
+	didSet {
+	  self.cryptos = self.sortCryptos(sortType: self.selectedSortType, cryptos: cryptos)
+	}
+  }
+  private var sortedInvestCryptos: [CryptoTransactionDataModel] = []
   private var isScrolling = false
   
   init(reactor: InvestReactor) {
@@ -157,6 +174,38 @@ class InvestmentViewController: MobitBaseViewController {
 	self.totalEvalProfitLoss.text = totalEvalProfitLossString + " 원"
 	self.totalBuyPrice.text = totalBuyPriceString + " 원"
   }
+  
+  func sortCryptos(sortType: InvestSortType, cryptos: [CryptoTransactionDataModel]) -> [CryptoTransactionDataModel] {
+	var sortedCryptos: [CryptoTransactionDataModel] = []
+	
+	switch sortType {
+	case .name:
+	  sortedCryptos = cryptos
+		.sorted { $0.staticData.marketName.lowercased() < $1.staticData.marketName.lowercased() }
+	case .pnlHighToLow:
+	  sortedCryptos = cryptos
+		.sorted { $0.dynamicData.profitRate > $1.dynamicData.profitRate }
+	case .pnlLowToHigh:
+	  sortedCryptos = cryptos
+		.sorted { $0.dynamicData.profitRate < $1.dynamicData.profitRate }
+	case .evalProfitLossHighToLow:
+	  sortedCryptos = cryptos
+		.sorted { $0.dynamicData.evaluationProfitLoss > $1.dynamicData.evaluationProfitLoss }
+	case .evalProfitLossLowToHigh:
+	  sortedCryptos = cryptos
+		.sorted { $0.dynamicData.evaluationProfitLoss < $1.dynamicData.evaluationProfitLoss }
+	case .evalPriceHighToLow:
+	  sortedCryptos = cryptos
+		.sorted { $0.dynamicData.evaluationPrice > $1.dynamicData.evaluationPrice }
+	case .evalPriceLowToHigh:
+	  sortedCryptos = cryptos
+		.sorted { $0.dynamicData.evaluationPrice < $1.dynamicData.evaluationPrice }
+	}
+	
+	return sortedCryptos
+  }
+  
+  // MARK: - Button Actions
     
   /// 충전하기 버튼 클릭
   @IBAction func tapOnChargeButton(_ sender: NeumorphicButton) {
@@ -185,6 +234,18 @@ class InvestmentViewController: MobitBaseViewController {
 	self.coordinator?.pushPnlVC()
   }
     
+  /// 정렬 버튼
+  @IBAction func tapOnSortButton(_ sender: UIButton) {
+	let sortTypes: [InvestSortType] = [.name, .pnlHighToLow, .pnlLowToHigh, .evalProfitLossHighToLow, .evalProfitLossLowToHigh, .evalPriceHighToLow, .evalPriceLowToHigh]
+	let sortTitles: [String] = sortTypes.map { $0.rawValue }
+	
+	self.showBottomSheet(
+	  title: "정렬 방법",
+	  contentList: sortTitles
+	) { index in
+	  self.selectedSortType = sortTypes[index]
+	}
+  }
 }
 
 // MARK: Reactor - View

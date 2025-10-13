@@ -4,8 +4,10 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
+        <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -13,6 +15,7 @@
             <connections>
                 <outlet property="availableUserBalance" destination="RQI-wX-ZKS" id="ePk-wC-JXa"/>
                 <outlet property="noResultView" destination="rwH-Pi-cIy" id="wBr-za-5tr"/>
+                <outlet property="sortLabel" destination="q1Z-or-7eo" id="hfS-TN-M1Y"/>
                 <outlet property="totalBuyPrice" destination="v1d-Ge-tnE" id="MTy-LV-l3h"/>
                 <outlet property="totalEvalProfitLoss" destination="nY4-PA-kiv" id="nvH-xx-suc"/>
                 <outlet property="totalProfitRate" destination="f6d-js-1Gl" id="R92-2K-rtg"/>
@@ -192,11 +195,47 @@
                         <constraint firstAttribute="height" constant="1" id="ADB-bA-5C8"/>
                     </constraints>
                 </view>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Pza-eC-tn8" userLabel="Sort Button View">
+                    <rect key="frame" x="0.0" y="355" width="393" height="44.333333333333314"/>
+                    <subviews>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="이름순" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="q1Z-or-7eo">
+                            <rect key="frame" x="316.33333333333331" y="15.999999999999998" width="41.666666666666686" height="20.333333333333329"/>
+                            <fontDescription key="fontDescription" type="system" weight="medium" pointSize="16"/>
+                            <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Vaw-tC-8Mk">
+                            <rect key="frame" x="362" y="22.333333333333329" width="15" height="8.6666666666666714"/>
+                            <color key="tintColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <imageReference key="image" image="chevron.down" catalog="system" symbolScale="small"/>
+                        </imageView>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="m99-mJ-Z5f">
+                            <rect key="frame" x="300.33333333333331" y="0.0" width="92.666666666666686" height="44.333333333333336"/>
+                            <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                            <connections>
+                                <action selector="tapOnSortButton:" destination="-1" eventType="touchUpInside" id="O1A-3i-Cbb"/>
+                            </connections>
+                        </button>
+                    </subviews>
+                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    <constraints>
+                        <constraint firstItem="m99-mJ-Z5f" firstAttribute="top" secondItem="Pza-eC-tn8" secondAttribute="top" id="6bf-rC-6dS"/>
+                        <constraint firstItem="m99-mJ-Z5f" firstAttribute="leading" secondItem="q1Z-or-7eo" secondAttribute="leading" constant="-16" id="CLO-06-hgv"/>
+                        <constraint firstAttribute="trailing" secondItem="Vaw-tC-8Mk" secondAttribute="trailing" constant="16" id="HuP-qd-CYh"/>
+                        <constraint firstItem="Vaw-tC-8Mk" firstAttribute="bottom" secondItem="q1Z-or-7eo" secondAttribute="bottom" id="MAD-FK-vij"/>
+                        <constraint firstItem="q1Z-or-7eo" firstAttribute="top" secondItem="Pza-eC-tn8" secondAttribute="top" constant="16" id="Osd-Vn-Rn9"/>
+                        <constraint firstItem="Vaw-tC-8Mk" firstAttribute="leading" secondItem="q1Z-or-7eo" secondAttribute="trailing" constant="4" id="Ypv-s0-2Jf"/>
+                        <constraint firstAttribute="bottom" secondItem="q1Z-or-7eo" secondAttribute="bottom" constant="8" id="cXh-Sl-rPI"/>
+                        <constraint firstAttribute="bottom" secondItem="m99-mJ-Z5f" secondAttribute="bottom" id="eB0-k3-uuz"/>
+                        <constraint firstItem="Vaw-tC-8Mk" firstAttribute="top" secondItem="q1Z-or-7eo" secondAttribute="top" id="eZL-26-fIm"/>
+                        <constraint firstAttribute="trailing" secondItem="m99-mJ-Z5f" secondAttribute="trailing" id="ohh-AP-zlI"/>
+                    </constraints>
+                </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="EYj-UQ-OML" userLabel="리스트뷰">
-                    <rect key="frame" x="0.0" y="355" width="393" height="497"/>
+                    <rect key="frame" x="0.0" y="399.33333333333326" width="393" height="452.66666666666674"/>
                     <subviews>
                         <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="none" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="vcj-0Q-9QG">
-                            <rect key="frame" x="0.0" y="15" width="393" height="482"/>
+                            <rect key="frame" x="0.0" y="15" width="393" height="437.66666666666669"/>
                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         </tableView>
                     </subviews>
@@ -209,10 +248,10 @@
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rwH-Pi-cIy" userLabel="NO RESULT VIEW">
-                    <rect key="frame" x="0.0" y="355" width="393" height="497"/>
+                    <rect key="frame" x="0.0" y="399.33333333333326" width="393" height="452.66666666666674"/>
                     <subviews>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="보유중인 코인이 없습니다." textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="rR5-bF-kay">
-                            <rect key="frame" x="124" y="120" width="145" height="17"/>
+                            <rect key="frame" x="124" y="120.00000000000006" width="145" height="17"/>
                             <fontDescription key="fontDescription" type="system" pointSize="14"/>
                             <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             <nil key="highlightedColor"/>
@@ -240,9 +279,12 @@
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="xs5-6g-hcy" secondAttribute="trailing" id="WEb-eP-0KG"/>
                 <constraint firstItem="xs5-6g-hcy" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="a7u-qI-9mt"/>
                 <constraint firstItem="rwH-Pi-cIy" firstAttribute="leading" secondItem="EYj-UQ-OML" secondAttribute="leading" id="aiy-Nh-j8I"/>
-                <constraint firstItem="EYj-UQ-OML" firstAttribute="top" secondItem="xs5-6g-hcy" secondAttribute="bottom" id="caY-ed-JyG"/>
+                <constraint firstItem="EYj-UQ-OML" firstAttribute="top" secondItem="Pza-eC-tn8" secondAttribute="bottom" id="fbI-NI-H0R"/>
                 <constraint firstItem="rwH-Pi-cIy" firstAttribute="bottom" secondItem="EYj-UQ-OML" secondAttribute="bottom" id="kHh-rn-ZdI"/>
                 <constraint firstItem="Ryi-yk-Mln" firstAttribute="top" secondItem="OVA-w0-ApO" secondAttribute="bottom" id="lYP-1g-7Bd"/>
+                <constraint firstItem="Pza-eC-tn8" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="npF-MW-cbV"/>
+                <constraint firstItem="Pza-eC-tn8" firstAttribute="top" secondItem="xs5-6g-hcy" secondAttribute="bottom" id="v46-Do-Tdb"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="Pza-eC-tn8" secondAttribute="trailing" id="vAQ-0s-WAw"/>
                 <constraint firstItem="ylj-d0-zZ7" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" constant="10" id="vlA-Bw-JZE"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="Ryi-yk-Mln" secondAttribute="trailing" id="xoP-IZ-d0A"/>
                 <constraint firstItem="EYj-UQ-OML" firstAttribute="bottom" secondItem="i5M-Pr-FkT" secondAttribute="bottom" id="zfI-DQ-hFp"/>
@@ -251,6 +293,7 @@
         </view>
     </objects>
     <resources>
+        <image name="chevron.down" catalog="system" width="128" height="70"/>
         <image name="list.clipboard" catalog="system" width="98" height="128"/>
         <namedColor name="line_light_gray">
             <color red="0.79607843137254897" green="0.81176470588235294" blue="0.83137254901960789" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
@@ -258,5 +301,8 @@
         <namedColor name="white_F8FAFC">
             <color red="0.97254901960784312" green="0.98039215686274506" blue="0.9882352941176471" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
     </resources>
 </document>

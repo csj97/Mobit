@@ -13,7 +13,7 @@ import UIKit
   @objc optional func hideLoadingIndicator()
 }
 
-class MobitBaseViewController: UIViewController, MobitAlertDelegate, LoadingIndicatorProtocol, ViewRule {
+class MobitBaseViewController: UIViewController, MobitAlertDelegate, MobitBottomSheetDelegate, LoadingIndicatorProtocol, ViewRule {
   private var indicatorViewTag: Int { return 999_999 }  // 유일한 태그로 구분
 
   func showLoadingIndicator() {
