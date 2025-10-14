@@ -19,8 +19,8 @@ class MobitAlertViewController: UIViewController {
   @IBOutlet weak var contentLabel: UILabel!
   @IBOutlet weak var cancelButton: UIButton!
   @IBOutlet weak var confirmButton: UIButton!
-    @IBOutlet weak var dividerView: UIView!
-    @IBOutlet weak var dimView: UIView!
+  @IBOutlet weak var dividerView: UIView!
+  @IBOutlet weak var dimView: UIView!
   
   var callBack: ((Bool) -> ())? = nil
   var delegate: MobitAlertDelegate?

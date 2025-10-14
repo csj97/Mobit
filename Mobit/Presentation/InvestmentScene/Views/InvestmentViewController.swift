@@ -31,7 +31,8 @@ class InvestmentViewController: MobitBaseViewController {
   @IBOutlet weak var availableUserBalance: UILabel!
   @IBOutlet weak var noResultView: UIView!
   @IBOutlet weak var sortLabel: UILabel!
-  
+    @IBOutlet weak var dimView: UIView!
+    
   weak var coordinator: InvestmentCoordinator?
   var dataSource: UITableViewDiffableDataSource<TableViewSection, CryptoTransactionDataModel>?
   var disposeBag = DisposeBag()
@@ -42,6 +43,8 @@ class InvestmentViewController: MobitBaseViewController {
   private var selectedSortType: InvestSortType = .name {
 	didSet {
 	  self.cryptos = self.sortCryptos(sortType: self.selectedSortType, cryptos: cryptos)
+	  self.transactionTableview.reloadData()
+	  self.sortLabel.text = self.selectedSortType.rawValue
 	}
   }
   private var sortedInvestCryptos: [CryptoTransactionDataModel] = []
@@ -241,7 +244,8 @@ class InvestmentViewController: MobitBaseViewController {
 	
 	self.showBottomSheet(
 	  title: "정렬 방법",
-	  contentList: sortTitles
+	  contentList: sortTitles,
+	  sortType: self.selectedSortType
 	) { index in
 	  self.selectedSortType = sortTypes[index]
 	}
@@ -273,7 +277,8 @@ extension InvestmentViewController: View {
 		  self.pendingUpdate = cryptos
 		} else {
 		  self.pendingUpdate = nil
-		  self.cryptos = cryptos.reversed()
+		  // self.cryptos = cryptos.reversed()
+		  self.cryptos = self.sortCryptos(sortType: self.selectedSortType, cryptos: cryptos)
 		  self.updateTotalDatas(cryptos: cryptos)
 		  self.applySnapshot(cryptoTransacDataModel: cryptos.reversed())
 		}
