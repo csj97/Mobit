@@ -46,13 +46,13 @@ class MoreViewController: MobitBaseViewController {
 	self.show(
 	  alertType: .canCancel,
 	  title: "안내",
-	  content: "본 광고를 시청하시면 모의투자 금액\n1천만원이 보유 금액으로 추가됩니다."
+	  content: "본 광고를 시청하시면 모의투자 금액\n10,000,000원이 보유 금액으로 추가됩니다."
 	) { isOk in
 	  if isOk {
 		MobitAnalyticsUtil.sendClickEvent(event: .ad_click_confirm)
 		RewardedAdManager.shared.showAd(from: self) {
 		  self.show(alertType: .onlyConfirm, content: "충전이 완료 되었습니다.", callBack: nil)
-		  UserDataManager.userInformation?.userAvailableBalance += 10000000
+		  UserDataManager.userInformation?.userAvailableBalance += 10_000_000
 		}
 	  } else {
 		MobitAnalyticsUtil.sendClickEvent(event: .ad_click_cancel)
