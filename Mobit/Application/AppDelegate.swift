@@ -55,7 +55,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 	if UserDataManager.isFirstLaunch {
 	  UserDataManager.isFirstLaunch = false
 	  UserDataManager.userInformation = MobitUserInformation(
-		userAvailableBalance: 10_000_000
+		userAvailableBalance: 1_000_000
 	  )
 	} else {
 	  guard let userInfo = UserDataManager.userInformation else { return }
