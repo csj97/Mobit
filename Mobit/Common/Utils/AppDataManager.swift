@@ -15,8 +15,8 @@ final class AppDataManager {
   private let firebaseDB = Database.database().reference()
   
   /// 파이어베이스에서 CMC 코인 정보 가져오기
-  func downloadFromFirebase() {
-	let path = firebaseDB.child("CMCResponse").child("cryptoInformations")
+  func downloadFromFirebase(child_path: String) {
+	let path = firebaseDB.child("CMCResponse").child(child_path)
 	
 	path.observeSingleEvent(of: .value) { snapshot in
 	  guard let value = snapshot.value as? [String: [String: Any]] else {

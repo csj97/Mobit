@@ -112,7 +112,12 @@ extension MobitAlertDelegate where Self: UIViewController {
   ) {
 	
 	let mobitAlertViewController = MobitAlertViewController(
-	  alertType: alertType, titleAlignment: titleAlignment, title: title ?? "", contentAlignment: contentAlignment, content: content, callBack: callBack
+	  alertType: alertType,
+	  titleAlignment: titleAlignment,
+	  title: title ?? "",
+	  contentAlignment: contentAlignment,
+	  content: content,
+	  callBack: callBack
 	)
 	mobitAlertViewController.delegate = self
 	

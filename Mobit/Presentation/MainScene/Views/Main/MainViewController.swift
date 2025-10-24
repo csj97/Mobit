@@ -67,13 +67,13 @@ class MainViewController: MobitBaseViewController {
     $0.tag = 0
   }
   // BTC 버튼
-//  let btcButton: UIButton = UIButton().then {
-//    $0.setTitle("BTC", for: .normal)
-//    $0.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
-//    $0.setTitleColor(.black, for: .normal)
-//    $0.setTitleColor(.blue, for: .selected)
-//    $0.tag = 1
-//  }
+  let btcButton: UIButton = UIButton().then {
+    $0.setTitle("BTC마켓", for: .normal)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
+    $0.setTitleColor(.black, for: .normal)
+    $0.setTitleColor(.blue, for: .selected)
+    $0.tag = 1
+  }
   // 관심 버튼
   let favoriteButton: UIButton = UIButton().then {
     $0.setTitle("즐겨찾기", for: .normal)
@@ -391,9 +391,9 @@ class MainViewController: MobitBaseViewController {
     self.krwButton.addTarget(
       self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside
     )
-//    self.btcButton.addTarget(
-//      self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside
-//    )
+    self.btcButton.addTarget(
+      self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside
+    )
     self.favoriteButton.addTarget(
       self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside
     )
@@ -402,7 +402,7 @@ class MainViewController: MobitBaseViewController {
   @objc private func tapOnTabButton(_ sender: UIButton) {
     // 모든 버튼의 선택 상태를 해제
     self.krwButton.isSelected = false
-//    self.btcButton.isSelected = false
+    self.btcButton.isSelected = false
     self.favoriteButton.isSelected = false
     
     sender.isSelected = true
@@ -414,12 +414,14 @@ class MainViewController: MobitBaseViewController {
       self.selectedTab = .krw
 	  self.tableView.isHidden = false
 	  self.noFavoriteView.isHidden = true
-      self.reactor.action.onNext(.loadCrypto(selectedTab: .krw))
-      self.applySnapshot(cellInfos: reactor.currentState.cryptoCellInfos)
-//    case 1:
-//      self.selectedTab = .btc
-//      self.reactor.action.onNext(.loadCrypto(selectedTab: .btc))
-//      self.applySnapshot(cellInfos: reactor.currentState.cryptoCellInfo)
+	  self.reactor.action.onNext(.setSelectedTab(tab: .krw))
+      self.reactor.action.onNext(.loadCrypto)
+	  self.applySnapshot(cellInfos: reactor.currentState.krwCryptoList)
+    case 1:
+      self.selectedTab = .btc
+	  self.reactor.action.onNext(.setSelectedTab(tab: .btc))
+      self.reactor.action.onNext(.loadCrypto)
+	  self.applySnapshot(cellInfos: reactor.currentState.btcCryptoList)
     case 2:
       self.selectedTab = .favorite
 	  let favoriteMarketNames = UserDataManager.userFavoriteList
@@ -494,7 +496,7 @@ class MainViewController: MobitBaseViewController {
         // KRW, BTC, 관심
         flex.addItem().direction(.row).define { flex in
           flex.addItem(self.krwButton).width(25%)
-//          flex.addItem(self.btcButton).width(25%)
+          flex.addItem(self.btcButton).width(25%)
           flex.addItem(self.favoriteButton).width(25%)
 		  flex.addItem(UIView()).width(25%)
         }.height(40)
@@ -544,6 +546,8 @@ extension MainViewController: View {
 		var baseArray: [CryptoCellInfo]
 		switch self.selectedTab {
 		case .krw:
+		  baseArray = cellInfos
+		case .btc:
 		  baseArray = cellInfos
 		case .favorite:
 		  baseArray = favoriteCellInfos
@@ -692,6 +696,6 @@ extension MainViewController: SocketControllable {
   func resumeSocket() {
 	guard self.reactor.socketManager?.isConnected == false else { return }
 	self.reactor.socketManager?.reconnectIfNeeded()
-	self.reactor.action.onNext(.loadCrypto(selectedTab: self.selectedTab))
+	self.reactor.action.onNext(.loadCrypto)
   }
 }

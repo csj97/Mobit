@@ -23,7 +23,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 	self.window?.rootViewController = mobitLaunchScreen
 	self.window?.makeKeyAndVisible()
 	
-	AppDataManager.shared.downloadFromFirebase()
+	AppDataManager.shared.downloadFromFirebase(child_path: "cryptoInformations")
+	AppDataManager.shared.downloadFromFirebase(child_path: "btc_cryptoInformations")
 	
 	DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1.5) {
 	  self.window?.rootViewController = navigationController

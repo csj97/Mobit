@@ -163,20 +163,23 @@ class MainCryptoTableViewCell: UITableViewCell {
 	cryptoSymbolType: String
   ) -> String {
 	var currency: String = ""
+	var formatVolume: String = ""
 	let numberFormatter = NumberFormatter()
 	numberFormatter.numberStyle = .decimal
 	
 	if cryptoSymbolType == CryptoSymbolType.krw.rawValue {
 	  numberFormatter.maximumFractionDigits = 0
+	  formatVolume = numberFormatter.string(from: NSNumber(value: tradeVolume / 1_000_000)) ?? "0"
 	  currency = "백만"
 	} else {
-	  numberFormatter.maximumFractionDigits = 3
+	  numberFormatter.maximumFractionDigits = 6
+	  formatVolume = numberFormatter.string(from: NSNumber(value: tradeVolume)) ?? "0"
 	  currency = ""
 	}
 	
-	guard let formatVolume = numberFormatter.string(
-	  from: NSNumber(value: tradeVolume / 1_000_000)
-	) else { return "-"}
+//	guard let formatVolume = numberFormatter.string(
+//	  from: NSNumber(value: tradeVolume / 1_000_000)
+//	) else { return "-" }
 	
 	
 	return formatVolume + currency
