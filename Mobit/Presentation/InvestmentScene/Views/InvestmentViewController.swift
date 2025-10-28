@@ -212,7 +212,7 @@ class InvestmentViewController: MobitBaseViewController {
     
   /// 충전하기 버튼 클릭
   @IBAction func tapOnChargeButton(_ sender: NeumorphicButton) {
-	MobitAnalyticsUtil.sendScreenEvent(event: .investment_charge)
+	MobitAnalyticsUtil.sendClickEvent(event: .investment_charge)
 	
 	self.show(
 	  alertType: .canCancel,
@@ -233,7 +233,7 @@ class InvestmentViewController: MobitBaseViewController {
   
   /// P&L 버튼 클릭
   @IBAction func tapOnPnlButton(_ sender: UIButton) {
-	MobitAnalyticsUtil.sendScreenEvent(event: .investment_pnl)
+	MobitAnalyticsUtil.sendClickEvent(event: .investment_pnl)
 	self.coordinator?.pushPnlVC()
   }
     

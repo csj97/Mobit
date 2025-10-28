@@ -339,6 +339,9 @@ class MainViewController: MobitBaseViewController {
   }
   
   @objc private func tapOnSortButton(_ sender: UIButton) {
+	
+	MobitAnalyticsUtil.sendClickEvent(event: .exchange_sort)
+	
 	self.resumeSocket()
 	
 	guard self.reactor.socketManager?.isConnected == true
@@ -630,7 +633,6 @@ extension MainViewController: UITableViewDelegate {
 	let selectCrypto = cryptoCellInfos[indexPath.row]
 	let symbol = selectCrypto.market.replacingOccurrences(of: "/KRW", with: "")
 
-	MobitAnalyticsUtil.sendScreenEvent(event: .trade_screen)
     self.coordinator?.pushCryptoDetailVC(
       selectCrypto: cryptoCellInfos[indexPath.row],
 	  cmcSymbol: symbol,

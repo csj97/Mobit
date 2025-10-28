@@ -41,7 +41,7 @@ class MoreViewController: MobitBaseViewController {
   
   @IBAction func tapOnChargeMoney(_ sender: UIButton) {
 	
-	MobitAnalyticsUtil.sendScreenEvent(event: .more_charge)
+	MobitAnalyticsUtil.sendClickEvent(event: .more_charge)
 	
 	self.show(
 	  alertType: .canCancel,
@@ -73,7 +73,7 @@ class MoreViewController: MobitBaseViewController {
    ⭐️ 그로 인해 발생한 어떠한 손실에 대해서도 본 앱은 책임지지 않습니다.
    """
 	
-	MobitAnalyticsUtil.sendScreenEvent(event: .more_notice)
+	MobitAnalyticsUtil.sendClickEvent(event: .more_notice)
 	
 	self.show(
 	  alertType: .onlyConfirm,
@@ -91,7 +91,7 @@ class MoreViewController: MobitBaseViewController {
   보유 금액도 0원이 됩니다.
  """
 	
-	MobitAnalyticsUtil.sendScreenEvent(event: . more_init_data)
+	MobitAnalyticsUtil.sendClickEvent(event: .more_init_data)
 	
 	self.show(
 	  alertType: .canCancel,
@@ -112,6 +112,8 @@ class MoreViewController: MobitBaseViewController {
   
   /// MOBIT 이용자 커뮤니티
   @IBAction func tapOnCommunity(_ sender: UIButton) {
+	
+	MobitAnalyticsUtil.sendClickEvent(event: .more_community)
 	self.coordinator?.pushMobitCommunityViewController()
   }
   
