@@ -159,6 +159,10 @@
 		C19ED6E72DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E62DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift */; };
 		C19ED6E92DE31648001ACCF9 /* TradeInformationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E82DE31648001ACCF9 /* TradeInformationView.swift */; };
 		C19ED6EB2DE31653001ACCF9 /* TradeInformationView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C19ED6EA2DE31653001ACCF9 /* TradeInformationView.xib */; };
+		C19F65252EB1D06C00CE1A7E /* Localizable(EN).strings in Resources */ = {isa = PBXBuildFile; fileRef = C19F65232EB1D06C00CE1A7E /* Localizable(EN).strings */; };
+		C19F65282EB1D07900CE1A7E /* Localizable(KO).strings in Resources */ = {isa = PBXBuildFile; fileRef = C19F65262EB1D07900CE1A7E /* Localizable(KO).strings */; };
+		C19F652A2EB1EEE200CE1A7E /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19F65292EB1EEE200CE1A7E /* NetworkMonitor.swift */; };
+		C19F652C2EB1F2E800CE1A7E /* NetworkLostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19F652B2EB1F2E800CE1A7E /* NetworkLostView.swift */; };
 		C19F77972E41A2EA00863159 /* PNLShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19F77962E41A2EA00863159 /* PNLShareView.swift */; };
 		C19F77992E41A2F300863159 /* PNLShareView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C19F77982E41A2F300863159 /* PNLShareView.xib */; };
 		C1A0150A2E49B0DD00B7A7C6 /* LineChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A015092E49B0DD00B7A7C6 /* LineChartView.swift */; };
@@ -355,6 +359,10 @@
 		C19ED6E62DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoQuoteResponseDTO.swift; sourceTree = "<group>"; };
 		C19ED6E82DE31648001ACCF9 /* TradeInformationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeInformationView.swift; sourceTree = "<group>"; };
 		C19ED6EA2DE31653001ACCF9 /* TradeInformationView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeInformationView.xib; sourceTree = "<group>"; };
+		C19F65242EB1D06C00CE1A7E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = "en.lproj/Localizable(EN).strings"; sourceTree = "<group>"; };
+		C19F65272EB1D07900CE1A7E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = "en.lproj/Localizable(KO).strings"; sourceTree = "<group>"; };
+		C19F65292EB1EEE200CE1A7E /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
+		C19F652B2EB1F2E800CE1A7E /* NetworkLostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkLostView.swift; sourceTree = "<group>"; };
 		C19F77962E41A2EA00863159 /* PNLShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PNLShareView.swift; sourceTree = "<group>"; };
 		C19F77982E41A2F300863159 /* PNLShareView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PNLShareView.xib; sourceTree = "<group>"; };
 		C1A015092E49B0DD00B7A7C6 /* LineChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineChartView.swift; sourceTree = "<group>"; };
@@ -487,6 +495,7 @@
 		3133E2572C3F696A000D4B1A /* Resource */ = {
 			isa = PBXGroup;
 			children = (
+				C19F65152EB1CD4000CE1A7E /* Localizable */,
 				C1B327712E85141500E50C50 /* Lotties */,
 				C17BA2AB2DF5A9F0001AF72D /* Fonts */,
 				3133E2302C3E2357000D4B1A /* Assets.xcassets */,
@@ -774,6 +783,7 @@
 				31DC41E12CD9197700F0FFF2 /* NewWebSocketManager.swift */,
 				99C20AB52C4F76B5009276E7 /* Main */,
 				99C20AAD2C4F63E4009276E7 /* WebSocketManager.swift */,
+				C19F65292EB1EEE200CE1A7E /* NetworkMonitor.swift */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -852,8 +862,8 @@
 				C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */,
 				C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */,
 				C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */,
-				C17EAE372E374515006ACA44 /* Log.swift */,
 				C1B327842E8523F400E50C50 /* SkeletonDiffableDataSource.swift */,
+				C17EAE372E374515006ACA44 /* Log.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -900,6 +910,15 @@
 			path = Extensions;
 			sourceTree = "<group>";
 		};
+		C19F65152EB1CD4000CE1A7E /* Localizable */ = {
+			isa = PBXGroup;
+			children = (
+				C19F65232EB1D06C00CE1A7E /* Localizable(EN).strings */,
+				C19F65262EB1D07900CE1A7E /* Localizable(KO).strings */,
+			);
+			path = Localizable;
+			sourceTree = "<group>";
+		};
 		C1B8F3BD2E27615500C46734 /* CustomViews */ = {
 			isa = PBXGroup;
 			children = (
@@ -913,6 +932,7 @@
 				C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */,
 				C17DC0F32E20E6E700E35D3F /* NeumorphicSegmentedControl.swift */,
 				C18E3FEC2E25E8DC00B9E5D0 /* GradientView.swift */,
+				C19F652B2EB1F2E800CE1A7E /* NetworkLostView.swift */,
 			);
 			path = CustomViews;
 			sourceTree = "<group>";
@@ -1044,6 +1064,7 @@
 			knownRegions = (
 				en,
 				Base,
+				ko,
 			);
 			mainGroup = 3133E21B2C3E2355000D4B1A;
 			packageReferences = (
@@ -1091,6 +1112,8 @@
 				C17DB9732DA5FAF000DA673A /* InvestmentTableViewCell.xib in Resources */,
 				C174D8A22E24DBEC0015B6ED /* TradeInfoCollectionViewCell.xib in Resources */,
 				C176814B2E9CDAAB00CA825E /* MobitBottomSheetViewController.xib in Resources */,
+				C19F65282EB1D07900CE1A7E /* Localizable(KO).strings in Resources */,
+				C19F65252EB1D06C00CE1A7E /* Localizable(EN).strings in Resources */,
 				31B741F72D53AA7600706340 /* TradeOrderView.xib in Resources */,
 				31B741F92D53AAAC00706340 /* TradeChartView.xib in Resources */,
 				C17BA2BB2DF5B6D9001AF72D /* esamanru-OTF-Medium.otf in Resources */,
@@ -1195,6 +1218,7 @@
 				C17DB9722DA5FAF000DA673A /* InvestmentTableViewCell.swift in Sources */,
 				31E208072C4678B9000BFEBC /* MainCoordinator.swift in Sources */,
 				C154CA192D97D63D006923BD /* MarketDataServiceUtil.swift in Sources */,
+				C19F652A2EB1EEE200CE1A7E /* NetworkMonitor.swift in Sources */,
 				C1CD3A622E28C3CD0049699B /* MobitCommunityViewController.swift in Sources */,
 				C16FAE6A2E38A4C6003C5AD1 /* UserPNLHistoryModel.swift in Sources */,
 				31E208102C46C2FE000BFEBC /* InvestmentCoordinator.swift in Sources */,
@@ -1221,6 +1245,7 @@
 				C15DCD2B2DF2CAFD007544D8 /* ImageViewExtension.swift in Sources */,
 				C18EED552D55FE4D0038BBF7 /* TradeAskView.swift in Sources */,
 				31B741EF2D53A37E00706340 /* ViewRule.swift in Sources */,
+				C19F652C2EB1F2E800CE1A7E /* NetworkLostView.swift in Sources */,
 				99C20AAE2C4F63E4009276E7 /* WebSocketManager.swift in Sources */,
 				C176814A2E9CDAAB00CA825E /* MobitBottomSheetViewController.swift in Sources */,
 				31B741EC2D524F7000706340 /* TradeViewController.swift in Sources */,
@@ -1315,6 +1340,22 @@
 			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
 		};
+		C19F65232EB1D06C00CE1A7E /* Localizable(EN).strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				C19F65242EB1D06C00CE1A7E /* en */,
+			);
+			name = "Localizable(EN).strings";
+			sourceTree = "<group>";
+		};
+		C19F65262EB1D07900CE1A7E /* Localizable(KO).strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				C19F65272EB1D07900CE1A7E /* en */,
+			);
+			name = "Localizable(KO).strings";
+			sourceTree = "<group>";
+		};
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
@@ -1379,6 +1420,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -1437,6 +1479,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
