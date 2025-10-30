@@ -18,12 +18,12 @@ class MobitLaunchScreen: UIViewController {
   
   override func viewDidLoad() {
 	super.viewDidLoad()
-	for family in UIFont.familyNames {
-	  print(">> \(family)")
-	  for name in UIFont.fontNames(forFamilyName: family) {
-		print("   - \(name)")
-	  }
-	}
+//	for family in UIFont.familyNames {
+//	  print(">> \(family)")
+//	  for name in UIFont.fontNames(forFamilyName: family) {
+//		print("   - \(name)")
+//	  }
+//	}
 	mobitNameLabel.font = UIFont(name: "Partial-Sans-KR", size: 25)
 	label1.font = UIFont(name: "esamanruOTFMedium", size: 18)
 	label2.font = UIFont(name: "esamanruOTFLight", size: 16)

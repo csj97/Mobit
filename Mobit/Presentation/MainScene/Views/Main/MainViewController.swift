@@ -35,7 +35,12 @@ class MainViewController: MobitBaseViewController {
   var disposeBag = DisposeBag()
   var reactor: MainReactor
   var isSocketUpdating = false
-  var selectedTab: SelectedTab = .krw
+  var selectedTab: SelectedTab = .krw {
+	didSet {
+	  self.reactor.action.onNext(.setSelectedTab(tab: selectedTab))
+	  self.reactor.action.onNext(.loadCrypto)
+	}
+  }
   var prevSortedButton: UIButton?
   let defaultTitles = ["현재가 ↑↓", "전일대비 ↑↓", "거래대금 ↑↓"]
   
@@ -414,14 +419,12 @@ class MainViewController: MobitBaseViewController {
       self.selectedTab = .krw
 	  self.tableView.isHidden = false
 	  self.noFavoriteView.isHidden = true
-	  self.reactor.action.onNext(.setSelectedTab(tab: .krw))
-      self.reactor.action.onNext(.loadCrypto)
-	  self.applySnapshot(cellInfos: reactor.currentState.krwCryptoList)
+      //self.reactor.action.onNext(.loadCrypto)
     case 1:
       self.selectedTab = .btc
-	  self.reactor.action.onNext(.setSelectedTab(tab: .btc))
-      self.reactor.action.onNext(.loadCrypto)
-	  self.applySnapshot(cellInfos: reactor.currentState.btcCryptoList)
+	  self.tableView.isHidden = false
+	  self.noFavoriteView.isHidden = true
+      //self.reactor.action.onNext(.loadCrypto)
     case 2:
       self.selectedTab = .favorite
 	  let favoriteMarketNames = UserDataManager.userFavoriteList
@@ -628,7 +631,11 @@ extension MainViewController: UITableViewDelegate {
 	}
 	
 	let selectCrypto = cryptoCellInfos[indexPath.row]
-	let symbol = selectCrypto.market.replacingOccurrences(of: "/KRW", with: "")
+	let symbol = selectCrypto.market.replacingOccurrences(
+	  of: "/(KRW|BTC)",
+	  with: "",
+	  options: .regularExpression
+	)
 
 	MobitAnalyticsUtil.sendScreenEvent(event: .trade_screen)
     self.coordinator?.pushCryptoDetailVC(

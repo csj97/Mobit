@@ -195,7 +195,7 @@ extension MainReactor {
       let cryptoTickerObservable = self.mainUseCase.loadTickerList(markets: markets)
       
       cryptoTickerObservable.subscribe { cryptoTickerList in
-        let combineCrypto = self.combineCrypto(
+        let combineCryptos = self.combineCrypto(
           selectedTab: selectedTab,
           cryptoList: cryptoList,
           cryptoTickerList: cryptoTickerList
@@ -203,7 +203,7 @@ extension MainReactor {
         
         self.sortCryptoCellInfos(
           sortBy: self.currentState.sortBy,
-          cellInfos: combineCrypto
+          cellInfos: combineCryptos
         ) { sortedCellInfos in
           
           guard let sortedCellInfos = sortedCellInfos else { return }
@@ -211,10 +211,12 @@ extension MainReactor {
 		  let sortedCryptoPosition = selectedTab == .krw ? self.sortedCryptoPositionKRW	: self.sortedCryptoPositionBTC
 		  
           if sortedCryptoPosition.count == 0 {
+			// 탭이 바뀌었는데, 이전 정렬된 포지션 정보가 없으면 여길로 들어옴
             observer.onNext(.setCombinedArray(cryptoCellInfo: sortedCellInfos))
             observer.onCompleted()
           } else {
             self.updateCryptoCellPositions(
+			  positionedCryptoInfos: sortedCryptoPosition,
               cryptoCellInfos: sortedCellInfos
             ) { sortedCombineResult in
               guard let sortedCombineResult = sortedCombineResult else { return }
@@ -405,33 +407,53 @@ extension MainReactor {
             )
             
             // 현재 정렬 타입으로 맞춤
-            self.sortCryptoCellInfos(
-              sortBy: currentState.sortBy,
-              cellInfos: combineResult,
-              completion: { sortedCellInfos in
-                
-                guard let sortedCellInfos = sortedCellInfos else { return }
-                combineResult = sortedCellInfos
-                
-                // 정렬된 배열 > 포지션 찾아가기 (포지션이 설정되어 있다면)
-				let sortedCryptoPosition = selectedTab == .krw ? self.sortedCryptoPositionKRW : self.sortedCryptoPositionBTC
-				if sortedCryptoPosition.count > 0 {
-                  self.updateCryptoCellPositions(
-                    cryptoCellInfos: combineResult
-                  ) { sortedCombineResult in
-                    guard let sortedCombineResult = sortedCombineResult else { return }
-                    observer.onNext(
-                      .setCombinedArray(cryptoCellInfo: sortedCombineResult)
-                    )
-                  }
-                } else {
-                  // 일단 포지션 설정보단 레이아웃 설정
-                  observer.onNext(
-                    .setCombinedArray(cryptoCellInfo: combineResult)
-                  )
-                }
-              }
-            )
+//            self.sortCryptoCellInfos(
+//              sortBy: currentState.sortBy,
+//              cellInfos: combineResult,
+//              completion: { sortedCellInfos in
+//                
+//                guard let sortedCellInfos = sortedCellInfos else { return }
+//                combineResult = sortedCellInfos
+//                
+//                // 정렬된 배열 > 포지션 찾아가기 (포지션이 설정되어 있다면)
+//				let sortedCryptoPosition = selectedTab == .krw ? self.sortedCryptoPositionKRW : self.sortedCryptoPositionBTC
+//				if sortedCryptoPosition.count > 0 {
+//                  self.updateCryptoCellPositions(
+//					positionedCryptoInfos: sortedCryptoPosition,
+//                    cryptoCellInfos: combineResult
+//                  ) { sortedCombineResult in
+//                    guard let sortedCombineResult = sortedCombineResult else { return }
+//                    observer.onNext(
+//                      .setCombinedArray(cryptoCellInfo: sortedCombineResult)
+//                    )
+//                  }
+//                } else {
+//                  // 일단 포지션 설정보단 레이아웃 설정
+//                  observer.onNext(
+//                    .setCombinedArray(cryptoCellInfo: combineResult)
+//                  )
+//                }
+//              }
+//            )
+			
+			// 정렬된 배열 > 포지션 찾아가기 (포지션이 설정되어 있다면)
+			let sortedCryptoPosition = selectedTab == .krw ? self.sortedCryptoPositionKRW : self.sortedCryptoPositionBTC
+			if sortedCryptoPosition.count > 0 {
+			  self.updateCryptoCellPositions(
+				positionedCryptoInfos: sortedCryptoPosition,
+				cryptoCellInfos: combineResult
+			  ) { sortedCombineResult in
+				guard let sortedCombineResult = sortedCombineResult else { return }
+				observer.onNext(
+				  .setCombinedArray(cryptoCellInfo: sortedCombineResult)
+				)
+			  }
+			} else {
+			  // 일단 포지션 설정보단 레이아웃 설정
+			  observer.onNext(
+				.setCombinedArray(cryptoCellInfo: combineResult)
+			  )
+			}
             
           } catch {
 			Log.error("MainReactor ticker websocket receive decoding error : \(error.localizedDescription)")
@@ -547,11 +569,11 @@ extension MainReactor {
   /// 다음 소켓 데이터에선 그 포지션에 따라 정렬되어야함
   /// 타입에 따라 새로 소켓이 들어올 때마다 정렬하면 보이는 위치가 계속 달라짐
   func updateCryptoCellPositions(
+	positionedCryptoInfos: [String: Int],
     cryptoCellInfos: [CryptoCellInfo],
     completion: @escaping ([CryptoCellInfo]?) -> ()
   ) {
 	let selectedTab = currentState.selectedTab
-	let positionedCryptoInfos = selectedTab == .krw ? self.sortedCryptoPositionKRW : self.sortedCryptoPositionBTC
     if positionedCryptoInfos.count > 0 {
       let cryptoInfoDict = Dictionary(
         uniqueKeysWithValues: cryptoCellInfos.map { ($0.market, $0) }

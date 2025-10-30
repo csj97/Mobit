@@ -309,7 +309,11 @@ extension InvestmentViewController: UITableViewDelegate {
 	guard let selectedCryptoName = self.cryptos[indexPath.row].staticData.cryptoName else { return }
 	
 	// 터치하면 디테일 화면으로 이동
-	let symbol = selectedCryptoMarketName.replacingOccurrences(of: "/KRW", with: "")
+	let symbol = selectedCryptoMarketName.replacingOccurrences(
+	  of: "/(KRW|BTC)",
+	  with: "",
+	  options: .regularExpression
+	)
 	let selectedCrypto = CryptoCellInfo(
 	  cryptoName: selectedCryptoName,
 	  market: selectedCryptoMarketName
