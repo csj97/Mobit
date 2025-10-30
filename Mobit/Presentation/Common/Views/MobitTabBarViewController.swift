@@ -56,17 +56,6 @@ class MobitTabBarViewController: UIViewController {
   private func switchToTab(index: Int) {
 	let newVC = viewControllers[index]
 	
-	if index == 0 {
-	  // 거래소
-	  MobitAnalyticsUtil.sendScreenEvent(event: .exchange_tab)
-	} else if index == 1 {
-	  // 투자내역
-	  MobitAnalyticsUtil.sendScreenEvent(event: .investment_tab)
-	} else if index == 2 {
-	  // 더보기
-	  MobitAnalyticsUtil.sendScreenEvent(event: .more_tab)
-	}
-	
 	if currentViewController != nil {
 	  currentViewController?.willMove(toParent: nil)
 	  currentViewController?.view.removeFromSuperview()

@@ -85,8 +85,10 @@ class TradeOrderView: UIView, ViewRule {
 		askView?.updateCryptoData()
 		historyView?.updateHistory()
 	  case .alert(let title, let message):
+		MobitAnalyticsUtil.sendClickEvent(event: .trade_order_buy_fail)
 		self.callback?(.alert(title: title, message: message))
 	  case .successLottie:
+		MobitAnalyticsUtil.sendClickEvent(event: .trade_order_buy_complete)
 		self.callback?(.successLottie)
 	  }
 	}
@@ -100,8 +102,10 @@ class TradeOrderView: UIView, ViewRule {
 		bidView?.updateCryptoData()
 		historyView?.updateHistory()
 	  case .alert(let title, let message):
+		MobitAnalyticsUtil.sendClickEvent(event: .trade_order_sell_fail)
 		self.callback?(.alert(title: title, message: message))
 	  case .successLottie:
+		MobitAnalyticsUtil.sendClickEvent(event: .trade_order_sell_complete)
 		self.callback?(.successLottie)
 	  }
 	}
