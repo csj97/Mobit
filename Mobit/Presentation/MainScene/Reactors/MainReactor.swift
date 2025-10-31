@@ -93,6 +93,12 @@ extension MainReactor {
       return self.setSortType(sortBy: sortBy)
 	  
 	case .setSelectedTab(let tab):
+	  // 탭이 바뀌면 이전 탭의 정렬 포지션은 초기화. > 다음에 다시 탭 전환되어 왔을 때, 기준으로 다시 정렬되어야 함.
+	  if tab == .krw {
+		self.sortedCryptoPositionBTC = [:]
+	  } else if tab == .btc {
+		self.sortedCryptoPositionKRW = [:]
+	  }
 	  return Observable.just( MainMutation.setSelectedTab(tab: tab) )
     }
   }

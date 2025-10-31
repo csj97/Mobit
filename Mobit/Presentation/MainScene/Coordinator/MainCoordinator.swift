@@ -46,7 +46,11 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
 	cmcSymbol: String,
 	completion: ((String?) -> Void)?
   ) {
-	guard let cmcInformation = self.dataManager.cachedCMCList.first(
+	let cmcList = selectCrypto.market.contains("KRW")
+	? self.dataManager.cachedKRWCMCList
+	: self.dataManager.cachedBTCCMCList
+	
+	guard let cmcInformation = cmcList.first(
 	  where: { $0.symbol == cmcSymbol }
 	) else {
 	  let message = "해당 코인에 대한 정보 업데이트가 필요합니다.\n빠른 시일내에 해결하겠습니다."

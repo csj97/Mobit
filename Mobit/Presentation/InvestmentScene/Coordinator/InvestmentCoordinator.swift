@@ -32,8 +32,11 @@ class InvestmentCoordinator: BaseCoordinator {
 	selectCrypto: CryptoCellInfo,
 	cmcSymbol: String
   ) {
+	let cmcList = selectCrypto.market.contains("KRW")
+	? self.dataManager.cachedKRWCMCList
+	: self.dataManager.cachedBTCCMCList
 	
-	guard let cmcInformation = self.dataManager.cachedCMCList.first(
+	guard let cmcInformation = cmcList.first(
 	  where: { $0.symbol == cmcSymbol }
 	) else { return }
 	

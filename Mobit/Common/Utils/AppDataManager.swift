@@ -11,7 +11,8 @@ import FirebaseDatabase
 final class AppDataManager {
   static let shared = AppDataManager()
   
-  private(set) var cachedCMCList: [FirebaseCMCResponse] = []
+  private(set) var cachedKRWCMCList: [FirebaseCMCResponse] = []
+  private(set) var cachedBTCCMCList: [FirebaseCMCResponse] = []
   private let firebaseDB = Database.database().reference()
   
   /// 파이어베이스에서 CMC 코인 정보 가져오기
@@ -25,7 +26,12 @@ final class AppDataManager {
 	  }
 	  Log.info("✅ \(value.values.count)개 데이터 불러오기 성공")
 	  
-	  self.cachedCMCList = value.compactMap { self.parseToCryptoData(dict: $0.value) }
+	  if child_path == "cryptoInformations" {
+		self.cachedKRWCMCList = value.compactMap { self.parseToCryptoData(dict: $0.value) }
+	  } else {
+		self.cachedBTCCMCList = value.compactMap { self.parseToCryptoData(dict: $0.value) }
+	  }
+	  
 	}
   }
   
