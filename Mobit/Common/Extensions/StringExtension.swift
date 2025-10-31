@@ -42,4 +42,14 @@ extension String {
 	let filtered = self.filter { "0123456789.".contains($0) }
 	return Double(filtered) ?? 0
   }
+  
+  /// Localized String
+  var localized: String {
+	  return NSLocalizedString(self, tableName: nil, bundle: Bundle.main, value: "", comment: "")
+  }
+  
+  /// Localized Format String
+  func localized(with lists: [CVarArg] = []) -> String {
+	  return String(format: self.localized, lists)
+  }
 }

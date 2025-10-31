@@ -12,6 +12,7 @@ import ReactorKit
 import PinLayout
 import Then
 import UIKit
+import Network
 
 enum TableViewSection: CaseIterable {
   case main
@@ -138,6 +139,7 @@ class MainViewController: MobitBaseViewController {
 	$0.backgroundColor = .mobitColors(.lightGrayBG)
   }
   
+  var networkLostView: NetworkLostView? = nil
   var lottieLoadingView: MobitLottieView? = nil
   
   // MARK: Life Cycle
@@ -165,6 +167,8 @@ class MainViewController: MobitBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     self.view.backgroundColor = .white
+	
+	self.checkNetworkStatus()
 	
 	// DiffableDataSource 사용을 위해 Hashable하게 데이터 모델이 수정됨에 따라 데이터 안정화를 위한 덮어쓰기
 	let list = UserDataManager.userCryptoList
@@ -706,5 +710,54 @@ extension MainViewController: SocketControllable {
 	guard self.reactor.socketManager?.isConnected == false else { return }
 	self.reactor.socketManager?.reconnectIfNeeded()
 	self.reactor.action.onNext(.loadCrypto)
+  }
+}
+
+// MARK: - Network Monitoring
+extension MainViewController {
+  func checkNetworkStatus() {
+	NotificationCenter.default.addObserver(
+	  self,
+	  selector: #selector(networkStatusChanged(_:)),
+	  name: .networkStatusChanged,
+	  object: nil
+	)
+  }
+  
+  @objc private func networkStatusChanged(_ notification: Notification) {
+	  guard let userInfo = notification.userInfo,
+			let isConnected = userInfo["isConnected"] as? Bool else { return }
+
+	  if !isConnected {
+		  // 🚨 네트워크 완전 유실 상태
+		  showNetworkLostView()
+	  } else {
+		  // ✅ 네트워크 복구됨
+		  hideNetworkLostView()
+	  }
+  }
+  
+  /// 네트워크 유실 화면 노출
+  private func showNetworkLostView() {
+	
+	// 중복 생성 방지
+	if self.networkLostView != nil { return }
+	
+	self.networkLostView = NetworkLostView()
+	guard let networkLostView = self.networkLostView else { return }
+	
+	networkLostView.configure()
+	view.addSubview(networkLostView)
+	
+	networkLostView.snp.makeConstraints { make in
+	  make.edges.equalToSuperview()
+	}
+  }
+  
+  /// 네트워크 유실 화면 제거
+  private func hideNetworkLostView() {
+	guard let networkLostView = self.networkLostView else { return }
+	networkLostView.removeFromSuperview()
+	self.networkLostView = nil
   }
 }
