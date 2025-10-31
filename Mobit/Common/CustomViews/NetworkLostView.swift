@@ -18,6 +18,7 @@ class NetworkLostView: UIView {
   let label = UILabel().then { label in
 	label.text = "네트워크가 유실되었습니다.\n네트워크 연결 후 다시 시도해 주세요."
 	label.font = UIFont(name: "esamanruOTFMedium", size: 18)
+	label.textAlignment = .center
 	label.textColor = .darkGray
   }
   
@@ -48,7 +49,7 @@ class NetworkLostView: UIView {
 	}
 	
 	imageView.snp.makeConstraints { make in
-	  make.top.equalToSuperview().offset(150)
+	  make.top.equalToSuperview().offset(300)
 	  make.centerX.equalToSuperview()
 	  make.width.equalTo(100)
 	  make.height.equalTo(100)

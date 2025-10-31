@@ -730,18 +730,24 @@ extension MainViewController {
 	  }
   }
   
+  /// 네트워크 유실 화면 노출
   private func showNetworkLostView() {
+	
+	// 중복 생성 방지
+	if self.networkLostView != nil { return }
+	
 	self.networkLostView = NetworkLostView()
 	guard let networkLostView = self.networkLostView else { return }
-	networkLostView.configure()
 	
-	self.view.addSubview(networkLostView)
+	networkLostView.configure()
+	view.addSubview(networkLostView)
 	
 	networkLostView.snp.makeConstraints { make in
 	  make.edges.equalToSuperview()
 	}
   }
   
+  /// 네트워크 유실 화면 제거
   private func hideNetworkLostView() {
 	guard let networkLostView = self.networkLostView else { return }
 	networkLostView.removeFromSuperview()
