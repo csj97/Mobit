@@ -11,18 +11,18 @@ import RxMoya
 import RxSwift
 
 protocol CryptoDetailRepositoryProtocol {
-  func getCryptoInfo(market: String) -> Observable<CryptoQuoteResponse>
+  func getCryptoInformation(market: String) -> Observable<CryptoQuoteResponse>
 }
 
 class CryptoDetailRepository: CryptoDetailRepositoryProtocol {
   let provider = MoyaProvider<MainNetworkService>()
   private var disposeBag = DisposeBag()
   
-  func getCryptoInfo(market: String) -> Observable<CryptoQuoteResponse> {
+  func getCryptoInformation(market: String) -> Observable<CryptoQuoteResponse> {
 	let decodeTarget = CryptoQuoteResponseDTO.self
 	
 	return Observable.create { observer in
-	  let disposable = self.provider.rx.request(.getCryptoInfo(market: market))
+	  let disposable = self.provider.rx.request(.getCryptoInformation(market: market))
 		.subscribe { event in
 		  switch event {
 		  case .success(let response):

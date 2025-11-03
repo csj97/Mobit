@@ -22,6 +22,6 @@ class CryptoDetailUseCase: CryptoDetailUseCaseProtocol {
   }
   
   func getCryptoInformation(market: String) -> Observable<CryptoQuoteResponse> {
-	self.cryptoDetailRepository.getCryptoInfo(market: market)
+	self.cryptoDetailRepository.getCryptoInformation(market: market)
   }
 }

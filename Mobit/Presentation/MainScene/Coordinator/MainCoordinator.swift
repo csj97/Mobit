@@ -100,7 +100,7 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
   ) {
     // 뒤로가기 이 후, mainVC로 돌아왔다면, 다시 socket 연결
     if let mainVC = viewController as? MainViewController {
-      mainVC.reactor.action.onNext(.loadCrypto)
+	  mainVC.reactor.action.onNext(.loadCryptoList)
     }
   }
 }

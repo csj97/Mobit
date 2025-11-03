@@ -39,7 +39,7 @@ class MainViewController: MobitBaseViewController {
   var selectedTab: SelectedTab = .krw {
 	didSet {
 	  self.reactor.action.onNext(.setSelectedTab(tab: selectedTab))
-	  self.reactor.action.onNext(.loadCrypto)
+	  self.reactor.action.onNext(.loadCryptoList)
 	}
   }
   var prevSortedButton: UIButton?
@@ -155,7 +155,7 @@ class MainViewController: MobitBaseViewController {
 	  self.tableView.isHidden = true
 	  self.noFavoriteView.isHidden = false
 	} else {
-	  let favoriteCellInfos = reactor.currentState.cryptoCellInfos.filter {
+	  let favoriteCellInfos = reactor.currentState.totalCryptoList.filter {
 		favoriteMarketNames.contains($0.market)
 	  }
 	  self.tableView.isHidden = false
@@ -187,14 +187,6 @@ class MainViewController: MobitBaseViewController {
 	self.showLoadingIndicator()
 	
 	self.bind(reactor: self.reactor)
-	
-//	self.reactor.downloadFromFirebase { response in
-//	  let cmcList = response.compactMap { self.reactor.parseToCryptoData(dict: $0.value) }
-//	  self.reactor.cmcList = cmcList
-//	}
-	
-	// guard let transactionHistory = UserDataManager.userTransactionList else { return }
-	// print(transactionHistory)
   }
   
   override func viewDidLayoutSubviews() {
@@ -426,16 +418,14 @@ class MainViewController: MobitBaseViewController {
       self.selectedTab = .krw
 	  self.tableView.isHidden = false
 	  self.noFavoriteView.isHidden = true
-      //self.reactor.action.onNext(.loadCrypto)
     case 1:
       self.selectedTab = .btc
 	  self.tableView.isHidden = false
 	  self.noFavoriteView.isHidden = true
-      //self.reactor.action.onNext(.loadCrypto)
     case 2:
       self.selectedTab = .favorite
 	  let favoriteMarketNames = UserDataManager.userFavoriteList
-	  let favoriteCellInfos = self.reactor.currentState.cryptoCellInfos.filter {
+	  let favoriteCellInfos = self.reactor.currentState.totalCryptoList.filter {
 		favoriteMarketNames.contains($0.market)
 	  }
 	  if favoriteCellInfos.count == 0 {
@@ -539,52 +529,101 @@ class MainViewController: MobitBaseViewController {
 extension MainViewController: View {
   func bind(reactor: MainReactor) {
 	
-	reactor.state.map { $0.cryptoCellInfos }
+	reactor.state.map { reactor.getFilteredList(state: $0) }
 	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
-	  .subscribe(onNext: { [weak self] cellInfos in
+	  .subscribe { [weak self] cellInfos in
 		guard let self else { return }
 		guard !self.isSocketUpdating else { return }
+		
 		let searchText = self.searchBar.text?.lowercased() ?? ""
 		let isSearching = !searchText.isEmpty
-		let favoriteMarketNames = UserDataManager.userFavoriteList
-		let favoriteCellInfos = reactor.currentState.cryptoCellInfos.filter {
-		  favoriteMarketNames.contains($0.market)
+		
+		var finalArray: [CryptoCellInfo]
+		if isSearching {
+		  finalArray = cellInfos.filter {
+			$0.market.lowercased().contains(searchText) ||
+			$0.cryptoName.lowercased().contains(searchText)
+		  }
+		} else {
+		  finalArray = cellInfos
 		}
 		
-		var baseArray: [CryptoCellInfo]
-		switch self.selectedTab {
-		case .krw:
-		  baseArray = cellInfos
-		case .btc:
-		  baseArray = cellInfos
-		case .favorite:
-		  baseArray = favoriteCellInfos
-		  if favoriteCellInfos.count == 0 {
+		if self.selectedTab == .favorite {
+		  if finalArray.count == 0 {
 			self.tableView.isHidden = true
 			self.noFavoriteView.isHidden = false
 		  } else {
 			self.tableView.isHidden = false
 			self.noFavoriteView.isHidden = true
-			self.applySnapshot(cellInfos: favoriteCellInfos)
 		  }
-		}
-		
-		var finalArray: [CryptoCellInfo]
-		if isSearching {
-		  finalArray = baseArray.filter {
-			$0.market.lowercased().contains(searchText) ||
-			$0.cryptoName.lowercased().contains(searchText)
-		  }
-		} else {
-		  finalArray = baseArray
 		}
 		
 		self.applySnapshot(cellInfos: finalArray)
-		
-	  })
+	  }
 	  .disposed(by: self.disposeBag)
+	
+//	reactor.state.map { state -> [CryptoCellInfo] in
+//	  switch state.selectedTab {
+//	  case .krw:
+//		return state.krwCryptoList
+//	  case .btc:
+//		return state.btcCryptoList
+//	  case .favorite:
+//		let favoriteMarketNames = UserDataManager.userFavoriteList
+//		let favoriteCellInfos = state.favCryptoList.filter {
+//		  favoriteMarketNames.contains($0.market)
+//		}
+//		return favoriteCellInfos
+//	  }
+//	}
+//	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)
+//	  .distinctUntilChanged()
+//	  .observe(on: MainScheduler.instance)
+//	  .subscribe(onNext: { [weak self] cellInfos in
+//		guard let self else { return }
+//		guard !self.isSocketUpdating else { return }
+//		let searchText = self.searchBar.text?.lowercased() ?? ""
+//		let isSearching = !searchText.isEmpty
+////		let favoriteMarketNames = UserDataManager.userFavoriteList
+////		let favoriteCellInfos = reactor.currentState.totalCryptoList.filter {
+////		  favoriteMarketNames.contains($0.market)
+////		}
+//		
+//		var baseArray: [CryptoCellInfo]
+//		switch self.selectedTab {
+//		case .krw:
+//		  baseArray = cellInfos
+//		case .btc:
+//		  baseArray = cellInfos
+//		case .favorite:
+//		  baseArray = cellInfos
+//		  
+//		  if cellInfos.count == 0 {
+//			self.tableView.isHidden = true
+//			self.noFavoriteView.isHidden = false
+//		  } else {
+//			self.tableView.isHidden = false
+//			self.noFavoriteView.isHidden = true
+//			self.applySnapshot(cellInfos: cellInfos)
+//		  }
+//		}
+//		
+//		var finalArray: [CryptoCellInfo]
+//		if isSearching {
+//		  finalArray = baseArray.filter {
+//			$0.market.lowercased().contains(searchText) ||
+//			$0.cryptoName.lowercased().contains(searchText)
+//		  }
+//		} else {
+//		  finalArray = baseArray
+//		}
+//		
+//		self.applySnapshot(cellInfos: finalArray)
+//		
+//	  })
+//	  .disposed(by: self.disposeBag)
 	
 	reactor.state.map { $0.isVersionDifferent }
 	  .distinctUntilChanged()
@@ -604,7 +643,14 @@ extension MainViewController: View {
 extension MainViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 	
-	var cryptoCellInfos = reactor.currentState.cryptoCellInfos
+	var cryptoCellInfos: [CryptoCellInfo] = []
+	if self.selectedTab == .krw {
+	  cryptoCellInfos = reactor.currentState.krwCryptoList
+	} else if self.selectedTab == .btc {
+	  cryptoCellInfos = reactor.currentState.btcCryptoList
+	} else {
+	  cryptoCellInfos = reactor.currentState.totalCryptoList
+	}
 	
 	if let searchText = self.searchBar.text, !searchText.isEmpty {
 	  // 검색할 때
@@ -682,7 +728,15 @@ extension MainViewController: UITableViewDelegate {
 
 extension MainViewController: UISearchBarDelegate {
   func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-	let cellInfos = self.reactor.currentState.cryptoCellInfos
+	var cellInfos: [CryptoCellInfo] = []
+	if self.selectedTab == .krw {
+	  cellInfos = self.reactor.currentState.krwCryptoList
+	} else if self.selectedTab == .btc {
+	  cellInfos = self.reactor.currentState.btcCryptoList
+	} else {
+	  cellInfos = self.reactor.currentState.totalCryptoList
+	}
+	
 	if searchText.isEmpty {
 	  self.applySnapshot(cellInfos: cellInfos)
 	} else {
@@ -692,7 +746,15 @@ extension MainViewController: UISearchBarDelegate {
   }
   
   func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-	let cellInfos = self.reactor.currentState.cryptoCellInfos
+	var cellInfos: [CryptoCellInfo] = []
+	if self.selectedTab == .krw {
+	  cellInfos = self.reactor.currentState.krwCryptoList
+	} else if self.selectedTab == .btc {
+	  cellInfos = self.reactor.currentState.btcCryptoList
+	} else {
+	  cellInfos = self.reactor.currentState.totalCryptoList
+	}
+	
 	searchBar.text = nil
 	searchBar.resignFirstResponder() // 키보드 내림
 	self.applySnapshot(cellInfos: cellInfos)
@@ -709,7 +771,7 @@ extension MainViewController: SocketControllable {
   func resumeSocket() {
 	guard self.reactor.socketManager?.isConnected == false else { return }
 	self.reactor.socketManager?.reconnectIfNeeded()
-	self.reactor.action.onNext(.loadCrypto)
+	self.reactor.action.onNext(.loadCryptoList)
   }
 }
 

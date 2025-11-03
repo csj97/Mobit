@@ -11,15 +11,15 @@ import RxMoya
 import RxSwift
 
 protocol MainRepositoryProtocol {
-  func fetchCoinList() -> Observable<CryptoList>
-  func loadTicker(markets: [String]) -> Observable<CryptoTickerList>
+  func loadCryptoList() -> Observable<CryptoList>
+  func loadCryptoTicker(markets: [String]) -> Observable<CryptoTickerList>
 }
 
 class MainRepository: MainRepositoryProtocol {
   let provider = MoyaProvider<MainNetworkService>()
   private var disposeBag = DisposeBag()
   
-  func fetchCoinList() -> Observable<CryptoList> {
+  func loadCryptoList() -> Observable<CryptoList> {
     let decodeTarget = CryptoListDTO.self
     
     return Observable.create { observer in
@@ -51,11 +51,11 @@ class MainRepository: MainRepositoryProtocol {
   }
   
     // ticker 리스트 조회
-  func loadTicker(markets: [String]) -> Observable<CryptoTickerList> {
+  func loadCryptoTicker(markets: [String]) -> Observable<CryptoTickerList> {
     let decodeTarget = CryptoTickerListDTO.self
 
     return Observable.create { observer in
-      let disposable = self.provider.rx.request(.getTicker(markets: markets))
+      let disposable = self.provider.rx.request(.getCryptoTicker(markets: markets))
         .subscribe { event in
           switch event {
           case .success(let response):
@@ -63,9 +63,9 @@ class MainRepository: MainRepositoryProtocol {
             case 200..<300:
 			  
 			  do {
-				if let jsonString = String(data: response.data, encoding: .utf8) {
+				// if let jsonString = String(data: response.data, encoding: .utf8) {
 					// print("📦 JSON 응답 문자열:\n\(jsonString)")
-				}
+				// }
 				let cryptoTickerList = try JSONDecoder().decode(decodeTarget, from: response.data)
 				observer.onNext(cryptoTickerList.toDomain())
 				observer.onCompleted()

@@ -11,18 +11,18 @@ import RxSwift
 
 enum MainNetworkService {
   case getCryptoList
-  case getTicker(markets: [String])
-  case getCryptoInfo(market: String, currency: String = "KRW")
+  case getCryptoTicker(markets: [String])
+  case getCryptoInformation(market: String, currency: String = "KRW")
 }
 
 extension MainNetworkService: TargetType {
   var baseURL: URL {
     switch self {
     case .getCryptoList:
-      return URL(string: "https://api.upbit.com/v1/market/all")!
-    case .getTicker:
-      return URL(string: "https://api.upbit.com/v1/ticker")!
-	case .getCryptoInfo:
+	 return URL(string: "https://api.upbit.com/v1/market/all")!
+    case .getCryptoTicker:
+	 return URL(string: "https://api.upbit.com/v1/ticker")!
+    case .getCryptoInformation:
 	 return URL(string: "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest")!
     }
   }
@@ -31,9 +31,9 @@ extension MainNetworkService: TargetType {
     switch self {
     case .getCryptoList:
       return ""
-    case .getTicker:
+    case .getCryptoTicker:
       return ""
-	case .getCryptoInfo:
+	case .getCryptoInformation:
 	  return ""
     }
   }
@@ -42,9 +42,9 @@ extension MainNetworkService: TargetType {
     switch self {
     case .getCryptoList:
       return .get
-    case .getTicker:
+    case .getCryptoTicker:
       return .get
-	case .getCryptoInfo:
+	case .getCryptoInformation:
 	  return .get
     }
   }
@@ -54,12 +54,12 @@ extension MainNetworkService: TargetType {
     case .getCryptoList:
       let param = ["isDetails": true]
       return .requestParameters(parameters: param, encoding: URLEncoding.queryString)
-    case .getTicker(let markets):
+    case .getCryptoTicker(let markets):
       // URL 길이 제한을 초과하면 400 Error가 발생할 수 있다.
       let markets = markets.joined(separator: ",")
       let param = ["markets": markets]
       return .requestParameters(parameters: param, encoding: URLEncoding.queryString)
-    case .getCryptoInfo(let market, let currency):
+    case .getCryptoInformation(let market, let currency):
 	 let param = ["symbol": market, "convert": currency]
 	 return .requestParameters(parameters: param, encoding: URLEncoding.queryString)
     }
@@ -67,7 +67,7 @@ extension MainNetworkService: TargetType {
   
   var headers: [String : String]? {
     switch self {
-    case .getCryptoInfo:
+    case .getCryptoInformation:
 	 let apiKey = Bundle.main.infoDictionary?["COIN_MARKET_CAP_API_KEY"] as! String
 	 return ["X-CMC_PRO_API_KEY": apiKey]
     default:
