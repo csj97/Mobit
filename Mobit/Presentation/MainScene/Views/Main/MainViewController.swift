@@ -529,101 +529,59 @@ class MainViewController: MobitBaseViewController {
 extension MainViewController: View {
   func bind(reactor: MainReactor) {
 	
-	reactor.state.map { reactor.getFilteredList(state: $0) }
-	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)
-	  .distinctUntilChanged()
+	reactor.state.map { state -> [CryptoCellInfo] in
+	  switch state.selectedTab {
+	  case .krw: return state.krwCryptoList
+	  case .btc: return state.btcCryptoList
+	  case .favorite: return state.krwCryptoList + state.btcCryptoList
+	  }
+	}
+	  .throttle(.milliseconds(150), scheduler: MainScheduler.instance)
+	  .distinctUntilChanged { lhs, rhs in
+		// market만 비교하여 불필요한 UI 업데이트 최소화
+		lhs.map(\.market) == rhs.map(\.market)
+	  }
 	  .observe(on: MainScheduler.instance)
-	  .subscribe { [weak self] cellInfos in
+	  .subscribe(onNext: { [weak self] cellInfos in
 		guard let self else { return }
 		guard !self.isSocketUpdating else { return }
 		
 		let searchText = self.searchBar.text?.lowercased() ?? ""
-		let isSearching = !searchText.isEmpty
+		let favoriteMarkets = Set(UserDataManager.userFavoriteList)
 		
-		var finalArray: [CryptoCellInfo]
-		if isSearching {
-		  finalArray = cellInfos.filter {
+		// 1️⃣ 현재 탭에 맞는 기본 리스트
+		var displayList = cellInfos
+		
+		// 2️⃣ 즐겨찾기 탭 처리
+		if self.selectedTab == .favorite {
+		  displayList = displayList.filter { favoriteMarkets.contains($0.market) }
+
+		  let hasFavorites = !displayList.isEmpty
+		  self.tableView.isHidden = !hasFavorites
+		  self.noFavoriteView.isHidden = hasFavorites
+		  if !hasFavorites { return }
+		}
+
+		// 3️⃣ 검색 필터 적용
+		if !searchText.isEmpty {
+		  displayList = displayList.filter {
 			$0.market.lowercased().contains(searchText) ||
 			$0.cryptoName.lowercased().contains(searchText)
 		  }
-		} else {
-		  finalArray = cellInfos
 		}
 		
-		if self.selectedTab == .favorite {
-		  if finalArray.count == 0 {
-			self.tableView.isHidden = true
-			self.noFavoriteView.isHidden = false
-		  } else {
-			self.tableView.isHidden = false
-			self.noFavoriteView.isHidden = true
-		  }
-		}
-		
-		self.applySnapshot(cellInfos: finalArray)
-	  }
+		// 4️⃣ 스냅샷 갱신
+		 self.applySnapshot(cellInfos: displayList)
+	  })
 	  .disposed(by: self.disposeBag)
 	
-//	reactor.state.map { state -> [CryptoCellInfo] in
-//	  switch state.selectedTab {
-//	  case .krw:
-//		return state.krwCryptoList
-//	  case .btc:
-//		return state.btcCryptoList
-//	  case .favorite:
-//		let favoriteMarketNames = UserDataManager.userFavoriteList
-//		let favoriteCellInfos = state.favCryptoList.filter {
-//		  favoriteMarketNames.contains($0.market)
-//		}
-//		return favoriteCellInfos
-//	  }
-//	}
-//	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)
-//	  .distinctUntilChanged()
-//	  .observe(on: MainScheduler.instance)
-//	  .subscribe(onNext: { [weak self] cellInfos in
-//		guard let self else { return }
-//		guard !self.isSocketUpdating else { return }
-//		let searchText = self.searchBar.text?.lowercased() ?? ""
-//		let isSearching = !searchText.isEmpty
-////		let favoriteMarketNames = UserDataManager.userFavoriteList
-////		let favoriteCellInfos = reactor.currentState.totalCryptoList.filter {
-////		  favoriteMarketNames.contains($0.market)
-////		}
-//		
-//		var baseArray: [CryptoCellInfo]
-//		switch self.selectedTab {
-//		case .krw:
-//		  baseArray = cellInfos
-//		case .btc:
-//		  baseArray = cellInfos
-//		case .favorite:
-//		  baseArray = cellInfos
-//		  
-//		  if cellInfos.count == 0 {
-//			self.tableView.isHidden = true
-//			self.noFavoriteView.isHidden = false
-//		  } else {
-//			self.tableView.isHidden = false
-//			self.noFavoriteView.isHidden = true
-//			self.applySnapshot(cellInfos: cellInfos)
-//		  }
-//		}
-//		
-//		var finalArray: [CryptoCellInfo]
-//		if isSearching {
-//		  finalArray = baseArray.filter {
-//			$0.market.lowercased().contains(searchText) ||
-//			$0.cryptoName.lowercased().contains(searchText)
-//		  }
-//		} else {
-//		  finalArray = baseArray
-//		}
-//		
-//		self.applySnapshot(cellInfos: finalArray)
-//		
-//	  })
-//	  .disposed(by: self.disposeBag)
+	reactor.state.map { $0.displayCryptoList }
+	  .distinctUntilChanged()
+	  .observe(on: MainScheduler.instance)
+	  .subscribe { updateCryptoCellInfos in
+		self.applySnapshot(cellInfos: updateCryptoCellInfos)
+	  }
+	  .disposed(by: self.disposeBag)
 	
 	reactor.state.map { $0.isVersionDifferent }
 	  .distinctUntilChanged()

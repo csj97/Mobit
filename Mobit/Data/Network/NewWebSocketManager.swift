@@ -80,7 +80,7 @@ class NewWebSocketManager: WebSocketDelegate {
     }
     self.socketType = socketType
     
-    let ticket = ["ticket": "teset"]
+    let ticket = ["ticket": "test"]
     let subscribe: [String: Any] = [
       "type": socketType.rawValue,
       "codes": codes
