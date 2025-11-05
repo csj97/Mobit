@@ -67,17 +67,12 @@ extension MainReactor {
 	
     /// krw, btc > combined crypto list
 	var cryptoList: CryptoList = []
-	var allCryptos: [CryptoCellInfo] = [] // KRW + BTC 전체 통합
-	// var totalCryptoList: [CryptoCellInfo] = []
-	var krwCryptoList: [CryptoCellInfo] = []
-	var btcCryptoList: [CryptoCellInfo] = []
-	var favCryptoList: [CryptoCellInfo] = []
-    
+	
 	/// krw, btc, fav 탭의 crypto list가 들어올 수 있음
 	var displayCryptoList: [CryptoCellInfo] = []
+	var krwCryptoList: [CryptoCellInfo] = []
+	var btcCryptoList: [CryptoCellInfo] = []
 	
-    /// Cell에 필요한 정보들을 모아 놓은 모델 변수
-    var totalCryptoList: [CryptoCellInfo] = []
     var cryptoSocketTicker: CryptoSocketTicker? = nil
     var sortBy: CryptoSortType = .normal
 	var selectedTab: SelectedTab = .krw
@@ -136,31 +131,18 @@ extension MainReactor {
 	  newState.displayCryptoList = cryptoCellInfos
       
     case .setCombinedArray(let combinedResult):
-	  
-	  var displayCryptoList = combinedResult
-	  
-	  switch currentState.selectedTab {
-	  case .krw:
-		newState.krwCryptoList = combinedResult
-	  case .btc:
-		newState.btcCryptoList = combinedResult
-	  case .favorite:
-		// favorite은 항상 krw + btc 기준
-		newState.krwCryptoList = currentState.krwCryptoList
-		newState.btcCryptoList = currentState.btcCryptoList
-		displayCryptoList = currentState.krwCryptoList + currentState.btcCryptoList
-	  }
-	  
-	  newState.displayCryptoList = displayCryptoList
-	  
-//	  if currentState.selectedTab == .krw {
+//	  var displayCryptoList = combinedResult
+//	  
+//	  switch currentState.selectedTab {
+//	  case .krw:
 //		newState.krwCryptoList = combinedResult
-//	  } else if currentState.selectedTab == .btc {
+//	  case .btc:
 //		newState.btcCryptoList = combinedResult
-//	  } else {
-//		newState.favCryptoList = currentState.krwCryptoList + currentState.btcCryptoList
+//	  case .favorite:
+//		displayCryptoList = currentState.krwCryptoList + currentState.btcCryptoList
 //	  }
-//	  newState.totalCryptoList = combinedResult
+	  
+	  newState.displayCryptoList = combinedResult
       
     case .setSortType(let sortBy):
       newState.sortBy = sortBy
@@ -257,8 +239,8 @@ extension MainReactor {
 		
 		return self.loadCryptoTicker(
 		  selectedTab: self.currentState.selectedTab,
-		  cryptoList: filteredList,
-		  markets: markets
+		  cryptoList: cryptoList,
+		  markets: cryptoList.map { $0.market }
 		)
 	  }
   }
@@ -297,17 +279,12 @@ extension MainReactor {
 
 	// 2️⃣ 소켓 연결 Observable (REST 1회 완료 후 이어짐)
 	let socketTickerObservable = cryptoTickerObservable
-		.do(onNext: { [weak self] mutation in
-			if case .setCombinedArray(let cryptoCellInfos) = mutation, !cryptoCellInfos.isEmpty {
-				Log.info("🔌 loadSocketTicker triggered for tab: \(selectedTab)")
-			}
-		})
-		.flatMapLatest { [weak self] mutation -> Observable<MainMutation> in
-			guard let self else { return .empty() }
-			// REST → SOCKET 스트림 연결
-			return self.loadSocketTicker(selectedTab: selectedTab, cryptoList: cryptoList)
-				.startWith(mutation) // REST 결과도 함께 방출
-		}
+	  .flatMapLatest { [weak self] mutation -> Observable<MainMutation> in
+		guard let self else { return .empty() }
+		// REST → SOCKET 스트림 연결
+		return self.loadSocketTicker(selectedTab: selectedTab, cryptoList: cryptoList)
+		  .startWith(mutation) // REST 결과도 함께 방출
+	  }
 
 	return socketTickerObservable
 	
@@ -513,21 +490,15 @@ extension MainReactor {
 	cryptoList: CryptoList,
 	cryptoTickerList: CryptoTickerList
   ) -> [CryptoCellInfo] {
-	var filteredCryptoList: CryptoList = []
+	let filteredCryptoList: CryptoList = {
+		switch selectedTab {
+		case .krw: return cryptoList.filter { $0.market.hasPrefix("KRW-") }
+		case .btc: return cryptoList.filter { $0.market.hasPrefix("BTC-") }
+		case .favorite: return cryptoList
+		}
+	}()
 	
-	switch selectedTab {
-	case .krw:
-	  filteredCryptoList = cryptoList.filter { $0.market.contains("KRW-") }
-	  
-	case .btc:
-	  filteredCryptoList = cryptoList.filter { $0.market.contains("BTC-") }
-	  
-	case .favorite:
-	  filteredCryptoList = cryptoList
-	  break
-	}
-	
-	let cellInfos: [CryptoCellInfo] = filteredCryptoList.compactMap { crypto in
+	let cellInfos: [CryptoCellInfo] = cryptoList.compactMap { crypto in
 	  return CryptoCellInfo(
 		cryptoName: crypto.koreanName,
 		market: crypto.market,
@@ -564,48 +535,48 @@ extension MainReactor {
 	cryptoList: CryptoList,
 	socketTicker: CryptoSocketTicker
   ) -> [CryptoCellInfo] {
-	var filteredCryptoList: CryptoList = []
+	let filteredCryptoList: CryptoList = {
+		switch selectedTab {
+		case .krw: return cryptoList.filter { $0.market.hasPrefix("KRW-") }
+		case .btc: return cryptoList.filter { $0.market.hasPrefix("BTC-") }
+		case .favorite: return cryptoList
+		}
+	}()
 	
-	switch selectedTab {
-	case .krw:
-	  filteredCryptoList = cryptoList.filter { $0.market.contains("KRW-") }
-	  
-	case .btc:
-	  filteredCryptoList = cryptoList.filter { $0.market.contains("BTC-") }
-	  
-	case .favorite:
-	  filteredCryptoList = cryptoList
-	  break
-	}
+	var displayCryptoList = self.currentState.displayCryptoList
 	
-	let cellInfos: [CryptoCellInfo] = filteredCryptoList.compactMap { crypto in
-	  return CryptoCellInfo(cryptoName: crypto.koreanName, market: crypto.market, marketEvent: crypto.marketEvent)
-	}
-	let cryptoCells: [CryptoCellInfo] = cellInfos.compactMap { cryptoCellInfo in
-	  var updatedCryptoCellInfo = cryptoCellInfo
+	let updatedCryptoList: [CryptoCellInfo] = filteredCryptoList.compactMap { crypto in
+	  // 새로운 셀 생성
+	  var cellInfo = CryptoCellInfo(
+		cryptoName: crypto.koreanName,
+		market: crypto.market,
+		marketEvent: crypto.marketEvent
+	  )
 	  
-	  if socketTicker.code == cryptoCellInfo.market {
-		updatedCryptoCellInfo.market = self.transformMarketForm(market: cryptoCellInfo.market)
-		updatedCryptoCellInfo.prevPrice = socketTicker.prevClosingPrice
-		updatedCryptoCellInfo.tradePrice = socketTicker.tradePrice
-		updatedCryptoCellInfo.changePrice = socketTicker.changePrice
-		updatedCryptoCellInfo.signedChangeRate = socketTicker.signedChangeRate
-		updatedCryptoCellInfo.change = socketTicker.change
-		updatedCryptoCellInfo.accTradePrice24h = socketTicker.accTradePrice24H
-		updatedCryptoCellInfo.accTradeVolume24h = socketTicker.accTradeVolume24H
-		updatedCryptoCellInfo.highest52WeekPrice = socketTicker.highest52WeekPrice
-		updatedCryptoCellInfo.lowest52WeekPrice = socketTicker.lowest52WeekPrice
-		
-		return updatedCryptoCellInfo
-	  } else {
-		
-		return nil
+	  // 현재 들어온 소켓 ticker가 이 코인과 매칭될 때만 업데이트
+	  if socketTicker.code == crypto.market {
+		cellInfo.market = self.transformMarketForm(market: crypto.market)
+		cellInfo.prevPrice = socketTicker.prevClosingPrice
+		cellInfo.tradePrice = socketTicker.tradePrice
+		cellInfo.changePrice = socketTicker.changePrice
+		cellInfo.signedChangeRate = socketTicker.signedChangeRate
+		cellInfo.change = socketTicker.change
+		cellInfo.accTradePrice24h = socketTicker.accTradePrice24H
+		cellInfo.accTradeVolume24h = socketTicker.accTradeVolume24H
+		cellInfo.highest52WeekPrice = socketTicker.highest52WeekPrice
+		cellInfo.lowest52WeekPrice = socketTicker.lowest52WeekPrice
 	  }
+	  
+	  return cellInfo
 	}
-	
-	return self.currentState.totalCryptoList.map { cellInfo in
-	  cryptoCells.first(where: { $0.cryptoName == cellInfo.cryptoName }) ?? cellInfo
+
+	// 기존 O(N * M) > O(1) 복잡도
+	let updatedCryptoDict = Dictionary(uniqueKeysWithValues: updatedCryptoList.map { ($0.market, $0) })
+	let mergedCryptoList = displayCryptoList.map { cellInfo in
+	  updatedCryptoDict[cellInfo.market] ?? cellInfo
 	}
+
+	return mergedCryptoList
   }
 }
 
@@ -622,7 +593,7 @@ extension MainReactor {
 	  cryptoCellInfos = currentState.btcCryptoList
 	} else {
 	  // .favorite
-	  cryptoCellInfos = currentState.totalCryptoList
+	  cryptoCellInfos = currentState.krwCryptoList + currentState.btcCryptoList
 	}
 	
 	self.sortCryptoCellInfos(

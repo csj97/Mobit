@@ -39,7 +39,8 @@ class MainViewController: MobitBaseViewController {
   var selectedTab: SelectedTab = .krw {
 	didSet {
 	  self.reactor.action.onNext(.setSelectedTab(tab: selectedTab))
-	  self.reactor.action.onNext(.loadCryptoList)
+	  // self.reactor.action.onNext(.loadCryptoList)
+	  self.updateDisplayListForTab(selectedTab)
 	}
   }
   var prevSortedButton: UIButton?
@@ -155,7 +156,7 @@ class MainViewController: MobitBaseViewController {
 	  self.tableView.isHidden = true
 	  self.noFavoriteView.isHidden = false
 	} else {
-	  let favoriteCellInfos = reactor.currentState.totalCryptoList.filter {
+	  let favoriteCellInfos = reactor.currentState.displayCryptoList.filter {
 		favoriteMarketNames.contains($0.market)
 	  }
 	  self.tableView.isHidden = false
@@ -425,7 +426,7 @@ class MainViewController: MobitBaseViewController {
     case 2:
       self.selectedTab = .favorite
 	  let favoriteMarketNames = UserDataManager.userFavoriteList
-	  let favoriteCellInfos = self.reactor.currentState.totalCryptoList.filter {
+	  let favoriteCellInfos = self.reactor.currentState.displayCryptoList.filter {
 		favoriteMarketNames.contains($0.market)
 	  }
 	  if favoriteCellInfos.count == 0 {
@@ -527,20 +528,42 @@ class MainViewController: MobitBaseViewController {
 
 // MARK: Reactor - View
 extension MainViewController: View {
+  
+  private func updateDisplayListForTab(_ tab: SelectedTab) {
+	  switch tab {
+	  case .krw:
+		let displayCryptoList = reactor.currentState.displayCryptoList.filter { $0.market.contains("KRW") }
+		self.applySnapshot(cellInfos: displayCryptoList)
+	  case .btc:
+		let displayCryptoList = reactor.currentState.displayCryptoList.filter { $0.market.contains("BTC") }
+		self.applySnapshot(cellInfos: displayCryptoList)
+	  case .favorite:
+		  let favorites = UserDataManager.userFavoriteList
+		  let list = reactor.currentState.displayCryptoList
+					  .filter { favorites.contains($0.market) }
+					+ reactor.currentState.displayCryptoList
+					  .filter { favorites.contains($0.market) }
+		  self.applySnapshot(cellInfos: list)
+	  }
+  }
+  
   func bind(reactor: MainReactor) {
-	
 	reactor.state.map { state -> [CryptoCellInfo] in
-	  switch state.selectedTab {
-	  case .krw: return state.krwCryptoList
-	  case .btc: return state.btcCryptoList
-	  case .favorite: return state.krwCryptoList + state.btcCryptoList
+	  var displayCryptoList: [CryptoCellInfo] = []
+	  
+	  switch self.selectedTab {
+	  case .krw:
+		displayCryptoList = state.displayCryptoList.filter { $0.market.contains("KRW") }
+	  case .btc:
+		displayCryptoList = state.displayCryptoList.filter { $0.market.contains("BTC") }
+	  case .favorite:
+		displayCryptoList = state.displayCryptoList
 	  }
+	  
+	  return displayCryptoList
 	}
-	  .throttle(.milliseconds(150), scheduler: MainScheduler.instance)
-	  .distinctUntilChanged { lhs, rhs in
-		// market만 비교하여 불필요한 UI 업데이트 최소화
-		lhs.map(\.market) == rhs.map(\.market)
-	  }
+	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)
+	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] cellInfos in
 		guard let self else { return }
@@ -601,14 +624,16 @@ extension MainViewController: View {
 extension MainViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 	
-	var cryptoCellInfos: [CryptoCellInfo] = []
-	if self.selectedTab == .krw {
-	  cryptoCellInfos = reactor.currentState.krwCryptoList
-	} else if self.selectedTab == .btc {
-	  cryptoCellInfos = reactor.currentState.btcCryptoList
-	} else {
-	  cryptoCellInfos = reactor.currentState.totalCryptoList
-	}
+//	var cryptoCellInfos: [CryptoCellInfo] = []
+//	if self.selectedTab == .krw {
+//	  cryptoCellInfos = reactor.currentState.krwCryptoList
+//	} else if self.selectedTab == .btc {
+//	  cryptoCellInfos = reactor.currentState.btcCryptoList
+//	} else {
+//	  cryptoCellInfos = reactor.currentState.totalCryptoList
+//	}
+	
+	var cryptoCellInfos = reactor.currentState.displayCryptoList
 	
 	if let searchText = self.searchBar.text, !searchText.isEmpty {
 	  // 검색할 때
@@ -686,14 +711,14 @@ extension MainViewController: UITableViewDelegate {
 
 extension MainViewController: UISearchBarDelegate {
   func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-	var cellInfos: [CryptoCellInfo] = []
-	if self.selectedTab == .krw {
-	  cellInfos = self.reactor.currentState.krwCryptoList
-	} else if self.selectedTab == .btc {
-	  cellInfos = self.reactor.currentState.btcCryptoList
-	} else {
-	  cellInfos = self.reactor.currentState.totalCryptoList
-	}
+	let cellInfos: [CryptoCellInfo] = reactor.currentState.displayCryptoList
+//	if self.selectedTab == .krw {
+//	  cellInfos = self.reactor.currentState.krwCryptoList
+//	} else if self.selectedTab == .btc {
+//	  cellInfos = self.reactor.currentState.btcCryptoList
+//	} else {
+//	  cellInfos = self.reactor.currentState.totalCryptoList
+//	}
 	
 	if searchText.isEmpty {
 	  self.applySnapshot(cellInfos: cellInfos)
@@ -704,14 +729,14 @@ extension MainViewController: UISearchBarDelegate {
   }
   
   func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-	var cellInfos: [CryptoCellInfo] = []
-	if self.selectedTab == .krw {
-	  cellInfos = self.reactor.currentState.krwCryptoList
-	} else if self.selectedTab == .btc {
-	  cellInfos = self.reactor.currentState.btcCryptoList
-	} else {
-	  cellInfos = self.reactor.currentState.totalCryptoList
-	}
+	let cellInfos: [CryptoCellInfo] = reactor.currentState.displayCryptoList
+//	if self.selectedTab == .krw {
+//	  cellInfos = self.reactor.currentState.krwCryptoList
+//	} else if self.selectedTab == .btc {
+//	  cellInfos = self.reactor.currentState.btcCryptoList
+//	} else {
+//	  cellInfos = self.reactor.currentState.totalCryptoList
+//	}
 	
 	searchBar.text = nil
 	searchBar.resignFirstResponder() // 키보드 내림
