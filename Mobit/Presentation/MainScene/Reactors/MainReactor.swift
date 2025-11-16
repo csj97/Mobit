@@ -14,7 +14,6 @@ import RxRelay
 
 enum SelectedTab: Int {
   case krw, btc, favorite
-//  case krw, favorite
 }
 
 class MainReactor: Reactor {
@@ -23,28 +22,26 @@ class MainReactor: Reactor {
   
   var socketManager: NewWebSocketManager? = nil
   
-  private var sortedCryptoPositionKRW: [String: Int] = [:]
-  private var sortedCryptoPositionBTC: [String: Int] = [:]
-  private var sortedCryptoPositionTOTAL: [String: Int] = [:]
+  // 탭별 정렬 포지션을 **하나로 통합**
+  private var sortedCryptoPosition: [String: Int] = [:]
   
   let initialState: MainReactorState = MainReactorState()
   private var firebaseDB = Database.database().reference()
   
   init(mainUseCase: MainUseCase) {
-    self.mainUseCase = mainUseCase
+	self.mainUseCase = mainUseCase
   }
 }
 
-// 기본 설정
+// MARK: - Action, Mutation, State
 extension MainReactor {
   
   // MARK: Action
   enum MainAction {
 	case checkNewVersion
-    case loadCryptoList
-    case loadSocketTicker(cryptoList: CryptoList)
-    case disconnectSocket
-    case setSortType(sortBy: CryptoSortType)
+	case loadCryptoList
+	case disconnectSocket
+	case setSortType(sortBy: CryptoSortType)
 	case setSelectedTab(tab: SelectedTab)
   }
   
@@ -52,11 +49,8 @@ extension MainReactor {
   /// 상태 변경 단위, 작업 단위
   enum MainMutation {
 	case setVersionDifferent(isDiffer: Bool)
-    case loadCrypto(list: CryptoList)
-    
-    case setDisplayCryptoList(cryptoCellInfos: [CryptoCellInfo])
-    case setCombinedArray(cryptoCellInfo: [CryptoCellInfo])
-    case setSortType(sortBy: CryptoSortType)
+	case setTotalCryptoList(cryptoList: [CryptoCellInfo])  // 전체 코인 리스트 (KRW, BTC, USDT)
+	case setSortType(sortBy: CryptoSortType)
 	case setSelectedTab(tab: SelectedTab)
   }
   
@@ -65,810 +59,433 @@ extension MainReactor {
 	
 	var isVersionDifferent: Bool = false
 	
-    /// krw, btc > combined crypto list
-	var cryptoList: CryptoList = []
+	// 전체 암호화폐 리스트 (KRW + BTC 모두 포함)
+	var totalCryptoList: [CryptoCellInfo] = []
 	
-	/// krw, btc, fav 탭의 crypto list가 들어올 수 있음
-	var displayCryptoList: [CryptoCellInfo] = []
-	var krwCryptoList: [CryptoCellInfo] = []
-	var btcCryptoList: [CryptoCellInfo] = []
-	
-    var cryptoSocketTicker: CryptoSocketTicker? = nil
-    var sortBy: CryptoSortType = .normal
+	var sortBy: CryptoSortType = .normal
 	var selectedTab: SelectedTab = .krw
 	var preSelectedTab: SelectedTab = .krw
   }
 }
 
 extension MainReactor {
+  
   // Observable 방출
   func mutate(action: MainAction) -> Observable<MainMutation> {
-    switch action {
+	switch action {
 	case .checkNewVersion:
 	  return self.checkNewVersion()
 	  
-    case .loadCryptoList:
+	case .loadCryptoList:
 	  return self.loadCryptoList()
-      
-    case .loadSocketTicker(let cryptoList):
-	  let selectedTab = self.currentState.selectedTab
-      return self.loadSocketTicker(selectedTab: selectedTab, cryptoList: cryptoList)
-      
-    case .disconnectSocket:
-      return self.disconnectSocket()
-      
-    case .setSortType(let sortBy):
-      return self.setSortType(sortBy: sortBy)
+	  
+	case .disconnectSocket:
+	  return self.disconnectSocket()
+	  
+	case .setSortType(let sortBy):
+	  return self.setSortType(sortBy: sortBy)
 	  
 	case .setSelectedTab(let tab):
-	  // 탭이 바뀌면 이전 탭의 정렬 포지션은 초기화. > 다음에 다시 탭 전환되어 왔을 때, 기준으로 다시 정렬되어야 함.
-	  if tab == .krw {
-		self.sortedCryptoPositionBTC = [:]
-		self.sortedCryptoPositionTOTAL = [:]
-	  } else if tab == .btc {
-		self.sortedCryptoPositionKRW = [:]
-		self.sortedCryptoPositionTOTAL = [:]
-	  } else {
-		self.sortedCryptoPositionKRW = [:]
-		self.sortedCryptoPositionBTC = [:]
-	  }
-	  return Observable.just( MainMutation.setSelectedTab(tab: tab) )
-    }
+	  // 탭 변경 시 정렬 포지션 초기화
+	  self.sortedCryptoPosition = [:]
+	  
+	  // 소켓 메시지 재전송 (**현재 탭의 코인만**)
+	  self.sendSocketMessageForCurrentTab(tab)
+	  
+	  return Observable.just(MainMutation.setSelectedTab(tab: tab))
+	}
   }
   
-  // View 업데이트
   func reduce(state: MainReactorState, mutation: MainMutation) -> MainReactorState {
-    var newState = state
-    switch mutation {
+	var newState = state
+	switch mutation {
 	case .setVersionDifferent(let isDiffer):
 	  newState.isVersionDifferent = isDiffer
 	  
-    case .loadCrypto(let cryptoList):
-      newState.cryptoList = cryptoList
-      
-	case .setDisplayCryptoList(let cryptoCellInfos):
-	  // krw, btc, fav 리스트가 들어올 수 있다.
-	  newState.displayCryptoList = cryptoCellInfos
-      
-    case .setCombinedArray(let combinedResult):
-//	  var displayCryptoList = combinedResult
-//	  
-//	  switch currentState.selectedTab {
-//	  case .krw:
-//		newState.krwCryptoList = combinedResult
-//	  case .btc:
-//		newState.btcCryptoList = combinedResult
-//	  case .favorite:
-//		displayCryptoList = currentState.krwCryptoList + currentState.btcCryptoList
-//	  }
+	case .setTotalCryptoList(let cryptoList):
+	  newState.totalCryptoList = cryptoList
 	  
-	  newState.displayCryptoList = combinedResult
-      
-    case .setSortType(let sortBy):
-      newState.sortBy = sortBy
+	case .setSortType(let sortBy):
+	  newState.sortBy = sortBy
 	  
 	case .setSelectedTab(let tab):
 	  newState.preSelectedTab = currentState.selectedTab
 	  newState.selectedTab = tab
-    }
-    return newState
+	}
+	return newState
   }
 }
 
-// MARK: - Crypto & Ticker & Socket Ticker
+// MARK: - Load Crypto & Socket
 
-// CryptoList 조회 (단순 코인 목록) > CyptoTicker 조회 (코인 티커 정보) > 코인 + 티커 정보 조합 > Crypto Socket 통신
 extension MainReactor {
   
-  /// - Returns: CryptoList와 CryptoTicker 구조체를 합쳐서 observer에 담고, MainMutation에 대한 Observable을 반환
-//  func loadCryptoList() -> Observable<MainMutation> {
-//	let loadCryptoObservable = self.mainUseCase.loadCryptoList()
-//	  .flatMap { cryptoList -> Observable<MainMutation> in
-//		
-//		var observableConcat: [Observable<MainMutation>] = []
-//		
-//		if let _ = self.socketManager {
-//		  // socketManager 있으면 그냥 진행
-//		} else {
-//		  self.socketManager = NewWebSocketManager()
-//		  self.socketManager?.connect()
-//		}
-//		
-//		let selectedTab = self.currentState.selectedTab
-//		switch selectedTab {
-//		case .krw:
-//		  let krwCryptoList = cryptoList.filter { $0.market.contains("KRW-") }
-//		  let krwMarkets = krwCryptoList.map { $0.market }
-//		  
-//		  let setKRWCryptoMutation = Observable.just(
-//			MainMutation.setTabCryptoList(cryptoList: krwCryptoList)
-//		  )
-//		  let tickerObservable = self.loadCryptoTicker(
-//			selectedTab: selectedTab,
-//			cryptoList: krwCryptoList,
-//			markets: krwMarkets
-//		  )
-//		  observableConcat = [setKRWCryptoMutation, tickerObservable]
-//		  
-//		case .btc:
-//		  let btcCryptoList = cryptoList.filter { $0.market.contains("BTC-") }
-//		  let btcMarkets = btcCryptoList.map { $0.market }
-//
-//		  let setBTCCryptoMutation = Observable.just(
-//			MainMutation.setTabCryptoList(cryptoList: btcCryptoList)
-//		  )
-//		  let tickerObservable = self.loadCryptoTicker(
-//			selectedTab: selectedTab,
-//			cryptoList: btcCryptoList,
-//			markets: btcMarkets
-//		  )
-//		  observableConcat = [setBTCCryptoMutation, tickerObservable]
-//		  
-//		case .favorite:
-//		  let setFAVCryptoMutation = Observable.just(
-//			MainMutation.setTabCryptoList(cryptoList: cryptoList)
-//		  )
-//		  let totalMarkets = cryptoList.map { $0.market }
-//		  
-//		  let tickerObservable = self.loadCryptoTicker(
-//			selectedTab: selectedTab,
-//			cryptoList: cryptoList,
-//			markets: totalMarkets
-//		  )
-//		  observableConcat = [setFAVCryptoMutation, tickerObservable]
-//		}
-//		
-//		return Observable.concat(observableConcat)
-//	  }
-//	  .catch { error in
-//		return Observable.error(error)
-//	  }
-//	
-//	return loadCryptoObservable
-//  }
-  
+  /// 1️⃣ 암호화폐 목록 로드 및 초기 티커 조회
   func loadCryptoList() -> Observable<MainMutation> {
-	self.mainUseCase.loadCryptoList()
-	  .flatMapLatest { cryptoList in
+	return self.mainUseCase.loadCryptoList()
+	  .flatMapLatest { [weak self] cryptoList -> Observable<MainMutation> in
+		guard let self = self else { return .empty() }
+		
+		// 소켓 연결 보장
 		self.ensureSocketConnected()
 		
-		let (filteredList, markets) = self.marketsForTab(
-		  cryptoList,
-		  tab: self.currentState.selectedTab
-		)
+		// 전체 마켓 목록 (KRW + BTC)
+		let allMarkets = cryptoList.map { $0.market }
 		
-		return self.loadCryptoTicker(
-		  selectedTab: self.currentState.selectedTab,
-		  cryptoList: cryptoList,
-		  markets: cryptoList.map { $0.market }
-		)
+		// REST API로 전체 티커 조회
+		return self.loadInitialTicker(cryptoList: cryptoList, markets: allMarkets)
 	  }
   }
-
-  // REST 티커 받아서 combine -> 정렬 -> mutation 방출 -> (do) 소켓 시작
-  // 티커 목록 조회 (단발성), 이 후 **소켓** 티커 연결
-  func loadCryptoTicker(
-	selectedTab: SelectedTab,
+  
+  /// 2️⃣ 초기 REST 티커 조회 후 소켓 연결
+  private func loadInitialTicker(
 	cryptoList: CryptoList,
 	markets: [String]
   ) -> Observable<MainMutation> {
-	guard !markets.isEmpty else {
-	  // markets가 없으면, 빈 결과 대신 기존 상태 유지하는 빈시퀀스 반환
-	  return .empty()
-	}
-	// 1️⃣ REST API 티커 호출
-	let cryptoTickerObservable = self.mainUseCase.loadCryptoTicker(markets: markets)
-		.flatMap { [weak self] cryptoTickerList -> Observable<[CryptoCellInfo]> in
-			guard let self else { return .just([]) }
-			
-			let combinedCryptos = self.combineCrypto(
-				selectedTab: selectedTab,
-				cryptoList: cryptoList,
-				cryptoTickerList: cryptoTickerList
-			)
-			
-			return self.sortedCellInfosObservable(
-				sortBy: self.currentState.sortBy,
-				cellInfos: combinedCryptos,
-				forTab: selectedTab
-			)
-		}
-		.map { sortedCellInfos -> MainMutation in
-			.setCombinedArray(cryptoCellInfo: sortedCellInfos)
-		}
-
-	// 2️⃣ 소켓 연결 Observable (REST 1회 완료 후 이어짐)
-	let socketTickerObservable = cryptoTickerObservable
-	  .flatMapLatest { [weak self] mutation -> Observable<MainMutation> in
-		guard let self else { return .empty() }
-		// REST → SOCKET 스트림 연결
-		return self.loadSocketTicker(selectedTab: selectedTab, cryptoList: cryptoList)
-		  .startWith(mutation) // REST 결과도 함께 방출
-	  }
-
-	return socketTickerObservable
+	guard !markets.isEmpty else { return .empty() }
 	
-//	return self.mainUseCase.loadCryptoTicker(markets: markets)
-//	  .flatMap { [weak self] cryptoTickerList -> Observable<[CryptoCellInfo]> in
-//		guard let self else { return .just([]) }
-//		
-//		let combinedCryptos = self.combineCrypto(
-//		  selectedTab: selectedTab,
-//		  cryptoList: cryptoList,
-//		  cryptoTickerList: cryptoTickerList
-//		)
-//		
-//		return self.sortedCellInfosObservable(
-//		  sortBy: self.currentState.sortBy,
-//		  cellInfos: combinedCryptos,
-//		  forTab: selectedTab
-//		)
-//	  }
-//	  .map { sortedCellInfos -> MainMutation in
-//		return .setCombinedArray(cryptoCellInfo: sortedCellInfos)
-//	  }
-//	  .do { [weak self] mutation in
-//		guard let self else { return }
-//		if case .setCombinedArray(let cryptoCellInfos) = mutation, !cryptoCellInfos.isEmpty {
-//		  // 4️⃣ Ticker 데이터 1회 수신 후 소켓 연결 시도
-//		  // mutation이 실제로 비어있는 배열을 담고 있지 않을 때만 소켓 시작
-//		  self.startSocketIfNeeded(selectedTab: selectedTab, cryptoList: cryptoList)
-//		}
-//	  }
-	
-//	let tickerObservable = Observable<MainMutation>.create { observer in
-//	  let cryptoTickerObservable = self.mainUseCase.loadCryptoTicker(markets: markets)
-//	  
-//	  cryptoTickerObservable.subscribe { cryptoTickerList in
-//		let combineCryptos = self.combineCrypto(
-//		  selectedTab: selectedTab,
-//		  cryptoList: cryptoList,
-//		  cryptoTickerList: cryptoTickerList
-//		)
-//		
-//		self.sortCryptoCellInfos(
-//		  sortBy: self.currentState.sortBy,
-//		  cellInfos: combineCryptos
-//		) { sortedCellInfos in
-//		  
-//		  guard let sortedCellInfos = sortedCellInfos else { return }
-//		  
-//		  var sortedCryptoPosition: [String : Int] = [:]
-//		  if selectedTab == .krw {
-//			sortedCryptoPosition = self.sortedCryptoPositionKRW
-//		  } else if selectedTab == .btc {
-//			sortedCryptoPosition = self.sortedCryptoPositionBTC
-//		  } else {
-//			sortedCryptoPosition = self.sortedCryptoPositionTOTAL
-//		  }
-//		  
-//		  if sortedCryptoPosition.count == 0 {
-//			// 탭이 바뀌었는데, 이전 정렬된 포지션 정보가 없으면 여길로 들어옴
-//			observer.onNext(.setCombinedArray(cryptoCellInfo: sortedCellInfos))
-//			observer.onCompleted()
-//		  } else {
-//			self.updateCryptoCellPositions(
-//			  positionedCryptoInfos: sortedCryptoPosition,
-//			  cryptoCellInfos: sortedCellInfos
-//			) { sortedCombineResult in
-//			  guard let sortedCombineResult = sortedCombineResult else { return }
-//			  observer.onNext(
-//				.setCombinedArray(cryptoCellInfo: sortedCombineResult)
-//			  )
-//			  observer.onCompleted()
-//			}
-//		  }
-//		}
-//	  }.disposed(by: self.disposeBag)
-//	  
-//	  return Disposables.create()
-//	}
-//	
-//	tickerObservable
-//	  .subscribe { mutaion in
-//		switch mutaion {
-//		case .completed:
-//		  self.action.onNext(
-//			.loadSocketTicker(cryptoList: self.currentState.tabCryptoList)
-//		  )
-//		case .next:
-//		  break
-//		case .error(let error):
-//		  Log.error("error : \(error.localizedDescription)")
-//		}
-//	  }.disposed(by: self.disposeBag)
-//	
-//	return tickerObservable
-  }
-  
-  // WebSocket Ticker
-  private func loadSocketTicker(
-	selectedTab: SelectedTab,
-	cryptoList: CryptoList
-  ) -> Observable<MainMutation> {
-	let cryptoJoined = cryptoList.map { $0.market }
-	
-	let socketObservable = Observable<MainMutation>.create { observer in
-	  
-	  guard let socketManager = self.socketManager else {
-		return Disposables.create {
-		  self.socketManager?.disconnect()
-		}
-	  }
-	  
-	  socketManager.onConnected = {
-		socketManager.sendMessage(
-		  codes: cryptoJoined,
-		  socketType: .ticker
+	return self.mainUseCase.loadCryptoTicker(markets: markets)
+	  .flatMap { [weak self] cryptoTickerList -> Observable<[CryptoCellInfo]> in
+		guard let self = self else { return .just([]) }
+		
+		// 전체 암호화폐 + 티커 데이터 결합
+		let combinedCryptos = self.combineCrypto(
+		  cryptoList: cryptoList,
+		  cryptoTickerList: cryptoTickerList
+		)
+		
+		// 정렬 적용
+		return self.sortedCellInfosObservable(
+		  sortBy: self.currentState.sortBy,
+		  cellInfos: combinedCryptos
 		)
 	  }
-	  
-	  if self.currentState.selectedTab != self.currentState.preSelectedTab {
-		// 탭 변경 시, 소켓 sendMessage에 cryptoJoined 바꿔줘야 함
-		socketManager.sendMessage(codes: cryptoJoined, socketType: .ticker)
+	  .flatMap { [weak self] sortedCellInfos -> Observable<MainMutation> in
+		guard let self = self else { return .empty() }
+		
+		// 정렬된 전체 리스트를 totalCryptoList에 저장
+		let setListMutation = Observable.just(
+		  MainMutation.setTotalCryptoList(cryptoList: sortedCellInfos)
+		)
+		
+		// 소켓 스트림 시작 (현재 탭의 코인만)
+		let socketStream = self.startSocketStream()
+		
+		return Observable.concat([setListMutation, socketStream])
+	  }
+  }
+  
+  /// 3️⃣ 소켓 스트림 시작 (**현재 탭의 코인만 구독**)
+  private func startSocketStream() -> Observable<MainMutation> {
+	return Observable.create { [weak self] observer in
+	  guard let self = self,
+			let socketManager = self.socketManager else {
+		observer.onCompleted()
+		return Disposables.create()
 	  }
 	  
+	  // 소켓 연결 시 **현재 탭**의 마켓만 전송
+	  socketManager.onConnected = { [weak self] in
+		self?.sendSocketMessageForCurrentTab(self?.currentState.selectedTab ?? .krw)
+	  }
+	  
+	  // 현재 탭의 마켓 전송
+	  self.sendSocketMessageForCurrentTab(self.currentState.selectedTab)
+	  
+	  // 소켓 티커 데이터 수신
 	  socketManager.tickerDataSubject
 		.observe(on: MainScheduler.instance)
-		.subscribe { [weak self] data in
+		.subscribe(onNext: { [weak self] data in
 		  guard let self = self else { return }
-
+		  
 		  do {
-			let decodeTarget = CryptoSocketTickerDTO.self
-			let cryptoTickerDTO = try JSONDecoder().decode(decodeTarget, from: data)
-			let ticker = cryptoTickerDTO.toDomain()
-			let combineResult = self.combineTicker(
-			  selectedTab: selectedTab,
-			  cryptoList: cryptoList,
-			  socketTicker: ticker
+			let cryptoTickerDTO = try JSONDecoder().decode(
+			  CryptoSocketTickerDTO.self,
+			  from: data
 			)
+			let ticker = cryptoTickerDTO.toDomain()
 			
-			// 정렬된 배열 > 포지션 찾아가기 (포지션이 설정되어 있다면)
-			var sortedCryptoPosition: [String : Int] = [:]
-			if selectedTab == .krw {
-			  sortedCryptoPosition = self.sortedCryptoPositionKRW
-			} else if selectedTab == .btc {
-			  sortedCryptoPosition = self.sortedCryptoPositionBTC
-			} else {
-			  sortedCryptoPosition = self.sortedCryptoPositionTOTAL
-			}
+			// 전체 리스트에서 해당 코인만 업데이트
+			let updatedList = self.updateSingleCrypto(ticker: ticker)
 			
-			if sortedCryptoPosition.count > 0 {
-			  self.updateCryptoCellPositions(
-				positionedCryptoInfos: sortedCryptoPosition,
-				cryptoCellInfos: combineResult
-			  ) { sortedCombineResult in
-				guard let sortedCombineResult = sortedCombineResult else { return }
-				observer.onNext(.setCombinedArray(cryptoCellInfo: sortedCombineResult))
-			  }
-			} else {
-			  // 일단 포지션 설정보단 레이아웃 설정
-			  observer.onNext(
-				.setCombinedArray(cryptoCellInfo: combineResult)
-			  )
-			}
+			observer.onNext(MainMutation.setTotalCryptoList(cryptoList: updatedList))
 			
 		  } catch {
-			Log.error("MainReactor ticker websocket receive decoding error : \(error.localizedDescription)")
+			Log.error("Socket ticker decode error: \(error.localizedDescription)")
 		  }
-		} onError: { error in
-		  observer.onError(error)
-		} onCompleted: {
-		  observer.onCompleted()
-		}.disposed(by: self.disposeBag)
+		})
+		.disposed(by: self.disposeBag)
 	  
 	  return Disposables.create {
 		socketManager.disconnect()
 	  }
 	}
-	
-	return socketObservable
   }
   
-  /// SocketManager Disconnect
+  /// 4️⃣ 단일 암호화폐 업데이트 (소켓 티커 수신 시)
+  private func updateSingleCrypto(ticker: CryptoSocketTicker) -> [CryptoCellInfo] {
+	var updatedList = self.currentState.totalCryptoList
+	
+	// 해당 마켓의 *인덱스* 찾기
+	guard let index = updatedList.firstIndex(where: {
+	  self.reverseTransformMarketForm(market: $0.market) == ticker.code
+	}) else {
+	  return updatedList
+	}
+	
+	// 해당 코인 정보만 업데이트
+	var updatedCrypto = updatedList[index]
+	updatedCrypto.prevPrice = ticker.prevClosingPrice
+	updatedCrypto.tradePrice = ticker.tradePrice
+	updatedCrypto.changePrice = ticker.changePrice
+	updatedCrypto.signedChangeRate = ticker.signedChangeRate
+	updatedCrypto.change = ticker.change
+	updatedCrypto.accTradePrice24h = ticker.accTradePrice24H
+	updatedCrypto.accTradeVolume24h = ticker.accTradeVolume24H
+	updatedCrypto.highest52WeekPrice = ticker.highest52WeekPrice
+	updatedCrypto.lowest52WeekPrice = ticker.lowest52WeekPrice
+	
+	updatedList[index] = updatedCrypto
+	
+	// 정렬 포지션이 설정되어 있으면 해당 순서 유지 (정렬 포지션은 전체 코인 정렬되어있음 KRW, BTC)
+	if !self.sortedCryptoPosition.isEmpty {
+	  return self.applySortedPosition(to: updatedList)
+	}
+	
+	return updatedList
+  }
+  
+  /// 5️⃣ 현재 탭에 맞는 소켓 메시지 전송
+  private func sendSocketMessageForCurrentTab(_ tab: SelectedTab) {
+	guard let socketManager = self.socketManager else { return }
+	
+	let totalList = self.currentState.totalCryptoList
+	
+	// 탭에 따른 필터링 마켓 목록
+	let marketsToSubscribe: [String] = {
+	  switch tab {
+	  case .krw:
+		return totalList
+		  .filter { $0.market.contains("/KRW") }
+		  .map { self.reverseTransformMarketForm(market: $0.market) }
+		
+	  case .btc:
+		return totalList
+		  .filter { $0.market.contains("/BTC") }
+		  .map { self.reverseTransformMarketForm(market: $0.market) }
+		
+	  case .favorite:
+		// Set을 사용한 이유 : Array보다 해시테이블을 조회하기 때문에 탐색 시간이 빠름
+		let favorites = Set(UserDataManager.userFavoriteList)
+		return totalList
+		  .filter { favorites.contains($0.market) }
+		  .map { self.reverseTransformMarketForm(market: $0.market) }
+	  }
+	}()
+	
+	// 소켓에 해당 마켓만 구독 요청
+	socketManager.sendMessage(codes: marketsToSubscribe, socketType: .ticker)
+  }
+  
+  /// 소켓 연결 해제
   private func disconnectSocket() -> Observable<MainMutation> {
 	guard let socketManager = self.socketManager else { return .empty() }
 	socketManager.disconnect()
 	self.socketManager = nil
 	return .empty()
   }
-  
 }
 
-// MARK: - Combine Function
-
+// MARK: - Combine Functions
 extension MainReactor {
   
-  // CryptoList & CryptoTickerList 모델을 합치는 과정
-  /// - Parameters:
-  /// 	- selectedTab : 현태 선택되어 있는 탭
-  ///   - cryptoList: name, market, event 정보를 갖고 있음
-  ///   - cryptoTickerList: tradePrice, signedChangeRate, change, accTradeVolume 정보를 갖고 있음
-  /// - Returns: Main TableView Cell에 노출될 Cell 정보를 결합해서 반환
-  func combineCrypto(
-	selectedTab: SelectedTab,
+  /// CryptoList + CryptoTickerList 결합 (전체 리스트)
+  private func combineCrypto(
 	cryptoList: CryptoList,
 	cryptoTickerList: CryptoTickerList
   ) -> [CryptoCellInfo] {
-	let filteredCryptoList: CryptoList = {
-		switch selectedTab {
-		case .krw: return cryptoList.filter { $0.market.hasPrefix("KRW-") }
-		case .btc: return cryptoList.filter { $0.market.hasPrefix("BTC-") }
-		case .favorite: return cryptoList
-		}
-	}()
 	
-	let cellInfos: [CryptoCellInfo] = cryptoList.compactMap { crypto in
+	// 티커를 딕셔너리로 변환 (O(1) 검색)
+	let tickerDict = Dictionary(
+	  uniqueKeysWithValues: cryptoTickerList.map { ($0.market, $0) }
+	)
+	
+	return cryptoList.compactMap { crypto in
+	  guard let ticker = tickerDict[crypto.market] else {
+		return nil
+	  }
+	  
 	  return CryptoCellInfo(
 		cryptoName: crypto.koreanName,
-		market: crypto.market,
-		marketEvent: crypto.marketEvent
+		market: self.transformMarketForm(market: crypto.market),
+		marketEvent: crypto.marketEvent,
+		prevPrice: ticker.prevClosingPrice,
+		tradePrice: ticker.tradePrice,
+		changePrice: ticker.changePrice,
+		signedChangeRate: ticker.signedChangeRate,
+		change: ticker.change,
+		accTradePrice24h: ticker.accTradePrice24h,
+		accTradeVolume24h: ticker.accTradeVolume24h,
+		highest52WeekPrice: ticker.highest52WeekPrice,
+		lowest52WeekPrice: ticker.lowest52WeekPrice
 	  )
 	}
-	
-	let cryptoCells: [CryptoCellInfo] = cellInfos.compactMap { cryptoCellInfo in
-	  guard let matchedTicker = cryptoTickerList.first(where: { $0.market == cryptoCellInfo.market }) else {
-		return CryptoCellInfo(cryptoName: "", market: "", marketEvent: nil)
-	  }
-	  var updatedCryptoCellInfo = cryptoCellInfo
-	  updatedCryptoCellInfo.market = self.transformMarketForm(market: cryptoCellInfo.market)
-	  updatedCryptoCellInfo.prevPrice = matchedTicker.prevClosingPrice
-	  updatedCryptoCellInfo.tradePrice = matchedTicker.tradePrice
-	  updatedCryptoCellInfo.changePrice = matchedTicker.changePrice
-	  updatedCryptoCellInfo.signedChangeRate = matchedTicker.signedChangeRate
-	  updatedCryptoCellInfo.change = matchedTicker.change
-	  updatedCryptoCellInfo.accTradePrice24h = matchedTicker.accTradePrice24h
-	  updatedCryptoCellInfo.accTradeVolume24h = matchedTicker.accTradeVolume24h
-	  updatedCryptoCellInfo.highest52WeekPrice = matchedTicker.highest52WeekPrice
-	  updatedCryptoCellInfo.lowest52WeekPrice = matchedTicker.lowest52WeekPrice
-	  
-	  return updatedCryptoCellInfo
-	}
-	
-	return cryptoCells
-  }
-  
-  // CryptoList & CryptoSocketTicker 모델을 합치는 과정
-  // **ticker랑 socket ticker랑 제공되는 데이터가 다름**
-  func combineTicker(
-	selectedTab: SelectedTab,
-	cryptoList: CryptoList,
-	socketTicker: CryptoSocketTicker
-  ) -> [CryptoCellInfo] {
-	let filteredCryptoList: CryptoList = {
-		switch selectedTab {
-		case .krw: return cryptoList.filter { $0.market.hasPrefix("KRW-") }
-		case .btc: return cryptoList.filter { $0.market.hasPrefix("BTC-") }
-		case .favorite: return cryptoList
-		}
-	}()
-	
-	var displayCryptoList = self.currentState.displayCryptoList
-	
-	let updatedCryptoList: [CryptoCellInfo] = filteredCryptoList.compactMap { crypto in
-	  // 새로운 셀 생성
-	  var cellInfo = CryptoCellInfo(
-		cryptoName: crypto.koreanName,
-		market: crypto.market,
-		marketEvent: crypto.marketEvent
-	  )
-	  
-	  // 현재 들어온 소켓 ticker가 이 코인과 매칭될 때만 업데이트
-	  if socketTicker.code == crypto.market {
-		cellInfo.market = self.transformMarketForm(market: crypto.market)
-		cellInfo.prevPrice = socketTicker.prevClosingPrice
-		cellInfo.tradePrice = socketTicker.tradePrice
-		cellInfo.changePrice = socketTicker.changePrice
-		cellInfo.signedChangeRate = socketTicker.signedChangeRate
-		cellInfo.change = socketTicker.change
-		cellInfo.accTradePrice24h = socketTicker.accTradePrice24H
-		cellInfo.accTradeVolume24h = socketTicker.accTradeVolume24H
-		cellInfo.highest52WeekPrice = socketTicker.highest52WeekPrice
-		cellInfo.lowest52WeekPrice = socketTicker.lowest52WeekPrice
-	  }
-	  
-	  return cellInfo
-	}
-
-	// 기존 O(N * M) > O(1) 복잡도
-	let updatedCryptoDict = Dictionary(uniqueKeysWithValues: updatedCryptoList.map { ($0.market, $0) })
-	let mergedCryptoList = displayCryptoList.map { cellInfo in
-	  updatedCryptoDict[cellInfo.market] ?? cellInfo
-	}
-
-	return mergedCryptoList
   }
 }
-
 
 // MARK: - Sort
 extension MainReactor {
   
-  /// Sort Type Setting
+  /// 정렬 타입 설정
   func setSortType(sortBy: CryptoSortType) -> Observable<MainMutation> {
-	var cryptoCellInfos: [CryptoCellInfo] = []
-	if currentState.selectedTab == .krw {
-	  cryptoCellInfos = currentState.krwCryptoList
-	} else if currentState.selectedTab == .btc {
-	  cryptoCellInfos = currentState.btcCryptoList
-	} else {
-	  // .favorite
-	  cryptoCellInfos = currentState.krwCryptoList + currentState.btcCryptoList
-	}
+	let currentList = self.currentState.totalCryptoList
 	
-	self.sortCryptoCellInfos(
-	  sortBy: sortBy,
-	  cellInfos: cryptoCellInfos
-	) { sortedCellInfos in
-	  guard let sortedCellInfos = sortedCellInfos else { return }
-	  
-	  cryptoCellInfos = sortedCellInfos
-	  
-	  // 매번 소켓 데이터 수신때마다 하는 것이 아닌, 정렬 초기에 포지션 저장
-	  let markets = sortedCellInfos.map({ $0.market })
-	  let sortedCryptoPosition = Dictionary(
-		uniqueKeysWithValues: markets.enumerated().map { ($1, $0) }
-	  )
-	  
-	  if self.currentState.selectedTab == .krw {
-		self.sortedCryptoPositionKRW = sortedCryptoPosition
-	  } else if self.currentState.selectedTab == .btc {
-		self.sortedCryptoPositionBTC = sortedCryptoPosition
-	  } else {
-		self.sortedCryptoPositionTOTAL = sortedCryptoPosition
+	return self.sortedCellInfosObservable(sortBy: sortBy, cellInfos: currentList)
+	  .map { sortedList in
+		// 정렬 포지션 저장
+		let markets = sortedList.map { $0.market }
+		self.sortedCryptoPosition = Dictionary(
+		  uniqueKeysWithValues: markets.enumerated().map { ($1, $0) }
+		)
+		
+		return sortedList
 	  }
-	}
-	
-	// 포지션 저장하는 것과 별개로 sort type setting
-	let setSortType = Observable.just(MainMutation.setSortType(sortBy: sortBy))
-	let updateList = Observable.just(MainMutation.setCombinedArray(cryptoCellInfo: cryptoCellInfos))
-	
-	return Observable.concat([setSortType, updateList])
-  }
-
-  /// Helper: sort 결과를 Observable로 래핑 (기존 콜백 스타일을 Observable로 바꿔줌)
-  private func sortedCellInfosObservable(
-	  sortBy: CryptoSortType,
-	  cellInfos: [CryptoCellInfo],
-	  forTab selectedTab: SelectedTab
-  ) -> Observable<[CryptoCellInfo]> {
-	  return Observable.create { [weak self] emitter in
-		  guard let self = self else {
-			  emitter.onCompleted()
-			  return Disposables.create()
-		  }
-
-		  // 기존 함수 호출 (비동기 콜백 형태)
-		  self.sortCryptoCellInfos(sortBy: sortBy, cellInfos: cellInfos) { sortedCellInfos in
-			  guard let sortedCellInfos = sortedCellInfos else {
-				  emitter.onNext(cellInfos) // 정렬 실패 시 원본 반환
-				  emitter.onCompleted()
-				  return
-			  }
-
-			  // 정렬 완료되면 포지션을 저장 (탭별)
-			  let markets = sortedCellInfos.map { $0.market }
-			  let sortedPosition = Dictionary(uniqueKeysWithValues: markets.enumerated().map { ($1, $0) })
-
-			  switch selectedTab {
-			  case .krw:
-				  self.sortedCryptoPositionKRW = sortedPosition
-			  case .btc:
-				  self.sortedCryptoPositionBTC = sortedPosition
-			  case .favorite:
-				  self.sortedCryptoPositionTOTAL = sortedPosition
-			  }
-
-			  emitter.onNext(sortedCellInfos)
-			  emitter.onCompleted()
-		  }
-
-		  return Disposables.create()
+	  .flatMap { sortedList -> Observable<MainMutation> in
+		let setSortType = Observable.just(MainMutation.setSortType(sortBy: sortBy))
+		let updateList = Observable.just(MainMutation.setTotalCryptoList(cryptoList: sortedList))
+		
+		return Observable.concat([setSortType, updateList])
 	  }
   }
   
-  /// crypto cell infos 정렬
-  func sortCryptoCellInfos(
+  /// Observable로 정렬 결과 반환
+  private func sortedCellInfosObservable(
 	sortBy: CryptoSortType,
-	cellInfos: [CryptoCellInfo],
-	completion: @escaping ([CryptoCellInfo]?) -> ()
-  ) {
-	var sortedCellInfos: [CryptoCellInfo]? = nil
+	cellInfos: [CryptoCellInfo]
+  ) -> Observable<[CryptoCellInfo]> {
+	return Observable.create { emitter in
+	  let sortedList = self.sortCryptoCellInfos(sortBy: sortBy, cellInfos: cellInfos)
+	  emitter.onNext(sortedList)
+	  emitter.onCompleted()
+	  return Disposables.create()
+	}
+  }
+  
+  /// 정렬 로직
+  private func sortCryptoCellInfos(
+	sortBy: CryptoSortType,
+	cellInfos: [CryptoCellInfo]
+  ) -> [CryptoCellInfo] {
 	
 	switch sortBy {
 	case .normal:
-	  sortedCellInfos = cellInfos
-	case .currentPriceAscending:
-	  sortedCellInfos = cellInfos.sorted(
-		by: { $0.tradePrice ?? 0 < $1.tradePrice ?? 0 }
-	  )
-	case .currentPriceDescending:
-	  sortedCellInfos = cellInfos.sorted(
-		by: { $0.tradePrice ?? 0 > $1.tradePrice ?? 0 }
-	  )
-	case .previousDayAscending:
-	  sortedCellInfos = cellInfos.sorted(
-		by: { $0.signedChangeRate ?? 0 < $1.signedChangeRate ?? 0 }
-	  )
-	case .previousDayDescending:
-	  sortedCellInfos = cellInfos.sorted(
-		by: { $0.signedChangeRate ?? 0 > $1.signedChangeRate ?? 0 }
-	  )
-	case .tradeVolumeAscending:
-	  sortedCellInfos = cellInfos.sorted(
-		by: { $0.accTradePrice24h ?? 0 < $1.accTradePrice24h ?? 0 }
-	  )
-	case .tradeVolumeDescending:
-	  sortedCellInfos = cellInfos.sorted(
-		by: { $0.accTradePrice24h ?? 0 > $1.accTradePrice24h ?? 0 }
-	  )
-	}
-	
-	guard let sortedCellInfos = sortedCellInfos else {
-	  completion(nil)
-	  return
-	}
-	completion(sortedCellInfos)
-  }
-
-
-  /// 정렬 기준에 따라 설정된 crypto position
-  /// 다음 소켓 데이터에선 그 포지션에 따라 정렬되어야함
-  /// 타입에 따라 새로 소켓이 들어올 때마다 정렬하면 보이는 위치가 계속 달라짐
-  func updateCryptoCellPositions(
-	positionedCryptoInfos: [String: Int],
-	cryptoCellInfos: [CryptoCellInfo],
-	completion: @escaping ([CryptoCellInfo]?) -> ()
-  ) {
-	if positionedCryptoInfos.count > 0 {
-	  let cryptoInfoDict = Dictionary(
-		uniqueKeysWithValues: cryptoCellInfos.map { ($0.market, $0) }
-	  )
+	  return cellInfos
 	  
-	  let newPositionedCryptoInfos = positionedCryptoInfos
-		.sorted { $0.value < $1.value }
-		.compactMap { cryptoInfoDict[$0.key] }  // 해당 인덱스의 크립토 정보를 맵핑
-	  completion(newPositionedCryptoInfos)
-	} else {
-	  completion(nil)
+	case .currentPriceAscending:
+	  return cellInfos.sorted { ($0.tradePrice ?? 0) < ($1.tradePrice ?? 0) }
+	  
+	case .currentPriceDescending:
+	  return cellInfos.sorted { ($0.tradePrice ?? 0) > ($1.tradePrice ?? 0) }
+	  
+	case .previousDayAscending:
+	  return cellInfos.sorted { ($0.signedChangeRate ?? 0) < ($1.signedChangeRate ?? 0) }
+	  
+	case .previousDayDescending:
+	  return cellInfos.sorted { ($0.signedChangeRate ?? 0) > ($1.signedChangeRate ?? 0) }
+	  
+	case .tradeVolumeAscending:
+	  return cellInfos.sorted { ($0.accTradePrice24h ?? 0) < ($1.accTradePrice24h ?? 0) }
+	  
+	case .tradeVolumeDescending:
+	  return cellInfos.sorted { ($0.accTradePrice24h ?? 0) > ($1.accTradePrice24h ?? 0) }
 	}
+  }
+  
+  /// 정렬된 포지션 적용
+  private func applySortedPosition(to cryptoList: [CryptoCellInfo]) -> [CryptoCellInfo] {
+	let cryptoDict = Dictionary(
+	  uniqueKeysWithValues: cryptoList.map { ($0.market, $0) }
+	)
+	
+	return self.sortedCryptoPosition
+	  .sorted { $0.value < $1.value }
+	  .compactMap { cryptoDict[$0.key] }
   }
 }
 
-// MARK: - etc
-
+// MARK: - Helper Functions
 extension MainReactor {
   
-  /// 소켓 티커 연결
-  private func startSocketIfNeeded(
-	selectedTab: SelectedTab,
-	cryptoList: CryptoList
-  ) {
-	guard let socket = self.socketManager else { return }
-	
-	let markets = cryptoList.map(\.market)
-	
-	if socket.isConnected {
-	  socket.sendMessage(codes: markets, socketType: .ticker)
-	} else {
-	  socket.onConnected = {
-		socket.sendMessage(codes: markets, socketType: .ticker)
-	  }
-	  // socket.reconnectIfNeeded()
-	}
-  }
-  
-  /// Socket 연결 보장
+  /// 소켓 연결 보장
   private func ensureSocketConnected() {
 	if let socket = self.socketManager {
-	  // 이미 연결된 상태면 무시
 	  if !socket.isConnected {
 		socket.reconnectIfNeeded()
 	  }
 	} else {
-	  // 없으면 새로 생성 및 연결
 	  self.socketManager = NewWebSocketManager()
 	  self.socketManager?.connect()
 	}
   }
   
-  /// 탭에 맞는 CryptoList 필터링
-  private func marketsForTab(_ cryptoList: CryptoList, tab: SelectedTab) -> (CryptoList, [String]) {
-	switch tab {
-	case .krw:
-	  let krwList = cryptoList.filter { $0.market.hasPrefix("KRW-") }
-	  let krwMarkets = krwList.map(\.market)
-	  return (krwList, krwMarkets)
-	  
-	case .btc:
-	  let btcList = cryptoList.filter { $0.market.hasPrefix("BTC-") }
-	  let btcMarkets = btcList.map(\.market)
-	  return (btcList, btcMarkets)
-	  
-	case .favorite:
-	  // 즐겨찾기는 KRW + BTC 전체를 대상으로
-	  let krwList = cryptoList.filter { $0.market.hasPrefix("KRW-") }
-	  let btcList = cryptoList.filter { $0.market.hasPrefix("BTC-") }
-	  let combinedList = krwList + btcList
-	  let combinedMarkets = combinedList.map(\.market)
-	  return (combinedList, combinedMarkets)
-	}
-  }
-  
-  /// 'KRW-BTC' 형태의 종목 구분 코드를 'BTC/KRW' 형태로 변환 시키는 메소드
-  /// - Parameter market: 변환 대상이 되는 종목 구분 코드
-  /// - Returns: 'BTC/KRW' 형태의 String
+  /// 'KRW-BTC' → 'BTC/KRW' 변환
   func transformMarketForm(market: String) -> String {
-	var transformMarket = market
-	let components = transformMarket.split(separator: "-")
-	if components.count == 2 {
-	  transformMarket = "\(components[1])/\(components[0])"
-	} else {
-	  // 기본값 유지
-	  transformMarket = market
-	}
-	return transformMarket
+	let components = market.split(separator: "-")
+	guard components.count == 2 else { return market }
+	return "\(components[1])/\(components[0])"
   }
   
-  /// 새로운 버전 확인
-  func checkNewVersion() -> Observable<MainMutation>{
+  /// 'BTC/KRW' → 'KRW-BTC' 역변환
+  private func reverseTransformMarketForm(market: String) -> String {
+	let components = market.split(separator: "/")
+	guard components.count == 2 else { return market }
+	return "\(components[1])-\(components[0])"
+  }
+  
+  /// 앱 버전 체크
+  func checkNewVersion() -> Observable<MainMutation> {
 	let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
 	
-	let observable = Observable<MainMutation>.create { observer in
-	  
+	return Observable.create { observer in
 	  self.fetchAppStoreVersion { appStoreVersion in
-		guard let appStoreVersion = appStoreVersion else { return }
-		
-		if self.isAppStoreVersionNewer(current: currentVersion, appStore: appStoreVersion) {
-		  // 새로운 버전이 있을 경우
-		  observer.onNext(
-			.setVersionDifferent(isDiffer: true)
-		  )
-		} else {
-		  observer.onNext(
-			.setVersionDifferent(isDiffer: false)
-		  )
+		guard let appStoreVersion = appStoreVersion else {
+		  observer.onNext(.setVersionDifferent(isDiffer: false))
+		  observer.onCompleted()
+		  return
 		}
+		
+		let isNewer = self.isAppStoreVersionNewer(current: currentVersion, appStore: appStoreVersion)
+		observer.onNext(.setVersionDifferent(isDiffer: isNewer))
 		observer.onCompleted()
 	  }
 	  
 	  return Disposables.create()
 	}
-	
-	return observable
   }
   
-  /// 앱 스토어에 등록된 버전
   func fetchAppStoreVersion(completion: @escaping (String?) -> Void) {
 	guard let url = URL(string: "https://itunes.apple.com/lookup?id=6747009759") else {
 	  completion(nil)
 	  return
 	}
 	
-	let task = URLSession.shared.dataTask(with: url) { data, _, error in
-	  guard
-		error == nil,
-		let data = data,
-		let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-		let results = json["results"] as? [[String: Any]],
-		let appStoreVersion = results.first?["version"] as? String
-	  else {
+	URLSession.shared.dataTask(with: url) { data, _, error in
+	  guard error == nil,
+			let data = data,
+			let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+			let results = json["results"] as? [[String: Any]],
+			let version = results.first?["version"] as? String else {
 		completion(nil)
 		return
 	  }
-	  
-	  completion(appStoreVersion)
-	}
-	
-	task.resume()
+	  completion(version)
+	}.resume()
   }
-
-  /// 앱 버전 비교
+  
   func isAppStoreVersionNewer(current: String, appStore: String) -> Bool {
 	let currentComponents = current.split(separator: ".").map { Int($0) ?? 0 }
 	let appStoreComponents = appStore.split(separator: ".").map { Int($0) ?? 0 }
 	
-	// 배열의 길이를 맞추기 위해, 짧은 쪽에 0을 채워준다.
 	let maxCount = max(currentComponents.count, appStoreComponents.count)
 	let paddedCurrent = currentComponents + Array(repeating: 0, count: maxCount - currentComponents.count)
 	let paddedAppStore = appStoreComponents + Array(repeating: 0, count: maxCount - appStoreComponents.count)
@@ -878,6 +495,6 @@ extension MainReactor {
 	  if store < curr { return false }
 	}
 	
-	return false // 동일한 경우
+	return false
   }
 }
