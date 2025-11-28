@@ -37,6 +37,15 @@ class AppTabBarCoordinator: BaseCoordinator {
 	self.childCoordinators.append(investmentCoordinator)
 	investmentCoordinator.start()
 	
+	let newsNavigation = UINavigationController()
+	let newsCoordinator = NewsCoordinator(
+	  navigationController: newsNavigation,
+	  dataManager: AppDataManager.shared
+	)
+	newsCoordinator.delegate = self
+	self.childCoordinators.append(newsCoordinator)
+	newsCoordinator.start()
+	
 	// 더보기 화면
 	let moreNavigation = UINavigationController()
 	let moreCoordinator = MoreCoordinator(navigationController: moreNavigation)
@@ -48,6 +57,7 @@ class AppTabBarCoordinator: BaseCoordinator {
 	self.mobitTabBarController.setViewControllers([
 	  mainCoordinator.navigationController,
 	  investmentCoordinator.navigationController,
+	  newsCoordinator.navigationController,
 	  moreCoordinator.navigationController
 	])
 	

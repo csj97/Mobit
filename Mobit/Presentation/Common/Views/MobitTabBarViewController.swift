@@ -9,7 +9,7 @@ import UIKit
 import SnapKit
 
 class MobitTabBarViewController: UIViewController {
-  let mobitTabBar = MobitTabBar(tabItems: [.exchange, .wallet, .more])
+  let mobitTabBar = MobitTabBar(tabItems: [.exchange, .wallet, .news, .more])
   private var currentViewController: UIViewController?
   private var viewControllers: [UIViewController] = []
   

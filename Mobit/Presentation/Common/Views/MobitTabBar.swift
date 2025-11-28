@@ -11,6 +11,7 @@ import SnapKit
 enum MobitTabItem: Int {
   case exchange
   case wallet
+  case news
   case more
   
   var normalImage: UIImage? {
@@ -19,6 +20,8 @@ enum MobitTabItem: Int {
 	  return UIImage(named: "tab_exchange")
 	case .wallet:
 	  return UIImage(named: "tab_wallet")
+	case .news:
+	  return UIImage(named: "tab_news")
 	case .more:
 	  return UIImage(named: "tab_more")
 	}
@@ -30,6 +33,8 @@ enum MobitTabItem: Int {
 	  return UIImage(named: "tab_exchange_selected")
 	case .wallet:
 	  return UIImage(named: "tab_wallet_selected")
+	case .news:
+	  return UIImage(named: "tab_news_selected")
 	case .more:
 	  return UIImage(named: "tab_more_selected")
 	}
@@ -47,7 +52,7 @@ final class MobitTabBar: UIView {
   private let tabItems: [MobitTabItem]
   private var tabImageViews = [UIImageView]()
   private var tabLabels = [UILabel]()
-  private let tabLabelsText: [String] = ["거래소", "투자내역", "더보기"]
+  private let tabLabelsText: [String] = ["거래소", "투자내역", "뉴스", "더보기"]
   private var selectedIndex = 0 {
 	didSet { updateUI() }
   }
