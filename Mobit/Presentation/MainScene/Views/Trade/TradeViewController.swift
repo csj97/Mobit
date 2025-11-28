@@ -135,7 +135,8 @@ class TradeViewController: MobitBaseViewController {
 			})
 		  }
 		}
-		
+	  case .calcuator(let cryptoInvestData):
+		self.showCalculatorView(cryptoInvestData: cryptoInvestData)
 	  default:
 		break
 	  }
@@ -387,6 +388,22 @@ class TradeViewController: MobitBaseViewController {
 	self.present(alert, animated: true, completion: nil)
   }
   
+  func showCalculatorView(cryptoInvestData: CryptoTransactionDataModel) {
+	let holdingQty = cryptoInvestData.staticData.holdingQuantity.formatSignificantDigits(digits: 2)
+	let holdingAvgPrice = cryptoInvestData.staticData.averageBuyPrice.formatSignificantDigits(digits: 4)
+	let marketName = cryptoInvestData.staticData.marketName
+	
+	guard let doubleHoldingQty = Double(holdingQty.replacingOccurrences(of: ",", with: "")),
+		  let doubleHoldingAvgPrice = Double(holdingAvgPrice.replacingOccurrences(of: ",", with: "")) else { return }
+	
+	let calcAveragePriceView = TradeAverageCalcView.instanceFromNib(
+	  holdingQuantity: doubleHoldingQty,
+	  holdingAverage: doubleHoldingAvgPrice,
+	  cryptoSymbol: marketName.marketSymbol
+	)
+	
+	self.presentAverageCalcView(calcAveragePriceView, animated: true)
+  }
 }
 
 // MARK: Reactor - View

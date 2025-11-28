@@ -97,6 +97,7 @@
 		99C20AB22C4F6A04009276E7 /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB12C4F6A04009276E7 /* Environment.swift */; };
 		99C20AB42C4F7177009276E7 /* CryptoSocketTicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB32C4F7177009276E7 /* CryptoSocketTicker.swift */; };
 		99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB72C4F775B009276E7 /* Crypto.swift */; };
+		C1246B632ED979D400B24D3D /* ViewControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1246B622ED979D400B24D3D /* ViewControllerExtension.swift */; };
 		C154CA192D97D63D006923BD /* MarketDataServiceUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */; };
 		C15B934A2E29ED910064212B /* style.css in Resources */ = {isa = PBXBuildFile; fileRef = C15B93492E29ED910064212B /* style.css */; };
 		C15B934C2E29EDA10064212B /* app.js in Resources */ = {isa = PBXBuildFile; fileRef = C15B934B2E29EDA10064212B /* app.js */; };
@@ -133,6 +134,8 @@
 		C17E8E252E1F5EED0082E7DC /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = C17E8E242E1F5EED0082E7DC /* FirebaseDatabase */; };
 		C17E8E272E1F60D50082E7DC /* FirebaseCMCResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */; };
 		C17EAE382E374515006ACA44 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17EAE372E374515006ACA44 /* Log.swift */; };
+		C1801A192ED9404600281695 /* TradeAverageCalcView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1801A182ED9404600281695 /* TradeAverageCalcView.swift */; };
+		C1801A1B2ED9405300281695 /* TradeAverageCalcView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1801A1A2ED9405300281695 /* TradeAverageCalcView.xib */; };
 		C1852D032E67E05200A989B4 /* AppDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1852D022E67E05200A989B4 /* AppDataManager.swift */; };
 		C18650E12E864B71009F3E13 /* PartialSansKR-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E02E864B71009F3E13 /* PartialSansKR-Regular.otf */; };
 		C18650EB2E865A17009F3E13 /* SUIT-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E72E865A17009F3E13 /* SUIT-Medium.otf */; };
@@ -146,6 +149,9 @@
 		C18650F32E865A17009F3E13 /* SUIT-ExtraLight.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E42E865A17009F3E13 /* SUIT-ExtraLight.otf */; };
 		C18A84F92E2E1C6D00E49070 /* MobitConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18A84F82E2E1C6D00E49070 /* MobitConstants.swift */; };
 		C18B1DCB2E39A36F00E25DCE /* NeumorphicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18B1DCA2E39A36F00E25DCE /* NeumorphicView.swift */; };
+		C18D1B1B2ED81F5900D10A2E /* NewsCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18D1B1A2ED81F5900D10A2E /* NewsCoordinator.swift */; };
+		C18D1B1E2ED81FC100D10A2E /* NewsViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C18D1B1D2ED81FC100D10A2E /* NewsViewController.xib */; };
+		C18D1B1F2ED81FC100D10A2E /* NewsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18D1B1C2ED81FC100D10A2E /* NewsViewController.swift */; };
 		C18E3FED2E25E8DC00B9E5D0 /* GradientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18E3FEC2E25E8DC00B9E5D0 /* GradientView.swift */; };
 		C18EED4F2D55A82B0038BBF7 /* MobitSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */; };
 		C18EED512D55FE3D0038BBF7 /* TradeBidView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED502D55FE3D0038BBF7 /* TradeBidView.swift */; };
@@ -299,6 +305,7 @@
 		99C20AB12C4F6A04009276E7 /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
 		99C20AB32C4F7177009276E7 /* CryptoSocketTicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CryptoSocketTicker.swift; path = Mobit/Domain/Model/CryptoSocketTicker.swift; sourceTree = SOURCE_ROOT; };
 		99C20AB72C4F775B009276E7 /* Crypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Crypto.swift; sourceTree = "<group>"; };
+		C1246B622ED979D400B24D3D /* ViewControllerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerExtension.swift; sourceTree = "<group>"; };
 		C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketDataServiceUtil.swift; sourceTree = "<group>"; };
 		C15B93492E29ED910064212B /* style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = style.css; sourceTree = "<group>"; };
 		C15B934B2E29EDA10064212B /* app.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = app.js; sourceTree = "<group>"; };
@@ -333,6 +340,8 @@
 		C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtension.swift; sourceTree = "<group>"; };
 		C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseCMCResponse.swift; sourceTree = "<group>"; };
 		C17EAE372E374515006ACA44 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
+		C1801A182ED9404600281695 /* TradeAverageCalcView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeAverageCalcView.swift; sourceTree = "<group>"; };
+		C1801A1A2ED9405300281695 /* TradeAverageCalcView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeAverageCalcView.xib; sourceTree = "<group>"; };
 		C1852D022E67E05200A989B4 /* AppDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataManager.swift; sourceTree = "<group>"; };
 		C18650E02E864B71009F3E13 /* PartialSansKR-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "PartialSansKR-Regular.otf"; sourceTree = "<group>"; };
 		C18650E22E865A17009F3E13 /* SUIT-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-Bold.otf"; sourceTree = "<group>"; };
@@ -346,6 +355,9 @@
 		C18650EA2E865A17009F3E13 /* SUIT-Thin.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-Thin.otf"; sourceTree = "<group>"; };
 		C18A84F82E2E1C6D00E49070 /* MobitConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitConstants.swift; sourceTree = "<group>"; };
 		C18B1DCA2E39A36F00E25DCE /* NeumorphicView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeumorphicView.swift; sourceTree = "<group>"; };
+		C18D1B1A2ED81F5900D10A2E /* NewsCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsCoordinator.swift; sourceTree = "<group>"; };
+		C18D1B1C2ED81FC100D10A2E /* NewsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsViewController.swift; sourceTree = "<group>"; };
+		C18D1B1D2ED81FC100D10A2E /* NewsViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = NewsViewController.xib; sourceTree = "<group>"; };
 		C18E3FEC2E25E8DC00B9E5D0 /* GradientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientView.swift; sourceTree = "<group>"; };
 		C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitSegmentedControl.swift; sourceTree = "<group>"; };
 		C18EED502D55FE3D0038BBF7 /* TradeBidView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeBidView.swift; sourceTree = "<group>"; };
@@ -525,6 +537,7 @@
 				3133E25D2C3F69FB000D4B1A /* Common */,
 				31E208052C4678A0000BFEBC /* MainScene */,
 				31E2080B2C46C29A000BFEBC /* InvestmentScene */,
+				C18D1B162ED81EFF00D10A2E /* NewsScene */,
 				31E208132C46C424000BFEBC /* MoreScene */,
 			);
 			path = Presentation;
@@ -629,6 +642,8 @@
 				31B741F82D53AAAC00706340 /* TradeChartView.xib */,
 				C19ED6E82DE31648001ACCF9 /* TradeInformationView.swift */,
 				C19ED6EA2DE31653001ACCF9 /* TradeInformationView.xib */,
+				C1801A182ED9404600281695 /* TradeAverageCalcView.swift */,
+				C1801A1A2ED9405300281695 /* TradeAverageCalcView.xib */,
 				C174D8A02E24DBEC0015B6ED /* TradeInfoCollectionViewCell.swift */,
 				C174D8A12E24DBEC0015B6ED /* TradeInfoCollectionViewCell.xib */,
 				31B7420D2D5B939000706340 /* TradeHistoryTableViewCell.swift */,
@@ -896,12 +911,47 @@
 			path = Reactors;
 			sourceTree = "<group>";
 		};
+		C18D1B162ED81EFF00D10A2E /* NewsScene */ = {
+			isa = PBXGroup;
+			children = (
+				C18D1B172ED81F2600D10A2E /* Coordinator */,
+				C18D1B182ED81F2800D10A2E /* Views */,
+				C18D1B192ED81F2800D10A2E /* Reactors */,
+			);
+			path = NewsScene;
+			sourceTree = "<group>";
+		};
+		C18D1B172ED81F2600D10A2E /* Coordinator */ = {
+			isa = PBXGroup;
+			children = (
+				C18D1B1A2ED81F5900D10A2E /* NewsCoordinator.swift */,
+			);
+			path = Coordinator;
+			sourceTree = "<group>";
+		};
+		C18D1B182ED81F2800D10A2E /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				C18D1B1C2ED81FC100D10A2E /* NewsViewController.swift */,
+				C18D1B1D2ED81FC100D10A2E /* NewsViewController.xib */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		C18D1B192ED81F2800D10A2E /* Reactors */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Reactors;
+			sourceTree = "<group>";
+		};
 		C18EED4D2D55A81A0038BBF7 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
 				31B742002D5A2ABD00706340 /* ButtonExtension.swift */,
 				C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */,
 				31B742022D5A2CAC00706340 /* ViewExtension.swift */,
+				C1246B622ED979D400B24D3D /* ViewControllerExtension.swift */,
 				C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */,
 				C174D8A42E24E8920015B6ED /* LabelExtension.swift */,
 				C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */,
@@ -1106,6 +1156,7 @@
 				C1DF71182E16407E002E89E1 /* MainCryptoTableViewCell.xib in Resources */,
 				C1CD3A5F2E28C3090049699B /* index.html in Resources */,
 				5FA880E42E1A3D0B00F22F9C /* NoticeForceUpdateViewController.xib in Resources */,
+				C18D1B1E2ED81FC100D10A2E /* NewsViewController.xib in Resources */,
 				C16FAE6D2E38B4B9003C5AD1 /* PNLViewController.xib in Resources */,
 				31F33FD42DDA1D4C003D533A /* MobitAlertViewController.xib in Resources */,
 				C17BA2B72DF5B576001AF72D /* MobitLaunchScreen.xib in Resources */,
@@ -1117,6 +1168,7 @@
 				31B741F72D53AA7600706340 /* TradeOrderView.xib in Resources */,
 				31B741F92D53AAAC00706340 /* TradeChartView.xib in Resources */,
 				C17BA2BB2DF5B6D9001AF72D /* esamanru-OTF-Medium.otf in Resources */,
+				C1801A1B2ED9405300281695 /* TradeAverageCalcView.xib in Resources */,
 				C17BA2BC2DF5B6D9001AF72D /* esamanru-OTF-Bold.otf in Resources */,
 				C17BA2BD2DF5B6D9001AF72D /* esamanru-OTF-Light.otf in Resources */,
 				C16FAE712E38B530003C5AD1 /* PNLTableViewCell.xib in Resources */,
@@ -1200,6 +1252,7 @@
 				C16FAE722E38B530003C5AD1 /* PNLTableViewCell.swift in Sources */,
 				C16FAE6E2E38B4B9003C5AD1 /* PNLViewController.swift in Sources */,
 				C1DF71172E16407E002E89E1 /* MainCryptoTableViewCell.swift in Sources */,
+				C18D1B1B2ED81F5900D10A2E /* NewsCoordinator.swift in Sources */,
 				312861062DFE749200541A6A /* MobitTabBar.swift in Sources */,
 				C1E12D402D7C29AF003C76F0 /* DoubleExtension.swift in Sources */,
 				99C20A792C490B08009276E7 /* CryptoDTO.swift in Sources */,
@@ -1210,6 +1263,7 @@
 				3133E2702C3F7098000D4B1A /* MainUseCase.swift in Sources */,
 				C17BB4182E2F27A400BDAA0F /* MobitBaseViewController.swift in Sources */,
 				99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */,
+				C1246B632ED979D400B24D3D /* ViewControllerExtension.swift in Sources */,
 				C19ED6E92DE31648001ACCF9 /* TradeInformationView.swift in Sources */,
 				31D644482C7257F900C7F96D /* CryptoDetailCoordinator.swift in Sources */,
 				998849E22C524AAA0073A27D /* CryptoCellInfo.swift in Sources */,
@@ -1265,6 +1319,7 @@
 				3133E2682C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift in Sources */,
 				3128610A2DFE7FFC00541A6A /* MobitTabBarViewController.swift in Sources */,
 				C1CD3A652E28C8CE0049699B /* MobitCommunityCoordinator.swift in Sources */,
+				C1801A192ED9404600281695 /* TradeAverageCalcView.swift in Sources */,
 				31F33FD32DDA1D4C003D533A /* MobitAlertViewController.swift in Sources */,
 				C19F77972E41A2EA00863159 /* PNLShareView.swift in Sources */,
 				C16FAE742E38BC54003C5AD1 /* PNLCoordinator.swift in Sources */,
@@ -1275,6 +1330,7 @@
 				31B7420A2D5A46B300706340 /* LeakAvoider.swift in Sources */,
 				C17CF4A02DA4DD6500CDF76D /* InvestReactor.swift in Sources */,
 				C1A0150A2E49B0DD00B7A7C6 /* LineChartView.swift in Sources */,
+				C18D1B1F2ED81FC100D10A2E /* NewsViewController.swift in Sources */,
 				99C20AB22C4F6A04009276E7 /* Environment.swift in Sources */,
 				31D6444A2C72587B00C7F96D /* TradeReactor.swift in Sources */,
 				C19ED6E52DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift in Sources */,

@@ -52,4 +52,10 @@ extension String {
   func localized(with lists: [CVarArg] = []) -> String {
 	  return String(format: self.localized, lists)
   }
+  
+  /// Slash 기준으로 symbol 분리
+  var marketSymbol: String {
+	let symbol = self.components(separatedBy: "/").first ?? ""
+	return symbol
+  }
 }

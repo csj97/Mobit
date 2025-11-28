@@ -31,7 +31,7 @@ class InvestmentViewController: MobitBaseViewController {
   @IBOutlet weak var availableUserBalance: UILabel!
   @IBOutlet weak var noResultView: UIView!
   @IBOutlet weak var sortLabel: UILabel!
-    @IBOutlet weak var dimView: UIView!
+  @IBOutlet weak var dimView: UIView!
     
   weak var coordinator: InvestmentCoordinator?
   var dataSource: UITableViewDiffableDataSource<TableViewSection, CryptoTransactionDataModel>?

@@ -90,6 +90,8 @@ class TradeOrderView: UIView, ViewRule {
 	  case .successLottie:
 		MobitAnalyticsUtil.sendClickEvent(event: .trade_order_buy_complete)
 		self.callback?(.successLottie)
+	  default:
+		break
 	  }
 	}
 	askView = TradeAskView.instanceFromNib(
@@ -107,6 +109,8 @@ class TradeOrderView: UIView, ViewRule {
 	  case .successLottie:
 		MobitAnalyticsUtil.sendClickEvent(event: .trade_order_sell_complete)
 		self.callback?(.successLottie)
+	  default:
+		break
 	  }
 	}
 	
@@ -260,10 +264,12 @@ class TradeOrderView: UIView, ViewRule {
 	}
   }
   
-  /// 현재 물량이 최대 개수 대비 얼마나 되는지 시각화 해주기 위함
-  private func updateObBarView() {
+  @IBAction func tapOnAveragePriceCalcButton(_ sender: UIButton) {
 	
+	guard let cryptoInvestData = self.cryptoInvestData else { return }
+	self.callback?(.calcuator(cryptoInvestData: cryptoInvestData))
   }
+  
 }
 
 // MARK: Reactor - View
