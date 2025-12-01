@@ -13,6 +13,7 @@ class NewsViewController: MobitBaseViewController, WKNavigationDelegate {
   @IBOutlet weak var webView: WKWebView!
   
   weak var coordinator: NewsCoordinator?
+  private let refreshControl = UIRefreshControl()
   
   override func viewWillAppear(_ animated: Bool) {
 	super.viewWillAppear(animated)
@@ -22,6 +23,7 @@ class NewsViewController: MobitBaseViewController, WKNavigationDelegate {
 	super.viewDidLoad()
 	setUI()
 	setData()
+	setupPullToRefresh()
 	loadWebView()
   }
   
@@ -30,6 +32,11 @@ class NewsViewController: MobitBaseViewController, WKNavigationDelegate {
   
   func setData() {
 	self.webView.navigationDelegate = self
+  }
+  
+  private func setupPullToRefresh() {
+	  webView.scrollView.refreshControl = refreshControl
+	  refreshControl.addTarget(self, action: #selector(pulledToRefresh), for: .valueChanged)
   }
   
   private func loadWebView() {
@@ -44,4 +51,14 @@ class NewsViewController: MobitBaseViewController, WKNavigationDelegate {
 	webView.scrollView.pinchGestureRecognizer?.isEnabled = false
   }
   
+  @objc private func pulledToRefresh() {
+	  webView.reload()
+  }
+
+  // WKNavigationDelegate
+  func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+	  if refreshControl.isRefreshing {
+		  refreshControl.endRefreshing()
+	  }
+  }
 }
