@@ -73,14 +73,14 @@
                                             <rect key="frame" x="72" y="0.0" width="273" height="21"/>
                                             <subviews>
                                                 <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="0 BTC" textAlignment="right" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="T86-bv-gtm">
-                                                    <rect key="frame" x="0.0" y="0.0" width="238" height="21"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="237.33333333333334" height="21"/>
                                                     <color key="textColor" red="0.15814995770000001" green="0.1580629647" blue="0.1631865203" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                     <textInputTraits key="textInputTraits"/>
                                                 </textField>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="BTC" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="tBM-8N-doz">
-                                                    <rect key="frame" x="242" y="0.0" width="31" height="21"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                                    <rect key="frame" x="241.33333333333329" y="0.0" width="31.666666666666657" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="16"/>
                                                     <color key="textColor" red="0.15814995770000001" green="0.1580629647" blue="0.1631865203" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
@@ -101,14 +101,14 @@
                                             <rect key="frame" x="72" y="0.0" width="273" height="21"/>
                                             <subviews>
                                                 <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="0 원" textAlignment="right" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="tLB-n3-jld">
-                                                    <rect key="frame" x="0.0" y="0.0" width="233.66666666666666" height="21"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="232.33333333333334" height="21"/>
                                                     <color key="textColor" red="0.15814995770000001" green="0.1580629647" blue="0.1631865203" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                     <textInputTraits key="textInputTraits"/>
                                                 </textField>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="KRW" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="RSL-If-5BV">
-                                                    <rect key="frame" x="237.66666666666669" y="0.0" width="35.333333333333314" height="21"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                                    <rect key="frame" x="236.33333333333331" y="0.0" width="36.666666666666686" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="16"/>
                                                     <color key="textColor" red="0.15814995770000001" green="0.1580629647" blue="0.1631865203" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>

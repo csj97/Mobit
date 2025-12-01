@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 extension String {
   /// 콤마 (기본), origin default true
@@ -57,5 +58,31 @@ extension String {
   var marketSymbol: String {
 	let symbol = self.components(separatedBy: "/").first ?? ""
 	return symbol
+  }
+  
+  /// 텍스트 강조
+  func highlightTexts(
+	  fontSize: CGFloat,
+	  texts: [String],
+	  colorHex: String = "000000"
+  ) -> NSMutableAttributedString {
+
+	  let source = self.localized
+	  let attributed = NSMutableAttributedString(string: source)
+
+	  let highlightAttributes: [NSAttributedString.Key: Any] = [
+		  .foregroundColor: UIColor.hexStringToUIColor(hex: colorHex),
+		  .font: UIFont.systemFont(ofSize: fontSize, weight: .semibold)
+	  ]
+
+	  let nsSource = source as NSString
+
+	  for text in texts {
+		  let range = nsSource.range(of: text)
+		  guard range.location != NSNotFound else { continue }
+		  attributed.addAttributes(highlightAttributes, range: range)
+	  }
+
+	  return attributed
   }
 }

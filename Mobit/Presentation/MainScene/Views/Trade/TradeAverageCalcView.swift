@@ -69,13 +69,13 @@ class TradeAverageCalcView: UIView {
 	self.newBuyQuantitySymbolLabel.isHidden = true
 	self.newBuyAveragePriceCurrencyLabel.isHidden = true
 	
-	guard let holdingQuantity = self.holdingQuantity,
+	guard let holdingQuantity = self.holdingQuantity?.formatSignificantDigits(digits: 2),
 		  let holdingAverage = self.holdingAverage,
 		  let cryptoSymbol = self.cryptoSymbol else { return }
 	
 	self.newBuyQuantityTextField.placeholder = "0 \(cryptoSymbol)"
-	self.holdingQuantityLabel.text = "\(holdingQuantity) \(cryptoSymbol)"
-	self.holdingAverageLabel.text = "\(holdingAverage) KRW"
+	self.holdingQuantityLabel.attributedText = "\(holdingQuantity) \(cryptoSymbol)".highlightTexts(fontSize: 16, texts: [cryptoSymbol])
+	self.holdingAverageLabel.attributedText = "\(holdingAverage) KRW".highlightTexts(fontSize: 16, texts: ["KRW"])
   }
   
   func setData() {
