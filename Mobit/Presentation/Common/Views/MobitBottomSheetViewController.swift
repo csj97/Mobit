@@ -87,6 +87,7 @@ class MobitBottomSheetViewController: MobitBaseViewController {
 	button.tag = index
 	button.addTarget(self, action: #selector(buttonTapped(_:)), for: .touchUpInside)
 	
+	view.backgroundColor = .white
 	view.addSubview(label)
 	view.addSubview(imageView)
 	view.addSubview(button)

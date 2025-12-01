@@ -61,6 +61,9 @@ class TradeBidView: UIView, ViewRule {
   }
   
   func setUI() {
+	self.inputTradeAmount.setAdaptivePlaceholderColor()
+	self.totalPriceTextField.setAdaptivePlaceholderColor()
+	
 	self.inputMarketName.text = self.reactor?.selectCrypto.market.components(separatedBy: "/").first
 	self.inputTradeAmount.keyboardType = .decimalPad
 	self.totalPriceTextField.keyboardType = .numberPad

@@ -102,6 +102,7 @@
 		C15B934A2E29ED910064212B /* style.css in Resources */ = {isa = PBXBuildFile; fileRef = C15B93492E29ED910064212B /* style.css */; };
 		C15B934C2E29EDA10064212B /* app.js in Resources */ = {isa = PBXBuildFile; fileRef = C15B934B2E29EDA10064212B /* app.js */; };
 		C15DCD2B2DF2CAFD007544D8 /* ImageViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C15DCD2A2DF2CAFD007544D8 /* ImageViewExtension.swift */; };
+		C16992A12EDD6AFC0011EAF8 /* TextFieldExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16992A02EDD6AFC0011EAF8 /* TextFieldExtension.swift */; };
 		C16FAE6A2E38A4C6003C5AD1 /* UserPNLHistoryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16FAE692E38A4C6003C5AD1 /* UserPNLHistoryModel.swift */; };
 		C16FAE6D2E38B4B9003C5AD1 /* PNLViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C16FAE6C2E38B4B9003C5AD1 /* PNLViewController.xib */; };
 		C16FAE6E2E38B4B9003C5AD1 /* PNLViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16FAE6B2E38B4B9003C5AD1 /* PNLViewController.swift */; };
@@ -310,6 +311,7 @@
 		C15B93492E29ED910064212B /* style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = style.css; sourceTree = "<group>"; };
 		C15B934B2E29EDA10064212B /* app.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = app.js; sourceTree = "<group>"; };
 		C15DCD2A2DF2CAFD007544D8 /* ImageViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewExtension.swift; sourceTree = "<group>"; };
+		C16992A02EDD6AFC0011EAF8 /* TextFieldExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldExtension.swift; sourceTree = "<group>"; };
 		C16FAE692E38A4C6003C5AD1 /* UserPNLHistoryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPNLHistoryModel.swift; sourceTree = "<group>"; };
 		C16FAE6B2E38B4B9003C5AD1 /* PNLViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PNLViewController.swift; sourceTree = "<group>"; };
 		C16FAE6C2E38B4B9003C5AD1 /* PNLViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PNLViewController.xib; sourceTree = "<group>"; };
@@ -956,6 +958,7 @@
 				C174D8A42E24E8920015B6ED /* LabelExtension.swift */,
 				C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */,
 				C15DCD2A2DF2CAFD007544D8 /* ImageViewExtension.swift */,
+				C16992A02EDD6AFC0011EAF8 /* TextFieldExtension.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -1326,6 +1329,7 @@
 				C1852D032E67E05200A989B4 /* AppDataManager.swift in Sources */,
 				31B742032D5A2CAC00706340 /* ViewExtension.swift in Sources */,
 				31B742122D5B967F00706340 /* TradeHistoryInformation.swift in Sources */,
+				C16992A12EDD6AFC0011EAF8 /* TextFieldExtension.swift in Sources */,
 				3133E2282C3E2355000D4B1A /* AppDelegate.swift in Sources */,
 				31B7420A2D5A46B300706340 /* LeakAvoider.swift in Sources */,
 				C17CF4A02DA4DD6500CDF76D /* InvestReactor.swift in Sources */,

@@ -70,6 +70,9 @@ class TradeAskView: UIView, ViewRule {
   }
   
   func setUI() {
+	self.inputTradeAmount.setAdaptivePlaceholderColor()
+	self.totalPriceTextField.setAdaptivePlaceholderColor()
+	
 	let marketName = self.reactor?.selectCrypto.market.components(separatedBy: "/").first
 	self.marketNameLabels.forEach({ $0.text = marketName })
 	self.inputTradeAmount.keyboardType = .decimalPad
