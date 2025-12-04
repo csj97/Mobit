@@ -73,6 +73,16 @@ class TradeViewController: MobitBaseViewController {
 	  .onNext(.connectTickerSocket)
 	self.reactor.action
 	  .onNext(.connectOrderBookSocket)
+	
+	let now = Date()
+
+	let formatter = ISO8601DateFormatter()
+	formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+	let toString = formatter.string(from: now)
+	
+	self.reactor.action
+	  .onNext(.getCandleListMinutes(market: "KRW-BTC", unit: 60, to: toString, count: 50))
   }
   
   override func viewDidLoad() {

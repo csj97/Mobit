@@ -24,4 +24,8 @@ class CryptoDetailUseCase: CryptoDetailUseCaseProtocol {
   func getCryptoInformation(market: String) -> Observable<CryptoQuoteResponse> {
 	self.cryptoDetailRepository.getCryptoInformation(market: market)
   }
+  
+  func getCandleMinutes(market: String, unit: Int32, to: String?, count: Int?) -> Observable<[MinuteResponseModel]> {
+	self.cryptoDetailRepository.getCandleListMinutes(market: market, unit: unit, to: to, count: count)
+  }
 }

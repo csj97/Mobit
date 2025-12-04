@@ -33,6 +33,18 @@ class MoreCoordinator: BaseCoordinator {
 	// 하단 탭바 숨기기
 	self.delegate?.mainCoordinatorDidRequestHideTabBar()
   }
+  
+  func pushBinanceLeaderBoardViewController() {
+	let leaderboardCoordinator = LeaderBoardCoordinator(
+	  navigationController: self.navigationController
+	)
+	self.childCoordinators.append(leaderboardCoordinator)
+	leaderboardCoordinator.delegate = self
+	leaderboardCoordinator.start()
+	
+	// 하단 탭바 숨기기
+	self.delegate?.mainCoordinatorDidRequestHideTabBar()
+  }
 }
 
 extension MoreCoordinator: MainCoordinatorDelegate {

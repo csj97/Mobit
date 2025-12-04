@@ -52,6 +52,7 @@ extension TradeReactor {
     case connectTickerSocket
     case connectOrderBookSocket
 	case getCryptoInformation
+	case getCandleListMinutes(market: String, unit: Int32 = 60, to: String?, count: Int?)
 	case setSelectedWholeTab(selectedWholeTab: SelectedWholeTab)
 	case loadTransactions
   }
@@ -60,6 +61,7 @@ extension TradeReactor {
     case setCryptoInfo(cryptoInfo: CryptoCellInfo)
     case setOrderBookInfo(obTicker: Orderbook)
 	case setCryptoInformation(cryptoQuoteResponse: CryptoQuoteResponse)
+	case setCandleListMinutes(minuteResponseModelList: [MinuteResponseModel])
 	case setSelectedWholeTab(tab: SelectedWholeTab)
 	case setUserCrypto([CryptoTransactionDataModel]?)
   }
@@ -68,9 +70,9 @@ extension TradeReactor {
     var cryptoCellInfo: CryptoCellInfo? = nil
     var obTicker: Orderbook?
 	var cryptoQuotesInfo: CryptoQuoteResponse? = nil
+	var candleMinuteResponse: [MinuteResponseModel]? = nil
 	var selectedWholeTab: SelectedWholeTab = .trade
 	var cryptoTransactionDatas: [CryptoTransactionDataModel] = []
-
   }
 }
 
@@ -86,6 +88,9 @@ extension TradeReactor {
 	case .getCryptoInformation:
 	  let symbol = self.selectCrypto.market.components(separatedBy: "/").first ?? ""
 	  return self.getCryptoInformation(market: symbol)
+	  
+	case .getCandleListMinutes(let market, let unit, let to, let count):
+	  return self.getCandleListMinutes(market: market, unit: unit, to: to, count: count)
 	  
 	case .setSelectedWholeTab(let tab):
 	  return self.setSelectedWholeTab(tab: tab)
@@ -105,6 +110,8 @@ extension TradeReactor {
       newState.obTicker = obTicker
 	case .setCryptoInformation(let cryptoQuotesResponse):
 	  newState.cryptoQuotesInfo = cryptoQuotesResponse
+	case .setCandleListMinutes(let minuteResponseModelList):
+	  newState.candleMinuteResponse = minuteResponseModelList
 	case .setSelectedWholeTab(let tab):
 	  newState.selectedWholeTab = tab
 	case .setUserCrypto(let cryptoTransactionDatas):
@@ -228,6 +235,13 @@ extension TradeReactor {
 	return self.cryptoDetailUseCase.getCryptoInformation(market: market)
 	  .map { cryptoQuoteResponse in
 		return .setCryptoInformation(cryptoQuoteResponse: cryptoQuoteResponse)
+	  }
+  }
+  
+  private func getCandleListMinutes(market: String, unit: Int32 = 60, to: String?, count: Int?) -> Observable<TradeMutation> {
+	return self.cryptoDetailUseCase.getCandleMinutes(market: market, unit: unit, to: to, count: count)
+	  .map { minuteResponseModelList in
+		return .setCandleListMinutes(minuteResponseModelList: minuteResponseModelList)
 	  }
   }
   
