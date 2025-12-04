@@ -11,6 +11,7 @@ import ReactorKit
 import RxSwift
 import Charts
 import GoogleMobileAds
+import SwiftUI
 
 struct OrderUnit: Hashable {
   var identifier: UUID = UUID()
@@ -36,7 +37,8 @@ class TradeViewController: MobitBaseViewController {
   @IBOutlet weak var mobitSegmentedControl: MobitNeumorphicSegmentedControl!
   @IBOutlet weak var segmentedContainerView: UIView!
   @IBOutlet weak var bannerContainerView: UIView!
-  
+  @IBOutlet weak var miniChartContainerView: UIView!
+    
   weak var coordinator: CryptoDetailCoordinator?
   weak var delegate: MainCoordinatorDelegate?
   var reactor: TradeReactor
@@ -81,8 +83,14 @@ class TradeViewController: MobitBaseViewController {
 
 	let toString = formatter.string(from: now)
 	
+	// 10분봉 144개 > 23시간 미니차트
 	self.reactor.action
-	  .onNext(.getCandleListMinutes(market: "KRW-BTC", unit: 60, to: toString, count: 50))
+	  .onNext(.getCandleListMinutes(
+		market: self.reactor.selectCrypto.market.marketForCandleRequest,
+		unit: 10,
+		to: toString,
+		count: 144
+	  ))
   }
   
   override func viewDidLoad() {
@@ -433,8 +441,18 @@ extension TradeViewController {
 	reactor.state.map { $0.selectedWholeTab }
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
-	  .subscribe (onNext: { [weak self] tab in
+	  .subscribe(onNext: { [weak self] tab in
 		guard let self = self else { return }
+	  })
+	  .disposed(by: self.disposeBag)
+	
+	reactor.state.map { $0.candleMinuteResponse }
+	  .observe(on: MainScheduler.instance)
+	  .subscribe(onNext: { [weak self] minuteCandleList in
+		guard let self else { return }
+		guard let minuteCandleList = minuteCandleList else { return }
+		
+		self.makeMiniChartView(minuteCandleList: minuteCandleList)
 	  })
 	  .disposed(by: self.disposeBag)
   }
@@ -468,5 +486,39 @@ extension TradeViewController: SocketControllable {
 }
 
 extension TradeViewController {
+  /// 우상단 미니 차트뷰 생성
+  func makeMiniChartView(minuteCandleList: [MinuteResponseModel]) {
+	let candleEntries = self.makeCandleEntries(from: minuteCandleList)
+	
+	guard let tradePrice = self.reactor.selectCrypto.tradePrice,
+		  let startPrice = candleEntries.first?.close,
+		  let endPrice = candleEntries.last?.close else { return }
+	
+	// 시작 캔들이 현재 가격보다 높으면 상승
+	let isPlus = tradePrice < startPrice
+	
+	let miniChartView = MiniChartView(candleEntries: candleEntries, isPlus: isPlus)
+	
+	// UIHostingController를 사용하면, SwiftUI가 자신의 사이즈를 스스로 계산하려고 함.
+	let hosting = UIHostingController(rootView: miniChartView)
+	
+	self.addChild(hosting)
+	hosting.view.translatesAutoresizingMaskIntoConstraints = false
+	self.miniChartContainerView.addSubview(hosting.view)
+	
+	hosting.view.snp.makeConstraints { make in
+	  make.top.bottom.leading.trailing.equalToSuperview()
+	}
+	hosting.didMove(toParent: self)
+  }
   
+  /// 캔들을 차트에 보여주기 위한 entry 모델로 변환
+  func makeCandleEntries(from response: [MinuteResponseModel]) -> [CandleEntry] {
+	response.map { item in
+	  CandleEntry(
+		date: Date(timeIntervalSince1970: TimeInterval(item.timestamp) / 1000),
+		close: item.trade_price
+	  )
+	}
+  }
 }

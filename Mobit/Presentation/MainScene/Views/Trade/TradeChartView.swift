@@ -11,10 +11,16 @@ import WebKit
 class TradeChartView: UIView, WKScriptMessageHandler {
   
   @IBOutlet weak var webView: WKWebView!
-  
+  @IBOutlet weak var tradingChartButtonImg: UIImageView!
+  @IBOutlet weak var mobitChartButtonImg: UIImageView!
+  @IBOutlet weak var mobitChartContainerView: UIView!
+    
   var symbol: String? = nil
   var html: String? = nil
   var javascriptBridgeInterfaceName = "MobitTradingViewChart"
+  
+  let buttonOffImg: UIImage = UIImage(named: "button_check_off")!
+  let buttonOnImg: UIImage = UIImage(named: "button_check_on")!
   
   deinit {
 	print("deinit : \(String(describing: type(of: self)))")
@@ -44,6 +50,11 @@ class TradeChartView: UIView, WKScriptMessageHandler {
   }
   
   func configure() {
+	// 초기 설정
+	self.tradingChartButtonImg.image = buttonOnImg
+	self.mobitChartButtonImg.image = buttonOffImg
+	self.mobitChartContainerView.isHidden = true
+	self.webView.isHidden = false
   }
   
   func configureWebView() {
@@ -87,6 +98,19 @@ class TradeChartView: UIView, WKScriptMessageHandler {
 //		self.webViewBridgeAction?.action(bridge: bridge)
 	}
   }
+    @IBAction func tapOnTradingViewChartButton(_ sender: UIButton) {
+	  self.tradingChartButtonImg.image = buttonOnImg
+	  self.mobitChartButtonImg.image = buttonOffImg
+	  self.webView.isHidden = false
+	  self.mobitChartContainerView.isHidden = true
+    }
+    
+    @IBAction func tapOnMobitChartButton(_ sender: UIButton) {
+	  self.tradingChartButtonImg.image = buttonOffImg
+	  self.mobitChartButtonImg.image = buttonOnImg
+	  self.webView.isHidden = true
+	  self.mobitChartContainerView.isHidden = false
+    }
 }
 
 // MARK: - WKNavigationDelegate

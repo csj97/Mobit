@@ -18,6 +18,7 @@
                 <outlet property="cryptoPrice" destination="YAR-Rz-3PG" id="nZm-Ew-rxb"/>
                 <outlet property="cryptoUpDownArrowImageView" destination="BzX-h7-aIN" id="zWc-MI-LFQ"/>
                 <outlet property="favoriteButton" destination="EI6-Qj-2rT" id="MdS-sQ-AI4"/>
+                <outlet property="miniChartContainerView" destination="usN-Ic-cD0" id="3mn-H9-p5b"/>
                 <outlet property="mobitSegmentedControl" destination="ZMF-zH-Gij" id="PIY-5J-K2v"/>
                 <outlet property="segmentedContainerView" destination="om4-Hj-cJa" id="7MX-53-aZo"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
@@ -83,16 +84,16 @@
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="VqE-1C-Oab" userLabel="Price View">
-                    <rect key="frame" x="0.0" y="112.99999999999999" width="393" height="59.333333333333329"/>
+                    <rect key="frame" x="0.0" y="113" width="393" height="60"/>
                     <subviews>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="Price" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YAR-Rz-3PG">
-                            <rect key="frame" x="20" y="0.0" width="353" height="19.333333333333332"/>
+                            <rect key="frame" x="20" y="0.0" width="37" height="20"/>
                             <fontDescription key="fontDescription" type="system" pointSize="16"/>
                             <nil key="textColor"/>
                             <nil key="highlightedColor"/>
                         </label>
                         <stackView opaque="NO" contentMode="scaleToFill" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="wDR-2Q-tFi">
-                            <rect key="frame" x="20" y="29.333333333333343" width="353" height="30"/>
+                            <rect key="frame" x="20" y="30" width="243" height="30"/>
                             <subviews>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="changed rate" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QEz-7Y-xVg">
                                     <rect key="frame" x="0.0" y="0.0" width="74.666666666666671" height="30"/>
@@ -101,17 +102,17 @@
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fFi-pF-iI3">
-                                    <rect key="frame" x="89.666666666666657" y="0.0" width="263.33333333333337" height="30"/>
+                                    <rect key="frame" x="89.666666666666671" y="0.0" width="153.33333333333331" height="30"/>
                                     <subviews>
                                         <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="arrowtriangle.down.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="BzX-h7-aIN">
-                                            <rect key="frame" x="0.0" y="11.333333333333343" width="12" height="7.3333333333333428"/>
+                                            <rect key="frame" x="0.0" y="11.333333333333332" width="12" height="7.3333333333333321"/>
                                             <constraints>
                                                 <constraint firstAttribute="height" constant="12" id="7jd-mg-vQI"/>
                                                 <constraint firstAttribute="width" constant="12" id="Zmr-ua-48E"/>
                                             </constraints>
                                         </imageView>
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalCompressionResistancePriority="751" text="Changed Price" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qyQ-8W-573">
-                                            <rect key="frame" x="12.000000000000014" y="0.0" width="251.33333333333337" height="30"/>
+                                            <rect key="frame" x="12" y="0.0" width="141.33333333333334" height="30"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                             <nil key="textColor"/>
                                             <nil key="highlightedColor"/>
@@ -133,27 +134,37 @@
                                 <constraint firstAttribute="height" constant="30" id="n2i-wm-c3e"/>
                             </constraints>
                         </stackView>
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="usN-Ic-cD0" userLabel="Mini Chart Container View">
+                            <rect key="frame" x="283" y="0.0" width="100" height="60"/>
+                            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="60" id="1hc-52-rXM"/>
+                                <constraint firstAttribute="width" constant="100" id="hes-S4-LA1"/>
+                            </constraints>
+                        </view>
                     </subviews>
                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     <constraints>
                         <constraint firstItem="wDR-2Q-tFi" firstAttribute="top" secondItem="YAR-Rz-3PG" secondAttribute="bottom" constant="10" id="3NB-q5-baF"/>
+                        <constraint firstItem="usN-Ic-cD0" firstAttribute="leading" secondItem="wDR-2Q-tFi" secondAttribute="trailing" constant="20" id="PNY-pt-tZu"/>
                         <constraint firstItem="wDR-2Q-tFi" firstAttribute="leading" secondItem="VqE-1C-Oab" secondAttribute="leading" constant="20" id="WH3-Cc-szq"/>
-                        <constraint firstAttribute="trailing" secondItem="wDR-2Q-tFi" secondAttribute="trailing" constant="20" id="jSH-g1-2Ep"/>
+                        <constraint firstAttribute="bottom" secondItem="usN-Ic-cD0" secondAttribute="bottom" id="Zab-Qz-hu6"/>
+                        <constraint firstItem="usN-Ic-cD0" firstAttribute="top" secondItem="VqE-1C-Oab" secondAttribute="top" id="gPg-fE-TCz"/>
                         <constraint firstItem="YAR-Rz-3PG" firstAttribute="leading" secondItem="VqE-1C-Oab" secondAttribute="leading" constant="20" id="jWt-Zh-PKE"/>
-                        <constraint firstAttribute="trailing" secondItem="YAR-Rz-3PG" secondAttribute="trailing" constant="20" id="vfx-bw-o0P"/>
+                        <constraint firstAttribute="trailing" secondItem="usN-Ic-cD0" secondAttribute="trailing" constant="10" id="rKR-dv-s6g"/>
                         <constraint firstItem="YAR-Rz-3PG" firstAttribute="top" secondItem="VqE-1C-Oab" secondAttribute="top" id="y1g-n0-7X1"/>
                         <constraint firstAttribute="bottom" secondItem="wDR-2Q-tFi" secondAttribute="bottom" id="yjx-4X-8Og"/>
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZMF-zH-Gij" customClass="MobitNeumorphicSegmentedControl" customModule="Mobit" customModuleProvider="target">
-                    <rect key="frame" x="0.0" y="187.33333333333337" width="393" height="40"/>
+                    <rect key="frame" x="0.0" y="188" width="393" height="40"/>
                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="40" id="FdO-4d-mrW"/>
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="om4-Hj-cJa" userLabel="Container View">
-                    <rect key="frame" x="0.0" y="227.33333333333331" width="393" height="544.66666666666674"/>
+                    <rect key="frame" x="0.0" y="228" width="393" height="544"/>
                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="tyi-4Y-wRR" userLabel="Banner AD View">
