@@ -93,11 +93,13 @@
 		99C20A832C4A2787009276E7 /* MainReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A822C4A2787009276E7 /* MainReactor.swift */; };
 		99C20A862C4A27F1009276E7 /* ReactorKit in Frameworks */ = {isa = PBXBuildFile; productRef = 99C20A852C4A27F1009276E7 /* ReactorKit */; };
 		99C20AAC2C4F458C009276E7 /* CryptoSocketTickerDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AAB2C4F458C009276E7 /* CryptoSocketTickerDTO.swift */; };
-		99C20AAE2C4F63E4009276E7 /* WebSocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AAD2C4F63E4009276E7 /* WebSocketManager.swift */; };
 		99C20AB22C4F6A04009276E7 /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB12C4F6A04009276E7 /* Environment.swift */; };
 		99C20AB42C4F7177009276E7 /* CryptoSocketTicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB32C4F7177009276E7 /* CryptoSocketTicker.swift */; };
 		99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB72C4F775B009276E7 /* Crypto.swift */; };
 		C1246B632ED979D400B24D3D /* ViewControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1246B622ED979D400B24D3D /* ViewControllerExtension.swift */; };
+		C13B29F22EE0149E00391683 /* TradeNetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13B29F12EE0149E00391683 /* TradeNetworkService.swift */; };
+		C13B29F42EE0173100391683 /* Candle+MinuteResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13B29F32EE0173100391683 /* Candle+MinuteResponseDTO.swift */; };
+		C13B29F62EE0188C00391683 /* Candle+MinuteResponseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13B29F52EE0188C00391683 /* Candle+MinuteResponseModel.swift */; };
 		C154CA192D97D63D006923BD /* MarketDataServiceUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */; };
 		C15B934A2E29ED910064212B /* style.css in Resources */ = {isa = PBXBuildFile; fileRef = C15B93492E29ED910064212B /* style.css */; };
 		C15B934C2E29EDA10064212B /* app.js in Resources */ = {isa = PBXBuildFile; fileRef = C15B934B2E29EDA10064212B /* app.js */; };
@@ -162,6 +164,7 @@
 		C18FF26E2D5AEDF7003E95B0 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */; };
 		C190F29D2D65AD6A00895D9E /* CryptoTransactionDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C190F29C2D65AD6A00895D9E /* CryptoTransactionDataModel.swift */; };
 		C191ECCE2DA79A6700BBA5EB /* CustomWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C191ECCD2DA79A6700BBA5EB /* CustomWindow.swift */; };
+		C19818DF2EDFF19C0044A398 /* LeaderBoardCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19818DE2EDFF19C0044A398 /* LeaderBoardCoordinator.swift */; };
 		C19ED6E52DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E42DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift */; };
 		C19ED6E72DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E62DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift */; };
 		C19ED6E92DE31648001ACCF9 /* TradeInformationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E82DE31648001ACCF9 /* TradeInformationView.swift */; };
@@ -180,6 +183,8 @@
 		C1B8F3BC2E272E6800C46734 /* SelfSizingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */; };
 		C1B8F3BF2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */; };
 		C1B8F3C12E2783EA00C46734 /* MobitAnalyticsUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */; };
+		C1CCE8652EDEDC9B002D5DF9 /* LeaderBoardViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1CCE8642EDEDC9B002D5DF9 /* LeaderBoardViewController.xib */; };
+		C1CCE8662EDEDC9B002D5DF9 /* LeaderBoardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CCE8632EDEDC9B002D5DF9 /* LeaderBoardViewController.swift */; };
 		C1CD3A5F2E28C3090049699B /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = C1CD3A5E2E28C3090049699B /* index.html */; };
 		C1CD3A622E28C3CD0049699B /* MobitCommunityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CD3A602E28C3CD0049699B /* MobitCommunityViewController.swift */; };
 		C1CD3A632E28C3CD0049699B /* MobitCommunityViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1CD3A612E28C3CD0049699B /* MobitCommunityViewController.xib */; };
@@ -302,11 +307,13 @@
 		99C20A782C490B08009276E7 /* CryptoDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDTO.swift; sourceTree = "<group>"; };
 		99C20A822C4A2787009276E7 /* MainReactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainReactor.swift; sourceTree = "<group>"; };
 		99C20AAB2C4F458C009276E7 /* CryptoSocketTickerDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoSocketTickerDTO.swift; sourceTree = "<group>"; };
-		99C20AAD2C4F63E4009276E7 /* WebSocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketManager.swift; sourceTree = "<group>"; };
 		99C20AB12C4F6A04009276E7 /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
 		99C20AB32C4F7177009276E7 /* CryptoSocketTicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CryptoSocketTicker.swift; path = Mobit/Domain/Model/CryptoSocketTicker.swift; sourceTree = SOURCE_ROOT; };
 		99C20AB72C4F775B009276E7 /* Crypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Crypto.swift; sourceTree = "<group>"; };
 		C1246B622ED979D400B24D3D /* ViewControllerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerExtension.swift; sourceTree = "<group>"; };
+		C13B29F12EE0149E00391683 /* TradeNetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeNetworkService.swift; sourceTree = "<group>"; };
+		C13B29F32EE0173100391683 /* Candle+MinuteResponseDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Candle+MinuteResponseDTO.swift"; sourceTree = "<group>"; };
+		C13B29F52EE0188C00391683 /* Candle+MinuteResponseModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Candle+MinuteResponseModel.swift"; sourceTree = "<group>"; };
 		C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketDataServiceUtil.swift; sourceTree = "<group>"; };
 		C15B93492E29ED910064212B /* style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = style.css; sourceTree = "<group>"; };
 		C15B934B2E29EDA10064212B /* app.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = app.js; sourceTree = "<group>"; };
@@ -369,6 +376,7 @@
 		C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		C190F29C2D65AD6A00895D9E /* CryptoTransactionDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTransactionDataModel.swift; sourceTree = "<group>"; };
 		C191ECCD2DA79A6700BBA5EB /* CustomWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomWindow.swift; sourceTree = "<group>"; };
+		C19818DE2EDFF19C0044A398 /* LeaderBoardCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderBoardCoordinator.swift; sourceTree = "<group>"; };
 		C19ED6E42DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoInfoQuotesResponse.swift; sourceTree = "<group>"; };
 		C19ED6E62DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoQuoteResponseDTO.swift; sourceTree = "<group>"; };
 		C19ED6E82DE31648001ACCF9 /* TradeInformationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeInformationView.swift; sourceTree = "<group>"; };
@@ -386,6 +394,8 @@
 		C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfSizingViews.swift; sourceTree = "<group>"; };
 		C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitNeumorphicSegmentedControl.swift; sourceTree = "<group>"; };
 		C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitAnalyticsUtil.swift; sourceTree = "<group>"; };
+		C1CCE8632EDEDC9B002D5DF9 /* LeaderBoardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderBoardViewController.swift; sourceTree = "<group>"; };
+		C1CCE8642EDEDC9B002D5DF9 /* LeaderBoardViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = LeaderBoardViewController.xib; sourceTree = "<group>"; };
 		C1CD3A5E2E28C3090049699B /* index.html */ = {isa = PBXFileReference; indentWidth = 2; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 		C1CD3A602E28C3CD0049699B /* MobitCommunityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitCommunityViewController.swift; sourceTree = "<group>"; };
 		C1CD3A612E28C3CD0049699B /* MobitCommunityViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MobitCommunityViewController.xib; sourceTree = "<group>"; };
@@ -738,6 +748,8 @@
 				31F33FCE2DDA1C09003D533A /* MoreViewController.xib */,
 				C1CD3A602E28C3CD0049699B /* MobitCommunityViewController.swift */,
 				C1CD3A612E28C3CD0049699B /* MobitCommunityViewController.xib */,
+				C1CCE8632EDEDC9B002D5DF9 /* LeaderBoardViewController.swift */,
+				C1CCE8642EDEDC9B002D5DF9 /* LeaderBoardViewController.xib */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -747,6 +759,7 @@
 			children = (
 				31E208162C46C441000BFEBC /* MoreCoordinator.swift */,
 				C1CD3A642E28C8CE0049699B /* MobitCommunityCoordinator.swift */,
+				C19818DE2EDFF19C0044A398 /* LeaderBoardCoordinator.swift */,
 			);
 			path = Coordinator;
 			sourceTree = "<group>";
@@ -797,10 +810,10 @@
 		99C20A672C490317009276E7 /* Network */ = {
 			isa = PBXGroup;
 			children = (
-				31DC41E12CD9197700F0FFF2 /* NewWebSocketManager.swift */,
-				99C20AB52C4F76B5009276E7 /* Main */,
-				99C20AAD2C4F63E4009276E7 /* WebSocketManager.swift */,
 				C19F65292EB1EEE200CE1A7E /* NetworkMonitor.swift */,
+				C13B29EE2EE0146100391683 /* SoketManager */,
+				99C20AB52C4F76B5009276E7 /* Main */,
+				C13B29EF2EE0148000391683 /* Trade */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -809,6 +822,7 @@
 			isa = PBXGroup;
 			children = (
 				99C20A742C490A1F009276E7 /* Main */,
+				C13B29F72EE0196500391683 /* Trade */,
 			);
 			path = Repository;
 			sourceTree = "<group>";
@@ -817,7 +831,6 @@
 			isa = PBXGroup;
 			children = (
 				99C20A752C490A3C009276E7 /* MainRepository.swift */,
-				31D6444E2C72595000C7F96D /* CryptoDetailRepository.swift */,
 			);
 			path = Main;
 			sourceTree = "<group>";
@@ -867,8 +880,42 @@
 				C19ED6E42DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift */,
 				C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */,
 				C16FAE692E38A4C6003C5AD1 /* UserPNLHistoryModel.swift */,
+				C13B29F52EE0188C00391683 /* Candle+MinuteResponseModel.swift */,
 			);
 			path = Model;
+			sourceTree = "<group>";
+		};
+		C13B29EE2EE0146100391683 /* SoketManager */ = {
+			isa = PBXGroup;
+			children = (
+				31DC41E12CD9197700F0FFF2 /* NewWebSocketManager.swift */,
+			);
+			path = SoketManager;
+			sourceTree = "<group>";
+		};
+		C13B29EF2EE0148000391683 /* Trade */ = {
+			isa = PBXGroup;
+			children = (
+				C13B29F12EE0149E00391683 /* TradeNetworkService.swift */,
+				C13B29F02EE0148C00391683 /* DataMapping */,
+			);
+			path = Trade;
+			sourceTree = "<group>";
+		};
+		C13B29F02EE0148C00391683 /* DataMapping */ = {
+			isa = PBXGroup;
+			children = (
+				C13B29F32EE0173100391683 /* Candle+MinuteResponseDTO.swift */,
+			);
+			path = DataMapping;
+			sourceTree = "<group>";
+		};
+		C13B29F72EE0196500391683 /* Trade */ = {
+			isa = PBXGroup;
+			children = (
+				31D6444E2C72595000C7F96D /* CryptoDetailRepository.swift */,
+			);
+			path = Trade;
 			sourceTree = "<group>";
 		};
 		C154CA172D97D5F8006923BD /* Utils */ = {
@@ -1178,6 +1225,7 @@
 				C18EED572D55FE610038BBF7 /* TradeAskView.xib in Resources */,
 				3128610F2DFF125A00541A6A /* PrivacyInfo.xcprivacy in Resources */,
 				C18650EB2E865A17009F3E13 /* SUIT-Medium.otf in Resources */,
+				C1CCE8652EDEDC9B002D5DF9 /* LeaderBoardViewController.xib in Resources */,
 				C18650EC2E865A17009F3E13 /* SUIT-Bold.otf in Resources */,
 				C18650ED2E865A17009F3E13 /* SUIT-Regular.otf in Resources */,
 				C18650EE2E865A17009F3E13 /* SUIT-Thin.otf in Resources */,
@@ -1266,6 +1314,8 @@
 				3133E2702C3F7098000D4B1A /* MainUseCase.swift in Sources */,
 				C17BB4182E2F27A400BDAA0F /* MobitBaseViewController.swift in Sources */,
 				99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */,
+				C1CCE8662EDEDC9B002D5DF9 /* LeaderBoardViewController.swift in Sources */,
+				C19818DF2EDFF19C0044A398 /* LeaderBoardCoordinator.swift in Sources */,
 				C1246B632ED979D400B24D3D /* ViewControllerExtension.swift in Sources */,
 				C19ED6E92DE31648001ACCF9 /* TradeInformationView.swift in Sources */,
 				31D644482C7257F900C7F96D /* CryptoDetailCoordinator.swift in Sources */,
@@ -1277,9 +1327,11 @@
 				C154CA192D97D63D006923BD /* MarketDataServiceUtil.swift in Sources */,
 				C19F652A2EB1EEE200CE1A7E /* NetworkMonitor.swift in Sources */,
 				C1CD3A622E28C3CD0049699B /* MobitCommunityViewController.swift in Sources */,
+				C13B29F62EE0188C00391683 /* Candle+MinuteResponseModel.swift in Sources */,
 				C16FAE6A2E38A4C6003C5AD1 /* UserPNLHistoryModel.swift in Sources */,
 				31E208102C46C2FE000BFEBC /* InvestmentCoordinator.swift in Sources */,
 				31B742102D5B939000706340 /* TradeHistoryTableViewCell.swift in Sources */,
+				C13B29F42EE0173100391683 /* Candle+MinuteResponseDTO.swift in Sources */,
 				C18A84F92E2E1C6D00E49070 /* MobitConstants.swift in Sources */,
 				C17424C62D460478009861CC /* MobitUserInformation.swift in Sources */,
 				3133E2662C3F6A44000D4B1A /* BaseCoordinator.swift in Sources */,
@@ -1303,7 +1355,6 @@
 				C18EED552D55FE4D0038BBF7 /* TradeAskView.swift in Sources */,
 				31B741EF2D53A37E00706340 /* ViewRule.swift in Sources */,
 				C19F652C2EB1F2E800CE1A7E /* NetworkLostView.swift in Sources */,
-				99C20AAE2C4F63E4009276E7 /* WebSocketManager.swift in Sources */,
 				C176814A2E9CDAAB00CA825E /* MobitBottomSheetViewController.swift in Sources */,
 				31B741EC2D524F7000706340 /* TradeViewController.swift in Sources */,
 				C191ECCE2DA79A6700BBA5EB /* CustomWindow.swift in Sources */,
@@ -1322,6 +1373,7 @@
 				3133E2682C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift in Sources */,
 				3128610A2DFE7FFC00541A6A /* MobitTabBarViewController.swift in Sources */,
 				C1CD3A652E28C8CE0049699B /* MobitCommunityCoordinator.swift in Sources */,
+				C13B29F22EE0149E00391683 /* TradeNetworkService.swift in Sources */,
 				C1801A192ED9404600281695 /* TradeAverageCalcView.swift in Sources */,
 				31F33FD32DDA1D4C003D533A /* MobitAlertViewController.swift in Sources */,
 				C19F77972E41A2EA00863159 /* PNLShareView.swift in Sources */,

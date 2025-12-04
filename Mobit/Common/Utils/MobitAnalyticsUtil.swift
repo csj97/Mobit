@@ -122,6 +122,7 @@ enum MobitAnalyticsClickEventType: Int, MobitAnalyticsEventRule {
   case more_notice
   case more_init_data
   case more_community
+  case more_leaderboard
   
   var location: String {
 	switch self {
@@ -144,7 +145,8 @@ enum MobitAnalyticsClickEventType: Int, MobitAnalyticsEventRule {
 	case .more_charge,
 		.more_notice,
 		.more_init_data,
-		.more_community:
+		.more_community,
+		.more_leaderboard:
 	  return "더보기_화면"
 	}
   }
@@ -170,7 +172,8 @@ enum MobitAnalyticsClickEventType: Int, MobitAnalyticsEventRule {
 	case .more_charge,
 		.more_notice,
 		.more_init_data,
-		.more_community:
+		.more_community,
+		.more_leaderboard:
 	  return "더보기_탭"
 	}
   }
@@ -207,6 +210,8 @@ enum MobitAnalyticsClickEventType: Int, MobitAnalyticsEventRule {
 	  return "더보기_초기화_버튼_클릭"
 	case .more_community:
 	  return "더보기_커뮤니티_버튼_클릭"
+	case .more_leaderboard:
+	  return "바이낸스_리더보드_버튼_클릭"
 	}
   }
 }
