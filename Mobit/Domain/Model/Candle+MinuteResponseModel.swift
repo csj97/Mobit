@@ -7,7 +7,8 @@
 
 import Foundation
 
-struct MinuteResponseModel: Codable {
+struct MinuteResponseModel {
+  let identifier: UUID = UUID()
   let market: String
   let candle_date_time_utc: String
   let candle_date_time_kst: String

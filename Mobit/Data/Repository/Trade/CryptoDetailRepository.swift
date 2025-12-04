@@ -57,7 +57,7 @@ class CryptoDetailRepository: CryptoDetailRepositoryProtocol {
   /// to : 조회 기간의 종료 시작 (ex. 2025-06-24T13:56:53+09:00)
   /// count : 조회할 캔들의 개수
   func getCandleListMinutes(market: String, unit: Int32, to: String?, count: Int?) -> Observable<[MinuteResponseModel]> {
-	let decodeTarget = [MinuteResponseModel].self
+	let decodeTarget = [MinuteResponseModelDTO].self
 	
 	return Observable.create { observer in
 	  let disposable = self.tradeProvider.rx.request(
@@ -72,14 +72,14 @@ class CryptoDetailRepository: CryptoDetailRepositoryProtocol {
 		case .success(let response):
 		  switch response.statusCode {
 		  case 200..<300:
-			guard let candleMinuteResponse = try? JSONDecoder().decode(
+			guard let candleMinuteResponseDTO = try? JSONDecoder().decode(
 			  decodeTarget,
 			  from: response.data
 			) else {
 			  observer.onError(ErrorType.dataMappingError)
 			  return
 			}
-			observer.onNext(candleMinuteResponse)
+			observer.onNext(candleMinuteResponseDTO.toDomainList())
 			observer.onCompleted()
 		  case 400..<500:
 			observer.onError(ErrorType.badRequest)
