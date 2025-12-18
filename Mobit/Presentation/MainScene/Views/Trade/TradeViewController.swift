@@ -121,6 +121,10 @@ class TradeViewController: MobitBaseViewController {
   
   func setUI() {
 	setFavoriteButton()
+	
+	self.miniChartContainerView.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.3).cgColor
+	self.miniChartContainerView.layer.borderWidth = 0.5
+	
 	orderView = TradeOrderView.instanceFromNib(
 	  reactor: self.reactor
 	) { [weak self] orderResult in
@@ -229,11 +233,6 @@ class TradeViewController: MobitBaseViewController {
 		  let changePrice = selectCrypto.changePrice else { return }
 	
 	self.cryptoMarketName.text = "\(selectCrypto.cryptoName)(\(selectCrypto.market))"
-//	if let cryptoName = selectCrypto.cryptoName {
-//	  self.cryptoMarketName.text = "\(cryptoName)(\(selectCrypto.market))"
-//	} else {
-//	  self.cryptoMarketName.text = "\(selectCrypto.market)"
-//	}
 	
 	if tradePrice < 1 {
 	  self.cryptoPrice.text = self.formatTradePrice(tradePrice)
@@ -254,9 +253,6 @@ class TradeViewController: MobitBaseViewController {
 		from: NSNumber(value: changePrice)
 	  )
 	}
-	
-	let currency = crypto?.market.components(separatedBy: "/").first
-//	self.cryptoCountCurrency.text = currency
 	
 	switch selectCrypto.change {
 	case "RISE":
@@ -489,15 +485,7 @@ extension TradeViewController {
   /// 우상단 미니 차트뷰 생성
   func makeMiniChartView(minuteCandleList: [MinuteResponseModel]) {
 	let candleEntries = self.makeCandleEntries(from: minuteCandleList)
-	
-	guard let tradePrice = self.reactor.selectCrypto.tradePrice,
-		  let startPrice = candleEntries.first?.close,
-		  let endPrice = candleEntries.last?.close else { return }
-	
-	// 시작 캔들이 현재 가격보다 높으면 상승
-	let isPlus = tradePrice < startPrice
-	
-	let miniChartView = MiniChartView(candleEntries: candleEntries, isPlus: isPlus)
+	let miniChartView = MiniChartView(candleEntries: candleEntries)
 	
 	// UIHostingController를 사용하면, SwiftUI가 자신의 사이즈를 스스로 계산하려고 함.
 	let hosting = UIHostingController(rootView: miniChartView)
@@ -507,7 +495,7 @@ extension TradeViewController {
 	self.miniChartContainerView.addSubview(hosting.view)
 	
 	hosting.view.snp.makeConstraints { make in
-	  make.top.bottom.leading.trailing.equalToSuperview()
+	  make.top.bottom.equalToSuperview().inset(5)
 	}
 	hosting.didMove(toParent: self)
   }
