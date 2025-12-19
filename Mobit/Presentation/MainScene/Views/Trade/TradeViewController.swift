@@ -75,28 +75,13 @@ class TradeViewController: MobitBaseViewController {
 	  .onNext(.connectTickerSocket)
 	self.reactor.action
 	  .onNext(.connectOrderBookSocket)
-	
-	let now = Date()
-
-	let formatter = ISO8601DateFormatter()
-	formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-
-	let toString = formatter.string(from: now)
-	
-	// 10분봉 144개 > 23시간 미니차트
-	self.reactor.action
-	  .onNext(.getCandleListMinutes(
-		market: self.reactor.selectCrypto.market.marketForCandleRequest,
-		unit: 10,
-		to: toString,
-		count: 144
-	  ))
   }
   
   override func viewDidLoad() {
 	super.viewDidLoad()
 	setUI()
 	setData()
+	setChartData()
 	loadBannerADView()
 	
 	self.bind(reactor: self.reactor)
@@ -363,6 +348,33 @@ class TradeViewController: MobitBaseViewController {
   }
   
   
+  // MARK: - Charts
+  func setChartData() {
+	let now = Date()
+
+	let formatter = ISO8601DateFormatter()
+	formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+	let toString = formatter.string(from: now)
+	
+	// 10분봉 144개 > 24시간 미니차트
+	self.reactor.action
+	  .onNext(.getCandleListMinutes(
+		market: self.reactor.selectCrypto.market.marketForCandleRequest,
+		unit: 10,
+		to: toString,
+		count: 144
+	  ))
+	
+	self.reactor.action
+	  .onNext(.getCandleListDays(
+		market: self.reactor.selectCrypto.market.marketForCandleRequest,
+		to: toString,
+		count: 50,
+		convertingPriceUnit: nil
+	  ))
+  }
+  
   // MARK: - Button Actions
   @IBAction func tapOnFavoriteButton(_ sender: UIButton) {
 	let isFavorite = UserDataManager.userFavoriteList.contains(
@@ -449,6 +461,15 @@ extension TradeViewController {
 		guard let minuteCandleList = minuteCandleList else { return }
 		
 		self.makeMiniChartView(minuteCandleList: minuteCandleList)
+	  })
+	  .disposed(by: self.disposeBag)
+	
+	reactor.state.map { $0.candleDayResponse }
+	  .observe(on: MainScheduler.instance)
+	  .subscribe(onNext: { [weak self] dayCandleList in
+		guard let self else { return }
+		guard let dayCandleList = dayCandleList else { return }
+		print("day candle response")
 	  })
 	  .disposed(by: self.disposeBag)
   }

@@ -139,6 +139,9 @@
 		C17EAE382E374515006ACA44 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17EAE372E374515006ACA44 /* Log.swift */; };
 		C1801A192ED9404600281695 /* TradeAverageCalcView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1801A182ED9404600281695 /* TradeAverageCalcView.swift */; };
 		C1801A1B2ED9405300281695 /* TradeAverageCalcView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1801A1A2ED9405300281695 /* TradeAverageCalcView.xib */; };
+		C182B6A52EF5257C0090CA34 /* MainChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C182B6A42EF5257C0090CA34 /* MainChartView.swift */; };
+		C182B6A72EF5285A0090CA34 /* Candle+DayResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = C182B6A62EF5285A0090CA34 /* Candle+DayResponseDTO.swift */; };
+		C182B6A92EF528910090CA34 /* Candle+DayResponseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C182B6A82EF528910090CA34 /* Candle+DayResponseModel.swift */; };
 		C1852D032E67E05200A989B4 /* AppDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1852D022E67E05200A989B4 /* AppDataManager.swift */; };
 		C18650E12E864B71009F3E13 /* PartialSansKR-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E02E864B71009F3E13 /* PartialSansKR-Regular.otf */; };
 		C18650EB2E865A17009F3E13 /* SUIT-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E72E865A17009F3E13 /* SUIT-Medium.otf */; };
@@ -351,6 +354,9 @@
 		C17EAE372E374515006ACA44 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		C1801A182ED9404600281695 /* TradeAverageCalcView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeAverageCalcView.swift; sourceTree = "<group>"; };
 		C1801A1A2ED9405300281695 /* TradeAverageCalcView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeAverageCalcView.xib; sourceTree = "<group>"; };
+		C182B6A42EF5257C0090CA34 /* MainChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainChartView.swift; sourceTree = "<group>"; };
+		C182B6A62EF5285A0090CA34 /* Candle+DayResponseDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Candle+DayResponseDTO.swift"; sourceTree = "<group>"; };
+		C182B6A82EF528910090CA34 /* Candle+DayResponseModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Candle+DayResponseModel.swift"; sourceTree = "<group>"; };
 		C1852D022E67E05200A989B4 /* AppDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataManager.swift; sourceTree = "<group>"; };
 		C18650E02E864B71009F3E13 /* PartialSansKR-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "PartialSansKR-Regular.otf"; sourceTree = "<group>"; };
 		C18650E22E865A17009F3E13 /* SUIT-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SUIT-Bold.otf"; sourceTree = "<group>"; };
@@ -662,6 +668,7 @@
 				31B7420E2D5B939000706340 /* TradeHistoryTableViewCell.xib */,
 				367271B02C7B305500F9D86E /* OrderBookCell.swift */,
 				C1A015092E49B0DD00B7A7C6 /* MiniChartView.swift */,
+				C182B6A42EF5257C0090CA34 /* MainChartView.swift */,
 			);
 			path = Trade;
 			sourceTree = "<group>";
@@ -881,6 +888,7 @@
 				C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */,
 				C16FAE692E38A4C6003C5AD1 /* UserPNLHistoryModel.swift */,
 				C13B29F52EE0188C00391683 /* Candle+MinuteResponseModel.swift */,
+				C182B6A82EF528910090CA34 /* Candle+DayResponseModel.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -906,6 +914,7 @@
 			isa = PBXGroup;
 			children = (
 				C13B29F32EE0173100391683 /* Candle+MinuteResponseDTO.swift */,
+				C182B6A62EF5285A0090CA34 /* Candle+DayResponseDTO.swift */,
 			);
 			path = DataMapping;
 			sourceTree = "<group>";
@@ -1316,6 +1325,7 @@
 				99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */,
 				C1CCE8662EDEDC9B002D5DF9 /* LeaderBoardViewController.swift in Sources */,
 				C19818DF2EDFF19C0044A398 /* LeaderBoardCoordinator.swift in Sources */,
+				C182B6A92EF528910090CA34 /* Candle+DayResponseModel.swift in Sources */,
 				C1246B632ED979D400B24D3D /* ViewControllerExtension.swift in Sources */,
 				C19ED6E92DE31648001ACCF9 /* TradeInformationView.swift in Sources */,
 				31D644482C7257F900C7F96D /* CryptoDetailCoordinator.swift in Sources */,
@@ -1342,6 +1352,7 @@
 				31B741F52D53AA6C00706340 /* TradeOrderView.swift in Sources */,
 				C1B8F3C12E2783EA00C46734 /* MobitAnalyticsUtil.swift in Sources */,
 				C17E08352D2A64EE0029A8D0 /* ColorExtension.swift in Sources */,
+				C182B6A52EF5257C0090CA34 /* MainChartView.swift in Sources */,
 				31B742012D5A2AC400706340 /* ButtonExtension.swift in Sources */,
 				C17E8E272E1F60D50082E7DC /* FirebaseCMCResponse.swift in Sources */,
 				C19ED6E72DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift in Sources */,
@@ -1358,6 +1369,7 @@
 				C176814A2E9CDAAB00CA825E /* MobitBottomSheetViewController.swift in Sources */,
 				31B741EC2D524F7000706340 /* TradeViewController.swift in Sources */,
 				C191ECCE2DA79A6700BBA5EB /* CustomWindow.swift in Sources */,
+				C182B6A72EF5285A0090CA34 /* Candle+DayResponseDTO.swift in Sources */,
 				99C20AAC2C4F458C009276E7 /* CryptoSocketTickerDTO.swift in Sources */,
 				C17CF49C2DA4DAE900CDF76D /* InvestmentViewController.swift in Sources */,
 				31D6444D2C72590C00C7F96D /* CryptoDetailUseCase.swift in Sources */,
