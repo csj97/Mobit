@@ -7,6 +7,7 @@
 
 import UIKit
 import WebKit
+import SwiftUI
 
 class TradeChartView: UIView, WKScriptMessageHandler {
   
@@ -18,6 +19,7 @@ class TradeChartView: UIView, WKScriptMessageHandler {
   var symbol: String? = nil
   var html: String? = nil
   var javascriptBridgeInterfaceName = "MobitTradingViewChart"
+  // private var hostingController: UIHostingController<MiniChartView>?
   
   let buttonOffImg: UIImage = UIImage(named: "button_check_off")!
   let buttonOnImg: UIImage = UIImage(named: "button_check_on")!
@@ -98,19 +100,24 @@ class TradeChartView: UIView, WKScriptMessageHandler {
 //		self.webViewBridgeAction?.action(bridge: bridge)
 	}
   }
-    @IBAction func tapOnTradingViewChartButton(_ sender: UIButton) {
-	  self.tradingChartButtonImg.image = buttonOnImg
-	  self.mobitChartButtonImg.image = buttonOffImg
-	  self.webView.isHidden = false
-	  self.mobitChartContainerView.isHidden = true
-    }
-    
-    @IBAction func tapOnMobitChartButton(_ sender: UIButton) {
-	  self.tradingChartButtonImg.image = buttonOffImg
-	  self.mobitChartButtonImg.image = buttonOnImg
-	  self.webView.isHidden = true
-	  self.mobitChartContainerView.isHidden = false
-    }
+  
+  func updateChartData(candleList: [any CandleModel]) {
+	self.makeMainChartView(candleList: candleList)
+  }
+  
+  @IBAction func tapOnTradingViewChartButton(_ sender: UIButton) {
+	self.tradingChartButtonImg.image = buttonOnImg
+	self.mobitChartButtonImg.image = buttonOffImg
+	self.webView.isHidden = false
+	self.mobitChartContainerView.isHidden = true
+  }
+  
+  @IBAction func tapOnMobitChartButton(_ sender: UIButton) {
+	self.tradingChartButtonImg.image = buttonOffImg
+	self.mobitChartButtonImg.image = buttonOnImg
+	self.webView.isHidden = true
+	self.mobitChartContainerView.isHidden = false
+  }
 }
 
 // MARK: - WKNavigationDelegate
@@ -161,5 +168,28 @@ extension TradeChartView: WKUIDelegate {
 extension TradeChartView: UIScrollViewDelegate {
   func scrollViewWillBeginZooming(_ scrollView: UIScrollView, with view: UIView?) {
 	scrollView.pinchGestureRecognizer?.isEnabled = false
+  }
+}
+
+
+// MARK: - Make Chart
+extension TradeChartView {
+  func makeMainChartView(candleList: [any CandleModel]) {
+	let mainChartView = MainChartView(
+	  candleEntries: candleList
+	) { oldestTimestamp in
+	  print("oldestTimestamp: \(oldestTimestamp)")
+	}
+	
+	let hosting = UIHostingController(rootView: mainChartView)
+	
+	self.addSubview(hosting.view)
+	
+	hosting.view.translatesAutoresizingMaskIntoConstraints = false
+	self.mobitChartContainerView.addSubview(hosting.view)
+	
+	hosting.view.snp.makeConstraints { make in
+	  make.edges.equalToSuperview()
+	}
   }
 }

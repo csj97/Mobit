@@ -137,6 +137,7 @@
 		C17E8E252E1F5EED0082E7DC /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = C17E8E242E1F5EED0082E7DC /* FirebaseDatabase */; };
 		C17E8E272E1F60D50082E7DC /* FirebaseCMCResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */; };
 		C17EAE382E374515006ACA44 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17EAE372E374515006ACA44 /* Log.swift */; };
+		C17F7BD72EF90E30003BD693 /* CandleProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17F7BD62EF90E30003BD693 /* CandleProtocol.swift */; };
 		C1801A192ED9404600281695 /* TradeAverageCalcView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1801A182ED9404600281695 /* TradeAverageCalcView.swift */; };
 		C1801A1B2ED9405300281695 /* TradeAverageCalcView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1801A1A2ED9405300281695 /* TradeAverageCalcView.xib */; };
 		C1852D032E67E05200A989B4 /* AppDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1852D022E67E05200A989B4 /* AppDataManager.swift */; };
@@ -349,6 +350,7 @@
 		C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtension.swift; sourceTree = "<group>"; };
 		C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseCMCResponse.swift; sourceTree = "<group>"; };
 		C17EAE372E374515006ACA44 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
+		C17F7BD62EF90E30003BD693 /* CandleProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandleProtocol.swift; sourceTree = "<group>"; };
 		C1801A182ED9404600281695 /* TradeAverageCalcView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeAverageCalcView.swift; sourceTree = "<group>"; };
 		C1801A1A2ED9405300281695 /* TradeAverageCalcView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TradeAverageCalcView.xib; sourceTree = "<group>"; };
 		C1852D022E67E05200A989B4 /* AppDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataManager.swift; sourceTree = "<group>"; };
@@ -594,6 +596,7 @@
 		3133E25D2C3F69FB000D4B1A /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				C17F7BD52EF90E1F003BD693 /* Protocols */,
 				36E7718D2D75958700739CDE /* CallbackResultTypes */,
 				3133E25E2C3F6A04000D4B1A /* Coordinator */,
 				31E208612C46D1E5000BFEBC /* Views */,
@@ -960,6 +963,14 @@
 			path = Reactors;
 			sourceTree = "<group>";
 		};
+		C17F7BD52EF90E1F003BD693 /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				C17F7BD62EF90E30003BD693 /* CandleProtocol.swift */,
+			);
+			path = Protocols;
+			sourceTree = "<group>";
+		};
 		C18D1B162ED81EFF00D10A2E /* NewsScene */ = {
 			isa = PBXGroup;
 			children = (
@@ -1301,6 +1312,7 @@
 				5FA880E32E1A3D0B00F22F9C /* NoticeForceUpdateViewController.swift in Sources */,
 				C17EAE382E374515006ACA44 /* Log.swift in Sources */,
 				C16FAE722E38B530003C5AD1 /* PNLTableViewCell.swift in Sources */,
+				C17F7BD72EF90E30003BD693 /* CandleProtocol.swift in Sources */,
 				C16FAE6E2E38B4B9003C5AD1 /* PNLViewController.swift in Sources */,
 				C1DF71172E16407E002E89E1 /* MainCryptoTableViewCell.swift in Sources */,
 				C18D1B1B2ED81F5900D10A2E /* NewsCoordinator.swift in Sources */,

@@ -62,6 +62,7 @@ extension TradeReactor {
     case setOrderBookInfo(obTicker: Orderbook)
 	case setCryptoInformation(cryptoQuoteResponse: CryptoQuoteResponse)
 	case setCandleListMinutes(minuteResponseModelList: [MinuteResponseModel])
+	case setCandleList(candleResponseModelList: [any CandleModel])
 	case setSelectedWholeTab(tab: SelectedWholeTab)
 	case setUserCrypto([CryptoTransactionDataModel]?)
   }
@@ -71,6 +72,7 @@ extension TradeReactor {
     var obTicker: Orderbook?
 	var cryptoQuotesInfo: CryptoQuoteResponse? = nil
 	var candleMinuteResponse: [MinuteResponseModel]? = nil
+	var candleResponse: [any CandleModel]? = nil
 	var selectedWholeTab: SelectedWholeTab = .trade
 	var cryptoTransactionDatas: [CryptoTransactionDataModel] = []
   }
@@ -112,6 +114,8 @@ extension TradeReactor {
 	  newState.cryptoQuotesInfo = cryptoQuotesResponse
 	case .setCandleListMinutes(let minuteResponseModelList):
 	  newState.candleMinuteResponse = minuteResponseModelList
+	case .setCandleList(let dayResponseModelList):
+	  newState.candleResponse = dayResponseModelList
 	case .setSelectedWholeTab(let tab):
 	  newState.selectedWholeTab = tab
 	case .setUserCrypto(let cryptoTransactionDatas):
@@ -243,6 +247,18 @@ extension TradeReactor {
 	  .map { minuteResponseModelList in
 		return .setCandleListMinutes(minuteResponseModelList: minuteResponseModelList)
 	  }
+  }
+  
+  private func getCandleListDays(market: String, to: String?, count: Int?, convertingPriceUnit: String?) -> Observable<TradeMutation> {
+	return self.cryptoDetailUseCase.getCandleDays(
+	  market: market,
+	  to: to,
+	  count: count,
+	  convertingPriceUnit: convertingPriceUnit
+	)
+	.map { dayResponseModelList in
+	  return .setCandleList(candleResponseModelList: dayResponseModelList)
+	}
   }
   
   private func setSelectedWholeTab(tab: SelectedWholeTab) -> Observable<TradeMutation> {

@@ -106,6 +106,7 @@ class TradeViewController: MobitBaseViewController {
 	super.viewWillDisappear(animated)
 	self.delegate?.mainCoordinatorDidRequestShowTabBar()
   }
+  
   /// 앱 상태가 백그라운드에서 Active 상태로 전환 되면 택시 상태를 조회하여 복구
   @objc func viewDidBecomeActive() {
 	// print("Mobit Main - viewDidBecomeActive")
@@ -362,6 +363,32 @@ class TradeViewController: MobitBaseViewController {
 	return String(format: "%.\(precision)f", price)
   }
   
+  // MARK: - Charts
+  func setChartData() {
+	let now = Date()
+
+	let formatter = ISO8601DateFormatter()
+	formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+	let toString = formatter.string(from: now)
+	
+	// 10분봉 144개 > 24시간 미니차트
+	self.reactor.action
+	  .onNext(.getCandleListMinutes(
+		market: self.reactor.selectCrypto.market.marketForCandleRequest,
+		unit: 10,
+		to: toString,
+		count: 144
+	  ))
+	
+	self.reactor.action
+	  .onNext(.getCandleListDays(
+		market: self.reactor.selectCrypto.market.marketForCandleRequest,
+		to: toString,
+		count: 114,
+		convertingPriceUnit: nil
+	  ))
+  }
   
   // MARK: - Button Actions
   @IBAction func tapOnFavoriteButton(_ sender: UIButton) {
@@ -443,12 +470,27 @@ extension TradeViewController {
 	  .disposed(by: self.disposeBag)
 	
 	reactor.state.map { $0.candleMinuteResponse }
+	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] minuteCandleList in
 		guard let self else { return }
 		guard let minuteCandleList = minuteCandleList else { return }
-		
+		print("minute candle response")
 		self.makeMiniChartView(minuteCandleList: minuteCandleList)
+	  })
+	  .disposed(by: self.disposeBag)
+
+	reactor.state.map { $0.candleResponse }
+	  .distinctUntilChanged{ prev, curr in
+		prev?.last?.timestamp == curr?.last?.timestamp
+	  }
+	  .observe(on: MainScheduler.instance)
+	  .subscribe(onNext: { [weak self] candleList in
+		guard let self else { return }
+		guard let candleList = candleList else { return }
+		print("candle response")
+		
+		self.chartView?.updateChartData(candleList: candleList)
 	  })
 	  .disposed(by: self.disposeBag)
   }
