@@ -61,7 +61,7 @@ class CryptoDetailRepository: CryptoDetailRepositoryProtocol {
 	
 	return Observable.create { observer in
 	  let disposable = self.tradeProvider.rx.request(
-		.getCandleList(
+		.getCandleListMinutes(
 		  market: market,
 		  unit: unit,
 		  to: to,
@@ -80,6 +80,51 @@ class CryptoDetailRepository: CryptoDetailRepositoryProtocol {
 			  return
 			}
 			observer.onNext(candleMinuteResponseDTO.toDomainList())
+			observer.onCompleted()
+		  case 400..<500:
+			observer.onError(ErrorType.badRequest)
+		  default:
+			observer.onError(ErrorType.unknownError)
+		  }
+		case .failure(let error):
+		  Log.error(error.localizedDescription)
+		}
+	  }
+	  return Disposables.create {
+		disposable.disposed(by: self.disposeBag)
+	  }
+	}
+  }
+  
+  func getCandleListDays(
+  market: String,
+  to: String?,
+  count: Int?,
+  convertingPriceUnit: String?
+  ) -> Observable<[DayResponseModel]> {
+	let decodeTarget = [DayResponseModelDTO].self
+	
+	return Observable.create { observer in
+	  let disposable = self.tradeProvider.rx.request(
+		.getCandleListDays(
+		  market: market,
+		  to: to,
+		  count: count,
+		  convertingPriceUnit: convertingPriceUnit
+		)
+	  ).subscribe { event in
+		switch event {
+		case .success(let response):
+		  switch response.statusCode {
+		  case 200..<300:
+			guard let candleDayResponseDTO = try? JSONDecoder().decode(
+			  decodeTarget,
+			  from: response.data
+			) else {
+			  observer.onError(ErrorType.dataMappingError)
+			  return
+			}
+			observer.onNext(candleDayResponseDTO.toDomainList())
 			observer.onCompleted()
 		  case 400..<500:
 			observer.onError(ErrorType.badRequest)

@@ -53,6 +53,7 @@ extension TradeReactor {
     case connectOrderBookSocket
 	case getCryptoInformation
 	case getCandleListMinutes(market: String, unit: Int32 = 60, to: String?, count: Int?)
+	case getCandleListDays(market: String, to: String?, count: Int?, convertingPriceUnit: String?)
 	case setSelectedWholeTab(selectedWholeTab: SelectedWholeTab)
 	case loadTransactions
   }
@@ -93,6 +94,9 @@ extension TradeReactor {
 	  
 	case .getCandleListMinutes(let market, let unit, let to, let count):
 	  return self.getCandleListMinutes(market: market, unit: unit, to: to, count: count)
+	  
+	case .getCandleListDays(let market, let to, let count, let convertingPriceUnit):
+	  return self.getCandleListDays(market: market, to: to, count: count, convertingPriceUnit: convertingPriceUnit)
 	  
 	case .setSelectedWholeTab(let tab):
 	  return self.setSelectedWholeTab(tab: tab)

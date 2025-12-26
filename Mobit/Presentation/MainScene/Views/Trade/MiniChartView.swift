@@ -46,7 +46,9 @@ struct MiniChartView: View {
 	let basePrice = candleEntries.sorted { $0.date < $1.date }.first?.close ?? 0
 	
 	let range = max(maxPrice - minPrice, 0.0001)
+	// 기준 가격이 차트 전체 높이에서 어디쯤에 위치하고 있는지
 	let location = (basePrice - minPrice) / range
+	// location을 무조건 0~1 사이로 강제 보정해주는 역할
 	let clamped = min(max(location, 0), 1)
 	
 	return LinearGradient(
