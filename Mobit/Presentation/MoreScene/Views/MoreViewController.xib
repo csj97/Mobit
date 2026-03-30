@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="24128" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24063"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -24,10 +24,10 @@
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Of0-zp-4hq" userLabel="Navi Bar">
-                    <rect key="frame" x="0.0" y="0.0" width="393" height="115"/>
+                    <rect key="frame" x="0.0" y="0.0" width="393" height="174"/>
                     <subviews>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="더보기" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4EK-3N-Sdd">
-                            <rect key="frame" x="170.66666666666666" y="75" width="52" height="24"/>
+                            <rect key="frame" x="170.66666666666666" y="134" width="52" height="24"/>
                             <fontDescription key="fontDescription" type="boldSystem" pointSize="20"/>
                             <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             <nil key="highlightedColor"/>
@@ -40,13 +40,13 @@
                     </constraints>
                 </view>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="앱 버전 v.1.2.0" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="sRb-9r-BlS">
-                    <rect key="frame" x="20" y="701" width="353" height="17"/>
+                    <rect key="frame" x="20" y="667" width="353" height="17"/>
                     <fontDescription key="fontDescription" type="system" pointSize="14"/>
                     <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     <nil key="highlightedColor"/>
                 </label>
                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="QOk-eo-dGP">
-                    <rect key="frame" x="20" y="147" width="373" height="302"/>
+                    <rect key="frame" x="20" y="206" width="373" height="240"/>
                     <subviews>
                         <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="lHc-sd-TeI">
                             <rect key="frame" x="0.0" y="0.0" width="373" height="54"/>
@@ -166,37 +166,6 @@
                                     <state key="normal" image="chevron.right" catalog="system"/>
                                     <connections>
                                         <action selector="tapOnCommunity:" destination="-1" eventType="touchUpInside" id="wrF-ig-4A8"/>
-                                    </connections>
-                                </button>
-                            </subviews>
-                        </stackView>
-                        <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fEt-ry-GEg">
-                            <rect key="frame" x="0.0" y="248" width="373" height="54"/>
-                            <subviews>
-                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="leading" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="BjF-8L-8et">
-                                    <rect key="frame" x="0.0" y="0.0" width="319" height="54"/>
-                                    <constraints>
-                                        <constraint firstAttribute="height" constant="54" id="Iyd-ND-RcW"/>
-                                    </constraints>
-                                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="16"/>
-                                    <color key="tintColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                    <state key="normal" title="바이낸스 리더보드 (워뇨띠 ILLIT)"/>
-                                    <connections>
-                                        <action selector="tapOnLeaderBoard:" destination="-1" eventType="touchUpInside" id="GZX-GL-z4H"/>
-                                    </connections>
-                                </button>
-                                <button opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wpZ-9e-3Em">
-                                    <rect key="frame" x="319" y="0.0" width="54" height="54"/>
-                                    <constraints>
-                                        <constraint firstAttribute="width" secondItem="wpZ-9e-3Em" secondAttribute="height" multiplier="1:1" id="07f-vS-5oV"/>
-                                        <constraint firstAttribute="width" secondItem="wpZ-9e-3Em" secondAttribute="height" multiplier="1:1" id="e6I-Qi-mN0"/>
-                                    </constraints>
-                                    <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                    <state key="normal" image="chevron.right" catalog="system"/>
-                                    <connections>
-                                        <action selector="tapOnLeaderBoard:" destination="-1" eventType="touchUpInside" id="DSk-Sl-mV3"/>
                                     </connections>
                                 </button>
                             </subviews>

@@ -117,8 +117,7 @@ class TradeBidView: UIView, ViewRule {
 	}
 	
 	// 매수 버튼 누르는 시점 기준, total 금액으로 비교
-	let calcUtil = CalculationUtil(currentPrice: currentPrice, newHoldingQuantity: inputAmount)
-	let executedTotalPrice = calcUtil.calcBuyAmount()
+	let executedTotalPrice = currentPrice * inputAmount
 	
 	if executedTotalPrice > 0.0, userBalance >= executedTotalPrice {
 	  self.updateTransaction(marketName: marketName) {

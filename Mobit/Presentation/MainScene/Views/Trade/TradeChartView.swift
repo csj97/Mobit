@@ -42,9 +42,7 @@ class TradeChartView: UIView, WKScriptMessageHandler {
     }
     
     selfView.symbol = symbol
-	selfView.configureWebView()
     selfView.configure()
-	selfView.loadLocalHTML(symbol: symbol)
     
     return selfView
   }
@@ -54,10 +52,20 @@ class TradeChartView: UIView, WKScriptMessageHandler {
 	self.tradingChartButtonImg.image = buttonOnImg
 	self.mobitChartButtonImg.image = buttonOffImg
 	self.mobitChartContainerView.isHidden = true
-	self.webView.isHidden = false
+	
+	Task {
+	  guard let symbol = self.symbol else {
+		self.webView.isHidden = true
+		return
+	  }
+	  
+	  await self.configureWebView()
+	  await self.loadLocalHTML(symbol: symbol)
+	  self.webView.isHidden = false
+	}
   }
   
-  func configureWebView() {
+  func configureWebView() async {
     let config = WKWebViewConfiguration()
     config.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
 	config.userContentController.add(LeakAvoider(delegate: self), name: javascriptBridgeInterfaceName)
@@ -73,7 +81,7 @@ class TradeChartView: UIView, WKScriptMessageHandler {
     webView.uiDelegate = self
   }
   
-  private func loadLocalHTML(symbol: String) {
+  private func loadLocalHTML(symbol: String) async {
 	if let url = Bundle.main.url(forResource: "tradingview", withExtension: "html") {
 	  webView.loadFileURL(url, allowingReadAccessTo: url)
 	}

@@ -13,12 +13,15 @@ import ReactorKit
 import RxRelay
 
 enum SelectedTab: Int {
-  case krw, btc, favorite
+  case hold, krw, btc, favorite
 }
 
 class MainReactor: Reactor {
   private let mainUseCase: MainUseCase
   private let disposeBag = DisposeBag()
+  
+  // ReactorKit 외부에서 mutation을 주입하려면 이게 필요
+  private let mutationSubject = PublishSubject<MainMutation>()
   
   var socketManager: NewWebSocketManager? = nil
   
@@ -30,6 +33,11 @@ class MainReactor: Reactor {
   
   init(mainUseCase: MainUseCase) {
 	self.mainUseCase = mainUseCase
+	
+	UserDataManager.userCryptoListObservable
+	  .map { MainMutation.setUserCrypto($0) }
+	  .bind(to: mutationSubject)
+	  .disposed(by: disposeBag)
   }
 }
 
@@ -43,6 +51,7 @@ extension MainReactor {
 	case disconnectSocket
 	case setSortType(sortBy: CryptoSortType)
 	case setSelectedTab(tab: SelectedTab)
+	case loadUserCryptos
   }
   
   // MARK: Mutation
@@ -52,6 +61,7 @@ extension MainReactor {
 	case setTotalCryptoList(cryptoList: [CryptoCellInfo])  // 전체 코인 리스트 (KRW, BTC, USDT)
 	case setSortType(sortBy: CryptoSortType)
 	case setSelectedTab(tab: SelectedTab)
+	case setUserCrypto([CryptoTransactionDataModel]?)	// user cryptos
   }
   
   // MARK: State
@@ -65,6 +75,7 @@ extension MainReactor {
 	var sortBy: CryptoSortType = .normal
 	var selectedTab: SelectedTab = .krw
 	var preSelectedTab: SelectedTab = .krw
+	var userCryptos: [CryptoTransactionDataModel] = []
   }
 }
 
@@ -93,6 +104,9 @@ extension MainReactor {
 	  self.sendSocketMessageForCurrentTab(tab)
 	  
 	  return Observable.just(MainMutation.setSelectedTab(tab: tab))
+	  
+	case .loadUserCryptos:
+	  return .just(.setUserCrypto(UserDataManager.userCryptoList))
 	}
   }
   
@@ -111,6 +125,8 @@ extension MainReactor {
 	case .setSelectedTab(let tab):
 	  newState.preSelectedTab = currentState.selectedTab
 	  newState.selectedTab = tab
+	case .setUserCrypto(let userCryptos):
+	  newState.userCryptos = userCryptos ?? []
 	}
 	return newState
   }
@@ -264,6 +280,11 @@ extension MainReactor {
 	// 탭에 따른 필터링 마켓 목록
 	let marketsToSubscribe: [String] = {
 	  switch tab {
+	  case .hold:
+		return totalList
+		  .filter { $0.market.contains("/KRW") }
+		  .map { self.reverseTransformMarketForm(market: $0.market) }
+		
 	  case .krw:
 		return totalList
 		  .filter { $0.market.contains("/KRW") }

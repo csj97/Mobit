@@ -26,12 +26,13 @@ struct MiniChartView: View {
 	let range = max(maxPrice - minPrice, 0.0001)
 	let location = (basePrice - minPrice) / range
 	let clamped = min(max(location, 0), 1)
+	let upper = min(clamped + 0.0001, 1.0)
 	
 	return LinearGradient(
 	  gradient: Gradient(stops: [
 		.init(color: .blue.opacity(0.18), location: 0.0),
 		.init(color: .blue.opacity(0.18), location: clamped),
-		.init(color: .red.opacity(0.18), location: clamped + 0.0001),
+		.init(color: .red.opacity(0.18), location: upper),
 		.init(color: .red.opacity(0.18), location: 1.0)
 	  ]),
 	  startPoint: .bottom,
@@ -50,12 +51,13 @@ struct MiniChartView: View {
 	let location = (basePrice - minPrice) / range
 	// location을 무조건 0~1 사이로 강제 보정해주는 역할
 	let clamped = min(max(location, 0), 1)
+	let upper = min(clamped + 0.0001, 1.0)
 	
 	return LinearGradient(
 	  gradient: Gradient(stops: [
 		.init(color: .blue.opacity(0.65), location: 0.0),
 		.init(color: .blue.opacity(0.65), location: clamped),
-		.init(color: .red.opacity(0.65), location: clamped + 0.0001),
+		.init(color: .red.opacity(0.65), location: upper),
 		.init(color: .red.opacity(0.65), location: 1.0)
 	  ]),
 	  startPoint: .bottom,

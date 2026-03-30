@@ -117,12 +117,6 @@ class MoreViewController: MobitBaseViewController {
 	self.coordinator?.pushMobitCommunityViewController()
   }
   
-  /// 바이낸스 리더보드
-  @IBAction func tapOnLeaderBoard(_ sender: UIButton) {
-	MobitAnalyticsUtil.sendClickEvent(event: .more_leaderboard)
-	self.coordinator?.pushBinanceLeaderBoardViewController()
-  }
-  
   /// 현재 사용 중인 앱 버전
   func updateVersionLabel() {
 	let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"

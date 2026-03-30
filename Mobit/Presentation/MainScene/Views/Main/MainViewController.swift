@@ -63,13 +63,21 @@ class MainViewController: MobitBaseViewController {
 	$0.translatesAutoresizingMaskIntoConstraints = true
   }
   
+  let holdButton: UIButton = UIButton().then {
+	$0.setTitle("보유코인", for: .normal)
+	$0.titleLabel?.font = UIFont(name: "SUIT-SemiBold", size: 15)
+	$0.setTitleColor(.black, for: .normal)
+	$0.setTitleColor(.blue, for: .selected)
+	$0.tag = 0
+  }
+  
   let krwButton: UIButton = UIButton().then {
 	$0.setTitle("원화마켓", for: .normal)
 	$0.titleLabel?.font = UIFont(name: "SUIT-SemiBold", size: 15)
 	$0.setTitleColor(.black, for: .normal)
 	$0.setTitleColor(.blue, for: .selected)
 	$0.isSelected = true
-	$0.tag = 0
+	$0.tag = 1
   }
   
   let btcButton: UIButton = UIButton().then {
@@ -77,7 +85,7 @@ class MainViewController: MobitBaseViewController {
 	$0.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
 	$0.setTitleColor(.black, for: .normal)
 	$0.setTitleColor(.blue, for: .selected)
-	$0.tag = 1
+	$0.tag = 2
   }
   
   // 관심 버튼
@@ -86,7 +94,7 @@ class MainViewController: MobitBaseViewController {
 	$0.titleLabel?.font = UIFont(name: "SUIT-SemiBold", size: 15)
 	$0.setTitleColor(.black, for: .normal)
 	$0.setTitleColor(.blue, for: .selected)
-	$0.tag = 2
+	$0.tag = 3
   }
   
   // 현재가 기준 정렬 버튼
@@ -289,6 +297,9 @@ class MainViewController: MobitBaseViewController {
   }
   
   func setTabButton() {
+	self.holdButton.addTarget(
+	  self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside
+	)
 	self.krwButton.addTarget(
 	  self, action: #selector(tapOnTabButton(_:)), for: .touchUpInside
 	)
@@ -301,6 +312,7 @@ class MainViewController: MobitBaseViewController {
   }
   
   @objc private func tapOnTabButton(_ sender: UIButton) {
+	self.holdButton.isSelected = false
 	self.krwButton.isSelected = false
 	self.btcButton.isSelected = false
 	self.favoriteButton.isSelected = false
@@ -311,16 +323,22 @@ class MainViewController: MobitBaseViewController {
 	
 	switch sender.tag {
 	case 0:
-	  self.selectedTab = .krw
+	  self.reactor.action.onNext(.loadUserCryptos)
+	  self.selectedTab = .hold
 	  self.tableView.isHidden = false
 	  self.noFavoriteView.isHidden = true
 	  
 	case 1:
-	  self.selectedTab = .btc
+	  self.selectedTab = .krw
 	  self.tableView.isHidden = false
 	  self.noFavoriteView.isHidden = true
 	  
 	case 2:
+	  self.selectedTab = .btc
+	  self.tableView.isHidden = false
+	  self.noFavoriteView.isHidden = true
+	  
+	case 3:
 	  self.selectedTab = .favorite
 	  self.updateFavoriteUI()
 	  
@@ -356,10 +374,10 @@ class MainViewController: MobitBaseViewController {
 		
 		// KRW, BTC, 관심
 		flex.addItem().direction(.row).define { flex in
+		  flex.addItem(self.holdButton).width(25%)
 		  flex.addItem(self.krwButton).width(25%)
 		  flex.addItem(self.btcButton).width(25%)
 		  flex.addItem(self.favoriteButton).width(25%)
-		  flex.addItem(UIView()).width(25%)
 		}.height(40)
 		
 		flex.addItem(DividerLineView()).height(1)
@@ -437,6 +455,11 @@ extension MainViewController: View {
 	
 	// 1️⃣ 탭별 필터링
 	switch self.selectedTab {
+	case .hold:
+	  let userCryptos = self.reactor.currentState.userCryptos
+	  let holdingMarkets = userCryptos.map { $0.staticData.marketName }
+	  filteredList = filteredList.filter { holdingMarkets.contains($0.market) }
+	  
 	case .krw:
 	  filteredList = filteredList.filter { $0.market.contains("/KRW") }
 	  
@@ -625,6 +648,7 @@ extension MainViewController: SocketControllable {
 	guard self.reactor.socketManager?.isConnected == false else { return }
 	self.reactor.socketManager?.reconnectIfNeeded()
 	self.reactor.action.onNext(.loadCryptoList)
+	self.reactor.action.onNext(.loadUserCryptos)
   }
 }
 
