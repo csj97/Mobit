@@ -163,7 +163,7 @@ class MainViewController: MobitBaseViewController {
 	
 	self.checkNetworkStatus()
 	
-	// DiffableDataSource 사용을 위해 Hashable하게 데이터 모델이 수정됨에 따라 데이터 안정화를 위한 덮어쓰기
+	// DiffableDataSource 사용을 위해 Hashable하게 데이터 모델이 수정됨에 따라 데이터 안정화를 위한 덮어쓰기 (구버전 사용자 에러 방지)
 	let list = UserDataManager.userCryptoList
 	UserDataManager.userCryptoList = list
 	
@@ -641,7 +641,6 @@ extension MainViewController: SocketControllable {
   
   func pauseSocket() {
 	self.reactor.socketManager?.disconnect()
-	self.reactor.socketManager?.disconnect(manual: false)
   }
   
   func resumeSocket() {
