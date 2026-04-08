@@ -128,7 +128,6 @@ class TradeOrderView: UIView, ViewRule {
 	
 	self.segmentedControl.segments = ["매수", "매도", "거래내역"]
 	self.segmentedControl.onSegmentChanged = { index in
-	  self.investLiveView.isHidden = self.cryptoInvestData == nil
 	  switch index {
 	  case 0:
 		bidView.isHidden = false
@@ -141,16 +140,17 @@ class TradeOrderView: UIView, ViewRule {
 		askView.isHidden = false
 		historyView.isHidden = true
 		self.investLiveView.isHidden = self.cryptoInvestData == nil
-          case 2:
-            bidView.isHidden = true
-            askView.isHidden = true
-            historyView.isHidden = false
-            self.investLiveView.isHidden = true
-            historyView.updateHistory()
-            
-          default:
-            break
-          }
+		
+	  case 2:
+		bidView.isHidden = true
+		askView.isHidden = true
+		historyView.isHidden = false
+		self.investLiveView.isHidden = true
+		historyView.updateHistory()
+		
+	  default:
+		break
+	  }
 	  
 	  self.layoutIfNeeded()
 	  self.segmentedContainerStackView.layoutIfNeeded()
@@ -300,27 +300,28 @@ extension TradeOrderView {
 	reactor.state.map { $0.cryptoTransactionDatas }
 	  .compactMap { $0 }
 	  .distinctUntilChanged()
+	  .throttle(.milliseconds(350), scheduler: MainScheduler.instance)
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] cryptos in
 		guard let self else { return }
 		
 		// 거래 내역에선 업데이트 안하기 때문
-		guard self.segmentedControl.selectedIndex != 2 else {
+		if self.segmentedControl.selectedIndex == 2 {
 		  self.investLiveView.isHidden = true
-		  return
+		} else {
+		  guard let cryptoInvestData = cryptos.first(where: {
+			$0.staticData.marketName ==  reactor.selectCrypto.market
+		  }) else {
+			self.cryptoInvestData = nil
+			self.investLiveView.isHidden = true
+			return
+		  }
+		  
+		  self.investLiveView.isHidden = false
+		  self.setInvestLiveData(data: cryptoInvestData)
 		}
-		guard let cryptoInvestData = cryptos.first(where: {
-		  $0.staticData.marketName ==  reactor.selectCrypto.market
-		}) else {
-		  self.cryptoInvestData = nil
-		  self.investLiveView.isHidden = true
-		  return
-		}
-		
-		self.investLiveView.isHidden = false
-		self.setInvestLiveData(data: cryptoInvestData)
 	  })
-		  .disposed(by: self.disposeBag)
+	  .disposed(by: self.disposeBag)
   }
 
   /// orderbook data 렌더링 (

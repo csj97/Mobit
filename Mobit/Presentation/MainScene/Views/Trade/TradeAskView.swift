@@ -33,6 +33,7 @@ class TradeAskView: UIView, ViewRule {
   // 매도 금액
   var totalPrice: Double = 0.0
   var askCryptoIndex: Int? = nil
+  private var currentInvestData: CryptoTransactionDataModel? = nil
   
   deinit {
 	print("deinit : \(String(describing: type(of: self)))")
@@ -101,9 +102,7 @@ class TradeAskView: UIView, ViewRule {
   }
   
   func updateCryptoData() {
-	guard let crypto = UserDataManager.userCryptoList?
-	  .compactMap({ $0 })
-	  .first(where: { $0.staticData.marketName == self.reactor?.selectCrypto.market }),
+	guard let crypto = self.currentInvestData,
 		  let currentPrice = self.cryptoInfo?.tradePrice
 	else {
 	  // crypto를 찾지 못한 것은 이미 모두 매도했다는 의미로 간주
@@ -293,6 +292,18 @@ class TradeAskView: UIView, ViewRule {
 	  .subscribe(onNext: { [weak self] cellInfo in
 		guard let self = self else { return }
 		self.cryptoInfo = cellInfo
+	  })
+	  .disposed(by: self.disposeBag)
+	
+	reactor.state.map { $0.cryptoTransactionDatas }
+	  .distinctUntilChanged()
+	  .observe(on: MainScheduler.instance)
+	  .subscribe(onNext: { [weak self] cryptos in
+		guard let self = self else { return }
+		self.currentInvestData = cryptos.first(where: {
+		  $0.staticData.marketName == reactor.selectCrypto.market
+		})
+		self.updateCryptoData()
 	  })
 	  .disposed(by: self.disposeBag)
   }

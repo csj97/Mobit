@@ -53,6 +53,8 @@ class TradeViewController: MobitBaseViewController {
   var arrowColor: UIColor = .clear
   
   var cryptoData: [CryptoTransactionDataModel] = []
+  private var currentInvestData: CryptoTransactionDataModel? = nil
+  private var miniChartHostingController: UIHostingController<MiniChartView>? = nil
   
   init(reactor: TradeReactor) {
 	self.reactor = reactor
@@ -297,29 +299,35 @@ class TradeViewController: MobitBaseViewController {
 	marketName: String,
 	currentPrice: Double?
   ) {
-	guard let updateCryptoIndex = UserDataManager.userCryptoList?
-	  .firstIndex(where: { $0.staticData.marketName == marketName }),
-		  let currentPrice = currentPrice,
-		  let averageBuyPrice = UserDataManager.userCryptoList?[updateCryptoIndex].staticData.averageBuyPrice,
-		  let holdingQuantity = UserDataManager.userCryptoList?[updateCryptoIndex].staticData.holdingQuantity
-	else { return }
+	guard let currentPrice = currentPrice else { return }
+	guard var investData = self.currentInvestData,
+		  investData.staticData.marketName == marketName else {
+	  self.orderView?.cryptoInvestData = nil
+	  self.orderView?.investLiveView.isHidden = true
+	  return
+	}
 	
-	UserDataManager.userCryptoList?[updateCryptoIndex].dynamicData.profitRate = MarketDataServiceUtil.shared.fetchProfitRate(
-	  for: marketName,
-	  currentPrice: currentPrice,
-	  averageBuyPrice: averageBuyPrice
-	)
-	UserDataManager.userCryptoList?[updateCryptoIndex].dynamicData.evaluationPrice = MarketDataServiceUtil.shared.fetchEvalPrice(
-	  for: marketName,
-	  currentPrice: currentPrice,
-	  holdingQuantity: holdingQuantity
-	)
-	UserDataManager.userCryptoList?[updateCryptoIndex].dynamicData.evaluationProfitLoss = MarketDataServiceUtil.shared.fetchEvalProfitLoss(
-	  for: marketName,
-	  currentPrice: currentPrice,
-	  holdingQuantity: holdingQuantity,
-	  averageBuyPrice: averageBuyPrice
-	)
+	let averageBuyPrice = investData.staticData.averageBuyPrice
+	let holdingQuantity = investData.staticData.holdingQuantity
+	guard averageBuyPrice > 0, holdingQuantity >= 0 else { return }
+	
+	let profitRate = (((currentPrice - averageBuyPrice) / averageBuyPrice) * 100).formatDigits(digits: 2)
+	let evaluationPrice = (currentPrice * holdingQuantity).formatDigits(digits: 8)
+	let evaluationProfitLoss = (currentPrice - averageBuyPrice) * holdingQuantity
+	
+	investData.dynamicData.profitRate = profitRate
+	investData.dynamicData.evaluationPrice = evaluationPrice
+	investData.dynamicData.evaluationProfitLoss = evaluationProfitLoss
+	self.currentInvestData = investData
+	
+	guard let orderView = self.orderView else { return }
+	if orderView.segmentedControl.selectedIndex == 2 {
+	  orderView.investLiveView.isHidden = true
+	  return
+	}
+	
+	orderView.investLiveView.isHidden = false
+	orderView.setInvestLiveData(data: investData)
   }
   
   /// 하단 배너 광고 불러오기
@@ -442,12 +450,25 @@ extension TradeViewController {
 	  .disposed(by: self.disposeBag)
 	
 	reactor.state.map { $0.candleMinuteResponse }
+	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] minuteCandleList in
 		guard let self else { return }
 		guard let minuteCandleList = minuteCandleList else { return }
+		guard !minuteCandleList.isEmpty else { return }
 		
 		self.makeMiniChartView(minuteCandleList: minuteCandleList)
+	  })
+	  .disposed(by: self.disposeBag)
+
+	reactor.state.map { $0.cryptoTransactionDatas }
+	  .distinctUntilChanged()
+	  .observe(on: MainScheduler.instance)
+	  .subscribe(onNext: { [weak self] cryptos in
+		guard let self = self else { return }
+		self.currentInvestData = cryptos.first(where: {
+		  $0.staticData.marketName == reactor.selectCrypto.market
+		})
 	  })
 	  .disposed(by: self.disposeBag)
 	
@@ -479,8 +500,14 @@ extension TradeViewController {
 	let candleEntries = self.makeCandleEntries(from: minuteCandleList)
 	let miniChartView = MiniChartView(candleEntries: candleEntries)
 	
+	if let existingHosting = self.miniChartHostingController {
+	  existingHosting.rootView = miniChartView
+	  return
+	}
+	
 	// UIHostingController를 사용하면, SwiftUI가 자신의 사이즈를 스스로 계산하려고 함.
 	let hosting = UIHostingController(rootView: miniChartView)
+	self.miniChartHostingController = hosting
 	
 	self.addChild(hosting)
 	hosting.view.translatesAutoresizingMaskIntoConstraints = false

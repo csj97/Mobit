@@ -52,6 +52,7 @@ class TradeHistoryView: UIView, ViewRule {
   
   func setUI() {
     self.noHistoryView.isHidden = true
+	self.historyTableView.separatorStyle = .none
   }
   
   func setData() {

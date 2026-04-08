@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MinuteResponseModel {
+struct MinuteResponseModel: Equatable {
   let identifier: UUID = UUID()
   let market: String		// KRW-BTC
   let candle_date_time_utc: String	// 캔들 구간의 시작 시간 (UTC)
