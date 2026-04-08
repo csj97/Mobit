@@ -14,7 +14,7 @@ import GoogleMobileAds
 import SwiftUI
 
 struct OrderUnit: Hashable {
-  var identifier: UUID = UUID()
+  var identifier: String
   var type: OrderType
   var price: Double
   var size: Double
@@ -71,10 +71,7 @@ class TradeViewController: MobitBaseViewController {
   
   override func viewWillAppear(_ animated: Bool) {
 	super.viewWillAppear(animated)
-	self.reactor.action
-	  .onNext(.connectTickerSocket)
-	self.reactor.action
-	  .onNext(.connectOrderBookSocket)
+	self.reactor.action.onNext(.connectSockets)
   }
   
   override func viewDidLoad() {
@@ -393,17 +390,7 @@ class TradeViewController: MobitBaseViewController {
   
   @IBAction func tapOnNavigationBack(_ sender: UIButton) {
 	self.coordinator?.navigationController.popViewController(animated: true)
-	
-	guard let tickerSocketManager = reactor.tickerSocketManager,
-		  let orderbookSocketManager = reactor.orderBookSocketManager
-	else {
-	  reactor.tickerSocketManager = nil
-	  reactor.orderBookSocketManager = nil
-	  return
-	}
-	
-	tickerSocketManager.disconnect()
-	orderbookSocketManager.disconnect()
+    self.reactor.action.onNext(.disconnectSockets(userInitiated: true))
   }
   
   func showDefaultAlert(title: String, message: String) {
@@ -478,27 +465,11 @@ extension TradeViewController {
 // MARK: - WebSocket Pause & Resume
 extension TradeViewController: SocketControllable {
   func pauseSocket() {
-	guard let tickerSocketManager = self.reactor.tickerSocketManager,
-		  let orderBookSocketManager = self.reactor.orderBookSocketManager
-	else { return }
-	
-	tickerSocketManager.disconnect(manual: false)
-	orderBookSocketManager.disconnect(manual: false)
+    self.reactor.action.onNext(.pauseSocket)
   }
   
   func resumeSocket() {
-	guard let tickerSocketManager = self.reactor.tickerSocketManager,
-		  let orderBookSocketManager = self.reactor.orderBookSocketManager
-	else {
-	  self.reactor.action.onNext(.connectTickerSocket)
-	  self.reactor.action.onNext(.connectOrderBookSocket)
-	  return
-	}
-	
-	tickerSocketManager.reconnectIfNeeded()
-	orderBookSocketManager.reconnectIfNeeded()
-	self.reactor.action.onNext(.connectTickerSocket)
-	self.reactor.action.onNext(.connectOrderBookSocket)
+    self.reactor.action.onNext(.resumeSocket)
   }
 }
 

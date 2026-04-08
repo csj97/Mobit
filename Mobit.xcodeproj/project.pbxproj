@@ -49,7 +49,7 @@
 		31D6444D2C72590C00C7F96D /* CryptoDetailUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D6444C2C72590C00C7F96D /* CryptoDetailUseCase.swift */; };
 		31D6444F2C72595000C7F96D /* CryptoDetailRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D6444E2C72595000C7F96D /* CryptoDetailRepository.swift */; };
 		31DC41E02CD9196400F0FFF2 /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = 31DC41DF2CD9196400F0FFF2 /* Starscream */; };
-		31DC41E22CD9197700F0FFF2 /* NewWebSocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31DC41E12CD9197700F0FFF2 /* NewWebSocketManager.swift */; };
+		31DC41E22CD9197700F0FFF2 /* SocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31DC41E12CD9197700F0FFF2 /* SocketManager.swift */; };
 		31E208042C4677CB000BFEBC /* AppTabBarCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208032C4677CB000BFEBC /* AppTabBarCoordinator.swift */; };
 		31E208072C4678B9000BFEBC /* MainCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208062C4678B9000BFEBC /* MainCoordinator.swift */; };
 		31E208092C46BF6B000BFEBC /* MainTabBarCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208082C46BF6B000BFEBC /* MainTabBarCoordinator.swift */; };
@@ -279,7 +279,7 @@
 		31D644492C72587B00C7F96D /* TradeReactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeReactor.swift; sourceTree = "<group>"; };
 		31D6444C2C72590C00C7F96D /* CryptoDetailUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailUseCase.swift; sourceTree = "<group>"; };
 		31D6444E2C72595000C7F96D /* CryptoDetailRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoDetailRepository.swift; sourceTree = "<group>"; };
-		31DC41E12CD9197700F0FFF2 /* NewWebSocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewWebSocketManager.swift; sourceTree = "<group>"; };
+		31DC41E12CD9197700F0FFF2 /* SocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketManager.swift; sourceTree = "<group>"; };
 		31E208032C4677CB000BFEBC /* AppTabBarCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTabBarCoordinator.swift; sourceTree = "<group>"; };
 		31E208062C4678B9000BFEBC /* MainCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCoordinator.swift; sourceTree = "<group>"; };
 		31E208082C46BF6B000BFEBC /* MainTabBarCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabBarCoordinator.swift; sourceTree = "<group>"; };
@@ -896,7 +896,7 @@
 		C13B29EE2EE0146100391683 /* SoketManager */ = {
 			isa = PBXGroup;
 			children = (
-				31DC41E12CD9197700F0FFF2 /* NewWebSocketManager.swift */,
+				31DC41E12CD9197700F0FFF2 /* SocketManager.swift */,
 			);
 			path = SoketManager;
 			sourceTree = "<group>";
@@ -1374,7 +1374,7 @@
 				C17CF49C2DA4DAE900CDF76D /* InvestmentViewController.swift in Sources */,
 				31D6444D2C72590C00C7F96D /* CryptoDetailUseCase.swift in Sources */,
 				5FA880E62E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift in Sources */,
-				31DC41E22CD9197700F0FFF2 /* NewWebSocketManager.swift in Sources */,
+				31DC41E22CD9197700F0FFF2 /* SocketManager.swift in Sources */,
 				99C20A692C490326009276E7 /* MainNetworkService.swift in Sources */,
 				C190F29D2D65AD6A00895D9E /* CryptoTransactionDataModel.swift in Sources */,
 				C17DC0D22E2094DF00E35D3F /* FirebaseCMCResponseDTO.swift in Sources */,

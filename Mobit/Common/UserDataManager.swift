@@ -141,7 +141,9 @@ class UserDataManager: NSObject {
 	  if let encodedData = try? JSONEncoder().encode(newValue) {
 		defaults.set(encodedData, forKey: "user-crypto-list")
 	  }
-	  userCryptoListSubject.onNext(newValue)
+      DispatchQueue.main.async {
+        userCryptoListSubject.onNext(newValue)
+      }
 	}
   }
   
@@ -178,7 +180,9 @@ class UserDataManager: NSObject {
       let defaults = UserDefaults.standard
       if let encodedData = try? JSONEncoder().encode(newValue) {
         defaults.set(encodedData, forKey: "user-information")
-		self.userAvailableBalanceSubject.onNext(newValue?.userAvailableBalance)
+        DispatchQueue.main.async {
+		  self.userAvailableBalanceSubject.onNext(newValue?.userAvailableBalance)
+        }
       }
     }
   }

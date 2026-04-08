@@ -19,11 +19,11 @@ enum SelectedTab: Int {
 class MainReactor: Reactor {
   private let mainUseCase: MainUseCase
   private let disposeBag = DisposeBag()
+  private let tickerSocketService: TickerSocketServiceProtocol
   
   // ReactorKit 외부에서 mutation을 주입하려면 이게 필요
   private let mutationSubject = PublishSubject<MainMutation>()
-  
-  var socketManager: NewWebSocketManager? = nil
+  private(set) var isSocketConnected = false
   
   // 탭별 정렬 포지션을 **하나로 통합**
   private var sortedCryptoPosition: [String: Int] = [:]
@@ -31,13 +31,29 @@ class MainReactor: Reactor {
   let initialState: MainReactorState = MainReactorState()
   private var firebaseDB = Database.database().reference()
   
-  init(mainUseCase: MainUseCase) {
+  init(
+    mainUseCase: MainUseCase,
+    tickerSocketService: TickerSocketServiceProtocol = TickerSocketService()
+  ) {
 	self.mainUseCase = mainUseCase
+    self.tickerSocketService = tickerSocketService
 	
 	UserDataManager.userCryptoListObservable
+      .observe(on: MainScheduler.asyncInstance)
 	  .map { MainMutation.setUserCrypto($0) }
 	  .bind(to: mutationSubject)
 	  .disposed(by: disposeBag)
+
+    self.tickerSocketService.stream
+      .observe(on: MainScheduler.asyncInstance)
+      .map { [weak self] ticker -> MainMutation? in
+        guard let self = self else { return nil }
+        let updatedList = self.updateSingleCrypto(ticker: ticker)
+        return .setTotalCryptoList(cryptoList: updatedList)
+      }
+      .compactMap { $0 }
+      .bind(to: mutationSubject)
+      .disposed(by: disposeBag)
   }
 }
 
@@ -49,6 +65,8 @@ extension MainReactor {
 	case checkNewVersion
 	case loadCryptoList
 	case disconnectSocket
+    case pauseSocket
+    case resumeSocket
 	case setSortType(sortBy: CryptoSortType)
 	case setSelectedTab(tab: SelectedTab)
 	case loadUserCryptos
@@ -92,6 +110,12 @@ extension MainReactor {
 	  
 	case .disconnectSocket:
 	  return self.disconnectSocket()
+
+    case .pauseSocket:
+      return self.pauseSocket()
+
+    case .resumeSocket:
+      return self.resumeSocket()
 	  
 	case .setSortType(let sortBy):
 	  return self.setSortType(sortBy: sortBy)
@@ -112,6 +136,7 @@ extension MainReactor {
   
   func reduce(state: MainReactorState, mutation: MainMutation) -> MainReactorState {
 	var newState = state
+    self.isSocketConnected = tickerSocketService.isConnected
 	switch mutation {
 	case .setVersionDifferent(let isDiffer):
 	  newState.isVersionDifferent = isDiffer
@@ -142,8 +167,7 @@ extension MainReactor {
 	  .flatMapLatest { [weak self] cryptoList -> Observable<MainMutation> in
 		guard let self = self else { return .empty() }
 		
-		// 소켓 연결 보장
-		self.ensureSocketConnected()
+		self.tickerSocketService.connect()
 		
 		// 전체 마켓 목록 (KRW + BTC)
 		let allMarkets = cryptoList.map { $0.market }
@@ -160,7 +184,7 @@ extension MainReactor {
   ) -> Observable<MainMutation> {
 	guard !markets.isEmpty else { return .empty() }
 	
-	return self.mainUseCase.loadCryptoTicker(markets: markets)
+		return self.mainUseCase.loadCryptoTicker(markets: markets)
 	  .flatMap { [weak self] cryptoTickerList -> Observable<[CryptoCellInfo]> in
 		guard let self = self else { return .just([]) }
 		
@@ -176,66 +200,16 @@ extension MainReactor {
 		  cellInfos: combinedCryptos
 		)
 	  }
-	  .flatMap { [weak self] sortedCellInfos -> Observable<MainMutation> in
-		guard let self = self else { return .empty() }
-		
-		// 정렬된 전체 리스트를 totalCryptoList에 저장
-		let setListMutation = Observable.just(
-		  MainMutation.setTotalCryptoList(cryptoList: sortedCellInfos)
-		)
-		
-		// 소켓 스트림 시작 (현재 탭의 코인만)
-		let socketStream = self.startSocketStream()
-		
-		return Observable.concat([setListMutation, socketStream])
+	  .map { [weak self] sortedCellInfos -> MainMutation in
+		guard let self = self else {
+          return MainMutation.setTotalCryptoList(cryptoList: sortedCellInfos)
+        }
+        self.sendSocketMessageForCurrentTab(
+          self.currentState.selectedTab,
+          totalList: sortedCellInfos
+        )
+		return MainMutation.setTotalCryptoList(cryptoList: sortedCellInfos)
 	  }
-  }
-  
-  /// 3️⃣ 소켓 스트림 시작 (**현재 탭의 코인만 구독**)
-  private func startSocketStream() -> Observable<MainMutation> {
-	return Observable.create { [weak self] observer in
-	  guard let self = self,
-			let socketManager = self.socketManager else {
-		observer.onCompleted()
-		return Disposables.create()
-	  }
-	  
-	  // 소켓 연결 시 **현재 탭**의 마켓만 전송
-	  socketManager.onConnected = { [weak self] in
-		self?.sendSocketMessageForCurrentTab(self?.currentState.selectedTab ?? .krw)
-	  }
-	  
-	  // 현재 탭의 마켓 전송
-	  self.sendSocketMessageForCurrentTab(self.currentState.selectedTab)
-	  
-	  // 소켓 티커 데이터 수신
-	  socketManager.tickerDataSubject
-		.observe(on: MainScheduler.instance)
-		.subscribe(onNext: { [weak self] data in
-		  guard let self = self else { return }
-		  
-		  do {
-			let cryptoTickerDTO = try JSONDecoder().decode(
-			  CryptoSocketTickerDTO.self,
-			  from: data
-			)
-			let ticker = cryptoTickerDTO.toDomain()
-			
-			// 전체 리스트에서 해당 코인만 업데이트
-			let updatedList = self.updateSingleCrypto(ticker: ticker)
-			
-			observer.onNext(MainMutation.setTotalCryptoList(cryptoList: updatedList))
-			
-		  } catch {
-			Log.error("Socket ticker decode error: \(error.localizedDescription)")
-		  }
-		})
-		.disposed(by: self.disposeBag)
-	  
-	  return Disposables.create {
-		socketManager.disconnect()
-	  }
-	}
   }
   
   /// 4️⃣ 단일 암호화폐 업데이트 (소켓 티커 수신 시)
@@ -272,11 +246,12 @@ extension MainReactor {
   }
   
   /// 5️⃣ 현재 탭에 맞는 소켓 메시지 전송
-  private func sendSocketMessageForCurrentTab(_ tab: SelectedTab) {
-	guard let socketManager = self.socketManager else { return }
-	
-	let totalList = self.currentState.totalCryptoList
-	
+  private func sendSocketMessageForCurrentTab(
+    _ tab: SelectedTab,
+    totalList: [CryptoCellInfo]? = nil
+  ) {
+	let totalList = totalList ?? self.currentState.totalCryptoList
+
 	// 탭에 따른 필터링 마켓 목록
 	let marketsToSubscribe: [String] = {
 	  switch tab {
@@ -305,15 +280,30 @@ extension MainReactor {
 	}()
 	
 	// 소켓에 해당 마켓만 구독 요청
-	socketManager.sendMessage(codes: marketsToSubscribe, socketType: .ticker)
+	tickerSocketService.subscribe(markets: marketsToSubscribe)
   }
   
   /// 소켓 연결 해제
   private func disconnectSocket() -> Observable<MainMutation> {
-	guard let socketManager = self.socketManager else { return .empty() }
-	socketManager.disconnect()
-	self.socketManager = nil
+	tickerSocketService.disconnect(userInitiated: true)
+    isSocketConnected = tickerSocketService.isConnected
 	return .empty()
+  }
+
+  private func pauseSocket() -> Observable<MainMutation> {
+    tickerSocketService.disconnect(userInitiated: false)
+    isSocketConnected = tickerSocketService.isConnected
+    return .empty()
+  }
+
+  private func resumeSocket() -> Observable<MainMutation> {
+    tickerSocketService.reconnectIfNeeded()
+    if !tickerSocketService.isConnected {
+      tickerSocketService.connect()
+    }
+    sendSocketMessageForCurrentTab(currentState.selectedTab)
+    isSocketConnected = tickerSocketService.isConnected
+    return .empty()
   }
 }
 
@@ -436,19 +426,6 @@ extension MainReactor {
 
 // MARK: - Helper Functions
 extension MainReactor {
-  
-  /// 소켓 연결 보장
-  private func ensureSocketConnected() {
-	if let socket = self.socketManager {
-	  if !socket.isConnected {
-		socket.reconnectIfNeeded()
-	  }
-	} else {
-	  self.socketManager = NewWebSocketManager()
-	  self.socketManager?.connect()
-	}
-  }
-  
   /// 'KRW-BTC' → 'BTC/KRW' 변환
   func transformMarketForm(market: String) -> String {
 	let components = market.split(separator: "-")
@@ -517,5 +494,12 @@ extension MainReactor {
 	}
 	
 	return false
+  }
+
+  func transform(mutation: Observable<MainMutation>) -> Observable<MainMutation> {
+    Observable.merge(
+      mutation,
+      mutationSubject.asObservable()
+    )
   }
 }

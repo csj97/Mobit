@@ -23,34 +23,66 @@ class TradeReactor: Reactor {
   private var firebaseDB = Database.database().reference()
   private let cryptoDetailUseCase: CryptoDetailUseCase
   private let disposeBag = DisposeBag()
+  private let tickerSocketService: TickerSocketServiceProtocol
+  private let orderBookSocketService: OrderBookSocketServiceProtocol
   
   let selectCrypto: CryptoCellInfo
   let initialState: TradeState = TradeState()
-  var tickerSocketManager: NewWebSocketManager? = nil
-  var orderBookSocketManager: NewWebSocketManager? = nil
   var cmcInformation: FirebaseCMCResponse
   var cmcList: [FirebaseCMCResponse]?
+  private(set) var isTickerConnected = false
+  private(set) var isOrderBookConnected = false
   
   init(
     selectCrypto: CryptoCellInfo,
 	cmcInformation: FirebaseCMCResponse,
-    cryptoDetailUseCase: CryptoDetailUseCase
+    cryptoDetailUseCase: CryptoDetailUseCase,
+    tickerSocketService: TickerSocketServiceProtocol = TickerSocketService(),
+    orderBookSocketService: OrderBookSocketServiceProtocol = OrderBookSocketService()
   ) {
     self.selectCrypto = selectCrypto
 	self.cmcInformation = cmcInformation
     self.cryptoDetailUseCase = cryptoDetailUseCase
+    self.tickerSocketService = tickerSocketService
+    self.orderBookSocketService = orderBookSocketService
 	
 	UserDataManager.userCryptoListObservable
+      .observe(on: MainScheduler.asyncInstance)
 	  .map { TradeMutation.setUserCrypto($0) }
 	  .bind(to: mutationSubject)
 	  .disposed(by: disposeBag)
+
+    self.tickerSocketService.stream
+      .observe(on: MainScheduler.asyncInstance)
+      .map { [weak self] ticker -> TradeMutation? in
+        guard let self = self else { return nil }
+
+        var updatedCryptoCellInfo = self.selectCrypto
+        updatedCryptoCellInfo.tradePrice = ticker.tradePrice
+        updatedCryptoCellInfo.change = ticker.change
+        updatedCryptoCellInfo.changePrice = ticker.changePrice
+        updatedCryptoCellInfo.signedChangeRate = ticker.signedChangeRate
+
+        return .setCryptoInfo(cryptoInfo: updatedCryptoCellInfo)
+      }
+      .compactMap { $0 }
+      .bind(to: mutationSubject)
+      .disposed(by: disposeBag)
+
+    self.orderBookSocketService.stream
+      .observe(on: MainScheduler.asyncInstance)
+      .map { TradeMutation.setOrderBookInfo(obTicker: $0) }
+      .bind(to: mutationSubject)
+      .disposed(by: disposeBag)
   }
 }
 
 extension TradeReactor {
   enum TradeAction {
-    case connectTickerSocket
-    case connectOrderBookSocket
+    case connectSockets
+    case disconnectSockets(userInitiated: Bool)
+    case pauseSocket
+    case resumeSocket
 	case getCryptoInformation
 	case getCandleListMinutes(market: String, unit: Int32 = 60, to: String?, count: Int?)
 	case getCandleListDays(market: String, to: String?, count: Int?, convertingPriceUnit: String?)
@@ -82,11 +114,17 @@ extension TradeReactor {
 extension TradeReactor {
   func mutate(action: TradeAction) -> Observable<TradeMutation> {
     switch action {
-    case .connectTickerSocket:
-      return self.connectTickerSocket(crypto: self.selectCrypto)
-      
-    case .connectOrderBookSocket:
-      return self.connectOrderBookTicker(crypto: self.selectCrypto)
+    case .connectSockets:
+      return self.connectSockets(crypto: self.selectCrypto)
+
+    case .disconnectSockets(let userInitiated):
+      return self.disconnectSockets(userInitiated: userInitiated)
+
+    case .pauseSocket:
+      return self.pauseSocket()
+
+    case .resumeSocket:
+      return self.resumeSocket()
 	  
 	case .getCryptoInformation:
 	  let symbol = self.selectCrypto.market.components(separatedBy: "/").first ?? ""
@@ -108,6 +146,8 @@ extension TradeReactor {
   
   func reduce(state: TradeState, mutation: TradeMutation) -> TradeState {
     var newState = state
+    self.isTickerConnected = tickerSocketService.isConnected
+    self.isOrderBookConnected = orderBookSocketService.isConnected
     
     switch mutation {
     case .setCryptoInfo(let cryptoCellInfo):
@@ -131,112 +171,54 @@ extension TradeReactor {
 }
 
 extension TradeReactor {
-  // WebSocket Ticker
-  private func connectTickerSocket(crypto: CryptoCellInfo) -> Observable<TradeMutation> {
-    
-    let socketObservable = Observable<TradeMutation>.create { observer in
-	  
-	  self.tickerSocketManager = NewWebSocketManager(socketType: .ticker)
-	  guard let tickerSocketManager = self.tickerSocketManager else {
-		return Disposables.create {
-		  self.tickerSocketManager?.disconnect()
-		  self.tickerSocketManager = nil
-		}
-	  }
-	  tickerSocketManager.connect()
-	  tickerSocketManager.onConnected = {
-		tickerSocketManager.sendMessage(
-          codes: [self.transformMarketForm(market: crypto.market)],
-          socketType: .ticker
-        )
-      }
-      
-	  tickerSocketManager.observeReceivedData()
-        .observe(on: MainScheduler.instance)
-        .subscribe { [weak self] data in
-          guard let self = self else { return }
+  private func connectSockets(crypto: CryptoCellInfo) -> Observable<TradeMutation> {
+    let market = self.transformMarketForm(market: crypto.market)
 
-          do {
-            let decodeTarget = CryptoSocketTickerDTO.self
-            let cryptoTickerDTO = try JSONDecoder().decode(decodeTarget, from: data)
-            let ticker = cryptoTickerDTO.toDomain()
-            
-            var updatedCryptoCellInfo: CryptoCellInfo = self.selectCrypto
-            updatedCryptoCellInfo.tradePrice = ticker.tradePrice
-            updatedCryptoCellInfo.change = ticker.change
-            updatedCryptoCellInfo.changePrice = ticker.changePrice
-            updatedCryptoCellInfo.signedChangeRate = ticker.signedChangeRate
-            
-            observer.onNext(.setCryptoInfo(cryptoInfo: updatedCryptoCellInfo))
-          } catch {
-			Log.error("Crypto Detail Ticker websocket receive decoding error : \(error.localizedDescription)")
-          }
-        } onError: { error in
-          observer.onError(error)
-        } onCompleted: {
-          observer.onCompleted()
-        }.disposed(by: self.disposeBag)
-      
-      return Disposables.create {
-        self.tickerSocketManager?.disconnect()
-		self.tickerSocketManager = nil
-      }
-    }
-    
-    return socketObservable
+    tickerSocketService.connect()
+    tickerSocketService.subscribe(markets: [market])
+
+    orderBookSocketService.connect()
+    orderBookSocketService.subscribe(market: market)
+
+    isTickerConnected = tickerSocketService.isConnected
+    isOrderBookConnected = orderBookSocketService.isConnected
+
+    return .empty()
   }
-  
-  // 호가창 WebSocket 통신
-  private func connectOrderBookTicker(crypto: CryptoCellInfo) -> Observable<TradeMutation> {
-    let socketObservable = Observable<TradeMutation>.create { observer in
-	  
-	  self.orderBookSocketManager = NewWebSocketManager(socketType: .orderbook)
-	  
-	  guard let orderBookSocketManager = self.orderBookSocketManager else {
-		return Disposables.create {
-		  self.orderBookSocketManager?.disconnect()
-		  self.orderBookSocketManager = nil
-		}
-	  }
-	  
-      orderBookSocketManager.connect()
-	  orderBookSocketManager.onConnected = {
-        orderBookSocketManager.sendMessage(
-          codes: [
-            self.transformMarketForm(
-              market: self.selectCrypto.market
-            )
-          ],
-          socketType: .orderbook
-        )
-      }
-      
-      orderBookSocketManager.observeReceivedData()
-        .observe(on: MainScheduler.instance)
-		.subscribe { [weak self] data in
-		  guard let self = self else { return }
 
-          do {
-            let decodeTarget = OrderbookDTO.self
-            let orderBookDTO = try JSONDecoder().decode(decodeTarget, from: data)
-            let obTicker = orderBookDTO.toDomain()
-            observer.onNext(.setOrderBookInfo(obTicker: obTicker))
-          } catch {
-			Log.error("orderbook websocket receive decoding error : \(error.localizedDescription)")
-          }
-        } onError: { error in
-          observer.onError(error)
-        } onCompleted: {
-          observer.onCompleted()
-        }.disposed(by: self.disposeBag)
-      
-      return Disposables.create {
-        self.orderBookSocketManager?.disconnect()
-		self.orderBookSocketManager = nil
-      }
+  private func disconnectSockets(userInitiated: Bool) -> Observable<TradeMutation> {
+    tickerSocketService.disconnect(userInitiated: userInitiated)
+    orderBookSocketService.disconnect(userInitiated: userInitiated)
+
+    isTickerConnected = tickerSocketService.isConnected
+    isOrderBookConnected = orderBookSocketService.isConnected
+
+    return .empty()
+  }
+
+  private func pauseSocket() -> Observable<TradeMutation> {
+    return disconnectSockets(userInitiated: false)
+  }
+
+  private func resumeSocket() -> Observable<TradeMutation> {
+    tickerSocketService.reconnectIfNeeded()
+    if !tickerSocketService.isConnected {
+      tickerSocketService.connect()
     }
-    
-    return socketObservable
+
+    orderBookSocketService.reconnectIfNeeded()
+    if !orderBookSocketService.isConnected {
+      orderBookSocketService.connect()
+    }
+
+    let market = self.transformMarketForm(market: self.selectCrypto.market)
+    tickerSocketService.subscribe(markets: [market])
+    orderBookSocketService.subscribe(market: market)
+
+    isTickerConnected = tickerSocketService.isConnected
+    isOrderBookConnected = orderBookSocketService.isConnected
+
+    return .empty()
   }
   
   private func getCryptoInformation(market: String) -> Observable<TradeMutation> {

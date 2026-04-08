@@ -251,16 +251,6 @@ class MainViewController: MobitBaseViewController {
 	
 	self.resumeSocket()
 	
-	guard self.reactor.socketManager?.isConnected == true else {
-	  self.show(
-		alertType: .onlyConfirm,
-		title: "오류",
-		content: "네트워크 연결이 소실되었습니다.\n앱을 종료 후 다시 실행 해주세요.",
-		callBack: nil
-	  )
-	  return
-	}
-	
 	// 직전 선택 버튼 해제
 	if let prevSortedButton = self.prevSortedButton,
 	   prevSortedButton !== sender {
@@ -640,14 +630,11 @@ extension MainViewController: UISearchBarDelegate {
 extension MainViewController: SocketControllable {
   
   func pauseSocket() {
-	self.reactor.socketManager?.disconnect()
+    self.reactor.action.onNext(.pauseSocket)
   }
   
   func resumeSocket() {
-	guard self.reactor.socketManager?.isConnected == false else { return }
-	self.reactor.socketManager?.reconnectIfNeeded()
-	self.reactor.action.onNext(.loadCryptoList)
-	self.reactor.action.onNext(.loadUserCryptos)
+    self.reactor.action.onNext(.resumeSocket)
   }
 }
 

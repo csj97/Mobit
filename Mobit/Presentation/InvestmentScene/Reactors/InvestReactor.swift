@@ -18,11 +18,13 @@ class InvestReactor: Reactor {
   
   init() {
 	UserDataManager.userCryptoListObservable
+      .observe(on: MainScheduler.asyncInstance)
 	  .map { InvestMutation.setUserCrypto($0) }
 	  .bind(to: mutationSubject)
 	  .disposed(by: disposeBag)
 	
 	UserDataManager.userAvailableBalanceObservable
+      .observe(on: MainScheduler.asyncInstance)
 	  .map { InvestMutation.setUserAvailableBalance($0 ?? 0) }
 	  .bind(to: mutationSubject)
 	  .disposed(by: disposeBag)

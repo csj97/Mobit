@@ -303,7 +303,7 @@ extension InvestmentViewController: View {
 
 extension InvestmentViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-	let userValidTransactionList = UserDataManager.userValidTransactionList
+	//let userValidTransactionList = UserDataManager.userValidTransactionList
 	let selectedCryptoMarketName = self.cryptos[indexPath.row].staticData.marketName
 	
 	guard let selectedCryptoName = self.cryptos[indexPath.row].staticData.cryptoName else { return }

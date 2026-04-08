@@ -11,7 +11,15 @@ import PinLayout
 import Then
 
 class OrderBookCell: UITableViewCell {
-  
+    
+    private static let priceFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        return formatter
+    }()
+    
+    private var obBarWidthRatio: CGFloat = 0
+    
   let rootFlexContainer = UIView()
   
   let spaceView: UIView = UIView().then {
@@ -133,12 +141,10 @@ class OrderBookCell: UITableViewCell {
 	askMaxSize: Double,
 	bidMaxSize: Double
   ) {
-    let numberFormatter = NumberFormatter()
-    numberFormatter.numberStyle = .decimal
     if obPrice < 1 {
       self.obPrice.text = formatOrderPrice(obPrice)
     } else {
-      self.obPrice.text = numberFormatter.string(
+      self.obPrice.text = Self.priceFormatter.string(
         from: NSNumber(value: obPrice)
       )
     }

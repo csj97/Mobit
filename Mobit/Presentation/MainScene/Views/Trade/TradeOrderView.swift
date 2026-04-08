@@ -38,6 +38,8 @@ class TradeOrderView: UIView, ViewRule {
   private let cellIndentifier = "OrderBookCell"
   private var askMaxSize: Double? = 0
   private var bidMaxSize: Double? = 0
+  private var isOrderbookScrolling = false
+  private var pendingOrderBook: Orderbook?
   
   deinit {
 	print("deinit : \(String(describing: type(of: self)))")
@@ -139,15 +141,16 @@ class TradeOrderView: UIView, ViewRule {
 		askView.isHidden = false
 		historyView.isHidden = true
 		self.investLiveView.isHidden = self.cryptoInvestData == nil
-	  case 2:
-		bidView.isHidden = true
-		askView.isHidden = true
-		historyView.isHidden = false
-		self.investLiveView.isHidden = true
-		
-	  default:
-		break
-	  }
+          case 2:
+            bidView.isHidden = true
+            askView.isHidden = true
+            historyView.isHidden = false
+            self.investLiveView.isHidden = true
+            historyView.updateHistory()
+            
+          default:
+            break
+          }
 	  
 	  self.layoutIfNeeded()
 	  self.segmentedContainerStackView.layoutIfNeeded()
@@ -157,11 +160,11 @@ class TradeOrderView: UIView, ViewRule {
   }
   
   func setData() {
-	guard let reactor = self.reactor else { return }
-	self.bind(reactor: reactor)
-	reactor.action.onNext(.loadTransactions)
-	self.prevClosingPrice = self.reactor?.selectCrypto.prevPrice
-	
+    guard let reactor = self.reactor else { return }
+    self.bind(reactor: reactor)
+    reactor.action.onNext(.loadTransactions)
+    self.prevClosingPrice = self.reactor?.selectCrypto.prevPrice
+    
 	self.orderbookTableView.register(
 	  OrderBookCell.self,
 	  forCellReuseIdentifier: "OrderBookCell"
@@ -277,25 +280,19 @@ extension TradeOrderView {
   
   func bind(reactor: TradeReactor) {
 	reactor.state.map { $0.obTicker }
-	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)
-	  .distinctUntilChanged()
+	  .throttle(.milliseconds(150), scheduler: MainScheduler.instance)
 	  .observe(on: MainScheduler.asyncInstance)
 	  .subscribe(
 		onNext: { [weak self] obTicker in
 		  guard let self = self,
 				let obTicker = obTicker else { return }
-		  let askData = obTicker.orderbookUnits.sorted(
-			by: { $0.askPrice > $1.askPrice }
-		  ).map { OrderUnit(type: .ask, price: $0.askPrice, size: $0.askSize) }
-		  let bidData = obTicker.orderbookUnits.sorted(
-			by: { $0.bidPrice > $1.bidPrice }
-		  ).map { OrderUnit(type: .bid, price: $0.bidPrice, size: $0.bidSize) }
-		  let orderDatas = askData + bidData
 		  
-		  self.askMaxSize = askData.max(by: { $0.size < $1.size })?.size
-		  self.bidMaxSize = bidData.max(by: { $0.size < $1.size })?.size
+		  if self.isOrderbookScrolling {
+			self.pendingOrderBook = obTicker
+			return
+		  }
 		  
-		  self.applySnapshot(orderDatas: orderDatas)
+		  self.renderOrderBook(obTicker)
 		}
 	  )
 	  .disposed(by: self.disposeBag)
@@ -323,12 +320,68 @@ extension TradeOrderView {
 		self.investLiveView.isHidden = false
 		self.setInvestLiveData(data: cryptoInvestData)
 	  })
-	  .disposed(by: self.disposeBag)
+		  .disposed(by: self.disposeBag)
+  }
+
+  /// orderbook data 렌더링 (
+  private func renderOrderBook(_ obTicker: Orderbook) {
+    let askData = obTicker.orderbookUnits
+      .sorted(by: { $0.askPrice > $1.askPrice })
+      .enumerated()
+      .map { (index, unit) in
+        OrderUnit(
+          identifier: "ask-\(index)",
+          type: .ask,
+          price: unit.askPrice,
+          size: unit.askSize
+        )
+      }
+
+    let bidData = obTicker.orderbookUnits
+      .sorted(by: { $0.bidPrice > $1.bidPrice })
+      .enumerated()
+      .map { (index, unit) in
+        OrderUnit(
+          identifier: "bid-\(index)",
+          type: .bid,
+          price: unit.bidPrice,
+          size: unit.bidSize
+        )
+      }
+
+    let orderDatas = askData + bidData
+    self.askMaxSize = askData.max(by: { $0.size < $1.size })?.size
+    self.bidMaxSize = bidData.max(by: { $0.size < $1.size })?.size
+    self.applySnapshot(orderDatas: orderDatas)
+  }
+
+  /// pending orderbook data 처리
+  private func flushPendingOrderBookIfNeeded() {
+	guard !self.isOrderbookScrolling,
+		  let pendingOrderBook = self.pendingOrderBook else { return }
+
+	self.pendingOrderBook = nil
+	self.renderOrderBook(pendingOrderBook)
   }
 }
-	
+		
 extension TradeOrderView: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 	// print("clicked")
+  }
+  
+  func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+	self.isOrderbookScrolling = true
+  }
+  
+  func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+	guard !decelerate else { return }
+	self.isOrderbookScrolling = false
+	self.flushPendingOrderBookIfNeeded()
+  }
+  
+  func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+	self.isOrderbookScrolling = false
+	self.flushPendingOrderBookIfNeeded()
   }
 }

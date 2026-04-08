@@ -245,6 +245,8 @@
 	</dict>
 	<key>UPBIT_ACCESS_KEY</key>
 	<string>$(UPBIT_ACCESS_KEY)</string>
+	<key>FirebaseAutomaticScreenReportingEnabled</key>
+	<false/>
 	<key>UPBIT_SECRET_KEY</key>
 	<string>$(UPBIT_SECRET_KEY)</string>
 </dict>
