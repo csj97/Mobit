@@ -11,5 +11,7 @@ enum MobitConstants {
   // 보상형 광고
   static let rewardAdType = "ca-app-pub-3498168241675848/9517873690"
   static let bannerAdType = "ca-app-pub-3498168241675848/2725646666"
-  static let nativeAdType = "ca-app-pub-3940256099942544/3986624511"
+   static let nativeAdType = "ca-app-pub-3498168241675848/7170662207"
+  // static let nativeAdType = "ca-app-pub-3498168241675848/8142435278"
 }
+// ca-app-pub-3498168241675848~9078363335 AdMob 앱 ID

@@ -821,7 +821,7 @@ final class MainNativeAdPopupViewController: UIViewController {
     let closeButton = UIButton(type: .system)
     closeButton.translatesAutoresizingMaskIntoConstraints = false
     closeButton.tintColor = .white
-    closeButton.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
+    closeButton.setImage(UIImage(systemName: "xmark.square.fill"), for: .normal)
     closeButton.addTarget(self, action: #selector(self.dismissPopup), for: .touchUpInside)
 
     let cardView = self.makeAdCardView(ad: self.ad)
@@ -836,9 +836,9 @@ final class MainNativeAdPopupViewController: UIViewController {
 	}
 	
 	closeButton.snp.makeConstraints { make in
-	  make.trailing.equalToSuperview().offset(-24)
-	  make.bottom.equalTo(cardView.snp.top).offset(-12)
-	  make.size.equalTo(32)
+	  make.trailing.equalTo(cardView.snp.trailing)
+	  make.top.equalTo(cardView.snp.bottom)
+	  make.size.equalTo(64)
 	}
 	
 	cardView.snp.makeConstraints { make in
