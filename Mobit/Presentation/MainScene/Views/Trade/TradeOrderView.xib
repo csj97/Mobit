@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="24506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24504"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -14,15 +14,15 @@
             <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
             <subviews>
-                <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="UkH-LF-ZKU" customClass="SelfSizingTableView" customModule="Mobit" customModuleProvider="target">
-                    <rect key="frame" x="0.0" y="59" width="150" height="759"/>
+                <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="UkH-LF-ZKU">
+                    <rect key="frame" x="0.0" y="118" width="150" height="666"/>
                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     <constraints>
                         <constraint firstAttribute="width" constant="150" id="E4W-sA-6eB"/>
                     </constraints>
                 </tableView>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="e0J-eg-XXq">
-                    <rect key="frame" x="150" y="59" width="243" height="759"/>
+                    <rect key="frame" x="150" y="118" width="243" height="666"/>
                     <subviews>
                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="eCB-Un-W2a" customClass="NeumorphicSegmentedControl" customModule="Mobit" customModuleProvider="target">
                             <rect key="frame" x="10" y="5" width="223" height="40"/>
@@ -32,32 +32,32 @@
                             </constraints>
                         </view>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="Zlx-FX-dSK">
-                            <rect key="frame" x="0.0" y="45" width="243" height="667"/>
+                            <rect key="frame" x="0.0" y="45" width="243" height="621"/>
                             <subviews>
                                 <stackView opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" placeholderIntrinsicWidth="243" placeholderIntrinsicHeight="480" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="6C3-2U-Zz0">
                                     <rect key="frame" x="0.0" y="0.0" width="243" height="480"/>
                                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 </stackView>
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="CKp-xp-5Mi" userLabel="Invest Live View">
-                                    <rect key="frame" x="0.0" y="480" width="243" height="187"/>
+                                    <rect key="frame" x="0.0" y="480" width="243" height="141"/>
                                     <subviews>
                                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="YHv-Kx-J3f">
-                                            <rect key="frame" x="10" y="0.0" width="223" height="187"/>
+                                            <rect key="frame" x="10" y="0.0" width="223" height="141"/>
                                             <subviews>
                                                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="ZkC-2Z-bBV">
-                                                    <rect key="frame" x="0.0" y="0.0" width="223" height="81.333333333333329"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="223" height="35.333333333333336"/>
                                                     <subviews>
                                                         <stackView opaque="NO" contentMode="scaleToFill" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="uqU-4o-ow6">
-                                                            <rect key="frame" x="0.0" y="0.0" width="223" height="74.333333333333329"/>
+                                                            <rect key="frame" x="0.0" y="0.0" width="223" height="28.333333333333332"/>
                                                             <subviews>
                                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" text="보유자산 현황" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ySF-67-wux">
-                                                                    <rect key="frame" x="0.0" y="0.0" width="181" height="74.333333333333329"/>
+                                                                    <rect key="frame" x="0.0" y="0.0" width="181" height="28.333333333333332"/>
                                                                     <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="14"/>
                                                                     <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                                     <nil key="highlightedColor"/>
                                                                 </label>
                                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="SN4-gy-H6D">
-                                                                    <rect key="frame" x="191" y="0.0" width="32" height="74.333333333333329"/>
+                                                                    <rect key="frame" x="191" y="0.0" width="32" height="28.333333333333332"/>
                                                                     <constraints>
                                                                         <constraint firstAttribute="width" constant="32" id="1nx-Ie-I2c"/>
                                                                     </constraints>
@@ -70,7 +70,7 @@
                                                             </subviews>
                                                         </stackView>
                                                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="3mp-bR-h8b">
-                                                            <rect key="frame" x="0.0" y="80.333333333333371" width="223" height="1"/>
+                                                            <rect key="frame" x="0.0" y="34.333333333333371" width="223" height="1"/>
                                                             <color key="backgroundColor" red="0.88199253335859673" green="0.88509268758207882" blue="0.8943931502525253" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                             <constraints>
                                                                 <constraint firstAttribute="height" constant="1" id="PdC-2Z-OAb"/>
@@ -79,7 +79,7 @@
                                                     </subviews>
                                                 </stackView>
                                                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="WOy-9f-Gx5">
-                                                    <rect key="frame" x="0.0" y="91.333333333333371" width="223" height="95.666666666666686"/>
+                                                    <rect key="frame" x="0.0" y="45.333333333333378" width="223" height="95.666666666666686"/>
                                                     <subviews>
                                                         <stackView opaque="NO" contentMode="scaleToFill" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="uRT-OY-8a5">
                                                             <rect key="frame" x="0.0" y="0.0" width="223" height="14.333333333333334"/>
@@ -213,7 +213,7 @@
                 <outlet property="cryptoHoldingQuantity" destination="KEY-09-g39" id="6um-JV-qSP"/>
                 <outlet property="cryptoProfitRate" destination="2Fl-By-Ma6" id="bV9-gu-3tV"/>
                 <outlet property="investLiveView" destination="CKp-xp-5Mi" id="EPQ-3A-Y75"/>
-                <outlet property="orderbookTableView" destination="UkH-LF-ZKU" id="j67-lf-UvB"/>
+                <outlet property="orderbookTableView" destination="UkH-LF-ZKU" id="nJ8-lv-eIY"/>
                 <outlet property="segmentedContainerStackView" destination="6C3-2U-Zz0" id="ZiR-nw-tFn"/>
                 <outlet property="segmentedControl" destination="eCB-Un-W2a" id="Rfy-NG-Itt"/>
             </connections>

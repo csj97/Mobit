@@ -10,7 +10,7 @@ import RxSwift
 
 class TradeHistoryView: UIView, ViewRule {
   
-  @IBOutlet weak var historyTableView: SelfSizingTableView!
+  @IBOutlet weak var historyTableView: UITableView!
   @IBOutlet weak var noHistoryView: UIView!
   
   var disposeBag = DisposeBag()

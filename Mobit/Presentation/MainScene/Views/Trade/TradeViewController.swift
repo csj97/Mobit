@@ -55,6 +55,7 @@ class TradeViewController: MobitBaseViewController {
   var cryptoData: [CryptoTransactionDataModel] = []
   private var currentInvestData: CryptoTransactionDataModel? = nil
   private var miniChartHostingController: UIHostingController<MiniChartView>? = nil
+  private let tradeBannerSlotID = "trade_bottom"
   
   init(reactor: TradeReactor) {
 	self.reactor = reactor
@@ -332,16 +333,43 @@ class TradeViewController: MobitBaseViewController {
   
   /// 하단 배너 광고 불러오기
   func loadBannerADView() {
-	let bannerView = BannerView(adSize: AdSizeBanner)
-	bannerView.adUnitID = MobitConstants.bannerAdType
-	bannerView.rootViewController = self
-	self.bannerContainerView.addSubview(bannerView)
-	
-	bannerView.snp.makeConstraints { make in
-	  make.edges.equalToSuperview()
-	}
-	
-	bannerView.load(Request())
+    self.bannerContainerView.subviews.forEach { $0.removeFromSuperview() }
+
+    HybridAdSlotManager.shared.resolveAd(slotID: self.tradeBannerSlotID) { [weak self] result in
+      guard let self = self else { return }
+
+      DispatchQueue.main.async {
+        switch result {
+        case .googleBanner:
+          self.showGoogleBanner()
+        case .coupangWidget(let widget):
+          self.showCoupangWidget(widget: widget)
+        }
+      }
+    }
+  }
+
+  private func showGoogleBanner() {
+    let bannerView = BannerView(adSize: AdSizeBanner)
+    bannerView.adUnitID = MobitConstants.bannerAdType
+    bannerView.rootViewController = self
+    self.bannerContainerView.addSubview(bannerView)
+
+    bannerView.snp.makeConstraints { make in
+      make.edges.equalToSuperview()
+    }
+
+    bannerView.load(Request())
+  }
+
+  private func showCoupangWidget(widget: CoupangWidgetConfig) {
+    let widgetView = CoupangWidgetBannerView()
+    widgetView.configure(widget: widget)
+    self.bannerContainerView.addSubview(widgetView)
+
+    widgetView.snp.makeConstraints { make in
+      make.edges.equalToSuperview()
+    }
   }
   
   /// price format

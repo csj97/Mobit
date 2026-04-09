@@ -13,7 +13,7 @@ import GoogleMobileAds
 
 class TradeOrderView: UIView, ViewRule {
   
-  @IBOutlet weak var orderbookTableView: SelfSizingTableView!
+  @IBOutlet weak var orderbookTableView: UITableView!
   @IBOutlet weak var segmentedControl: NeumorphicSegmentedControl!
   @IBOutlet weak var segmentedContainerView: UIView!
   @IBOutlet weak var segmentedContainerStackView: UIStackView!

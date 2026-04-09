@@ -6,6 +6,7 @@
 //
 
 import FlexLayout
+import GoogleMobileAds
 import RxCocoa
 import RxSwift
 import ReactorKit
@@ -13,6 +14,7 @@ import PinLayout
 import Then
 import UIKit
 import Network
+import SnapKit
 
 enum TableViewSection: CaseIterable {
   case main
@@ -38,6 +40,11 @@ class MainViewController: MobitBaseViewController {
   var isSocketUpdating = false
   var prevSortedButton: UIButton?
   let defaultTitles = ["현재가 ↑↓", "전일대비 ↑↓", "거래대금 ↑↓"]
+  private let mainNativeAdLastShownDateKey = "main_native_ad_popup_last_shown_date"
+  private var hasRequestedMainNativeAd = false
+  private var isLoadingMainNativeAd = false
+  private var mainNativeAd: NativeAd?
+  private var mainAdLoader: AdLoader?
   
   var selectedTab: SelectedTab = .krw {
 	didSet { self.reactor.action.onNext(.setSelectedTab(tab: selectedTab)) }
@@ -177,6 +184,11 @@ class MainViewController: MobitBaseViewController {
 	self.showLoadingIndicator()
 	
 	self.bind(reactor: self.reactor)
+  }
+
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    self.requestMainNativeAdIfNeeded()
   }
   
   override func viewDidLayoutSubviews() {
@@ -394,6 +406,70 @@ class MainViewController: MobitBaseViewController {
 			}
 		}.grow(1)
 	  }
+  }
+}
+
+// MARK: - Main Native Ad
+extension MainViewController {
+  private func requestMainNativeAdIfNeeded() {
+    guard self.hasRequestedMainNativeAd == false else { return }
+    self.hasRequestedMainNativeAd = true
+
+    let defaults = UserDefaults.standard
+    let todayKey = self.mainNativeAdTodayKey()
+    let lastShownDate = defaults.string(forKey: self.mainNativeAdLastShownDateKey)
+
+    if lastShownDate == todayKey {
+      return
+    }
+
+    self.loadMainNativeAd()
+  }
+
+  private func mainNativeAdTodayKey() -> String {
+    let formatter = DateFormatter()
+    formatter.calendar = Calendar.current
+    formatter.locale = Locale(identifier: "ko_KR")
+    formatter.timeZone = TimeZone.current
+    formatter.dateFormat = "yyyy-MM-dd"
+    return formatter.string(from: Date())
+  }
+
+  private func loadMainNativeAd() {
+    guard self.isLoadingMainNativeAd == false else { return }
+    self.isLoadingMainNativeAd = true
+    self.mainNativeAd = nil
+    self.mainAdLoader?.delegate = nil
+    self.mainAdLoader = nil
+
+    let options = NativeAdViewAdOptions()
+    let multipleOptions = MultipleAdsAdLoaderOptions()
+    multipleOptions.numberOfAds = 1
+
+    let adLoader = AdLoader(
+      adUnitID: MobitConstants.nativeAdType,
+      rootViewController: self,
+      adTypes: [.native],
+      options: [options, multipleOptions]
+    )
+    self.mainAdLoader = adLoader
+    adLoader.delegate = self
+    adLoader.load(Request())
+  }
+
+  private func presentMainNativeAdIfNeeded() {
+    guard let ad = self.mainNativeAd else { return }
+    guard self.presentedViewController == nil else { return }
+    guard self.view.window != nil else { return }
+
+    UserDefaults.standard.set(self.mainNativeAdTodayKey(), forKey: self.mainNativeAdLastShownDateKey)
+
+    let popup = MainNativeAdPopupViewController(ad: ad) { [weak self] in
+      self?.mainNativeAd = nil
+    }
+    popup.modalPresentationStyle = .overFullScreen
+    popup.modalTransitionStyle = .crossDissolve
+    self.present(popup, animated: true)
   }
 }
 
@@ -638,6 +714,30 @@ extension MainViewController: SocketControllable {
   }
 }
 
+extension MainViewController: AdLoaderDelegate, NativeAdLoaderDelegate, NativeAdDelegate {
+  func adLoader(_ adLoader: AdLoader, didReceive nativeAd: NativeAd) {
+    self.isLoadingMainNativeAd = false
+    nativeAd.delegate = self
+    self.mainNativeAd = nativeAd
+    Log.info("메인 네이티브 광고 로드 완료")
+    self.presentMainNativeAdIfNeeded()
+  }
+
+  func adLoader(_ adLoader: AdLoader, didFailToReceiveAdWithError error: Error) {
+    self.isLoadingMainNativeAd = false
+    self.mainNativeAd = nil
+    Log.info("메인 네이티브 광고 로드 실패: \(error.localizedDescription)")
+  }
+
+  func nativeAdDidRecordClick(_ nativeAd: NativeAd) {
+    Log.info("메인 네이티브 광고 클릭")
+  }
+
+  func nativeAdDidRecordImpression(_ nativeAd: NativeAd) {
+    Log.info("메인 네이티브 광고 노출")
+  }
+}
+
 // MARK: - Network Monitoring
 extension MainViewController {
   
@@ -686,5 +786,229 @@ extension MainViewController {
 	guard let networkLostView = self.networkLostView else { return }
 	networkLostView.removeFromSuperview()
 	self.networkLostView = nil
+  }
+}
+
+final class MainNativeAdPopupViewController: UIViewController {
+  private let ad: NativeAd
+  private let onDismiss: (() -> Void)?
+
+  init(ad: NativeAd, onDismiss: (() -> Void)? = nil) {
+    self.ad = ad
+    self.onDismiss = onDismiss
+    super.init(nibName: nil, bundle: nil)
+  }
+
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    self.setupUI()
+  }
+
+  private func setupUI() {
+    self.view.backgroundColor = .clear
+
+    let dimView = UIView()
+    dimView.translatesAutoresizingMaskIntoConstraints = false
+    dimView.backgroundColor = UIColor.black.withAlphaComponent(0.45)
+    let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissPopup))
+    dimView.addGestureRecognizer(tapGesture)
+
+    let closeButton = UIButton(type: .system)
+    closeButton.translatesAutoresizingMaskIntoConstraints = false
+    closeButton.tintColor = .white
+    closeButton.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
+    closeButton.addTarget(self, action: #selector(self.dismissPopup), for: .touchUpInside)
+
+    let cardView = self.makeAdCardView(ad: self.ad)
+    cardView.translatesAutoresizingMaskIntoConstraints = false
+
+    self.view.addSubview(dimView)
+    self.view.addSubview(closeButton)
+    self.view.addSubview(cardView)
+	
+	dimView.snp.makeConstraints { make in
+	  make.edges.equalToSuperview()
+	}
+	
+	closeButton.snp.makeConstraints { make in
+	  make.trailing.equalToSuperview().offset(-24)
+	  make.bottom.equalTo(cardView.snp.top).offset(-12)
+	  make.size.equalTo(32)
+	}
+	
+	cardView.snp.makeConstraints { make in
+	  make.center.equalToSuperview()
+	  make.leading.greaterThanOrEqualTo(self.view.safeAreaLayoutGuide.snp.leading).offset(16)
+	  make.trailing.lessThanOrEqualTo(self.view.safeAreaLayoutGuide.snp.trailing).offset(-16)
+	  make.top.greaterThanOrEqualTo(self.view.safeAreaLayoutGuide.snp.top).offset(16)
+	  make.bottom.lessThanOrEqualTo(self.view.safeAreaLayoutGuide.snp.bottom).offset(-16)
+	  make.width.equalTo(self.view.safeAreaLayoutGuide.snp.width).multipliedBy(0.88).priority(999)
+	}
+  }
+
+  private func makeAdCardView(ad: NativeAd) -> NativeAdView {
+    let adView = NativeAdView()
+    adView.backgroundColor = .systemBackground
+    adView.layer.cornerRadius = 12
+    adView.layer.masksToBounds = true
+
+    let container = UIView()
+    adView.addSubview(container)
+	container.snp.makeConstraints { make in
+	  make.edges.equalToSuperview().inset(16)
+	}
+
+    let badgeLabel = UILabel()
+    badgeLabel.text = "광고"
+    badgeLabel.font = UIFont.systemFont(ofSize: 12, weight: .bold)
+    badgeLabel.textColor = .white
+    badgeLabel.backgroundColor = UIColor.mobitPrimary
+    badgeLabel.layer.cornerRadius = 4
+    badgeLabel.layer.masksToBounds = true
+    badgeLabel.textAlignment = .center
+
+    let adChoicesView = AdChoicesView()
+
+    let mediaView = MediaView()
+    mediaView.layer.cornerRadius = 12
+    mediaView.clipsToBounds = true
+
+    let headlineLabel = UILabel()
+    headlineLabel.font = UIFont.boldSystemFont(ofSize: 18)
+    headlineLabel.numberOfLines = 0
+
+    let bodyLabel = UILabel()
+    bodyLabel.font = UIFont.systemFont(ofSize: 14)
+    bodyLabel.numberOfLines = 0
+
+    let ctaButton = UIButton(type: .system)
+	
+	var config = UIButton.Configuration.filled()
+	config.contentInsets = NSDirectionalEdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16)
+	config.baseBackgroundColor = .mobitPrimary
+	config.baseForegroundColor = .white
+	config.cornerStyle = .fixed
+	config.background.cornerRadius = 4
+	ctaButton.configuration = config
+
+    ctaButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
+	ctaButton.configuration = config
+    ctaButton.isUserInteractionEnabled = false
+
+    let iconView = UIImageView()
+    iconView.layer.cornerRadius = 8
+    iconView.clipsToBounds = true
+    iconView.contentMode = .scaleAspectFit
+
+    let advertiserLabel = UILabel()
+    advertiserLabel.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
+    advertiserLabel.textColor = .secondaryLabel
+    advertiserLabel.numberOfLines = 1
+
+    container.addSubview(badgeLabel)
+    container.addSubview(adChoicesView)
+    container.addSubview(mediaView)
+    container.addSubview(iconView)
+    container.addSubview(headlineLabel)
+    container.addSubview(bodyLabel)
+    container.addSubview(ctaButton)
+    container.addSubview(advertiserLabel)
+
+    let mediaAspectRatio = ad.mediaContent.aspectRatio > 0 ? ad.mediaContent.aspectRatio : 1.91
+
+    badgeLabel.snp.makeConstraints { make in
+      make.top.leading.equalToSuperview()
+      make.width.greaterThanOrEqualTo(36)
+      make.height.equalTo(22)
+    }
+
+    adChoicesView.snp.makeConstraints { make in
+      make.centerY.equalTo(badgeLabel.snp.centerY)
+      make.trailing.equalToSuperview()
+      make.width.lessThanOrEqualTo(40)
+      make.height.lessThanOrEqualTo(20)
+      make.leading.greaterThanOrEqualTo(badgeLabel.snp.trailing).offset(8)
+    }
+
+    mediaView.snp.makeConstraints { make in
+      make.top.equalTo(badgeLabel.snp.bottom).offset(12)
+      make.leading.trailing.equalToSuperview()
+      make.height.equalTo(mediaView.snp.width).dividedBy(mediaAspectRatio).priority(999)
+      make.height.greaterThanOrEqualTo(120)
+      make.height.lessThanOrEqualTo(container.snp.width).multipliedBy(1.25)
+    }
+
+    iconView.snp.makeConstraints { make in
+      make.top.equalTo(mediaView.snp.bottom).offset(12)
+      make.leading.equalToSuperview()
+      make.width.equalTo(container.snp.width).multipliedBy(0.18).priority(999)
+      make.width.greaterThanOrEqualTo(44)
+      make.width.lessThanOrEqualTo(64)
+      make.height.equalTo(iconView.snp.width)
+    }
+
+    headlineLabel.snp.makeConstraints { make in
+      make.top.equalTo(iconView.snp.top)
+      make.leading.equalTo(iconView.snp.trailing).offset(12)
+      make.trailing.equalToSuperview()
+    }
+
+    bodyLabel.snp.makeConstraints { make in
+      make.top.equalTo(headlineLabel.snp.bottom).offset(8)
+      make.leading.trailing.equalTo(headlineLabel)
+    }
+
+    ctaButton.snp.makeConstraints { make in
+      make.top.equalTo(bodyLabel.snp.bottom).offset(10)
+      make.leading.equalTo(iconView.snp.leading)
+      make.trailing.lessThanOrEqualToSuperview()
+    }
+
+    advertiserLabel.snp.makeConstraints { make in
+      make.top.equalTo(ctaButton.snp.bottom).offset(10)
+      make.top.greaterThanOrEqualTo(iconView.snp.bottom).offset(10)
+      make.leading.trailing.equalToSuperview()
+      make.bottom.equalToSuperview()
+    }
+
+    headlineLabel.text = ad.headline
+    bodyLabel.text = ad.body
+    ctaButton.setTitle(ad.callToAction, for: .normal)
+
+    if let icon = ad.icon?.image {
+      iconView.image = icon
+      iconView.isHidden = false
+    } else {
+      iconView.isHidden = true
+    }
+
+    if let advertiser = ad.advertiser {
+      advertiserLabel.text = "제공: \(advertiser)"
+      advertiserLabel.isHidden = false
+    } else {
+      advertiserLabel.isHidden = true
+    }
+
+    adView.mediaView = mediaView
+    adView.headlineView = headlineLabel
+    adView.bodyView = bodyLabel
+    adView.callToActionView = ctaButton
+    adView.iconView = iconView
+    adView.adChoicesView = adChoicesView
+    adView.advertiserView = advertiserLabel
+    adView.nativeAd = ad
+
+    return adView
+  }
+
+  @objc private func dismissPopup() {
+    self.dismiss(animated: true) { [weak self] in
+      self?.onDismiss?()
+    }
   }
 }
