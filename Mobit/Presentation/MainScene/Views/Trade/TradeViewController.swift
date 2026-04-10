@@ -356,6 +356,7 @@ class TradeViewController: MobitBaseViewController {
     let bannerView = BannerView(adSize: AdSizeBanner)
     bannerView.adUnitID = MobitConstants.bannerAdType
     bannerView.rootViewController = self
+	bannerView.backgroundColor = .white
     self.bannerContainerView.addSubview(bannerView)
 
     bannerView.snp.makeConstraints { make in
@@ -539,6 +540,8 @@ extension TradeViewController {
 	// UIHostingController를 사용하면, SwiftUI가 자신의 사이즈를 스스로 계산하려고 함.
 	let hosting = UIHostingController(rootView: miniChartView)
 	self.miniChartHostingController = hosting
+	self.miniChartContainerView.backgroundColor = .clear
+	self.miniChartHostingController?.view.backgroundColor = .clear
 	
 	self.addChild(hosting)
 	hosting.view.translatesAutoresizingMaskIntoConstraints = false

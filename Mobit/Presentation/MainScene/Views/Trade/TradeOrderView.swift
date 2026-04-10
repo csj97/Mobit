@@ -155,6 +155,7 @@ class TradeOrderView: UIView, ViewRule {
 	  self.layoutIfNeeded()
 	  self.segmentedContainerStackView.layoutIfNeeded()
 	}
+	self.orderbookTableView.backgroundColor = .clear
 	self.segmentedControl.selectedIndex = 0
 	self.segmentedControl.onSegmentChanged?(0)
   }

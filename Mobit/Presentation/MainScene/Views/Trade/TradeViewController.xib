@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="24506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24504"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -30,11 +30,11 @@
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="9Pa-No-d3Z">
-                    <rect key="frame" x="0.0" y="0.0" width="393" height="59"/>
+                    <rect key="frame" x="0.0" y="0.0" width="393" height="118"/>
                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="xWf-v8-Qze" userLabel="Navi View">
-                    <rect key="frame" x="0.0" y="59" width="393" height="54"/>
+                    <rect key="frame" x="0.0" y="118" width="393" height="54"/>
                     <subviews>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="qLz-is-gb7">
                             <rect key="frame" x="20" y="0.0" width="54" height="54"/>
@@ -84,7 +84,7 @@
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="VqE-1C-Oab" userLabel="Price View">
-                    <rect key="frame" x="0.0" y="113" width="393" height="60"/>
+                    <rect key="frame" x="0.0" y="172" width="393" height="60"/>
                     <subviews>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="Price" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YAR-Rz-3PG">
                             <rect key="frame" x="20" y="0.0" width="37" height="20"/>
@@ -136,7 +136,7 @@
                         </stackView>
                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="usN-Ic-cD0" userLabel="Mini Chart Container View">
                             <rect key="frame" x="283" y="0.0" width="100" height="60"/>
-                            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             <constraints>
                                 <constraint firstAttribute="height" constant="60" id="1hc-52-rXM"/>
                                 <constraint firstAttribute="width" constant="100" id="hes-S4-LA1"/>
@@ -157,19 +157,19 @@
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZMF-zH-Gij" customClass="MobitNeumorphicSegmentedControl" customModule="Mobit" customModuleProvider="target">
-                    <rect key="frame" x="0.0" y="188" width="393" height="40"/>
+                    <rect key="frame" x="0.0" y="247" width="393" height="40"/>
                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="40" id="FdO-4d-mrW"/>
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="om4-Hj-cJa" userLabel="Container View">
-                    <rect key="frame" x="0.0" y="228" width="393" height="544"/>
+                    <rect key="frame" x="0.0" y="287" width="393" height="485"/>
                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="tyi-4Y-wRR" userLabel="Banner AD View">
-                    <rect key="frame" x="10" y="772" width="373" height="80"/>
-                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    <rect key="frame" x="0.0" y="772" width="393" height="80"/>
+                    <color key="backgroundColor" systemColor="secondarySystemBackgroundColor"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="80" id="XRL-N0-cnv"/>
                     </constraints>
@@ -180,7 +180,7 @@
             <constraints>
                 <constraint firstItem="xWf-v8-Qze" firstAttribute="top" secondItem="9Pa-No-d3Z" secondAttribute="bottom" id="2Cc-RB-b1W"/>
                 <constraint firstItem="VqE-1C-Oab" firstAttribute="trailing" secondItem="fnl-2z-Ty3" secondAttribute="trailing" id="3eh-gO-iHB"/>
-                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="tyi-4Y-wRR" secondAttribute="trailing" constant="10" id="44N-47-oec"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="tyi-4Y-wRR" secondAttribute="trailing" id="44N-47-oec"/>
                 <constraint firstItem="ZMF-zH-Gij" firstAttribute="top" secondItem="VqE-1C-Oab" secondAttribute="bottom" constant="15" id="5nD-Hu-ugt"/>
                 <constraint firstItem="om4-Hj-cJa" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="EWk-EQ-4y5"/>
                 <constraint firstItem="9Pa-No-d3Z" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="Jrh-bm-poR"/>
@@ -188,7 +188,7 @@
                 <constraint firstAttribute="trailing" secondItem="9Pa-No-d3Z" secondAttribute="trailing" id="LbT-Ho-M5d"/>
                 <constraint firstItem="ZMF-zH-Gij" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="O2K-P7-Uau"/>
                 <constraint firstItem="om4-Hj-cJa" firstAttribute="top" secondItem="ZMF-zH-Gij" secondAttribute="bottom" id="RKi-CK-2W6"/>
-                <constraint firstItem="tyi-4Y-wRR" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="10" id="So9-fU-afq"/>
+                <constraint firstItem="tyi-4Y-wRR" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="So9-fU-afq"/>
                 <constraint firstItem="9Pa-No-d3Z" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="Wmr-Mk-Irx"/>
                 <constraint firstItem="xWf-v8-Qze" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" id="XCZ-Oj-QT9"/>
                 <constraint firstItem="xWf-v8-Qze" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="dGF-ns-als"/>
@@ -206,8 +206,8 @@
         <image name="arrow.backward" catalog="system" width="128" height="95"/>
         <image name="arrowtriangle.down.fill" catalog="system" width="128" height="120"/>
         <image name="star" catalog="system" width="128" height="116"/>
-        <systemColor name="systemBackgroundColor">
-            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        <systemColor name="secondarySystemBackgroundColor">
+            <color red="0.94901960780000005" green="0.94901960780000005" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>

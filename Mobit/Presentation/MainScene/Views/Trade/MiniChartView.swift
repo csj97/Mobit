@@ -102,6 +102,7 @@ struct MiniChartView: View {
 		.lineStyle(.init(lineWidth: 1))
 	  }
 	}
+	.background(.clear)
 	.chartXAxis(.hidden)
 	.chartYAxis(.hidden)
 	.chartYScale(domain: min(minPrice, basePrice) ... max(maxPrice, basePrice))
