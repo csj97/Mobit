@@ -419,9 +419,9 @@ extension MainViewController {
     let todayKey = self.mainNativeAdTodayKey()
     let lastShownDate = defaults.string(forKey: self.mainNativeAdLastShownDateKey)
 
-    if lastShownDate == todayKey {
-      return
-    }
+//    if lastShownDate == todayKey {
+//      return
+//    }
 
     self.loadMainNativeAd()
   }
@@ -852,7 +852,7 @@ final class MainNativeAdPopupViewController: UIViewController {
 
   private func makeAdCardView(ad: NativeAd) -> NativeAdView {
     let adView = NativeAdView()
-    adView.backgroundColor = .systemBackground
+    adView.backgroundColor = .white
     adView.layer.cornerRadius = 4
     adView.layer.masksToBounds = true
 
@@ -878,12 +878,14 @@ final class MainNativeAdPopupViewController: UIViewController {
     mediaView.clipsToBounds = true
 
     let headlineLabel = UILabel()
-    headlineLabel.font = UIFont.boldSystemFont(ofSize: 18)
+    headlineLabel.font = UIFont.boldSystemFont(ofSize: 16)
     headlineLabel.numberOfLines = 0
+	headlineLabel.textColor = .black
 
     let bodyLabel = UILabel()
-    bodyLabel.font = UIFont.systemFont(ofSize: 14)
+    bodyLabel.font = UIFont.systemFont(ofSize: 12)
     bodyLabel.numberOfLines = 0
+	bodyLabel.textColor = .black
 
     let ctaButton = UIButton(type: .system)
 	
