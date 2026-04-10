@@ -335,18 +335,21 @@ class TradeViewController: MobitBaseViewController {
   func loadBannerADView() {
     self.bannerContainerView.subviews.forEach { $0.removeFromSuperview() }
 
-    HybridAdSlotManager.shared.resolveAd(slotID: self.tradeBannerSlotID) { [weak self] result in
-      guard let self = self else { return }
-
-      DispatchQueue.main.async {
-        switch result {
-        case .googleBanner:
-          self.showGoogleBanner()
-        case .coupangWidget(let widget):
-          self.showCoupangWidget(widget: widget)
-        }
-      }
-    }
+	// TODO: coupang banner 광고 현재 미동작 (4/10 일단 구글 배너로 배포나감)
+	self.showGoogleBanner()
+	
+//    HybridAdSlotManager.shared.resolveAd(slotID: self.tradeBannerSlotID) { [weak self] result in
+//      guard let self = self else { return }
+//
+//      DispatchQueue.main.async {
+//        switch result {
+//        case .googleBanner:
+//          self.showGoogleBanner()
+//        case .coupangWidget(let widget):
+//          self.showCoupangWidget(widget: widget)
+//        }
+//      }
+//    }
   }
 
   private func showGoogleBanner() {

@@ -117,41 +117,43 @@ final class HybridAdSlotManager {
 
   private init() { }
 
+  // 슬롯 설정/노출 한도/비율을 기반으로 이번 노출 광고 타입을 결정한다.
   func resolveAd(slotID: String, completion: @escaping (HybridAdSlotResult) -> Void) {
     self.fetchSlotConfig(slotID: slotID) { [weak self] config in
       guard let self = self else { return }
 
-      guard config.isEnabled else {
-        completion(.googleBanner)
-        return
-      }
-
-      let totalRatio = max(config.googleRatio + config.coupangRatio, 1)
-      let roll = Int.random(in: 0..<totalRatio)
-      let shouldTryCoupang = roll >= config.googleRatio
-
-      guard shouldTryCoupang else {
-        completion(.googleBanner)
-        return
-      }
-
-      guard self.canShowCoupangToday(slotID: slotID, dailyLimit: config.dailyCoupangImpressionLimit) else {
-        completion(.googleBanner)
-        return
-      }
-
-      self.fetchCoupangWidget(slotID: slotID) { widget in
-        guard let widget = widget, widget.isActive else {
-          completion(.googleBanner)
-          return
-        }
-
-        self.incrementCoupangImpression(slotID: slotID)
-        completion(.coupangWidget(widget))
-      }
-    }
+	  guard config.isEnabled else {
+		completion(.googleBanner)
+		return
+	  }
+	  
+	  let totalRatio = max(config.googleRatio + config.coupangRatio, 1)
+	  let roll = Int.random(in: 0..<totalRatio)
+	  let shouldTryCoupang = roll >= config.googleRatio
+	  
+	  guard shouldTryCoupang else {
+		completion(.googleBanner)
+		return
+	  }
+	  
+	  guard self.canShowCoupangToday(slotID: slotID, dailyLimit: config.dailyCoupangImpressionLimit) else {
+		completion(.googleBanner)
+		return
+	  }
+	  
+	  self.fetchCoupangWidget(slotID: slotID) { widget in
+		guard let widget = widget, widget.isActive else {
+		  completion(.googleBanner)
+		  return
+		}
+		
+		self.incrementCoupangImpression(slotID: slotID)
+		completion(.coupangWidget(widget))
+	  }
+	}
   }
 
+  // Firebase에서 슬롯의 하이브리드 광고 설정값을 조회한다.
   private func fetchSlotConfig(slotID: String, completion: @escaping (HybridAdSlotConfig) -> Void) {
     let path = "adSlots/\(slotID)/config"
     self.dbRef.child(path).observeSingleEvent(of: .value) { snapshot in
@@ -163,6 +165,7 @@ final class HybridAdSlotManager {
     }
   }
 
+  // Firebase에서 슬롯에 연결된 쿠팡 위젯 설정을 조회한다.
   private func fetchCoupangWidget(slotID: String, completion: @escaping (CoupangWidgetConfig?) -> Void) {
     let path = "adSlots/\(slotID)/coupangWidget"
     self.dbRef.child(path).observeSingleEvent(of: .value) { snapshot in
@@ -174,6 +177,7 @@ final class HybridAdSlotManager {
     }
   }
 
+  // 오늘 날짜 기준으로 쿠팡 광고를 추가 노출할 수 있는지 확인한다.
   private func canShowCoupangToday(slotID: String, dailyLimit: Int) -> Bool {
     guard dailyLimit > 0 else { return false }
     let key = "ad-slot-\(slotID)-coupang-impression-\(self.currentDateKey())"
@@ -181,12 +185,14 @@ final class HybridAdSlotManager {
     return current < dailyLimit
   }
 
+  // 오늘 날짜 키의 쿠팡 노출 카운트를 1 증가시킨다.
   private func incrementCoupangImpression(slotID: String) {
     let key = "ad-slot-\(slotID)-coupang-impression-\(self.currentDateKey())"
     let current = self.defaults.integer(forKey: key)
     self.defaults.set(current + 1, forKey: key)
   }
 
+  // 일일 노출 집계를 위한 서울 기준 날짜 문자열 키를 생성한다.
   private func currentDateKey() -> String {
     let formatter = DateFormatter()
     formatter.locale = Locale(identifier: "ko_KR")
