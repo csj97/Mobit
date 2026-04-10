@@ -546,6 +546,7 @@ extension TradeViewController {
 	
 	hosting.view.snp.makeConstraints { make in
 	  make.top.bottom.equalToSuperview().inset(5)
+	  make.horizontalEdges.equalToSuperview()
 	}
 	hosting.didMove(toParent: self)
   }

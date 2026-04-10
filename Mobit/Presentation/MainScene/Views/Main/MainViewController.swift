@@ -517,7 +517,7 @@ extension MainViewController: View {
 	
 	var filteredList = totalList
 	
-	// 1️⃣ 탭별 필터링
+	// 1. 탭별 필터링
 	switch self.selectedTab {
 	case .hold:
 	  let userCryptos = self.reactor.currentState.userCryptos
@@ -534,7 +534,7 @@ extension MainViewController: View {
 	  filteredList = filteredList.filter { favoriteMarkets.contains($0.market) }
 	}
 	
-	// 2️⃣ 검색어 필터링
+	// 2. 검색어 필터링
 	if !searchText.isEmpty {
 	  filteredList = filteredList.filter {
 		$0.market.lowercased().contains(searchText) ||
@@ -618,7 +618,7 @@ extension MainViewController: UITableViewDelegate {
   
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 	
-	// ⭐️ 현재 화면에 표시 중인 리스트 가져오기
+	// 현재 화면에 표시 중인 리스트 가져오기
 	let displayedList = self.filterListForCurrentTab(
 	  totalList: reactor.currentState.totalCryptoList
 	)
@@ -671,7 +671,7 @@ extension MainViewController: UITableViewDelegate {
 extension MainViewController: UISearchBarDelegate {
   
   func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-	// ⭐️ 검색어가 변경되면 자동으로 필터링됨 (bind에서 처리)
+	// 검색어가 변경되면 자동으로 필터링됨 (bind에서 처리)
 	let filteredList = self.filterListForCurrentTab(
 	  totalList: reactor.currentState.totalCryptoList
 	)
@@ -721,6 +721,7 @@ extension MainViewController: AdLoaderDelegate, NativeAdLoaderDelegate, NativeAd
   }
 
   func nativeAdDidRecordImpression(_ nativeAd: NativeAd) {
+	UserDefaults.standard.set(self.mainNativeAdTodayKey(), forKey: self.mainNativeAdLastShownDateKey)
     Log.info("메인 네이티브 광고 노출")
   }
 }
@@ -743,10 +744,10 @@ extension MainViewController {
 		  let isConnected = userInfo["isConnected"] as? Bool else { return }
 	
 	if !isConnected {
-	  // 🚨 네트워크 완전 유실 상태
+	  // 네트워크 완전 유실 상태
 	  showNetworkLostView()
 	} else {
-	  // ✅ 네트워크 복구됨
+	  // 네트워크 복구됨
 	  hideNetworkLostView()
 	}
   }
@@ -805,27 +806,38 @@ final class MainNativeAdPopupViewController: UIViewController {
     let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissPopup))
     dimView.addGestureRecognizer(tapGesture)
 
-    let closeButton = UIButton(type: .system)
-    closeButton.translatesAutoresizingMaskIntoConstraints = false
-    closeButton.tintColor = .white
-    closeButton.setImage(UIImage(systemName: "xmark.square.fill"), for: .normal)
-    closeButton.addTarget(self, action: #selector(self.dismissPopup), for: .touchUpInside)
+	let closeBackgroundView = UIView()
+	closeBackgroundView.backgroundColor = .darkGray
+	closeBackgroundView.clipsToBounds = true
+
+	let closeButton = UIButton(type: .system)
+	closeButton.tintColor = .white
+	let symbolConfig = UIImage.SymbolConfiguration(pointSize: 18, weight: .bold)
+	closeButton.setPreferredSymbolConfiguration(symbolConfig, forImageIn: .normal)
+	closeButton.setImage(UIImage(systemName: "xmark"), for: .normal)
+	closeButton.addTarget(self, action: #selector(self.dismissPopup), for: .touchUpInside)
 
     let cardView = self.makeAdCardView(ad: self.ad)
     cardView.translatesAutoresizingMaskIntoConstraints = false
 
     self.view.addSubview(dimView)
-    self.view.addSubview(closeButton)
+    self.view.addSubview(closeBackgroundView)
     self.view.addSubview(cardView)
+	closeBackgroundView.addSubview(closeButton)
 	
 	dimView.snp.makeConstraints { make in
 	  make.edges.equalToSuperview()
 	}
 	
-	closeButton.snp.makeConstraints { make in
+	closeBackgroundView.snp.makeConstraints { make in
 	  make.trailing.equalTo(cardView.snp.trailing)
 	  make.top.equalTo(cardView.snp.bottom)
-	  make.size.equalTo(64)
+	  make.width.height.equalTo(40)
+	}
+
+	closeButton.snp.makeConstraints { make in
+	  make.center.equalToSuperview()
+	  make.edges.equalToSuperview()
 	}
 	
 	cardView.snp.makeConstraints { make in
@@ -841,7 +853,7 @@ final class MainNativeAdPopupViewController: UIViewController {
   private func makeAdCardView(ad: NativeAd) -> NativeAdView {
     let adView = NativeAdView()
     adView.backgroundColor = .systemBackground
-    adView.layer.cornerRadius = 12
+    adView.layer.cornerRadius = 4
     adView.layer.masksToBounds = true
 
     let container = UIView()
@@ -951,7 +963,7 @@ final class MainNativeAdPopupViewController: UIViewController {
     }
 
     ctaButton.snp.makeConstraints { make in
-      make.top.equalTo(bodyLabel.snp.bottom).offset(10)
+      make.top.equalTo(iconView.snp.bottom)
       make.leading.equalTo(iconView.snp.leading)
       make.trailing.lessThanOrEqualToSuperview()
     }
