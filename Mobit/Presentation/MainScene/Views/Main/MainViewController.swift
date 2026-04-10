@@ -419,9 +419,9 @@ extension MainViewController {
     let todayKey = self.mainNativeAdTodayKey()
     let lastShownDate = defaults.string(forKey: self.mainNativeAdLastShownDateKey)
 
-//    if lastShownDate == todayKey {
-//      return
-//    }
+    if lastShownDate == todayKey {
+      return
+    }
 
     self.loadMainNativeAd()
   }
