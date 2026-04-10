@@ -462,8 +462,6 @@ extension MainViewController {
     guard self.presentedViewController == nil else { return }
     guard self.view.window != nil else { return }
 
-    UserDefaults.standard.set(self.mainNativeAdTodayKey(), forKey: self.mainNativeAdLastShownDateKey)
-
     let popup = MainNativeAdPopupViewController(ad: ad) { [weak self] in
       self?.mainNativeAd = nil
     }
@@ -562,50 +560,39 @@ extension MainViewController: View {
   
   /// 사용자 매수 목록 업데이트
   private func updateUserCryptoList(from cellInfos: [CryptoCellInfo]) {
-	guard let userCryptoList = UserDataManager.userCryptoList else { return }
-	
-	let userMarketNames = Set(userCryptoList.map { $0.staticData.marketName })
-	
-	cellInfos
-	  .filter { userMarketNames.contains($0.market) }
-	  .forEach { cellInfo in
-		self.fetchUserCryptoList(
-		  marketName: cellInfo.market,
-		  currentPrice: cellInfo.tradePrice
+	guard var userCryptoList = UserDataManager.userCryptoList, !userCryptoList.isEmpty else { return }
+
+	// market -> index 맵 (탐색 O(1))
+	let indexByMarket = Dictionary(
+	  uniqueKeysWithValues: userCryptoList.enumerated().map { ($1.staticData.marketName, $0) }
+	)
+
+	for cell in cellInfos {
+	  guard let currentPrice = cell.tradePrice,
+			let idx = indexByMarket[cell.market] else { continue }
+
+	  let avg = userCryptoList[idx].staticData.averageBuyPrice
+	  let qty = userCryptoList[idx].staticData.holdingQuantity
+
+	  userCryptoList[idx].dynamicData.profitRate = MarketDataServiceUtil.shared.calculateProfitRate(
+		  currentPrice: currentPrice,
+		  averageBuyPrice: avg
 		)
-	  }
-  }
-  
-  /// 매수 목록 fetch
-  private func fetchUserCryptoList(marketName: String, currentPrice: Double?) {
-	guard let updateCryptoIndex = UserDataManager.userCryptoList?
-	  .firstIndex(where: { $0.staticData.marketName == marketName }),
-		  let currentPrice = currentPrice,
-		  let averageBuyPrice = UserDataManager.userCryptoList?[updateCryptoIndex].staticData.averageBuyPrice,
-		  let holdingQuantity = UserDataManager.userCryptoList?[updateCryptoIndex].staticData.holdingQuantity
-	else { return }
-	
-	UserDataManager.userCryptoList?[updateCryptoIndex].dynamicData.profitRate =
-	MarketDataServiceUtil.shared.fetchProfitRate(
-	  for: marketName,
-	  currentPrice: currentPrice,
-	  averageBuyPrice: averageBuyPrice
-	)
-	
-	UserDataManager.userCryptoList?[updateCryptoIndex].dynamicData.evaluationPrice =
-	MarketDataServiceUtil.shared.fetchEvalPrice(
-	  for: marketName,
-	  currentPrice: currentPrice,
-	  holdingQuantity: holdingQuantity
-	)
-	
-	UserDataManager.userCryptoList?[updateCryptoIndex].dynamicData.evaluationProfitLoss =
-	MarketDataServiceUtil.shared.fetchEvalProfitLoss(
-	  for: marketName,
-	  currentPrice: currentPrice,
-	  holdingQuantity: holdingQuantity,
-	  averageBuyPrice: averageBuyPrice
-	)
+
+	  userCryptoList[idx].dynamicData.evaluationPrice = MarketDataServiceUtil.shared.calculateEvalPrice(
+		currentPrice: currentPrice,
+		holdingQuantity: qty
+	  )
+
+	  userCryptoList[idx].dynamicData.evaluationProfitLoss = MarketDataServiceUtil.shared.calculateEvalProfitLoss(
+		currentPrice: currentPrice,
+		holdingQuantity: qty,
+		averageBuyPrice: avg
+	  )
+	}
+
+	// 최종적으로 1회 저장 (반복문 안에서 저장 연산 X)
+	UserDataManager.userCryptoList = userCryptoList
   }
   
   /// 즐겨찾기 UI 업데이트
