@@ -4,6 +4,8 @@
 <dict>
 	<key>COIN_MARKET_CAP_API_KEY</key>
 	<string>$(COIN_MARKET_CAP_API_KEY)</string>
+	<key>FirebaseAutomaticScreenReportingEnabled</key>
+	<false/>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-3498168241675848~9078363335</string>
 	<key>NSAppTransportSecurity</key>
@@ -245,8 +247,6 @@
 	</dict>
 	<key>UPBIT_ACCESS_KEY</key>
 	<string>$(UPBIT_ACCESS_KEY)</string>
-	<key>FirebaseAutomaticScreenReportingEnabled</key>
-	<false/>
 	<key>UPBIT_SECRET_KEY</key>
 	<string>$(UPBIT_SECRET_KEY)</string>
 </dict>
