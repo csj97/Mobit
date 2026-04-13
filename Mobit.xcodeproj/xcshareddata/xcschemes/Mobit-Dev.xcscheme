@@ -44,12 +44,21 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
+            BlueprintIdentifier = "C1B517382F8CAFCA00C2393E"
+            BuildableName = "Mobit-Dev.app"
+            BlueprintName = "Mobit-Dev"
+            ReferencedContainer = "container:Mobit.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
             BlueprintIdentifier = "3133E2232C3E2355000D4B1A"
             BuildableName = "Mobit.app"
             BlueprintName = "Mobit"
             ReferencedContainer = "container:Mobit.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

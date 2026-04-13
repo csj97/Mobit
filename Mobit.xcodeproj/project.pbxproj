@@ -81,7 +81,6 @@
 		998849E42C5378CD0073A27D /* CryptoTickerDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998849E32C5378CD0073A27D /* CryptoTickerDTO.swift */; };
 		998849E62C5379960073A27D /* CryptoTicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998849E52C5379960073A27D /* CryptoTicker.swift */; };
 		99C20A582C48D35C009276E7 /* DividerLineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A572C48D35C009276E7 /* DividerLineView.swift */; };
-		99C20A5B2C48DE40009276E7 /* SwiftJWT in Frameworks */ = {isa = PBXBuildFile; productRef = 99C20A5A2C48DE40009276E7 /* SwiftJWT */; };
 		99C20A5D2C48DF11009276E7 /* CoinTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A5C2C48DF11009276E7 /* CoinTableViewCell.swift */; };
 		99C20A692C490326009276E7 /* MainNetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A682C490326009276E7 /* MainNetworkService.swift */; };
 		99C20A6C2C490615009276E7 /* CombineMoya in Frameworks */ = {isa = PBXBuildFile; productRef = 99C20A6B2C490615009276E7 /* CombineMoya */; };
@@ -183,6 +182,370 @@
 		C1B327702E85140500E50C50 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = C1B3276F2E85140500E50C50 /* Lottie */; };
 		C1B327832E85157E00E50C50 /* MobitLottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B327822E85157E00E50C50 /* MobitLottieView.swift */; };
 		C1B327852E8523F400E50C50 /* SkeletonDiffableDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B327842E8523F400E50C50 /* SkeletonDiffableDataSource.swift */; };
+		C1B5175B2F8CAFCA00C2393E /* MoreViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31F33FCD2DDA1C09003D533A /* MoreViewController.swift */; };
+		C1B5175C2F8CAFCA00C2393E /* NoticeForceUpdateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA880E12E1A3D0B00F22F9C /* NoticeForceUpdateViewController.swift */; };
+		C1B5175D2F8CAFCA00C2393E /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17EAE372E374515006ACA44 /* Log.swift */; };
+		C1B5175E2F8CAFCA00C2393E /* PNLTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16FAE6F2E38B530003C5AD1 /* PNLTableViewCell.swift */; };
+		C1B5175F2F8CAFCA00C2393E /* PNLViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16FAE6B2E38B4B9003C5AD1 /* PNLViewController.swift */; };
+		C1B517602F8CAFCA00C2393E /* MainCryptoTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1DF71152E16407E002E89E1 /* MainCryptoTableViewCell.swift */; };
+		C1B517612F8CAFCA00C2393E /* NewsCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18D1B1A2ED81F5900D10A2E /* NewsCoordinator.swift */; };
+		C1B517622F8CAFCA00C2393E /* MobitTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 312861052DFE749200541A6A /* MobitTabBar.swift */; };
+		C1B517632F8CAFCA00C2393E /* DoubleExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */; };
+		C1B517642F8CAFCA00C2393E /* CryptoDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A782C490B08009276E7 /* CryptoDTO.swift */; };
+		C1B517652F8CAFCA00C2393E /* OrderBookCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367271B02C7B305500F9D86E /* OrderBookCell.swift */; };
+		C1B517662F8CAFCA00C2393E /* MainRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A752C490A3C009276E7 /* MainRepository.swift */; };
+		C1B517672F8CAFCA00C2393E /* GradientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18E3FEC2E25E8DC00B9E5D0 /* GradientView.swift */; };
+		C1B517682F8CAFCA00C2393E /* CryptoTicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998849E52C5379960073A27D /* CryptoTicker.swift */; };
+		C1B517692F8CAFCA00C2393E /* MainUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E26F2C3F7098000D4B1A /* MainUseCase.swift */; };
+		C1B5176A2F8CAFCA00C2393E /* MobitBaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17BB4172E2F27A400BDAA0F /* MobitBaseViewController.swift */; };
+		C1B5176B2F8CAFCA00C2393E /* Crypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB72C4F775B009276E7 /* Crypto.swift */; };
+		C1B5176C2F8CAFCA00C2393E /* LeaderBoardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CCE8632EDEDC9B002D5DF9 /* LeaderBoardViewController.swift */; };
+		C1B5176D2F8CAFCA00C2393E /* LeaderBoardCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19818DE2EDFF19C0044A398 /* LeaderBoardCoordinator.swift */; };
+		C1B5176E2F8CAFCA00C2393E /* Candle+DayResponseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C182B6A82EF528910090CA34 /* Candle+DayResponseModel.swift */; };
+		C1B5176F2F8CAFCA00C2393E /* ViewControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1246B622ED979D400B24D3D /* ViewControllerExtension.swift */; };
+		C1B517702F8CAFCA00C2393E /* TradeInformationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E82DE31648001ACCF9 /* TradeInformationView.swift */; };
+		C1B517712F8CAFCA00C2393E /* CryptoDetailCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D644472C7257F900C7F96D /* CryptoDetailCoordinator.swift */; };
+		C1B517722F8CAFCA00C2393E /* CryptoCellInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998849E12C524AAA0073A27D /* CryptoCellInfo.swift */; };
+		C1B517732F8CAFCA00C2393E /* NeumorphicButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 310865052E1EC3F40089D67A /* NeumorphicButton.swift */; };
+		C1B517742F8CAFCA00C2393E /* TradeBidView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED502D55FE3D0038BBF7 /* TradeBidView.swift */; };
+		C1B517752F8CAFCA00C2393E /* InvestmentTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17DB9702DA5FAF000DA673A /* InvestmentTableViewCell.swift */; };
+		C1B517762F8CAFCA00C2393E /* MainCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208062C4678B9000BFEBC /* MainCoordinator.swift */; };
+		C1B517772F8CAFCA00C2393E /* MarketDataServiceUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */; };
+		C1B517782F8CAFCA00C2393E /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19F65292EB1EEE200CE1A7E /* NetworkMonitor.swift */; };
+		C1B517792F8CAFCA00C2393E /* MobitCommunityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CD3A602E28C3CD0049699B /* MobitCommunityViewController.swift */; };
+		C1B5177A2F8CAFCA00C2393E /* Candle+MinuteResponseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13B29F52EE0188C00391683 /* Candle+MinuteResponseModel.swift */; };
+		C1B5177B2F8CAFCA00C2393E /* UserPNLHistoryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16FAE692E38A4C6003C5AD1 /* UserPNLHistoryModel.swift */; };
+		C1B5177C2F8CAFCA00C2393E /* InvestmentCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E2080F2C46C2FE000BFEBC /* InvestmentCoordinator.swift */; };
+		C1B5177D2F8CAFCA00C2393E /* TradeHistoryTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B7420D2D5B939000706340 /* TradeHistoryTableViewCell.swift */; };
+		C1B5177E2F8CAFCA00C2393E /* Candle+MinuteResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13B29F32EE0173100391683 /* Candle+MinuteResponseDTO.swift */; };
+		C1B5177F2F8CAFCA00C2393E /* MobitConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18A84F82E2E1C6D00E49070 /* MobitConstants.swift */; };
+		C1B517802F8CAFCA00C2393E /* MobitUserInformation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17424C52D460478009861CC /* MobitUserInformation.swift */; };
+		C1B517812F8CAFCA00C2393E /* BaseCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2652C3F6A44000D4B1A /* BaseCoordinator.swift */; };
+		C1B517822F8CAFCA00C2393E /* SelfSizingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */; };
+		C1B517832F8CAFCA00C2393E /* SkeletonDiffableDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B327842E8523F400E50C50 /* SkeletonDiffableDataSource.swift */; };
+		C1B517842F8CAFCA00C2393E /* UserDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17424C32D4600A8009861CC /* UserDataManager.swift */; };
+		C1B517852F8CAFCA00C2393E /* TradeInfoCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C174D8A02E24DBEC0015B6ED /* TradeInfoCollectionViewCell.swift */; };
+		C1B517862F8CAFCA00C2393E /* TradeOrderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741F42D53AA6C00706340 /* TradeOrderView.swift */; };
+		C1B517872F8CAFCA00C2393E /* MobitAnalyticsUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */; };
+		C1B517882F8CAFCA00C2393E /* ColorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */; };
+		C1B517892F8CAFCA00C2393E /* MainChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C182B6A42EF5257C0090CA34 /* MainChartView.swift */; };
+		C1B5178A2F8CAFCA00C2393E /* ButtonExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B742002D5A2ABD00706340 /* ButtonExtension.swift */; };
+		C1B5178B2F8CAFCA00C2393E /* FirebaseCMCResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */; };
+		C1B5178C2F8CAFCA00C2393E /* CryptoQuoteResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E62DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift */; };
+		C1B5178D2F8CAFCA00C2393E /* OrderBookResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */; };
+		C1B5178E2F8CAFCA00C2393E /* CryptoTickerDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998849E32C5378CD0073A27D /* CryptoTickerDTO.swift */; };
+		C1B5178F2F8CAFCA00C2393E /* TradeChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741FA2D53AAD800706340 /* TradeChartView.swift */; };
+		C1B517902F8CAFCA00C2393E /* MoreCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208162C46C441000BFEBC /* MoreCoordinator.swift */; };
+		C1B517912F8CAFCA00C2393E /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2632C3F6A3B000D4B1A /* AppCoordinator.swift */; };
+		C1B517922F8CAFCA00C2393E /* TradeHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741FC2D58D67200706340 /* TradeHistoryView.swift */; };
+		C1B517932F8CAFCA00C2393E /* ImageViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C15DCD2A2DF2CAFD007544D8 /* ImageViewExtension.swift */; };
+		C1B517942F8CAFCA00C2393E /* TradeAskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED542D55FE4D0038BBF7 /* TradeAskView.swift */; };
+		C1B517952F8CAFCA00C2393E /* ViewRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741EE2D53A37600706340 /* ViewRule.swift */; };
+		C1B517962F8CAFCA00C2393E /* NetworkLostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19F652B2EB1F2E800CE1A7E /* NetworkLostView.swift */; };
+		C1B517972F8CAFCA00C2393E /* MobitBottomSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17681482E9CDAAB00CA825E /* MobitBottomSheetViewController.swift */; };
+		C1B517982F8CAFCA00C2393E /* TradeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741EA2D524F7000706340 /* TradeViewController.swift */; };
+		C1B517992F8CAFCA00C2393E /* CustomWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C191ECCD2DA79A6700BBA5EB /* CustomWindow.swift */; };
+		C1B5179A2F8CAFCA00C2393E /* Candle+DayResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = C182B6A62EF5285A0090CA34 /* Candle+DayResponseDTO.swift */; };
+		C1B5179B2F8CAFCA00C2393E /* CryptoSocketTickerDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AAB2C4F458C009276E7 /* CryptoSocketTickerDTO.swift */; };
+		C1B5179C2F8CAFCA00C2393E /* InvestmentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17CF49A2DA4DAE900CDF76D /* InvestmentViewController.swift */; };
+		C1B5179D2F8CAFCA00C2393E /* CryptoDetailUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D6444C2C72590C00C7F96D /* CryptoDetailUseCase.swift */; };
+		C1B5179E2F8CAFCA00C2393E /* NoticeAppUpdateCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA880E52E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift */; };
+		C1B5179F2F8CAFCA00C2393E /* SocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31DC41E12CD9197700F0FFF2 /* SocketManager.swift */; };
+		C1B517A02F8CAFCA00C2393E /* MainNetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A682C490326009276E7 /* MainNetworkService.swift */; };
+		C1B517A12F8CAFCA00C2393E /* CryptoTransactionDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C190F29C2D65AD6A00895D9E /* CryptoTransactionDataModel.swift */; };
+		C1B517A22F8CAFCA00C2393E /* FirebaseCMCResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17DC0D12E2094DF00E35D3F /* FirebaseCMCResponseDTO.swift */; };
+		C1B517A32F8CAFCA00C2393E /* ErrorType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 311E33F92C46068C0054C6BC /* ErrorType.swift */; };
+		C1B517A42F8CAFCA00C2393E /* AppTabBarCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208032C4677CB000BFEBC /* AppTabBarCoordinator.swift */; };
+		C1B517A52F8CAFCA00C2393E /* DividerLineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A572C48D35C009276E7 /* DividerLineView.swift */; };
+		C1B517A62F8CAFCA00C2393E /* NeumorphicSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17DC0F32E20E6E700E35D3F /* NeumorphicSegmentedControl.swift */; };
+		C1B517A72F8CAFCA00C2393E /* CoordinatorFinishDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2672C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift */; };
+		C1B517A82F8CAFCA00C2393E /* MobitTabBarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 312861092DFE7FFC00541A6A /* MobitTabBarViewController.swift */; };
+		C1B517A92F8CAFCA00C2393E /* MobitCommunityCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CD3A642E28C8CE0049699B /* MobitCommunityCoordinator.swift */; };
+		C1B517AA2F8CAFCA00C2393E /* TradeNetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13B29F12EE0149E00391683 /* TradeNetworkService.swift */; };
+		C1B517AB2F8CAFCA00C2393E /* TradeAverageCalcView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1801A182ED9404600281695 /* TradeAverageCalcView.swift */; };
+		C1B517AC2F8CAFCA00C2393E /* MobitAlertViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31F33FD12DDA1D4C003D533A /* MobitAlertViewController.swift */; };
+		C1B517AD2F8CAFCA00C2393E /* PNLShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19F77962E41A2EA00863159 /* PNLShareView.swift */; };
+		C1B517AE2F8CAFCA00C2393E /* PNLCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16FAE732E38BC54003C5AD1 /* PNLCoordinator.swift */; };
+		C1B517AF2F8CAFCA00C2393E /* AppDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1852D022E67E05200A989B4 /* AppDataManager.swift */; };
+		C1B517B02F8CAFCA00C2393E /* ViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B742022D5A2CAC00706340 /* ViewExtension.swift */; };
+		C1B517B12F8CAFCA00C2393E /* TradeHistoryInformation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B742112D5B967F00706340 /* TradeHistoryInformation.swift */; };
+		C1B517B22F8CAFCA00C2393E /* TextFieldExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16992A02EDD6AFC0011EAF8 /* TextFieldExtension.swift */; };
+		C1B517B32F8CAFCA00C2393E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2272C3E2355000D4B1A /* AppDelegate.swift */; };
+		C1B517B42F8CAFCA00C2393E /* LeakAvoider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B742092D5A46B300706340 /* LeakAvoider.swift */; };
+		C1B517B52F8CAFCA00C2393E /* InvestReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17CF49F2DA4DD6500CDF76D /* InvestReactor.swift */; };
+		C1B517B62F8CAFCA00C2393E /* MiniChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A015092E49B0DD00B7A7C6 /* MiniChartView.swift */; };
+		C1B517B72F8CAFCA00C2393E /* NewsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18D1B1C2ED81FC100D10A2E /* NewsViewController.swift */; };
+		C1B517B82F8CAFCA00C2393E /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB12C4F6A04009276E7 /* Environment.swift */; };
+		C1B517B92F8CAFCA00C2393E /* TradeReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D644492C72587B00C7F96D /* TradeReactor.swift */; };
+		C1B517BA2F8CAFCA00C2393E /* CryptoInfoQuotesResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E42DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift */; };
+		C1B517BB2F8CAFCA00C2393E /* NeumorphicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18B1DCA2E39A36F00E25DCE /* NeumorphicView.swift */; };
+		C1B517BC2F8CAFCA00C2393E /* MobitNeumorphicSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */; };
+		C1B517BD2F8CAFCA00C2393E /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2292C3E2355000D4B1A /* SceneDelegate.swift */; };
+		C1B517BE2F8CAFCA00C2393E /* CryptoDetailRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D6444E2C72595000C7F96D /* CryptoDetailRepository.swift */; };
+		C1B517BF2F8CAFCA00C2393E /* MobitLaunchScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17BA2BE2DF5B8FB001AF72D /* MobitLaunchScreen.swift */; };
+		C1B517C02F8CAFCA00C2393E /* CallbackResultEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E7718E2D7595A700739CDE /* CallbackResultEnums.swift */; };
+		C1B517C12F8CAFCA00C2393E /* CryptoSocketTicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB32C4F7177009276E7 /* CryptoSocketTicker.swift */; };
+		C1B517C22F8CAFCA00C2393E /* MainTabBarCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208082C46BF6B000BFEBC /* MainTabBarCoordinator.swift */; };
+		C1B517C32F8CAFCA00C2393E /* MobitSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */; };
+		C1B517C42F8CAFCA00C2393E /* MobitLottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B327822E85157E00E50C50 /* MobitLottieView.swift */; };
+		C1B517C52F8CAFCA00C2393E /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */; };
+		C1B517C62F8CAFCA00C2393E /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 311E33FB2C4608800054C6BC /* MainViewController.swift */; };
+		C1B517C72F8CAFCA00C2393E /* MainReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A822C4A2787009276E7 /* MainReactor.swift */; };
+		C1B517C82F8CAFCA00C2393E /* OrderBookResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367271AC2C7B2DA600F9D86E /* OrderBookResponse.swift */; };
+		C1B517C92F8CAFCA00C2393E /* LabelExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C174D8A42E24E8920015B6ED /* LabelExtension.swift */; };
+		C1B517CA2F8CAFCA00C2393E /* CoinTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A5C2C48DF11009276E7 /* CoinTableViewCell.swift */; };
+		C1B517CB2F8CAFCA00C2393E /* CalculationUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */; };
+		C1B517CC2F8CAFCA00C2393E /* MobitTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E771922D75AF1E00739CDE /* MobitTextField.swift */; };
+		C1B517CE2F8CAFCA00C2393E /* PinLayout in Frameworks */ = {isa = PBXBuildFile; productRef = C1B517392F8CAFCA00C2393E /* PinLayout */; };
+		C1B517CF2F8CAFCA00C2393E /* Moya in Frameworks */ = {isa = PBXBuildFile; productRef = C1B517432F8CAFCA00C2393E /* Moya */; };
+		C1B517D02F8CAFCA00C2393E /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = C1B5174A2F8CAFCA00C2393E /* RxRelay */; };
+		C1B517D12F8CAFCA00C2393E /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = C1B5174E2F8CAFCA00C2393E /* SnapKit */; };
+		C1B517D22F8CAFCA00C2393E /* RxMoya in Frameworks */ = {isa = PBXBuildFile; productRef = C1B517452F8CAFCA00C2393E /* RxMoya */; };
+		C1B517D32F8CAFCA00C2393E /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = C1B5173D2F8CAFCA00C2393E /* Then */; };
+		C1B517D42F8CAFCA00C2393E /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = C1B517562F8CAFCA00C2393E /* FirebaseDatabase */; };
+		C1B517D52F8CAFCA00C2393E /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = C1B517542F8CAFCA00C2393E /* FirebaseAnalytics */; };
+		C1B517D62F8CAFCA00C2393E /* CombineMoya in Frameworks */ = {isa = PBXBuildFile; productRef = C1B517412F8CAFCA00C2393E /* CombineMoya */; };
+		C1B517D72F8CAFCA00C2393E /* ReactiveMoya in Frameworks */ = {isa = PBXBuildFile; productRef = C1B517442F8CAFCA00C2393E /* ReactiveMoya */; };
+		C1B517D82F8CAFCA00C2393E /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = C1B517482F8CAFCA00C2393E /* RxCocoa */; };
+		C1B517DA2F8CAFCA00C2393E /* ReactorKit in Frameworks */ = {isa = PBXBuildFile; productRef = C1B517462F8CAFCA00C2393E /* ReactorKit */; };
+		C1B517DB2F8CAFCA00C2393E /* FlexLayout in Frameworks */ = {isa = PBXBuildFile; productRef = C1B5173B2F8CAFCA00C2393E /* FlexLayout */; };
+		C1B517DC2F8CAFCA00C2393E /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = C1B517572F8CAFCA00C2393E /* FirebaseCrashlytics */; };
+		C1B517DD2F8CAFCA00C2393E /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = C1B517582F8CAFCA00C2393E /* Lottie */; };
+		C1B517DE2F8CAFCA00C2393E /* SkeletonView in Frameworks */ = {isa = PBXBuildFile; productRef = C1B517522F8CAFCA00C2393E /* SkeletonView */; };
+		C1B517DF2F8CAFCA00C2393E /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = C1B517502F8CAFCA00C2393E /* GoogleMobileAds */; };
+		C1B517E02F8CAFCA00C2393E /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = C1B5174C2F8CAFCA00C2393E /* Starscream */; };
+		C1B517E12F8CAFCA00C2393E /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = C1B5174B2F8CAFCA00C2393E /* RxSwift */; };
+		C1B517E32F8CAFCA00C2393E /* app.js in Resources */ = {isa = PBXBuildFile; fileRef = C15B934B2E29EDA10064212B /* app.js */; };
+		C1B517E42F8CAFCA00C2393E /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C17E08322D2A62BC0029A8D0 /* Colors.xcassets */; };
+		C1B517E52F8CAFCA00C2393E /* InvestmentViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C17CF49B2DA4DAE900CDF76D /* InvestmentViewController.xib */; };
+		C1B517E62F8CAFCA00C2393E /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5FA880E72E1A58E700F22F9C /* GoogleService-Info.plist */; };
+		C1B517E72F8CAFCA00C2393E /* TradeHistoryView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B741FE2D58D67800706340 /* TradeHistoryView.xib */; };
+		C1B517E82F8CAFCA00C2393E /* MainCryptoTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1DF71162E16407E002E89E1 /* MainCryptoTableViewCell.xib */; };
+		C1B517E92F8CAFCA00C2393E /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = C1CD3A5E2E28C3090049699B /* index.html */; };
+		C1B517EA2F8CAFCA00C2393E /* NoticeForceUpdateViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5FA880E22E1A3D0B00F22F9C /* NoticeForceUpdateViewController.xib */; };
+		C1B517EB2F8CAFCA00C2393E /* NewsViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C18D1B1D2ED81FC100D10A2E /* NewsViewController.xib */; };
+		C1B517EC2F8CAFCA00C2393E /* PNLViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C16FAE6C2E38B4B9003C5AD1 /* PNLViewController.xib */; };
+		C1B517ED2F8CAFCA00C2393E /* MobitAlertViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31F33FD22DDA1D4C003D533A /* MobitAlertViewController.xib */; };
+		C1B517EE2F8CAFCA00C2393E /* MobitLaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2B62DF5B576001AF72D /* MobitLaunchScreen.xib */; };
+		C1B517EF2F8CAFCA00C2393E /* InvestmentTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = C17DB9712DA5FAF000DA673A /* InvestmentTableViewCell.xib */; };
+		C1B517F02F8CAFCA00C2393E /* TradeInfoCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = C174D8A12E24DBEC0015B6ED /* TradeInfoCollectionViewCell.xib */; };
+		C1B517F12F8CAFCA00C2393E /* MobitBottomSheetViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C17681492E9CDAAB00CA825E /* MobitBottomSheetViewController.xib */; };
+		C1B517F22F8CAFCA00C2393E /* Localizable(KO).strings in Resources */ = {isa = PBXBuildFile; fileRef = C19F65262EB1D07900CE1A7E /* Localizable(KO).strings */; };
+		C1B517F32F8CAFCA00C2393E /* Localizable(EN).strings in Resources */ = {isa = PBXBuildFile; fileRef = C19F65232EB1D06C00CE1A7E /* Localizable(EN).strings */; };
+		C1B517F42F8CAFCA00C2393E /* TradeOrderView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B741F62D53AA7600706340 /* TradeOrderView.xib */; };
+		C1B517F52F8CAFCA00C2393E /* TradeChartView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B741F82D53AAAC00706340 /* TradeChartView.xib */; };
+		C1B517F62F8CAFCA00C2393E /* esamanru-OTF-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2BA2DF5B6D9001AF72D /* esamanru-OTF-Medium.otf */; };
+		C1B517F72F8CAFCA00C2393E /* TradeAverageCalcView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1801A1A2ED9405300281695 /* TradeAverageCalcView.xib */; };
+		C1B517F82F8CAFCA00C2393E /* esamanru-OTF-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2B82DF5B6D9001AF72D /* esamanru-OTF-Bold.otf */; };
+		C1B517F92F8CAFCA00C2393E /* esamanru-OTF-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2B92DF5B6D9001AF72D /* esamanru-OTF-Light.otf */; };
+		C1B517FA2F8CAFCA00C2393E /* PNLTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = C16FAE702E38B530003C5AD1 /* PNLTableViewCell.xib */; };
+		C1B517FB2F8CAFCA00C2393E /* TradeAskView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C18EED562D55FE610038BBF7 /* TradeAskView.xib */; };
+		C1B517FC2F8CAFCA00C2393E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3128610E2DFF125A00541A6A /* PrivacyInfo.xcprivacy */; };
+		C1B517FD2F8CAFCA00C2393E /* SUIT-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E72E865A17009F3E13 /* SUIT-Medium.otf */; };
+		C1B517FE2F8CAFCA00C2393E /* LeaderBoardViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1CCE8642EDEDC9B002D5DF9 /* LeaderBoardViewController.xib */; };
+		C1B517FF2F8CAFCA00C2393E /* SUIT-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E22E865A17009F3E13 /* SUIT-Bold.otf */; };
+		C1B518002F8CAFCA00C2393E /* SUIT-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E82E865A17009F3E13 /* SUIT-Regular.otf */; };
+		C1B518012F8CAFCA00C2393E /* SUIT-Thin.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650EA2E865A17009F3E13 /* SUIT-Thin.otf */; };
+		C1B518022F8CAFCA00C2393E /* SUIT-ExtraBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E32E865A17009F3E13 /* SUIT-ExtraBold.otf */; };
+		C1B518032F8CAFCA00C2393E /* SUIT-SemiBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E92E865A17009F3E13 /* SUIT-SemiBold.otf */; };
+		C1B518042F8CAFCA00C2393E /* SUIT-Heavy.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E52E865A17009F3E13 /* SUIT-Heavy.otf */; };
+		C1B518052F8CAFCA00C2393E /* SUIT-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E62E865A17009F3E13 /* SUIT-Light.otf */; };
+		C1B518062F8CAFCA00C2393E /* SUIT-ExtraLight.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E42E865A17009F3E13 /* SUIT-ExtraLight.otf */; };
+		C1B518072F8CAFCA00C2393E /* tradingview.html in Resources */ = {isa = PBXBuildFile; fileRef = 31B742072D5A3BBB00706340 /* tradingview.html */; };
+		C1B518082F8CAFCA00C2393E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3133E2322C3E2357000D4B1A /* LaunchScreen.storyboard */; };
+		C1B518092F8CAFCA00C2393E /* MobitAPIKeys.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 5F657F782E06B0E80065A029 /* MobitAPIKeys.xcconfig */; };
+		C1B5180A2F8CAFCA00C2393E /* PNLShareView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C19F77982E41A2F300863159 /* PNLShareView.xib */; };
+		C1B5180B2F8CAFCA00C2393E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3133E2302C3E2357000D4B1A /* Assets.xcassets */; };
+		C1B5180C2F8CAFCA00C2393E /* TradeBidView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C18EED522D55FE450038BBF7 /* TradeBidView.xib */; };
+		C1B5180D2F8CAFCA00C2393E /* MoreViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31F33FCE2DDA1C09003D533A /* MoreViewController.xib */; };
+		C1B5180E2F8CAFCA00C2393E /* MobitCommunityViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1CD3A612E28C3CD0049699B /* MobitCommunityViewController.xib */; };
+		C1B5180F2F8CAFCA00C2393E /* style.css in Resources */ = {isa = PBXBuildFile; fileRef = C15B93492E29ED910064212B /* style.css */; };
+		C1B518102F8CAFCA00C2393E /* TradeHistoryTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B7420E2D5B939000706340 /* TradeHistoryTableViewCell.xib */; };
+		C1B518112F8CAFCA00C2393E /* TradeInformationView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C19ED6EA2DE31653001ACCF9 /* TradeInformationView.xib */; };
+		C1B518122F8CAFCA00C2393E /* PartialSansKR-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E02E864B71009F3E13 /* PartialSansKR-Regular.otf */; };
+		C1B518132F8CAFCA00C2393E /* TradeViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B741EB2D524F7000706340 /* TradeViewController.xib */; };
+		C1B518402F8CAFCA00C2393E /* MoreViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31F33FCD2DDA1C09003D533A /* MoreViewController.swift */; };
+		C1B518412F8CAFCA00C2393E /* NoticeForceUpdateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA880E12E1A3D0B00F22F9C /* NoticeForceUpdateViewController.swift */; };
+		C1B518422F8CAFCA00C2393E /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17EAE372E374515006ACA44 /* Log.swift */; };
+		C1B518432F8CAFCA00C2393E /* PNLTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16FAE6F2E38B530003C5AD1 /* PNLTableViewCell.swift */; };
+		C1B518442F8CAFCA00C2393E /* PNLViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16FAE6B2E38B4B9003C5AD1 /* PNLViewController.swift */; };
+		C1B518452F8CAFCA00C2393E /* MainCryptoTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1DF71152E16407E002E89E1 /* MainCryptoTableViewCell.swift */; };
+		C1B518462F8CAFCA00C2393E /* NewsCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18D1B1A2ED81F5900D10A2E /* NewsCoordinator.swift */; };
+		C1B518472F8CAFCA00C2393E /* MobitTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 312861052DFE749200541A6A /* MobitTabBar.swift */; };
+		C1B518482F8CAFCA00C2393E /* DoubleExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */; };
+		C1B518492F8CAFCA00C2393E /* CryptoDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A782C490B08009276E7 /* CryptoDTO.swift */; };
+		C1B5184A2F8CAFCA00C2393E /* OrderBookCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367271B02C7B305500F9D86E /* OrderBookCell.swift */; };
+		C1B5184B2F8CAFCA00C2393E /* MainRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A752C490A3C009276E7 /* MainRepository.swift */; };
+		C1B5184C2F8CAFCA00C2393E /* GradientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18E3FEC2E25E8DC00B9E5D0 /* GradientView.swift */; };
+		C1B5184D2F8CAFCA00C2393E /* CryptoTicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998849E52C5379960073A27D /* CryptoTicker.swift */; };
+		C1B5184E2F8CAFCA00C2393E /* MainUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E26F2C3F7098000D4B1A /* MainUseCase.swift */; };
+		C1B5184F2F8CAFCA00C2393E /* MobitBaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17BB4172E2F27A400BDAA0F /* MobitBaseViewController.swift */; };
+		C1B518502F8CAFCA00C2393E /* Crypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB72C4F775B009276E7 /* Crypto.swift */; };
+		C1B518512F8CAFCA00C2393E /* LeaderBoardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CCE8632EDEDC9B002D5DF9 /* LeaderBoardViewController.swift */; };
+		C1B518522F8CAFCA00C2393E /* LeaderBoardCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19818DE2EDFF19C0044A398 /* LeaderBoardCoordinator.swift */; };
+		C1B518532F8CAFCA00C2393E /* Candle+DayResponseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C182B6A82EF528910090CA34 /* Candle+DayResponseModel.swift */; };
+		C1B518542F8CAFCA00C2393E /* ViewControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1246B622ED979D400B24D3D /* ViewControllerExtension.swift */; };
+		C1B518552F8CAFCA00C2393E /* TradeInformationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E82DE31648001ACCF9 /* TradeInformationView.swift */; };
+		C1B518562F8CAFCA00C2393E /* CryptoDetailCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D644472C7257F900C7F96D /* CryptoDetailCoordinator.swift */; };
+		C1B518572F8CAFCA00C2393E /* CryptoCellInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998849E12C524AAA0073A27D /* CryptoCellInfo.swift */; };
+		C1B518582F8CAFCA00C2393E /* NeumorphicButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 310865052E1EC3F40089D67A /* NeumorphicButton.swift */; };
+		C1B518592F8CAFCA00C2393E /* TradeBidView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED502D55FE3D0038BBF7 /* TradeBidView.swift */; };
+		C1B5185A2F8CAFCA00C2393E /* InvestmentTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17DB9702DA5FAF000DA673A /* InvestmentTableViewCell.swift */; };
+		C1B5185B2F8CAFCA00C2393E /* MainCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208062C4678B9000BFEBC /* MainCoordinator.swift */; };
+		C1B5185C2F8CAFCA00C2393E /* MarketDataServiceUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */; };
+		C1B5185D2F8CAFCA00C2393E /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19F65292EB1EEE200CE1A7E /* NetworkMonitor.swift */; };
+		C1B5185E2F8CAFCA00C2393E /* MobitCommunityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CD3A602E28C3CD0049699B /* MobitCommunityViewController.swift */; };
+		C1B5185F2F8CAFCA00C2393E /* Candle+MinuteResponseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13B29F52EE0188C00391683 /* Candle+MinuteResponseModel.swift */; };
+		C1B518602F8CAFCA00C2393E /* UserPNLHistoryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16FAE692E38A4C6003C5AD1 /* UserPNLHistoryModel.swift */; };
+		C1B518612F8CAFCA00C2393E /* InvestmentCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E2080F2C46C2FE000BFEBC /* InvestmentCoordinator.swift */; };
+		C1B518622F8CAFCA00C2393E /* TradeHistoryTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B7420D2D5B939000706340 /* TradeHistoryTableViewCell.swift */; };
+		C1B518632F8CAFCA00C2393E /* Candle+MinuteResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13B29F32EE0173100391683 /* Candle+MinuteResponseDTO.swift */; };
+		C1B518642F8CAFCA00C2393E /* MobitConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18A84F82E2E1C6D00E49070 /* MobitConstants.swift */; };
+		C1B518652F8CAFCA00C2393E /* MobitUserInformation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17424C52D460478009861CC /* MobitUserInformation.swift */; };
+		C1B518662F8CAFCA00C2393E /* BaseCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2652C3F6A44000D4B1A /* BaseCoordinator.swift */; };
+		C1B518672F8CAFCA00C2393E /* SelfSizingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */; };
+		C1B518682F8CAFCA00C2393E /* SkeletonDiffableDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B327842E8523F400E50C50 /* SkeletonDiffableDataSource.swift */; };
+		C1B518692F8CAFCA00C2393E /* UserDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17424C32D4600A8009861CC /* UserDataManager.swift */; };
+		C1B5186A2F8CAFCA00C2393E /* TradeInfoCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C174D8A02E24DBEC0015B6ED /* TradeInfoCollectionViewCell.swift */; };
+		C1B5186B2F8CAFCA00C2393E /* TradeOrderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741F42D53AA6C00706340 /* TradeOrderView.swift */; };
+		C1B5186C2F8CAFCA00C2393E /* MobitAnalyticsUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */; };
+		C1B5186D2F8CAFCA00C2393E /* ColorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E08342D2A64EE0029A8D0 /* ColorExtension.swift */; };
+		C1B5186E2F8CAFCA00C2393E /* MainChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C182B6A42EF5257C0090CA34 /* MainChartView.swift */; };
+		C1B5186F2F8CAFCA00C2393E /* ButtonExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B742002D5A2ABD00706340 /* ButtonExtension.swift */; };
+		C1B518702F8CAFCA00C2393E /* FirebaseCMCResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17E8E262E1F60D50082E7DC /* FirebaseCMCResponse.swift */; };
+		C1B518712F8CAFCA00C2393E /* CryptoQuoteResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E62DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift */; };
+		C1B518722F8CAFCA00C2393E /* OrderBookResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */; };
+		C1B518732F8CAFCA00C2393E /* CryptoTickerDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998849E32C5378CD0073A27D /* CryptoTickerDTO.swift */; };
+		C1B518742F8CAFCA00C2393E /* TradeChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741FA2D53AAD800706340 /* TradeChartView.swift */; };
+		C1B518752F8CAFCA00C2393E /* MoreCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208162C46C441000BFEBC /* MoreCoordinator.swift */; };
+		C1B518762F8CAFCA00C2393E /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2632C3F6A3B000D4B1A /* AppCoordinator.swift */; };
+		C1B518772F8CAFCA00C2393E /* TradeHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741FC2D58D67200706340 /* TradeHistoryView.swift */; };
+		C1B518782F8CAFCA00C2393E /* ImageViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C15DCD2A2DF2CAFD007544D8 /* ImageViewExtension.swift */; };
+		C1B518792F8CAFCA00C2393E /* TradeAskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED542D55FE4D0038BBF7 /* TradeAskView.swift */; };
+		C1B5187A2F8CAFCA00C2393E /* ViewRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741EE2D53A37600706340 /* ViewRule.swift */; };
+		C1B5187B2F8CAFCA00C2393E /* NetworkLostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19F652B2EB1F2E800CE1A7E /* NetworkLostView.swift */; };
+		C1B5187C2F8CAFCA00C2393E /* MobitBottomSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17681482E9CDAAB00CA825E /* MobitBottomSheetViewController.swift */; };
+		C1B5187D2F8CAFCA00C2393E /* TradeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B741EA2D524F7000706340 /* TradeViewController.swift */; };
+		C1B5187E2F8CAFCA00C2393E /* CustomWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C191ECCD2DA79A6700BBA5EB /* CustomWindow.swift */; };
+		C1B5187F2F8CAFCA00C2393E /* Candle+DayResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = C182B6A62EF5285A0090CA34 /* Candle+DayResponseDTO.swift */; };
+		C1B518802F8CAFCA00C2393E /* CryptoSocketTickerDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AAB2C4F458C009276E7 /* CryptoSocketTickerDTO.swift */; };
+		C1B518812F8CAFCA00C2393E /* InvestmentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17CF49A2DA4DAE900CDF76D /* InvestmentViewController.swift */; };
+		C1B518822F8CAFCA00C2393E /* CryptoDetailUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D6444C2C72590C00C7F96D /* CryptoDetailUseCase.swift */; };
+		C1B518832F8CAFCA00C2393E /* NoticeAppUpdateCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA880E52E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift */; };
+		C1B518842F8CAFCA00C2393E /* SocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31DC41E12CD9197700F0FFF2 /* SocketManager.swift */; };
+		C1B518852F8CAFCA00C2393E /* MainNetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A682C490326009276E7 /* MainNetworkService.swift */; };
+		C1B518862F8CAFCA00C2393E /* CryptoTransactionDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C190F29C2D65AD6A00895D9E /* CryptoTransactionDataModel.swift */; };
+		C1B518872F8CAFCA00C2393E /* FirebaseCMCResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17DC0D12E2094DF00E35D3F /* FirebaseCMCResponseDTO.swift */; };
+		C1B518882F8CAFCA00C2393E /* ErrorType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 311E33F92C46068C0054C6BC /* ErrorType.swift */; };
+		C1B518892F8CAFCA00C2393E /* AppTabBarCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208032C4677CB000BFEBC /* AppTabBarCoordinator.swift */; };
+		C1B5188A2F8CAFCA00C2393E /* DividerLineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A572C48D35C009276E7 /* DividerLineView.swift */; };
+		C1B5188B2F8CAFCA00C2393E /* NeumorphicSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17DC0F32E20E6E700E35D3F /* NeumorphicSegmentedControl.swift */; };
+		C1B5188C2F8CAFCA00C2393E /* CoordinatorFinishDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2672C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift */; };
+		C1B5188D2F8CAFCA00C2393E /* MobitTabBarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 312861092DFE7FFC00541A6A /* MobitTabBarViewController.swift */; };
+		C1B5188E2F8CAFCA00C2393E /* MobitCommunityCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CD3A642E28C8CE0049699B /* MobitCommunityCoordinator.swift */; };
+		C1B5188F2F8CAFCA00C2393E /* TradeNetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13B29F12EE0149E00391683 /* TradeNetworkService.swift */; };
+		C1B518902F8CAFCA00C2393E /* TradeAverageCalcView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1801A182ED9404600281695 /* TradeAverageCalcView.swift */; };
+		C1B518912F8CAFCA00C2393E /* MobitAlertViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31F33FD12DDA1D4C003D533A /* MobitAlertViewController.swift */; };
+		C1B518922F8CAFCA00C2393E /* PNLShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19F77962E41A2EA00863159 /* PNLShareView.swift */; };
+		C1B518932F8CAFCA00C2393E /* PNLCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16FAE732E38BC54003C5AD1 /* PNLCoordinator.swift */; };
+		C1B518942F8CAFCA00C2393E /* AppDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1852D022E67E05200A989B4 /* AppDataManager.swift */; };
+		C1B518952F8CAFCA00C2393E /* ViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B742022D5A2CAC00706340 /* ViewExtension.swift */; };
+		C1B518962F8CAFCA00C2393E /* TradeHistoryInformation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B742112D5B967F00706340 /* TradeHistoryInformation.swift */; };
+		C1B518972F8CAFCA00C2393E /* TextFieldExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16992A02EDD6AFC0011EAF8 /* TextFieldExtension.swift */; };
+		C1B518982F8CAFCA00C2393E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2272C3E2355000D4B1A /* AppDelegate.swift */; };
+		C1B518992F8CAFCA00C2393E /* LeakAvoider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B742092D5A46B300706340 /* LeakAvoider.swift */; };
+		C1B5189A2F8CAFCA00C2393E /* InvestReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17CF49F2DA4DD6500CDF76D /* InvestReactor.swift */; };
+		C1B5189B2F8CAFCA00C2393E /* MiniChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A015092E49B0DD00B7A7C6 /* MiniChartView.swift */; };
+		C1B5189C2F8CAFCA00C2393E /* NewsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18D1B1C2ED81FC100D10A2E /* NewsViewController.swift */; };
+		C1B5189D2F8CAFCA00C2393E /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB12C4F6A04009276E7 /* Environment.swift */; };
+		C1B5189E2F8CAFCA00C2393E /* TradeReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D644492C72587B00C7F96D /* TradeReactor.swift */; };
+		C1B5189F2F8CAFCA00C2393E /* CryptoInfoQuotesResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19ED6E42DE30B73001ACCF9 /* CryptoInfoQuotesResponse.swift */; };
+		C1B518A02F8CAFCA00C2393E /* NeumorphicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18B1DCA2E39A36F00E25DCE /* NeumorphicView.swift */; };
+		C1B518A12F8CAFCA00C2393E /* MobitNeumorphicSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */; };
+		C1B518A22F8CAFCA00C2393E /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2292C3E2355000D4B1A /* SceneDelegate.swift */; };
+		C1B518A32F8CAFCA00C2393E /* CryptoDetailRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D6444E2C72595000C7F96D /* CryptoDetailRepository.swift */; };
+		C1B518A42F8CAFCA00C2393E /* MobitLaunchScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17BA2BE2DF5B8FB001AF72D /* MobitLaunchScreen.swift */; };
+		C1B518A52F8CAFCA00C2393E /* CallbackResultEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E7718E2D7595A700739CDE /* CallbackResultEnums.swift */; };
+		C1B518A62F8CAFCA00C2393E /* CryptoSocketTicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB32C4F7177009276E7 /* CryptoSocketTicker.swift */; };
+		C1B518A72F8CAFCA00C2393E /* MainTabBarCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E208082C46BF6B000BFEBC /* MainTabBarCoordinator.swift */; };
+		C1B518A82F8CAFCA00C2393E /* MobitSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */; };
+		C1B518A92F8CAFCA00C2393E /* MobitLottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B327822E85157E00E50C50 /* MobitLottieView.swift */; };
+		C1B518AA2F8CAFCA00C2393E /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18FF26D2D5AEDF7003E95B0 /* StringExtension.swift */; };
+		C1B518AB2F8CAFCA00C2393E /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 311E33FB2C4608800054C6BC /* MainViewController.swift */; };
+		C1B518AC2F8CAFCA00C2393E /* MainReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A822C4A2787009276E7 /* MainReactor.swift */; };
+		C1B518AD2F8CAFCA00C2393E /* OrderBookResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367271AC2C7B2DA600F9D86E /* OrderBookResponse.swift */; };
+		C1B518AE2F8CAFCA00C2393E /* LabelExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C174D8A42E24E8920015B6ED /* LabelExtension.swift */; };
+		C1B518AF2F8CAFCA00C2393E /* CoinTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20A5C2C48DF11009276E7 /* CoinTableViewCell.swift */; };
+		C1B518B02F8CAFCA00C2393E /* CalculationUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */; };
+		C1B518B12F8CAFCA00C2393E /* MobitTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E771922D75AF1E00739CDE /* MobitTextField.swift */; };
+		C1B518B32F8CAFCA00C2393E /* PinLayout in Frameworks */ = {isa = PBXBuildFile; productRef = C1B5181E2F8CAFCA00C2393E /* PinLayout */; };
+		C1B518B42F8CAFCA00C2393E /* Moya in Frameworks */ = {isa = PBXBuildFile; productRef = C1B518282F8CAFCA00C2393E /* Moya */; };
+		C1B518B52F8CAFCA00C2393E /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = C1B5182F2F8CAFCA00C2393E /* RxRelay */; };
+		C1B518B62F8CAFCA00C2393E /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = C1B518332F8CAFCA00C2393E /* SnapKit */; };
+		C1B518B72F8CAFCA00C2393E /* RxMoya in Frameworks */ = {isa = PBXBuildFile; productRef = C1B5182A2F8CAFCA00C2393E /* RxMoya */; };
+		C1B518B82F8CAFCA00C2393E /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = C1B518222F8CAFCA00C2393E /* Then */; };
+		C1B518B92F8CAFCA00C2393E /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = C1B5183B2F8CAFCA00C2393E /* FirebaseDatabase */; };
+		C1B518BA2F8CAFCA00C2393E /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = C1B518392F8CAFCA00C2393E /* FirebaseAnalytics */; };
+		C1B518BB2F8CAFCA00C2393E /* CombineMoya in Frameworks */ = {isa = PBXBuildFile; productRef = C1B518262F8CAFCA00C2393E /* CombineMoya */; };
+		C1B518BC2F8CAFCA00C2393E /* ReactiveMoya in Frameworks */ = {isa = PBXBuildFile; productRef = C1B518292F8CAFCA00C2393E /* ReactiveMoya */; };
+		C1B518BD2F8CAFCA00C2393E /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = C1B5182D2F8CAFCA00C2393E /* RxCocoa */; };
+		C1B518BF2F8CAFCA00C2393E /* ReactorKit in Frameworks */ = {isa = PBXBuildFile; productRef = C1B5182B2F8CAFCA00C2393E /* ReactorKit */; };
+		C1B518C02F8CAFCA00C2393E /* FlexLayout in Frameworks */ = {isa = PBXBuildFile; productRef = C1B518202F8CAFCA00C2393E /* FlexLayout */; };
+		C1B518C12F8CAFCA00C2393E /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = C1B5183C2F8CAFCA00C2393E /* FirebaseCrashlytics */; };
+		C1B518C22F8CAFCA00C2393E /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = C1B5183D2F8CAFCA00C2393E /* Lottie */; };
+		C1B518C32F8CAFCA00C2393E /* SkeletonView in Frameworks */ = {isa = PBXBuildFile; productRef = C1B518372F8CAFCA00C2393E /* SkeletonView */; };
+		C1B518C42F8CAFCA00C2393E /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = C1B518352F8CAFCA00C2393E /* GoogleMobileAds */; };
+		C1B518C52F8CAFCA00C2393E /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = C1B518312F8CAFCA00C2393E /* Starscream */; };
+		C1B518C62F8CAFCA00C2393E /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = C1B518302F8CAFCA00C2393E /* RxSwift */; };
+		C1B518C82F8CAFCA00C2393E /* app.js in Resources */ = {isa = PBXBuildFile; fileRef = C15B934B2E29EDA10064212B /* app.js */; };
+		C1B518C92F8CAFCA00C2393E /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C17E08322D2A62BC0029A8D0 /* Colors.xcassets */; };
+		C1B518CA2F8CAFCA00C2393E /* InvestmentViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C17CF49B2DA4DAE900CDF76D /* InvestmentViewController.xib */; };
+		C1B518CB2F8CAFCA00C2393E /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5FA880E72E1A58E700F22F9C /* GoogleService-Info.plist */; };
+		C1B518CC2F8CAFCA00C2393E /* TradeHistoryView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B741FE2D58D67800706340 /* TradeHistoryView.xib */; };
+		C1B518CD2F8CAFCA00C2393E /* MainCryptoTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1DF71162E16407E002E89E1 /* MainCryptoTableViewCell.xib */; };
+		C1B518CE2F8CAFCA00C2393E /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = C1CD3A5E2E28C3090049699B /* index.html */; };
+		C1B518CF2F8CAFCA00C2393E /* NoticeForceUpdateViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5FA880E22E1A3D0B00F22F9C /* NoticeForceUpdateViewController.xib */; };
+		C1B518D02F8CAFCA00C2393E /* NewsViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C18D1B1D2ED81FC100D10A2E /* NewsViewController.xib */; };
+		C1B518D12F8CAFCA00C2393E /* PNLViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C16FAE6C2E38B4B9003C5AD1 /* PNLViewController.xib */; };
+		C1B518D22F8CAFCA00C2393E /* MobitAlertViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31F33FD22DDA1D4C003D533A /* MobitAlertViewController.xib */; };
+		C1B518D32F8CAFCA00C2393E /* MobitLaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2B62DF5B576001AF72D /* MobitLaunchScreen.xib */; };
+		C1B518D42F8CAFCA00C2393E /* InvestmentTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = C17DB9712DA5FAF000DA673A /* InvestmentTableViewCell.xib */; };
+		C1B518D52F8CAFCA00C2393E /* TradeInfoCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = C174D8A12E24DBEC0015B6ED /* TradeInfoCollectionViewCell.xib */; };
+		C1B518D62F8CAFCA00C2393E /* MobitBottomSheetViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C17681492E9CDAAB00CA825E /* MobitBottomSheetViewController.xib */; };
+		C1B518D72F8CAFCA00C2393E /* Localizable(KO).strings in Resources */ = {isa = PBXBuildFile; fileRef = C19F65262EB1D07900CE1A7E /* Localizable(KO).strings */; };
+		C1B518D82F8CAFCA00C2393E /* Localizable(EN).strings in Resources */ = {isa = PBXBuildFile; fileRef = C19F65232EB1D06C00CE1A7E /* Localizable(EN).strings */; };
+		C1B518D92F8CAFCA00C2393E /* TradeOrderView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B741F62D53AA7600706340 /* TradeOrderView.xib */; };
+		C1B518DA2F8CAFCA00C2393E /* TradeChartView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B741F82D53AAAC00706340 /* TradeChartView.xib */; };
+		C1B518DB2F8CAFCA00C2393E /* esamanru-OTF-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2BA2DF5B6D9001AF72D /* esamanru-OTF-Medium.otf */; };
+		C1B518DC2F8CAFCA00C2393E /* TradeAverageCalcView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1801A1A2ED9405300281695 /* TradeAverageCalcView.xib */; };
+		C1B518DD2F8CAFCA00C2393E /* esamanru-OTF-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2B82DF5B6D9001AF72D /* esamanru-OTF-Bold.otf */; };
+		C1B518DE2F8CAFCA00C2393E /* esamanru-OTF-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = C17BA2B92DF5B6D9001AF72D /* esamanru-OTF-Light.otf */; };
+		C1B518DF2F8CAFCA00C2393E /* PNLTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = C16FAE702E38B530003C5AD1 /* PNLTableViewCell.xib */; };
+		C1B518E02F8CAFCA00C2393E /* TradeAskView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C18EED562D55FE610038BBF7 /* TradeAskView.xib */; };
+		C1B518E12F8CAFCA00C2393E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3128610E2DFF125A00541A6A /* PrivacyInfo.xcprivacy */; };
+		C1B518E22F8CAFCA00C2393E /* SUIT-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E72E865A17009F3E13 /* SUIT-Medium.otf */; };
+		C1B518E32F8CAFCA00C2393E /* LeaderBoardViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1CCE8642EDEDC9B002D5DF9 /* LeaderBoardViewController.xib */; };
+		C1B518E42F8CAFCA00C2393E /* SUIT-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E22E865A17009F3E13 /* SUIT-Bold.otf */; };
+		C1B518E52F8CAFCA00C2393E /* SUIT-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E82E865A17009F3E13 /* SUIT-Regular.otf */; };
+		C1B518E62F8CAFCA00C2393E /* SUIT-Thin.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650EA2E865A17009F3E13 /* SUIT-Thin.otf */; };
+		C1B518E72F8CAFCA00C2393E /* SUIT-ExtraBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E32E865A17009F3E13 /* SUIT-ExtraBold.otf */; };
+		C1B518E82F8CAFCA00C2393E /* SUIT-SemiBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E92E865A17009F3E13 /* SUIT-SemiBold.otf */; };
+		C1B518E92F8CAFCA00C2393E /* SUIT-Heavy.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E52E865A17009F3E13 /* SUIT-Heavy.otf */; };
+		C1B518EA2F8CAFCA00C2393E /* SUIT-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E62E865A17009F3E13 /* SUIT-Light.otf */; };
+		C1B518EB2F8CAFCA00C2393E /* SUIT-ExtraLight.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E42E865A17009F3E13 /* SUIT-ExtraLight.otf */; };
+		C1B518EC2F8CAFCA00C2393E /* tradingview.html in Resources */ = {isa = PBXBuildFile; fileRef = 31B742072D5A3BBB00706340 /* tradingview.html */; };
+		C1B518ED2F8CAFCA00C2393E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3133E2322C3E2357000D4B1A /* LaunchScreen.storyboard */; };
+		C1B518EE2F8CAFCA00C2393E /* MobitAPIKeys.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 5F657F782E06B0E80065A029 /* MobitAPIKeys.xcconfig */; };
+		C1B518EF2F8CAFCA00C2393E /* PNLShareView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C19F77982E41A2F300863159 /* PNLShareView.xib */; };
+		C1B518F02F8CAFCA00C2393E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3133E2302C3E2357000D4B1A /* Assets.xcassets */; };
+		C1B518F12F8CAFCA00C2393E /* TradeBidView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C18EED522D55FE450038BBF7 /* TradeBidView.xib */; };
+		C1B518F22F8CAFCA00C2393E /* MoreViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31F33FCE2DDA1C09003D533A /* MoreViewController.xib */; };
+		C1B518F32F8CAFCA00C2393E /* MobitCommunityViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1CD3A612E28C3CD0049699B /* MobitCommunityViewController.xib */; };
+		C1B518F42F8CAFCA00C2393E /* style.css in Resources */ = {isa = PBXBuildFile; fileRef = C15B93492E29ED910064212B /* style.css */; };
+		C1B518F52F8CAFCA00C2393E /* TradeHistoryTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B7420E2D5B939000706340 /* TradeHistoryTableViewCell.xib */; };
+		C1B518F62F8CAFCA00C2393E /* TradeInformationView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C19ED6EA2DE31653001ACCF9 /* TradeInformationView.xib */; };
+		C1B518F72F8CAFCA00C2393E /* PartialSansKR-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = C18650E02E864B71009F3E13 /* PartialSansKR-Regular.otf */; };
+		C1B518F82F8CAFCA00C2393E /* TradeViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31B741EB2D524F7000706340 /* TradeViewController.xib */; };
 		C1B8F3BC2E272E6800C46734 /* SelfSizingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */; };
 		C1B8F3BF2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */; };
 		C1B8F3C12E2783EA00C46734 /* MobitAnalyticsUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */; };
@@ -226,6 +589,26 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		31E2085A2C46CE34000BFEBC /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1B518142F8CAFCA00C2393E /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1B518F92F8CAFCA00C2393E /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
@@ -397,6 +780,8 @@
 		C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationUtil.swift; sourceTree = "<group>"; };
 		C1B327822E85157E00E50C50 /* MobitLottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitLottieView.swift; sourceTree = "<group>"; };
 		C1B327842E8523F400E50C50 /* SkeletonDiffableDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkeletonDiffableDataSource.swift; sourceTree = "<group>"; };
+		C1B518192F8CAFCA00C2393E /* Mobit-Dev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Mobit-Dev.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C1B518FE2F8CAFCA00C2393E /* Mobit-Release.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Mobit-Release.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfSizingViews.swift; sourceTree = "<group>"; };
 		C1B8F3BE2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitNeumorphicSegmentedControl.swift; sourceTree = "<group>"; };
 		C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitAnalyticsUtil.swift; sourceTree = "<group>"; };
@@ -432,7 +817,6 @@
 				99C20A6C2C490615009276E7 /* CombineMoya in Frameworks */,
 				99C20A702C490615009276E7 /* ReactiveMoya in Frameworks */,
 				998725022C50944700088C71 /* RxCocoa in Frameworks */,
-				99C20A5B2C48DE40009276E7 /* SwiftJWT in Frameworks */,
 				99C20A862C4A27F1009276E7 /* ReactorKit in Frameworks */,
 				3133E2772C3F7192000D4B1A /* FlexLayout in Frameworks */,
 				C174D89E2E24BAD40015B6ED /* FirebaseCrashlytics in Frameworks */,
@@ -460,6 +844,58 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C1B517CD2F8CAFCA00C2393E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C1B517CE2F8CAFCA00C2393E /* PinLayout in Frameworks */,
+				C1B517CF2F8CAFCA00C2393E /* Moya in Frameworks */,
+				C1B517D02F8CAFCA00C2393E /* RxRelay in Frameworks */,
+				C1B517D12F8CAFCA00C2393E /* SnapKit in Frameworks */,
+				C1B517D22F8CAFCA00C2393E /* RxMoya in Frameworks */,
+				C1B517D32F8CAFCA00C2393E /* Then in Frameworks */,
+				C1B517D42F8CAFCA00C2393E /* FirebaseDatabase in Frameworks */,
+				C1B517D52F8CAFCA00C2393E /* FirebaseAnalytics in Frameworks */,
+				C1B517D62F8CAFCA00C2393E /* CombineMoya in Frameworks */,
+				C1B517D72F8CAFCA00C2393E /* ReactiveMoya in Frameworks */,
+				C1B517D82F8CAFCA00C2393E /* RxCocoa in Frameworks */,
+				C1B517DA2F8CAFCA00C2393E /* ReactorKit in Frameworks */,
+				C1B517DB2F8CAFCA00C2393E /* FlexLayout in Frameworks */,
+				C1B517DC2F8CAFCA00C2393E /* FirebaseCrashlytics in Frameworks */,
+				C1B517DD2F8CAFCA00C2393E /* Lottie in Frameworks */,
+				C1B517DE2F8CAFCA00C2393E /* SkeletonView in Frameworks */,
+				C1B517DF2F8CAFCA00C2393E /* GoogleMobileAds in Frameworks */,
+				C1B517E02F8CAFCA00C2393E /* Starscream in Frameworks */,
+				C1B517E12F8CAFCA00C2393E /* RxSwift in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1B518B22F8CAFCA00C2393E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C1B518B32F8CAFCA00C2393E /* PinLayout in Frameworks */,
+				C1B518B42F8CAFCA00C2393E /* Moya in Frameworks */,
+				C1B518B52F8CAFCA00C2393E /* RxRelay in Frameworks */,
+				C1B518B62F8CAFCA00C2393E /* SnapKit in Frameworks */,
+				C1B518B72F8CAFCA00C2393E /* RxMoya in Frameworks */,
+				C1B518B82F8CAFCA00C2393E /* Then in Frameworks */,
+				C1B518B92F8CAFCA00C2393E /* FirebaseDatabase in Frameworks */,
+				C1B518BA2F8CAFCA00C2393E /* FirebaseAnalytics in Frameworks */,
+				C1B518BB2F8CAFCA00C2393E /* CombineMoya in Frameworks */,
+				C1B518BC2F8CAFCA00C2393E /* ReactiveMoya in Frameworks */,
+				C1B518BD2F8CAFCA00C2393E /* RxCocoa in Frameworks */,
+				C1B518BF2F8CAFCA00C2393E /* ReactorKit in Frameworks */,
+				C1B518C02F8CAFCA00C2393E /* FlexLayout in Frameworks */,
+				C1B518C12F8CAFCA00C2393E /* FirebaseCrashlytics in Frameworks */,
+				C1B518C22F8CAFCA00C2393E /* Lottie in Frameworks */,
+				C1B518C32F8CAFCA00C2393E /* SkeletonView in Frameworks */,
+				C1B518C42F8CAFCA00C2393E /* GoogleMobileAds in Frameworks */,
+				C1B518C52F8CAFCA00C2393E /* Starscream in Frameworks */,
+				C1B518C62F8CAFCA00C2393E /* RxSwift in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -484,6 +920,8 @@
 				3133E2242C3E2355000D4B1A /* Mobit.app */,
 				3133E23A2C3E2357000D4B1A /* MobitTests.xctest */,
 				3133E2442C3E2357000D4B1A /* MobitUITests.xctest */,
+				C1B518192F8CAFCA00C2393E /* Mobit-Dev.app */,
+				C1B518FE2F8CAFCA00C2393E /* Mobit-Release.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1080,7 +1518,6 @@
 				3133E2732C3F7135000D4B1A /* PinLayout */,
 				3133E2762C3F7192000D4B1A /* FlexLayout */,
 				31E208422C46CB47000BFEBC /* Then */,
-				99C20A5A2C48DE40009276E7 /* SwiftJWT */,
 				99C20A6B2C490615009276E7 /* CombineMoya */,
 				99C20A6D2C490615009276E7 /* Moya */,
 				99C20A6F2C490615009276E7 /* ReactiveMoya */,
@@ -1143,6 +1580,94 @@
 			productReference = 3133E2442C3E2357000D4B1A /* MobitUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		C1B517382F8CAFCA00C2393E /* Mobit-Dev */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C1B518162F8CAFCA00C2393E /* Build configuration list for PBXNativeTarget "Mobit-Dev" */;
+			buildPhases = (
+				C1B5175A2F8CAFCA00C2393E /* Sources */,
+				C1B517CD2F8CAFCA00C2393E /* Frameworks */,
+				C1B517E22F8CAFCA00C2393E /* Resources */,
+				C1B518142F8CAFCA00C2393E /* Embed Frameworks */,
+				C1B518152F8CAFCA00C2393E /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C18A84FA2E2E1F1300E49070 /* Advertisement */,
+				C1B327712E85141500E50C50 /* Lotties */,
+			);
+			name = "Mobit-Dev";
+			packageProductDependencies = (
+				C1B517392F8CAFCA00C2393E /* PinLayout */,
+				C1B5173B2F8CAFCA00C2393E /* FlexLayout */,
+				C1B5173D2F8CAFCA00C2393E /* Then */,
+				C1B517412F8CAFCA00C2393E /* CombineMoya */,
+				C1B517432F8CAFCA00C2393E /* Moya */,
+				C1B517442F8CAFCA00C2393E /* ReactiveMoya */,
+				C1B517452F8CAFCA00C2393E /* RxMoya */,
+				C1B517462F8CAFCA00C2393E /* ReactorKit */,
+				C1B517482F8CAFCA00C2393E /* RxCocoa */,
+				C1B5174A2F8CAFCA00C2393E /* RxRelay */,
+				C1B5174B2F8CAFCA00C2393E /* RxSwift */,
+				C1B5174C2F8CAFCA00C2393E /* Starscream */,
+				C1B5174E2F8CAFCA00C2393E /* SnapKit */,
+				C1B517502F8CAFCA00C2393E /* GoogleMobileAds */,
+				C1B517522F8CAFCA00C2393E /* SkeletonView */,
+				C1B517542F8CAFCA00C2393E /* FirebaseAnalytics */,
+				C1B517562F8CAFCA00C2393E /* FirebaseDatabase */,
+				C1B517572F8CAFCA00C2393E /* FirebaseCrashlytics */,
+				C1B517582F8CAFCA00C2393E /* Lottie */,
+			);
+			productName = Mobit;
+			productReference = C1B518192F8CAFCA00C2393E /* Mobit-Dev.app */;
+			productType = "com.apple.product-type.application";
+		};
+		C1B5181D2F8CAFCA00C2393E /* Mobit-Release */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C1B518FB2F8CAFCA00C2393E /* Build configuration list for PBXNativeTarget "Mobit-Release" */;
+			buildPhases = (
+				C1B5183F2F8CAFCA00C2393E /* Sources */,
+				C1B518B22F8CAFCA00C2393E /* Frameworks */,
+				C1B518C72F8CAFCA00C2393E /* Resources */,
+				C1B518F92F8CAFCA00C2393E /* Embed Frameworks */,
+				C1B518FA2F8CAFCA00C2393E /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C18A84FA2E2E1F1300E49070 /* Advertisement */,
+				C1B327712E85141500E50C50 /* Lotties */,
+			);
+			name = "Mobit-Release";
+			packageProductDependencies = (
+				C1B5181E2F8CAFCA00C2393E /* PinLayout */,
+				C1B518202F8CAFCA00C2393E /* FlexLayout */,
+				C1B518222F8CAFCA00C2393E /* Then */,
+				C1B518262F8CAFCA00C2393E /* CombineMoya */,
+				C1B518282F8CAFCA00C2393E /* Moya */,
+				C1B518292F8CAFCA00C2393E /* ReactiveMoya */,
+				C1B5182A2F8CAFCA00C2393E /* RxMoya */,
+				C1B5182B2F8CAFCA00C2393E /* ReactorKit */,
+				C1B5182D2F8CAFCA00C2393E /* RxCocoa */,
+				C1B5182F2F8CAFCA00C2393E /* RxRelay */,
+				C1B518302F8CAFCA00C2393E /* RxSwift */,
+				C1B518312F8CAFCA00C2393E /* Starscream */,
+				C1B518332F8CAFCA00C2393E /* SnapKit */,
+				C1B518352F8CAFCA00C2393E /* GoogleMobileAds */,
+				C1B518372F8CAFCA00C2393E /* SkeletonView */,
+				C1B518392F8CAFCA00C2393E /* FirebaseAnalytics */,
+				C1B5183B2F8CAFCA00C2393E /* FirebaseDatabase */,
+				C1B5183C2F8CAFCA00C2393E /* FirebaseCrashlytics */,
+				C1B5183D2F8CAFCA00C2393E /* Lottie */,
+			);
+			productName = Mobit;
+			productReference = C1B518FE2F8CAFCA00C2393E /* Mobit-Release.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -1180,7 +1705,6 @@
 				3133E2722C3F7135000D4B1A /* XCRemoteSwiftPackageReference "PinLayout" */,
 				3133E2752C3F7192000D4B1A /* XCRemoteSwiftPackageReference "FlexLayout" */,
 				31E208412C46CB47000BFEBC /* XCRemoteSwiftPackageReference "Then" */,
-				99C20A592C48DE40009276E7 /* XCRemoteSwiftPackageReference "Swift-JWT" */,
 				99C20A6A2C490615009276E7 /* XCRemoteSwiftPackageReference "Moya" */,
 				99C20A842C4A27F1009276E7 /* XCRemoteSwiftPackageReference "ReactorKit" */,
 				998724FC2C50944700088C71 /* XCRemoteSwiftPackageReference "RxSwift" */,
@@ -1196,6 +1720,8 @@
 			projectRoot = "";
 			targets = (
 				3133E2232C3E2355000D4B1A /* Mobit */,
+				C1B517382F8CAFCA00C2393E /* Mobit-Dev */,
+				C1B5181D2F8CAFCA00C2393E /* Mobit-Release */,
 				3133E2392C3E2357000D4B1A /* MobitTests */,
 				3133E2432C3E2357000D4B1A /* MobitUITests */,
 			);
@@ -1273,10 +1799,168 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C1B517E22F8CAFCA00C2393E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C1B517E32F8CAFCA00C2393E /* app.js in Resources */,
+				C1B517E42F8CAFCA00C2393E /* Colors.xcassets in Resources */,
+				C1B517E52F8CAFCA00C2393E /* InvestmentViewController.xib in Resources */,
+				C1B517E62F8CAFCA00C2393E /* GoogleService-Info.plist in Resources */,
+				C1B517E72F8CAFCA00C2393E /* TradeHistoryView.xib in Resources */,
+				C1B517E82F8CAFCA00C2393E /* MainCryptoTableViewCell.xib in Resources */,
+				C1B517E92F8CAFCA00C2393E /* index.html in Resources */,
+				C1B517EA2F8CAFCA00C2393E /* NoticeForceUpdateViewController.xib in Resources */,
+				C1B517EB2F8CAFCA00C2393E /* NewsViewController.xib in Resources */,
+				C1B517EC2F8CAFCA00C2393E /* PNLViewController.xib in Resources */,
+				C1B517ED2F8CAFCA00C2393E /* MobitAlertViewController.xib in Resources */,
+				C1B517EE2F8CAFCA00C2393E /* MobitLaunchScreen.xib in Resources */,
+				C1B517EF2F8CAFCA00C2393E /* InvestmentTableViewCell.xib in Resources */,
+				C1B517F02F8CAFCA00C2393E /* TradeInfoCollectionViewCell.xib in Resources */,
+				C1B517F12F8CAFCA00C2393E /* MobitBottomSheetViewController.xib in Resources */,
+				C1B517F22F8CAFCA00C2393E /* Localizable(KO).strings in Resources */,
+				C1B517F32F8CAFCA00C2393E /* Localizable(EN).strings in Resources */,
+				C1B517F42F8CAFCA00C2393E /* TradeOrderView.xib in Resources */,
+				C1B517F52F8CAFCA00C2393E /* TradeChartView.xib in Resources */,
+				C1B517F62F8CAFCA00C2393E /* esamanru-OTF-Medium.otf in Resources */,
+				C1B517F72F8CAFCA00C2393E /* TradeAverageCalcView.xib in Resources */,
+				C1B517F82F8CAFCA00C2393E /* esamanru-OTF-Bold.otf in Resources */,
+				C1B517F92F8CAFCA00C2393E /* esamanru-OTF-Light.otf in Resources */,
+				C1B517FA2F8CAFCA00C2393E /* PNLTableViewCell.xib in Resources */,
+				C1B517FB2F8CAFCA00C2393E /* TradeAskView.xib in Resources */,
+				C1B517FC2F8CAFCA00C2393E /* PrivacyInfo.xcprivacy in Resources */,
+				C1B517FD2F8CAFCA00C2393E /* SUIT-Medium.otf in Resources */,
+				C1B517FE2F8CAFCA00C2393E /* LeaderBoardViewController.xib in Resources */,
+				C1B517FF2F8CAFCA00C2393E /* SUIT-Bold.otf in Resources */,
+				C1B518002F8CAFCA00C2393E /* SUIT-Regular.otf in Resources */,
+				C1B518012F8CAFCA00C2393E /* SUIT-Thin.otf in Resources */,
+				C1B518022F8CAFCA00C2393E /* SUIT-ExtraBold.otf in Resources */,
+				C1B518032F8CAFCA00C2393E /* SUIT-SemiBold.otf in Resources */,
+				C1B518042F8CAFCA00C2393E /* SUIT-Heavy.otf in Resources */,
+				C1B518052F8CAFCA00C2393E /* SUIT-Light.otf in Resources */,
+				C1B518062F8CAFCA00C2393E /* SUIT-ExtraLight.otf in Resources */,
+				C1B518072F8CAFCA00C2393E /* tradingview.html in Resources */,
+				C1B518082F8CAFCA00C2393E /* LaunchScreen.storyboard in Resources */,
+				C1B518092F8CAFCA00C2393E /* MobitAPIKeys.xcconfig in Resources */,
+				C1B5180A2F8CAFCA00C2393E /* PNLShareView.xib in Resources */,
+				C1B5180B2F8CAFCA00C2393E /* Assets.xcassets in Resources */,
+				C1B5180C2F8CAFCA00C2393E /* TradeBidView.xib in Resources */,
+				C1B5180D2F8CAFCA00C2393E /* MoreViewController.xib in Resources */,
+				C1B5180E2F8CAFCA00C2393E /* MobitCommunityViewController.xib in Resources */,
+				C1B5180F2F8CAFCA00C2393E /* style.css in Resources */,
+				C1B518102F8CAFCA00C2393E /* TradeHistoryTableViewCell.xib in Resources */,
+				C1B518112F8CAFCA00C2393E /* TradeInformationView.xib in Resources */,
+				C1B518122F8CAFCA00C2393E /* PartialSansKR-Regular.otf in Resources */,
+				C1B518132F8CAFCA00C2393E /* TradeViewController.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1B518C72F8CAFCA00C2393E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C1B518C82F8CAFCA00C2393E /* app.js in Resources */,
+				C1B518C92F8CAFCA00C2393E /* Colors.xcassets in Resources */,
+				C1B518CA2F8CAFCA00C2393E /* InvestmentViewController.xib in Resources */,
+				C1B518CB2F8CAFCA00C2393E /* GoogleService-Info.plist in Resources */,
+				C1B518CC2F8CAFCA00C2393E /* TradeHistoryView.xib in Resources */,
+				C1B518CD2F8CAFCA00C2393E /* MainCryptoTableViewCell.xib in Resources */,
+				C1B518CE2F8CAFCA00C2393E /* index.html in Resources */,
+				C1B518CF2F8CAFCA00C2393E /* NoticeForceUpdateViewController.xib in Resources */,
+				C1B518D02F8CAFCA00C2393E /* NewsViewController.xib in Resources */,
+				C1B518D12F8CAFCA00C2393E /* PNLViewController.xib in Resources */,
+				C1B518D22F8CAFCA00C2393E /* MobitAlertViewController.xib in Resources */,
+				C1B518D32F8CAFCA00C2393E /* MobitLaunchScreen.xib in Resources */,
+				C1B518D42F8CAFCA00C2393E /* InvestmentTableViewCell.xib in Resources */,
+				C1B518D52F8CAFCA00C2393E /* TradeInfoCollectionViewCell.xib in Resources */,
+				C1B518D62F8CAFCA00C2393E /* MobitBottomSheetViewController.xib in Resources */,
+				C1B518D72F8CAFCA00C2393E /* Localizable(KO).strings in Resources */,
+				C1B518D82F8CAFCA00C2393E /* Localizable(EN).strings in Resources */,
+				C1B518D92F8CAFCA00C2393E /* TradeOrderView.xib in Resources */,
+				C1B518DA2F8CAFCA00C2393E /* TradeChartView.xib in Resources */,
+				C1B518DB2F8CAFCA00C2393E /* esamanru-OTF-Medium.otf in Resources */,
+				C1B518DC2F8CAFCA00C2393E /* TradeAverageCalcView.xib in Resources */,
+				C1B518DD2F8CAFCA00C2393E /* esamanru-OTF-Bold.otf in Resources */,
+				C1B518DE2F8CAFCA00C2393E /* esamanru-OTF-Light.otf in Resources */,
+				C1B518DF2F8CAFCA00C2393E /* PNLTableViewCell.xib in Resources */,
+				C1B518E02F8CAFCA00C2393E /* TradeAskView.xib in Resources */,
+				C1B518E12F8CAFCA00C2393E /* PrivacyInfo.xcprivacy in Resources */,
+				C1B518E22F8CAFCA00C2393E /* SUIT-Medium.otf in Resources */,
+				C1B518E32F8CAFCA00C2393E /* LeaderBoardViewController.xib in Resources */,
+				C1B518E42F8CAFCA00C2393E /* SUIT-Bold.otf in Resources */,
+				C1B518E52F8CAFCA00C2393E /* SUIT-Regular.otf in Resources */,
+				C1B518E62F8CAFCA00C2393E /* SUIT-Thin.otf in Resources */,
+				C1B518E72F8CAFCA00C2393E /* SUIT-ExtraBold.otf in Resources */,
+				C1B518E82F8CAFCA00C2393E /* SUIT-SemiBold.otf in Resources */,
+				C1B518E92F8CAFCA00C2393E /* SUIT-Heavy.otf in Resources */,
+				C1B518EA2F8CAFCA00C2393E /* SUIT-Light.otf in Resources */,
+				C1B518EB2F8CAFCA00C2393E /* SUIT-ExtraLight.otf in Resources */,
+				C1B518EC2F8CAFCA00C2393E /* tradingview.html in Resources */,
+				C1B518ED2F8CAFCA00C2393E /* LaunchScreen.storyboard in Resources */,
+				C1B518EE2F8CAFCA00C2393E /* MobitAPIKeys.xcconfig in Resources */,
+				C1B518EF2F8CAFCA00C2393E /* PNLShareView.xib in Resources */,
+				C1B518F02F8CAFCA00C2393E /* Assets.xcassets in Resources */,
+				C1B518F12F8CAFCA00C2393E /* TradeBidView.xib in Resources */,
+				C1B518F22F8CAFCA00C2393E /* MoreViewController.xib in Resources */,
+				C1B518F32F8CAFCA00C2393E /* MobitCommunityViewController.xib in Resources */,
+				C1B518F42F8CAFCA00C2393E /* style.css in Resources */,
+				C1B518F52F8CAFCA00C2393E /* TradeHistoryTableViewCell.xib in Resources */,
+				C1B518F62F8CAFCA00C2393E /* TradeInformationView.xib in Resources */,
+				C1B518F72F8CAFCA00C2393E /* PartialSansKR-Regular.otf in Resources */,
+				C1B518F82F8CAFCA00C2393E /* TradeViewController.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
 		C174D89F2E24BB060015B6ED /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist",
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
+				"$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}.debug.dylib",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"${CONFIGURATION}\" != \"Debug\" ]; then\n\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\nfi\n";
+		};
+		C1B518152F8CAFCA00C2393E /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist",
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
+				"$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}.debug.dylib",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"${CONFIGURATION}\" != \"Debug\" ]; then\n\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\nfi\n";
+		};
+		C1B518FA2F8CAFCA00C2393E /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1437,6 +2121,248 @@
 			files = (
 				3133E24B2C3E2357000D4B1A /* MobitUITestsLaunchTests.swift in Sources */,
 				3133E2492C3E2357000D4B1A /* MobitUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1B5175A2F8CAFCA00C2393E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C1B5175B2F8CAFCA00C2393E /* MoreViewController.swift in Sources */,
+				C1B5175C2F8CAFCA00C2393E /* NoticeForceUpdateViewController.swift in Sources */,
+				C1B5175D2F8CAFCA00C2393E /* Log.swift in Sources */,
+				C1B5175E2F8CAFCA00C2393E /* PNLTableViewCell.swift in Sources */,
+				C1B5175F2F8CAFCA00C2393E /* PNLViewController.swift in Sources */,
+				C1B517602F8CAFCA00C2393E /* MainCryptoTableViewCell.swift in Sources */,
+				C1B517612F8CAFCA00C2393E /* NewsCoordinator.swift in Sources */,
+				C1B517622F8CAFCA00C2393E /* MobitTabBar.swift in Sources */,
+				C1B517632F8CAFCA00C2393E /* DoubleExtension.swift in Sources */,
+				C1B517642F8CAFCA00C2393E /* CryptoDTO.swift in Sources */,
+				C1B517652F8CAFCA00C2393E /* OrderBookCell.swift in Sources */,
+				C1B517662F8CAFCA00C2393E /* MainRepository.swift in Sources */,
+				C1B517672F8CAFCA00C2393E /* GradientView.swift in Sources */,
+				C1B517682F8CAFCA00C2393E /* CryptoTicker.swift in Sources */,
+				C1B517692F8CAFCA00C2393E /* MainUseCase.swift in Sources */,
+				C1B5176A2F8CAFCA00C2393E /* MobitBaseViewController.swift in Sources */,
+				C1B5176B2F8CAFCA00C2393E /* Crypto.swift in Sources */,
+				C1B5176C2F8CAFCA00C2393E /* LeaderBoardViewController.swift in Sources */,
+				C1B5176D2F8CAFCA00C2393E /* LeaderBoardCoordinator.swift in Sources */,
+				C1B5176E2F8CAFCA00C2393E /* Candle+DayResponseModel.swift in Sources */,
+				C1B5176F2F8CAFCA00C2393E /* ViewControllerExtension.swift in Sources */,
+				C1B517702F8CAFCA00C2393E /* TradeInformationView.swift in Sources */,
+				C1B517712F8CAFCA00C2393E /* CryptoDetailCoordinator.swift in Sources */,
+				C1B517722F8CAFCA00C2393E /* CryptoCellInfo.swift in Sources */,
+				C1B517732F8CAFCA00C2393E /* NeumorphicButton.swift in Sources */,
+				C1B517742F8CAFCA00C2393E /* TradeBidView.swift in Sources */,
+				C1B517752F8CAFCA00C2393E /* InvestmentTableViewCell.swift in Sources */,
+				C1B517762F8CAFCA00C2393E /* MainCoordinator.swift in Sources */,
+				C1B517772F8CAFCA00C2393E /* MarketDataServiceUtil.swift in Sources */,
+				C1B517782F8CAFCA00C2393E /* NetworkMonitor.swift in Sources */,
+				C1B517792F8CAFCA00C2393E /* MobitCommunityViewController.swift in Sources */,
+				C1B5177A2F8CAFCA00C2393E /* Candle+MinuteResponseModel.swift in Sources */,
+				C1B5177B2F8CAFCA00C2393E /* UserPNLHistoryModel.swift in Sources */,
+				C1B5177C2F8CAFCA00C2393E /* InvestmentCoordinator.swift in Sources */,
+				C1B5177D2F8CAFCA00C2393E /* TradeHistoryTableViewCell.swift in Sources */,
+				C1B5177E2F8CAFCA00C2393E /* Candle+MinuteResponseDTO.swift in Sources */,
+				C1B5177F2F8CAFCA00C2393E /* MobitConstants.swift in Sources */,
+				C1B517802F8CAFCA00C2393E /* MobitUserInformation.swift in Sources */,
+				C1B517812F8CAFCA00C2393E /* BaseCoordinator.swift in Sources */,
+				C1B517822F8CAFCA00C2393E /* SelfSizingViews.swift in Sources */,
+				C1B517832F8CAFCA00C2393E /* SkeletonDiffableDataSource.swift in Sources */,
+				C1B517842F8CAFCA00C2393E /* UserDataManager.swift in Sources */,
+				C1B517852F8CAFCA00C2393E /* TradeInfoCollectionViewCell.swift in Sources */,
+				C1B517862F8CAFCA00C2393E /* TradeOrderView.swift in Sources */,
+				C1B517872F8CAFCA00C2393E /* MobitAnalyticsUtil.swift in Sources */,
+				C1B517882F8CAFCA00C2393E /* ColorExtension.swift in Sources */,
+				C1B517892F8CAFCA00C2393E /* MainChartView.swift in Sources */,
+				C1B5178A2F8CAFCA00C2393E /* ButtonExtension.swift in Sources */,
+				C1B5178B2F8CAFCA00C2393E /* FirebaseCMCResponse.swift in Sources */,
+				C1B5178C2F8CAFCA00C2393E /* CryptoQuoteResponseDTO.swift in Sources */,
+				C1B5178D2F8CAFCA00C2393E /* OrderBookResponseDTO.swift in Sources */,
+				C1B5178E2F8CAFCA00C2393E /* CryptoTickerDTO.swift in Sources */,
+				C1B5178F2F8CAFCA00C2393E /* TradeChartView.swift in Sources */,
+				C1B517902F8CAFCA00C2393E /* MoreCoordinator.swift in Sources */,
+				C1B517912F8CAFCA00C2393E /* AppCoordinator.swift in Sources */,
+				C1B517922F8CAFCA00C2393E /* TradeHistoryView.swift in Sources */,
+				C1B517932F8CAFCA00C2393E /* ImageViewExtension.swift in Sources */,
+				C1B517942F8CAFCA00C2393E /* TradeAskView.swift in Sources */,
+				C1B517952F8CAFCA00C2393E /* ViewRule.swift in Sources */,
+				C1B517962F8CAFCA00C2393E /* NetworkLostView.swift in Sources */,
+				C1B517972F8CAFCA00C2393E /* MobitBottomSheetViewController.swift in Sources */,
+				C1B517982F8CAFCA00C2393E /* TradeViewController.swift in Sources */,
+				C1B517992F8CAFCA00C2393E /* CustomWindow.swift in Sources */,
+				C1B5179A2F8CAFCA00C2393E /* Candle+DayResponseDTO.swift in Sources */,
+				C1B5179B2F8CAFCA00C2393E /* CryptoSocketTickerDTO.swift in Sources */,
+				C1B5179C2F8CAFCA00C2393E /* InvestmentViewController.swift in Sources */,
+				C1B5179D2F8CAFCA00C2393E /* CryptoDetailUseCase.swift in Sources */,
+				C1B5179E2F8CAFCA00C2393E /* NoticeAppUpdateCoordinator.swift in Sources */,
+				C1B5179F2F8CAFCA00C2393E /* SocketManager.swift in Sources */,
+				C1B517A02F8CAFCA00C2393E /* MainNetworkService.swift in Sources */,
+				C1B517A12F8CAFCA00C2393E /* CryptoTransactionDataModel.swift in Sources */,
+				C1B517A22F8CAFCA00C2393E /* FirebaseCMCResponseDTO.swift in Sources */,
+				C1B517A32F8CAFCA00C2393E /* ErrorType.swift in Sources */,
+				C1B517A42F8CAFCA00C2393E /* AppTabBarCoordinator.swift in Sources */,
+				C1B517A52F8CAFCA00C2393E /* DividerLineView.swift in Sources */,
+				C1B517A62F8CAFCA00C2393E /* NeumorphicSegmentedControl.swift in Sources */,
+				C1B517A72F8CAFCA00C2393E /* CoordinatorFinishDelegate.swift in Sources */,
+				C1B517A82F8CAFCA00C2393E /* MobitTabBarViewController.swift in Sources */,
+				C1B517A92F8CAFCA00C2393E /* MobitCommunityCoordinator.swift in Sources */,
+				C1B517AA2F8CAFCA00C2393E /* TradeNetworkService.swift in Sources */,
+				C1B517AB2F8CAFCA00C2393E /* TradeAverageCalcView.swift in Sources */,
+				C1B517AC2F8CAFCA00C2393E /* MobitAlertViewController.swift in Sources */,
+				C1B517AD2F8CAFCA00C2393E /* PNLShareView.swift in Sources */,
+				C1B517AE2F8CAFCA00C2393E /* PNLCoordinator.swift in Sources */,
+				C1B517AF2F8CAFCA00C2393E /* AppDataManager.swift in Sources */,
+				C1B517B02F8CAFCA00C2393E /* ViewExtension.swift in Sources */,
+				C1B517B12F8CAFCA00C2393E /* TradeHistoryInformation.swift in Sources */,
+				C1B517B22F8CAFCA00C2393E /* TextFieldExtension.swift in Sources */,
+				C1B517B32F8CAFCA00C2393E /* AppDelegate.swift in Sources */,
+				C1B517B42F8CAFCA00C2393E /* LeakAvoider.swift in Sources */,
+				C1B517B52F8CAFCA00C2393E /* InvestReactor.swift in Sources */,
+				C1B517B62F8CAFCA00C2393E /* MiniChartView.swift in Sources */,
+				C1B517B72F8CAFCA00C2393E /* NewsViewController.swift in Sources */,
+				C1B517B82F8CAFCA00C2393E /* Environment.swift in Sources */,
+				C1B517B92F8CAFCA00C2393E /* TradeReactor.swift in Sources */,
+				C1B517BA2F8CAFCA00C2393E /* CryptoInfoQuotesResponse.swift in Sources */,
+				C1B517BB2F8CAFCA00C2393E /* NeumorphicView.swift in Sources */,
+				C1B517BC2F8CAFCA00C2393E /* MobitNeumorphicSegmentedControl.swift in Sources */,
+				C1B517BD2F8CAFCA00C2393E /* SceneDelegate.swift in Sources */,
+				C1B517BE2F8CAFCA00C2393E /* CryptoDetailRepository.swift in Sources */,
+				C1B517BF2F8CAFCA00C2393E /* MobitLaunchScreen.swift in Sources */,
+				C1B517C02F8CAFCA00C2393E /* CallbackResultEnums.swift in Sources */,
+				C1B517C12F8CAFCA00C2393E /* CryptoSocketTicker.swift in Sources */,
+				C1B517C22F8CAFCA00C2393E /* MainTabBarCoordinator.swift in Sources */,
+				C1B517C32F8CAFCA00C2393E /* MobitSegmentedControl.swift in Sources */,
+				C1B517C42F8CAFCA00C2393E /* MobitLottieView.swift in Sources */,
+				C1B517C52F8CAFCA00C2393E /* StringExtension.swift in Sources */,
+				C1B517C62F8CAFCA00C2393E /* MainViewController.swift in Sources */,
+				C1B517C72F8CAFCA00C2393E /* MainReactor.swift in Sources */,
+				C1B517C82F8CAFCA00C2393E /* OrderBookResponse.swift in Sources */,
+				C1B517C92F8CAFCA00C2393E /* LabelExtension.swift in Sources */,
+				C1B517CA2F8CAFCA00C2393E /* CoinTableViewCell.swift in Sources */,
+				C1B517CB2F8CAFCA00C2393E /* CalculationUtil.swift in Sources */,
+				C1B517CC2F8CAFCA00C2393E /* MobitTextField.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1B5183F2F8CAFCA00C2393E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C1B518402F8CAFCA00C2393E /* MoreViewController.swift in Sources */,
+				C1B518412F8CAFCA00C2393E /* NoticeForceUpdateViewController.swift in Sources */,
+				C1B518422F8CAFCA00C2393E /* Log.swift in Sources */,
+				C1B518432F8CAFCA00C2393E /* PNLTableViewCell.swift in Sources */,
+				C1B518442F8CAFCA00C2393E /* PNLViewController.swift in Sources */,
+				C1B518452F8CAFCA00C2393E /* MainCryptoTableViewCell.swift in Sources */,
+				C1B518462F8CAFCA00C2393E /* NewsCoordinator.swift in Sources */,
+				C1B518472F8CAFCA00C2393E /* MobitTabBar.swift in Sources */,
+				C1B518482F8CAFCA00C2393E /* DoubleExtension.swift in Sources */,
+				C1B518492F8CAFCA00C2393E /* CryptoDTO.swift in Sources */,
+				C1B5184A2F8CAFCA00C2393E /* OrderBookCell.swift in Sources */,
+				C1B5184B2F8CAFCA00C2393E /* MainRepository.swift in Sources */,
+				C1B5184C2F8CAFCA00C2393E /* GradientView.swift in Sources */,
+				C1B5184D2F8CAFCA00C2393E /* CryptoTicker.swift in Sources */,
+				C1B5184E2F8CAFCA00C2393E /* MainUseCase.swift in Sources */,
+				C1B5184F2F8CAFCA00C2393E /* MobitBaseViewController.swift in Sources */,
+				C1B518502F8CAFCA00C2393E /* Crypto.swift in Sources */,
+				C1B518512F8CAFCA00C2393E /* LeaderBoardViewController.swift in Sources */,
+				C1B518522F8CAFCA00C2393E /* LeaderBoardCoordinator.swift in Sources */,
+				C1B518532F8CAFCA00C2393E /* Candle+DayResponseModel.swift in Sources */,
+				C1B518542F8CAFCA00C2393E /* ViewControllerExtension.swift in Sources */,
+				C1B518552F8CAFCA00C2393E /* TradeInformationView.swift in Sources */,
+				C1B518562F8CAFCA00C2393E /* CryptoDetailCoordinator.swift in Sources */,
+				C1B518572F8CAFCA00C2393E /* CryptoCellInfo.swift in Sources */,
+				C1B518582F8CAFCA00C2393E /* NeumorphicButton.swift in Sources */,
+				C1B518592F8CAFCA00C2393E /* TradeBidView.swift in Sources */,
+				C1B5185A2F8CAFCA00C2393E /* InvestmentTableViewCell.swift in Sources */,
+				C1B5185B2F8CAFCA00C2393E /* MainCoordinator.swift in Sources */,
+				C1B5185C2F8CAFCA00C2393E /* MarketDataServiceUtil.swift in Sources */,
+				C1B5185D2F8CAFCA00C2393E /* NetworkMonitor.swift in Sources */,
+				C1B5185E2F8CAFCA00C2393E /* MobitCommunityViewController.swift in Sources */,
+				C1B5185F2F8CAFCA00C2393E /* Candle+MinuteResponseModel.swift in Sources */,
+				C1B518602F8CAFCA00C2393E /* UserPNLHistoryModel.swift in Sources */,
+				C1B518612F8CAFCA00C2393E /* InvestmentCoordinator.swift in Sources */,
+				C1B518622F8CAFCA00C2393E /* TradeHistoryTableViewCell.swift in Sources */,
+				C1B518632F8CAFCA00C2393E /* Candle+MinuteResponseDTO.swift in Sources */,
+				C1B518642F8CAFCA00C2393E /* MobitConstants.swift in Sources */,
+				C1B518652F8CAFCA00C2393E /* MobitUserInformation.swift in Sources */,
+				C1B518662F8CAFCA00C2393E /* BaseCoordinator.swift in Sources */,
+				C1B518672F8CAFCA00C2393E /* SelfSizingViews.swift in Sources */,
+				C1B518682F8CAFCA00C2393E /* SkeletonDiffableDataSource.swift in Sources */,
+				C1B518692F8CAFCA00C2393E /* UserDataManager.swift in Sources */,
+				C1B5186A2F8CAFCA00C2393E /* TradeInfoCollectionViewCell.swift in Sources */,
+				C1B5186B2F8CAFCA00C2393E /* TradeOrderView.swift in Sources */,
+				C1B5186C2F8CAFCA00C2393E /* MobitAnalyticsUtil.swift in Sources */,
+				C1B5186D2F8CAFCA00C2393E /* ColorExtension.swift in Sources */,
+				C1B5186E2F8CAFCA00C2393E /* MainChartView.swift in Sources */,
+				C1B5186F2F8CAFCA00C2393E /* ButtonExtension.swift in Sources */,
+				C1B518702F8CAFCA00C2393E /* FirebaseCMCResponse.swift in Sources */,
+				C1B518712F8CAFCA00C2393E /* CryptoQuoteResponseDTO.swift in Sources */,
+				C1B518722F8CAFCA00C2393E /* OrderBookResponseDTO.swift in Sources */,
+				C1B518732F8CAFCA00C2393E /* CryptoTickerDTO.swift in Sources */,
+				C1B518742F8CAFCA00C2393E /* TradeChartView.swift in Sources */,
+				C1B518752F8CAFCA00C2393E /* MoreCoordinator.swift in Sources */,
+				C1B518762F8CAFCA00C2393E /* AppCoordinator.swift in Sources */,
+				C1B518772F8CAFCA00C2393E /* TradeHistoryView.swift in Sources */,
+				C1B518782F8CAFCA00C2393E /* ImageViewExtension.swift in Sources */,
+				C1B518792F8CAFCA00C2393E /* TradeAskView.swift in Sources */,
+				C1B5187A2F8CAFCA00C2393E /* ViewRule.swift in Sources */,
+				C1B5187B2F8CAFCA00C2393E /* NetworkLostView.swift in Sources */,
+				C1B5187C2F8CAFCA00C2393E /* MobitBottomSheetViewController.swift in Sources */,
+				C1B5187D2F8CAFCA00C2393E /* TradeViewController.swift in Sources */,
+				C1B5187E2F8CAFCA00C2393E /* CustomWindow.swift in Sources */,
+				C1B5187F2F8CAFCA00C2393E /* Candle+DayResponseDTO.swift in Sources */,
+				C1B518802F8CAFCA00C2393E /* CryptoSocketTickerDTO.swift in Sources */,
+				C1B518812F8CAFCA00C2393E /* InvestmentViewController.swift in Sources */,
+				C1B518822F8CAFCA00C2393E /* CryptoDetailUseCase.swift in Sources */,
+				C1B518832F8CAFCA00C2393E /* NoticeAppUpdateCoordinator.swift in Sources */,
+				C1B518842F8CAFCA00C2393E /* SocketManager.swift in Sources */,
+				C1B518852F8CAFCA00C2393E /* MainNetworkService.swift in Sources */,
+				C1B518862F8CAFCA00C2393E /* CryptoTransactionDataModel.swift in Sources */,
+				C1B518872F8CAFCA00C2393E /* FirebaseCMCResponseDTO.swift in Sources */,
+				C1B518882F8CAFCA00C2393E /* ErrorType.swift in Sources */,
+				C1B518892F8CAFCA00C2393E /* AppTabBarCoordinator.swift in Sources */,
+				C1B5188A2F8CAFCA00C2393E /* DividerLineView.swift in Sources */,
+				C1B5188B2F8CAFCA00C2393E /* NeumorphicSegmentedControl.swift in Sources */,
+				C1B5188C2F8CAFCA00C2393E /* CoordinatorFinishDelegate.swift in Sources */,
+				C1B5188D2F8CAFCA00C2393E /* MobitTabBarViewController.swift in Sources */,
+				C1B5188E2F8CAFCA00C2393E /* MobitCommunityCoordinator.swift in Sources */,
+				C1B5188F2F8CAFCA00C2393E /* TradeNetworkService.swift in Sources */,
+				C1B518902F8CAFCA00C2393E /* TradeAverageCalcView.swift in Sources */,
+				C1B518912F8CAFCA00C2393E /* MobitAlertViewController.swift in Sources */,
+				C1B518922F8CAFCA00C2393E /* PNLShareView.swift in Sources */,
+				C1B518932F8CAFCA00C2393E /* PNLCoordinator.swift in Sources */,
+				C1B518942F8CAFCA00C2393E /* AppDataManager.swift in Sources */,
+				C1B518952F8CAFCA00C2393E /* ViewExtension.swift in Sources */,
+				C1B518962F8CAFCA00C2393E /* TradeHistoryInformation.swift in Sources */,
+				C1B518972F8CAFCA00C2393E /* TextFieldExtension.swift in Sources */,
+				C1B518982F8CAFCA00C2393E /* AppDelegate.swift in Sources */,
+				C1B518992F8CAFCA00C2393E /* LeakAvoider.swift in Sources */,
+				C1B5189A2F8CAFCA00C2393E /* InvestReactor.swift in Sources */,
+				C1B5189B2F8CAFCA00C2393E /* MiniChartView.swift in Sources */,
+				C1B5189C2F8CAFCA00C2393E /* NewsViewController.swift in Sources */,
+				C1B5189D2F8CAFCA00C2393E /* Environment.swift in Sources */,
+				C1B5189E2F8CAFCA00C2393E /* TradeReactor.swift in Sources */,
+				C1B5189F2F8CAFCA00C2393E /* CryptoInfoQuotesResponse.swift in Sources */,
+				C1B518A02F8CAFCA00C2393E /* NeumorphicView.swift in Sources */,
+				C1B518A12F8CAFCA00C2393E /* MobitNeumorphicSegmentedControl.swift in Sources */,
+				C1B518A22F8CAFCA00C2393E /* SceneDelegate.swift in Sources */,
+				C1B518A32F8CAFCA00C2393E /* CryptoDetailRepository.swift in Sources */,
+				C1B518A42F8CAFCA00C2393E /* MobitLaunchScreen.swift in Sources */,
+				C1B518A52F8CAFCA00C2393E /* CallbackResultEnums.swift in Sources */,
+				C1B518A62F8CAFCA00C2393E /* CryptoSocketTicker.swift in Sources */,
+				C1B518A72F8CAFCA00C2393E /* MainTabBarCoordinator.swift in Sources */,
+				C1B518A82F8CAFCA00C2393E /* MobitSegmentedControl.swift in Sources */,
+				C1B518A92F8CAFCA00C2393E /* MobitLottieView.swift in Sources */,
+				C1B518AA2F8CAFCA00C2393E /* StringExtension.swift in Sources */,
+				C1B518AB2F8CAFCA00C2393E /* MainViewController.swift in Sources */,
+				C1B518AC2F8CAFCA00C2393E /* MainReactor.swift in Sources */,
+				C1B518AD2F8CAFCA00C2393E /* OrderBookResponse.swift in Sources */,
+				C1B518AE2F8CAFCA00C2393E /* LabelExtension.swift in Sources */,
+				C1B518AF2F8CAFCA00C2393E /* CoinTableViewCell.swift in Sources */,
+				C1B518B02F8CAFCA00C2393E /* CalculationUtil.swift in Sources */,
+				C1B518B12F8CAFCA00C2393E /* MobitTextField.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1768,6 +2694,174 @@
 			};
 			name = Release;
 		};
+		C1B518172F8CAFCA00C2393E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5F657F782E06B0E80065A029 /* MobitAPIKeys.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = MobitIconDev;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = L8AX56G69N;
+				ENABLE_TESTING_SEARCH_PATHS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Mobit/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "모의비트";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "사진을 저장하기 위해 사진 라이브러리 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "맞춤형 광고 제공을 위해 추적 권한이 필요합니다.";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.4.0;
+				NEW_SETTING = "";
+				PRODUCT_BUNDLE_IDENTIFIER = com.kando.Mobit.dev;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		C1B518182F8CAFCA00C2393E /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5F657F782E06B0E80065A029 /* MobitAPIKeys.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = MobitIconDev;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L8AX56G69N;
+				ENABLE_TESTING_SEARCH_PATHS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Mobit/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "모의비트";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "사진을 저장하기 위해 사진 라이브러리 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "맞춤형 광고 제공을 위해 추적 권한이 필요합니다.";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.4.0;
+				NEW_SETTING = "";
+				PRODUCT_BUNDLE_IDENTIFIER = com.kando.Mobit.dev;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = RELEASE;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		C1B518FC2F8CAFCA00C2393E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5F657F782E06B0E80065A029 /* MobitAPIKeys.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = MobitIconRelease;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = L8AX56G69N;
+				ENABLE_TESTING_SEARCH_PATHS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Mobit/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "모의비트";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "사진을 저장하기 위해 사진 라이브러리 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "맞춤형 광고 제공을 위해 추적 권한이 필요합니다.";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.4.0;
+				NEW_SETTING = "";
+				PRODUCT_BUNDLE_IDENTIFIER = com.kando.Mobit.release;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		C1B518FD2F8CAFCA00C2393E /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5F657F782E06B0E80065A029 /* MobitAPIKeys.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = MobitIconRelease;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L8AX56G69N;
+				ENABLE_TESTING_SEARCH_PATHS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Mobit/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "모의비트";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "사진을 저장하기 위해 사진 라이브러리 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "맞춤형 광고 제공을 위해 추적 권한이 필요합니다.";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.4.0;
+				NEW_SETTING = "";
+				PRODUCT_BUNDLE_IDENTIFIER = com.kando.Mobit.release;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = RELEASE;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1803,6 +2897,24 @@
 			buildConfigurations = (
 				3133E2552C3E2357000D4B1A /* Debug */,
 				3133E2562C3E2357000D4B1A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C1B518162F8CAFCA00C2393E /* Build configuration list for PBXNativeTarget "Mobit-Dev" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C1B518172F8CAFCA00C2393E /* Debug */,
+				C1B518182F8CAFCA00C2393E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C1B518FB2F8CAFCA00C2393E /* Build configuration list for PBXNativeTarget "Mobit-Release" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C1B518FC2F8CAFCA00C2393E /* Debug */,
+				C1B518FD2F8CAFCA00C2393E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -1882,14 +2994,6 @@
 				minimumVersion = 6.7.1;
 			};
 		};
-		99C20A592C48DE40009276E7 /* XCRemoteSwiftPackageReference "Swift-JWT" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Kitura/Swift-JWT.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 4.0.1;
-			};
-		};
 		99C20A6A2C490615009276E7 /* XCRemoteSwiftPackageReference "Moya" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Moya/Moya.git";
@@ -1907,6 +3011,198 @@
 			};
 		};
 		C1B3276E2E85140500E50C50 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.2;
+			};
+		};
+		C1B5173A2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "PinLayout" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/layoutBox/PinLayout.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.10.5;
+			};
+		};
+		C1B5173C2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "FlexLayout" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/layoutBox/FlexLayout.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.10;
+			};
+		};
+		C1B5173E2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "Then" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/devxoul/Then.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
+		C1B517422F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "Moya" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Moya/Moya.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 15.0.3;
+			};
+		};
+		C1B517472F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "ReactorKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ReactorKit/ReactorKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.2.0;
+			};
+		};
+		C1B517492F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "RxSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ReactiveX/RxSwift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.7.1;
+			};
+		};
+		C1B5174D2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "Starscream" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/daltoniam/Starscream.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.8;
+			};
+		};
+		C1B5174F2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "SnapKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.7.1;
+			};
+		};
+		C1B517512F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.4.0;
+			};
+		};
+		C1B517532F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "SkeletonView" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Juanpe/SkeletonView.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.31.0;
+			};
+		};
+		C1B517552F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.15.0;
+			};
+		};
+		C1B517592F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.2;
+			};
+		};
+		C1B5181F2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "PinLayout" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/layoutBox/PinLayout.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.10.5;
+			};
+		};
+		C1B518212F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "FlexLayout" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/layoutBox/FlexLayout.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.10;
+			};
+		};
+		C1B518232F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "Then" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/devxoul/Then.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
+		C1B518272F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "Moya" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Moya/Moya.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 15.0.3;
+			};
+		};
+		C1B5182C2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "ReactorKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ReactorKit/ReactorKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.2.0;
+			};
+		};
+		C1B5182E2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "RxSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ReactiveX/RxSwift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.7.1;
+			};
+		};
+		C1B518322F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "Starscream" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/daltoniam/Starscream.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.8;
+			};
+		};
+		C1B518342F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "SnapKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.7.1;
+			};
+		};
+		C1B518362F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.4.0;
+			};
+		};
+		C1B518382F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "SkeletonView" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Juanpe/SkeletonView.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.31.0;
+			};
+		};
+		C1B5183A2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.15.0;
+			};
+		};
+		C1B5183E2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/airbnb/lottie-ios.git";
 			requirement = {
@@ -1982,11 +3278,6 @@
 			package = 998724FC2C50944700088C71 /* XCRemoteSwiftPackageReference "RxSwift" */;
 			productName = RxTest;
 		};
-		99C20A5A2C48DE40009276E7 /* SwiftJWT */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 99C20A592C48DE40009276E7 /* XCRemoteSwiftPackageReference "Swift-JWT" */;
-			productName = SwiftJWT;
-		};
 		99C20A6B2C490615009276E7 /* CombineMoya */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 99C20A6A2C490615009276E7 /* XCRemoteSwiftPackageReference "Moya" */;
@@ -2023,6 +3314,192 @@
 		C1B3276F2E85140500E50C50 /* Lottie */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = C1B3276E2E85140500E50C50 /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
+		};
+		C1B517392F8CAFCA00C2393E /* PinLayout */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B5173A2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "PinLayout" */;
+			productName = PinLayout;
+		};
+		C1B5173B2F8CAFCA00C2393E /* FlexLayout */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B5173C2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "FlexLayout" */;
+			productName = FlexLayout;
+		};
+		C1B5173D2F8CAFCA00C2393E /* Then */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B5173E2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "Then" */;
+			productName = Then;
+		};
+		C1B517412F8CAFCA00C2393E /* CombineMoya */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B517422F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "Moya" */;
+			productName = CombineMoya;
+		};
+		C1B517432F8CAFCA00C2393E /* Moya */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B517422F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "Moya" */;
+			productName = Moya;
+		};
+		C1B517442F8CAFCA00C2393E /* ReactiveMoya */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B517422F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "Moya" */;
+			productName = ReactiveMoya;
+		};
+		C1B517452F8CAFCA00C2393E /* RxMoya */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B517422F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "Moya" */;
+			productName = RxMoya;
+		};
+		C1B517462F8CAFCA00C2393E /* ReactorKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B517472F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "ReactorKit" */;
+			productName = ReactorKit;
+		};
+		C1B517482F8CAFCA00C2393E /* RxCocoa */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B517492F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxCocoa;
+		};
+		C1B5174A2F8CAFCA00C2393E /* RxRelay */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B517492F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxRelay;
+		};
+		C1B5174B2F8CAFCA00C2393E /* RxSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B517492F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxSwift;
+		};
+		C1B5174C2F8CAFCA00C2393E /* Starscream */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B5174D2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "Starscream" */;
+			productName = Starscream;
+		};
+		C1B5174E2F8CAFCA00C2393E /* SnapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B5174F2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
+		};
+		C1B517502F8CAFCA00C2393E /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B517512F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
+		};
+		C1B517522F8CAFCA00C2393E /* SkeletonView */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B517532F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "SkeletonView" */;
+			productName = SkeletonView;
+		};
+		C1B517542F8CAFCA00C2393E /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B517552F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		C1B517562F8CAFCA00C2393E /* FirebaseDatabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FirebaseDatabase;
+		};
+		C1B517572F8CAFCA00C2393E /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FirebaseCrashlytics;
+		};
+		C1B517582F8CAFCA00C2393E /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B517592F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
+		};
+		C1B5181E2F8CAFCA00C2393E /* PinLayout */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B5181F2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "PinLayout" */;
+			productName = PinLayout;
+		};
+		C1B518202F8CAFCA00C2393E /* FlexLayout */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B518212F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "FlexLayout" */;
+			productName = FlexLayout;
+		};
+		C1B518222F8CAFCA00C2393E /* Then */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B518232F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "Then" */;
+			productName = Then;
+		};
+		C1B518262F8CAFCA00C2393E /* CombineMoya */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B518272F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "Moya" */;
+			productName = CombineMoya;
+		};
+		C1B518282F8CAFCA00C2393E /* Moya */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B518272F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "Moya" */;
+			productName = Moya;
+		};
+		C1B518292F8CAFCA00C2393E /* ReactiveMoya */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B518272F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "Moya" */;
+			productName = ReactiveMoya;
+		};
+		C1B5182A2F8CAFCA00C2393E /* RxMoya */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B518272F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "Moya" */;
+			productName = RxMoya;
+		};
+		C1B5182B2F8CAFCA00C2393E /* ReactorKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B5182C2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "ReactorKit" */;
+			productName = ReactorKit;
+		};
+		C1B5182D2F8CAFCA00C2393E /* RxCocoa */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B5182E2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxCocoa;
+		};
+		C1B5182F2F8CAFCA00C2393E /* RxRelay */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B5182E2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxRelay;
+		};
+		C1B518302F8CAFCA00C2393E /* RxSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B5182E2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxSwift;
+		};
+		C1B518312F8CAFCA00C2393E /* Starscream */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B518322F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "Starscream" */;
+			productName = Starscream;
+		};
+		C1B518332F8CAFCA00C2393E /* SnapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B518342F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
+		};
+		C1B518352F8CAFCA00C2393E /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B518362F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
+		};
+		C1B518372F8CAFCA00C2393E /* SkeletonView */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B518382F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "SkeletonView" */;
+			productName = SkeletonView;
+		};
+		C1B518392F8CAFCA00C2393E /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B5183A2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		C1B5183B2F8CAFCA00C2393E /* FirebaseDatabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FirebaseDatabase;
+		};
+		C1B5183C2F8CAFCA00C2393E /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FirebaseCrashlytics;
+		};
+		C1B5183D2F8CAFCA00C2393E /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1B5183E2F8CAFCA00C2393E /* XCRemoteSwiftPackageReference "lottie-ios" */;
 			productName = Lottie;
 		};
 /* End XCSwiftPackageProductDependency section */
