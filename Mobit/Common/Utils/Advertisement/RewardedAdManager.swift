@@ -36,7 +36,7 @@ final class RewardedAdManager: NSObject {	// NSObject 상속 이유 : Obj-C 호�
 		  Log.info("광고 끝! 돈 충전해줄게요!!")
 		  MobitAnalyticsUtil.sendAdEvent(event: .reward_finish)
 		})
-	  } catch {
+	  } catch {	
 		Log.info("Rewarded ad load error: \(error.localizedDescription)")
 		self.hideLoadingIndicator(in: viewController)
 		self.showFailAlert(in: viewController)
