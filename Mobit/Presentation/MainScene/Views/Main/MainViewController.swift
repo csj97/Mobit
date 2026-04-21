@@ -233,7 +233,7 @@ class MainViewController: MobitBaseViewController {
 		return UITableViewCell()
 	  }
 	  
-	  self.hideLoadingIndicator()
+	  // self.hideLoadingIndicator()
 	  
 	  cell.configure(crypto: crypto, isScrolling: self.isSocketUpdating)
 	  cell.selectionStyle = .none
@@ -506,6 +506,33 @@ extension MainViewController: View {
 		if isDiffer {
 		  self?.coordinator?.pushNoticeAppUpdateVC()
 		}
+	  })
+	  .disposed(by: self.disposeBag)
+	
+	reactor.state
+	  .map { $0.isLoading }
+	  .distinctUntilChanged()
+	  .observe(on: MainScheduler.instance)
+	  .subscribe(onNext: { [weak self] isLoading in
+		guard let self = self else { return }
+		isLoading ? self.showLoadingIndicator() : self.hideLoadingIndicator()
+	  })
+	  .disposed(by: self.disposeBag)
+	
+	reactor.state
+	  .map { $0.errorMessage }
+	  .distinctUntilChanged { $0 == $1 }
+	  .compactMap { $0 }
+	  .observe(on: MainScheduler.instance)
+	  .subscribe(onNext: { [weak self] message in
+		guard let self = self else { return }
+		self.show(
+		  alertType: .onlyConfirm,
+		  title: "안내",
+		  content: message,
+		  callBack: nil
+		)
+		self.reactor.action.onNext(.clearErrorMessage)
 	  })
 	  .disposed(by: self.disposeBag)
   }

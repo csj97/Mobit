@@ -67,6 +67,7 @@ extension MainReactor {
 	case disconnectSocket
     case pauseSocket
     case resumeSocket
+    case clearErrorMessage
 	case setSortType(sortBy: CryptoSortType)
 	case setSelectedTab(tab: SelectedTab)
 	case loadUserCryptos
@@ -80,6 +81,8 @@ extension MainReactor {
 	case setSortType(sortBy: CryptoSortType)
 	case setSelectedTab(tab: SelectedTab)
 	case setUserCrypto([CryptoTransactionDataModel]?)	// user cryptos
+    case setLoading(isLoading: Bool)
+    case setErrorMessage(message: String?)
   }
   
   // MARK: State
@@ -94,6 +97,8 @@ extension MainReactor {
 	var selectedTab: SelectedTab = .krw
 	var preSelectedTab: SelectedTab = .krw
 	var userCryptos: [CryptoTransactionDataModel] = []
+    var isLoading: Bool = false
+    var errorMessage: String?
   }
 }
 
@@ -116,6 +121,9 @@ extension MainReactor {
 
     case .resumeSocket:
       return self.resumeSocket()
+
+    case .clearErrorMessage:
+      return .just(.setErrorMessage(message: nil))
 	  
 	case .setSortType(let sortBy):
 	  return self.setSortType(sortBy: sortBy)
@@ -152,6 +160,10 @@ extension MainReactor {
 	  newState.selectedTab = tab
 	case .setUserCrypto(let userCryptos):
 	  newState.userCryptos = userCryptos ?? []
+    case .setLoading(let isLoading):
+      newState.isLoading = isLoading
+    case .setErrorMessage(let message):
+      newState.errorMessage = message
 	}
 	return newState
   }
@@ -163,7 +175,7 @@ extension MainReactor {
   
   /// 1️⃣ 암호화폐 목록 로드 및 초기 티커 조회
   func loadCryptoList() -> Observable<MainMutation> {
-	return self.mainUseCase.loadCryptoList()
+	let request = self.mainUseCase.loadCryptoList()
 	  .flatMapLatest { [weak self] cryptoList -> Observable<MainMutation> in
 		guard let self = self else { return .empty() }
 		
@@ -175,6 +187,19 @@ extension MainReactor {
 		// REST API로 전체 티커 조회
 		return self.loadInitialTicker(cryptoList: cryptoList, markets: allMarkets)
 	  }
+	
+	return Observable.concat([
+	  .just(.setLoading(isLoading: true)),
+	  request,
+	  .just(.setLoading(isLoading: false))
+	])
+	.catch { error in
+	  Log.error("loadCryptoList failed: \(error.localizedDescription)")
+	  return Observable.concat([
+		.just(.setErrorMessage(message: "시세 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.")),
+		.just(.setLoading(isLoading: false))
+	  ])
+	}
   }
   
   /// 2️⃣ 초기 REST 티커 조회 후 소켓 연결
@@ -182,9 +207,9 @@ extension MainReactor {
 	cryptoList: CryptoList,
 	markets: [String]
   ) -> Observable<MainMutation> {
-	guard !markets.isEmpty else { return .empty() }
+	guard !markets.isEmpty else { return .just(.setTotalCryptoList(cryptoList: [])) }
 	
-		return self.mainUseCase.loadCryptoTicker(markets: markets)
+	return self.mainUseCase.loadCryptoTicker(markets: markets)
 	  .flatMap { [weak self] cryptoTickerList -> Observable<[CryptoCellInfo]> in
 		guard let self = self else { return .just([]) }
 		
@@ -202,12 +227,12 @@ extension MainReactor {
 	  }
 	  .map { [weak self] sortedCellInfos -> MainMutation in
 		guard let self = self else {
-          return MainMutation.setTotalCryptoList(cryptoList: sortedCellInfos)
-        }
-        self.sendSocketMessageForCurrentTab(
-          self.currentState.selectedTab,
-          totalList: sortedCellInfos
-        )
+		  return MainMutation.setTotalCryptoList(cryptoList: sortedCellInfos)
+		}
+		self.sendSocketMessageForCurrentTab(
+		  self.currentState.selectedTab,
+		  totalList: sortedCellInfos
+		)
 		return MainMutation.setTotalCryptoList(cryptoList: sortedCellInfos)
 	  }
   }
