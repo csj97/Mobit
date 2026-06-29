@@ -9,6 +9,16 @@ import Foundation
 import RxSwift
 
 class UserDataManager: NSObject {
+  enum Keys {
+	static let isFirstLaunch = "isFirstLaunch"
+	static let userFavoriteList = "user-favorite-list"
+	static let userTransactionList = "user-transaction-list"
+	static let userValidTransactionList = "user-valid-transaction-list"
+	static let userCryptoList = "user-crypto-list"
+	static let userPNLHistory = "user-pnl-list"
+	static let userInformation = "user-information"
+  }
+
   static let userAvailableBalanceSubject = BehaviorSubject<Double?>(value: nil)
   static var userAvailableBalanceObservable: Observable<Double?> {
 	  return userAvailableBalanceSubject.asObservable()
@@ -23,13 +33,13 @@ class UserDataManager: NSObject {
   static var isFirstLaunch: Bool {
     get {
 	  let defaults = UserDefaults.standard
-	  if defaults.object(forKey: "isFirstLaunch") == nil {
+	  if defaults.object(forKey: Keys.isFirstLaunch) == nil {
 		return true
 	  }
-	  return defaults.bool(forKey: "isFirstLaunch")
+	  return defaults.bool(forKey: Keys.isFirstLaunch)
     }
     set {
-      UserDefaults.standard.set(newValue, forKey: "isFirstLaunch")
+      UserDefaults.standard.set(newValue, forKey: Keys.isFirstLaunch)
     }
   }
   
@@ -37,13 +47,13 @@ class UserDataManager: NSObject {
   static var userFavoriteList: [String] {
 	get {
 	  let defaults = UserDefaults.standard
-	  if let data = defaults.stringArray(forKey: "user-favorite-list") {
+	  if let data = defaults.stringArray(forKey: Keys.userFavoriteList) {
 		return data
 	  }
 	  return []
 	}
 	set {
-	  UserDefaults.standard.set(newValue, forKey: "user-favorite-list")
+	  UserDefaults.standard.set(newValue, forKey: Keys.userFavoriteList)
 	}
   }
   
@@ -51,7 +61,7 @@ class UserDataManager: NSObject {
   static var userTransactionList: [TransactionInfo]? {
 	get {
 	  let defaults = UserDefaults.standard
-	  if let data = defaults.data(forKey: "user-transaction-list") {
+	  if let data = defaults.data(forKey: Keys.userTransactionList) {
 		let decodedData = try? JSONDecoder().decode([TransactionInfo].self, from: data)
 		return decodedData
 	  }
@@ -60,7 +70,7 @@ class UserDataManager: NSObject {
 	set {
 	  let defaults = UserDefaults.standard
 	  if let encodedData = try? JSONEncoder().encode(newValue) {
-		defaults.set(encodedData, forKey: "user-transaction-list")
+		defaults.set(encodedData, forKey: Keys.userTransactionList)
 	  }
 	}
   }
@@ -69,7 +79,7 @@ class UserDataManager: NSObject {
   static var userValidTransactionList: [ValidTransactionInfo]? {
 	get {
 	  let defaults = UserDefaults.standard
-	  if let data = defaults.data(forKey: "user-valid-transaction-list") {
+	  if let data = defaults.data(forKey: Keys.userValidTransactionList) {
 		let decodedData = try? JSONDecoder().decode([ValidTransactionInfo].self, from: data)
 		return decodedData
 	  }
@@ -78,7 +88,7 @@ class UserDataManager: NSObject {
 	set {
 	  let defaults = UserDefaults.standard
 	  if let encodedData = try? JSONEncoder().encode(newValue) {
-		defaults.set(encodedData, forKey: "user-valid-transaction-list")
+		defaults.set(encodedData, forKey: Keys.userValidTransactionList)
 	  }
 	}
   }
@@ -87,7 +97,7 @@ class UserDataManager: NSObject {
   static var userCryptoList: [CryptoTransactionDataModel]? {
 	get {
 	  let defaults = UserDefaults.standard
-	  guard let data = defaults.data(forKey: "user-crypto-list") else { return [] }
+	  guard let data = defaults.data(forKey: Keys.userCryptoList) else { return [] }
 	  
 	  do {
 		let decodedData = try JSONDecoder().decode([CryptoTransactionDataModel].self, from: data)
@@ -96,32 +106,11 @@ class UserDataManager: NSObject {
 		// Decoding 실패
 		// Legacy -> Migrate
 		if let legacy = try? JSONDecoder().decode([LegacyModel].self, from: data) {
-		  let migrated: [CryptoTransactionDataModel] = legacy.map { item in
-			let staticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
-			  identifier: UUID(),
-			  marketName: item.staticData.marketName,
-			  cryptoName: item.staticData.cryptoName,
-			  holdingQuantity: item.staticData.holdingQuantity,
-			  averageBuyPrice: item.staticData.averageBuyPrice,
-			  buyAmount: item.staticData.buyAmount
-			)
-			let dynamicData = CryptoTransactionDataModel.CryptoTransactionDynamicData(
-			  identifier: UUID(),
-			  marketName: item.dynamicData.marketName,
-			  profitRate: item.dynamicData.profitRate,
-			  evaluationProfitLoss: item.dynamicData.evaluationProfitLoss,
-			  evaluationPrice: item.dynamicData.evaluationPrice
-			)
-			return CryptoTransactionDataModel(
-			  identifier: UUID(),
-			  staticData: staticData,
-			  dynamicData: dynamicData
-			)
-		  }
+		  let migrated = migratedUserCryptoList(from: legacy)
 		  
 		  // migration 데이터 저장 **성공시에만 덮어쓰기
 		  if let migratedDataEncode = try? JSONEncoder().encode(migrated) {
-			defaults.set(migratedDataEncode, forKey: "user-crypto-list")
+			defaults.set(migratedDataEncode, forKey: Keys.userCryptoList)
 		  }
 		  
 		  return migrated
@@ -139,7 +128,7 @@ class UserDataManager: NSObject {
 	  guard let newValue = newValue else { return }
 	  
 	  if let encodedData = try? JSONEncoder().encode(newValue) {
-		defaults.set(encodedData, forKey: "user-crypto-list")
+		defaults.set(encodedData, forKey: Keys.userCryptoList)
 	  }
       DispatchQueue.main.async {
         userCryptoListSubject.onNext(newValue)
@@ -152,7 +141,7 @@ class UserDataManager: NSObject {
   static var userPNLHistory: [UserPNLHistoryModel]? {
 	get {
 	  let defaults = UserDefaults.standard
-	  if let data = defaults.data(forKey: "user-pnl-list") {
+	  if let data = defaults.data(forKey: Keys.userPNLHistory) {
 		let decodedData = try? JSONDecoder().decode([UserPNLHistoryModel].self, from: data)
 		return decodedData
 	  }
@@ -161,7 +150,7 @@ class UserDataManager: NSObject {
 	set {
 	  let defaults = UserDefaults.standard
 	  if let encodedData = try? JSONEncoder().encode(newValue) {
-		defaults.set(encodedData, forKey: "user-pnl-list")
+		defaults.set(encodedData, forKey: Keys.userPNLHistory)
 	  }
 	  // userCryptoListSubject.onNext(newValue)
 	}
@@ -170,7 +159,7 @@ class UserDataManager: NSObject {
   static var userInformation: MobitUserInformation? {
     get {
       let defaults = UserDefaults.standard
-      if let data = defaults.data(forKey: "user-information") {
+      if let data = defaults.data(forKey: Keys.userInformation) {
         let decodedData = try? JSONDecoder().decode(MobitUserInformation.self, from: data)
         return decodedData
       }
@@ -179,12 +168,57 @@ class UserDataManager: NSObject {
     set {
       let defaults = UserDefaults.standard
       if let encodedData = try? JSONEncoder().encode(newValue) {
-        defaults.set(encodedData, forKey: "user-information")
+        defaults.set(encodedData, forKey: Keys.userInformation)
         DispatchQueue.main.async {
 		  self.userAvailableBalanceSubject.onNext(newValue?.userAvailableBalance)
         }
       }
     }
+  }
+
+  @discardableResult
+  static func seedInitialUserInformationIfNeeded(
+	initialBalance: Double = 1_000_000
+  ) -> Bool {
+	guard isFirstLaunch else { return false }
+	isFirstLaunch = false
+	userInformation = MobitUserInformation(userAvailableBalance: initialBalance)
+	return true
+  }
+
+  static func resetInvestmentData(availableBalance: Double = 0) {
+	userInformation = MobitUserInformation(userAvailableBalance: availableBalance)
+	userCryptoList = []
+	userTransactionList = []
+	userValidTransactionList = []
+	userPNLHistory = []
+  }
+
+  static func migratedUserCryptoList(
+	from legacy: [LegacyModel]
+  ) -> [CryptoTransactionDataModel] {
+	legacy.map { item in
+	  let staticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
+		identifier: UUID(),
+		marketName: item.staticData.marketName,
+		cryptoName: item.staticData.cryptoName,
+		holdingQuantity: item.staticData.holdingQuantity,
+		averageBuyPrice: item.staticData.averageBuyPrice,
+		buyAmount: item.staticData.buyAmount
+	  )
+	  let dynamicData = CryptoTransactionDataModel.CryptoTransactionDynamicData(
+		identifier: UUID(),
+		marketName: item.dynamicData.marketName,
+		profitRate: item.dynamicData.profitRate,
+		evaluationProfitLoss: item.dynamicData.evaluationProfitLoss,
+		evaluationPrice: item.dynamicData.evaluationPrice
+	  )
+	  return CryptoTransactionDataModel(
+		identifier: UUID(),
+		staticData: staticData,
+		dynamicData: dynamicData
+	  )
+	}
   }
   
 }

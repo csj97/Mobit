@@ -21,6 +21,14 @@
 		3133E23F2C3E2357000D4B1A /* MobitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E23E2C3E2357000D4B1A /* MobitTests.swift */; };
 		3133E2492C3E2357000D4B1A /* MobitUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2482C3E2357000D4B1A /* MobitUITests.swift */; };
 		3133E24B2C3E2357000D4B1A /* MobitUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E24A2C3E2357000D4B1A /* MobitUITestsLaunchTests.swift */; };
+		C0D100012EF6000000000011 /* MarketFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100032EF6000000000011 /* MarketFormat.swift */; };
+		C0D100022EF6000000000011 /* PortfolioCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100042EF6000000000011 /* PortfolioCalculator.swift */; };
+		C0D100052EF6000000000011 /* PortfolioCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100082EF6000000000011 /* PortfolioCalculatorTests.swift */; };
+		C0D100062EF6000000000011 /* MarketFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100092EF6000000000011 /* MarketFormatTests.swift */; };
+		C0D100072EF6000000000011 /* UserDataManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D1000A2EF6000000000011 /* UserDataManagerTests.swift */; };
+		C0D1000B2EF6000000000011 /* SocketServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D1000C2EF6000000000011 /* SocketServiceTests.swift */; };
+		C0D1000D2EF6000000000011 /* TradeOrderValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D1000E2EF6000000000011 /* TradeOrderValidator.swift */; };
+		C0D1000F2EF6000000000011 /* TradeOrderValidatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100102EF6000000000011 /* TradeOrderValidatorTests.swift */; };
 		3133E2642C3F6A3B000D4B1A /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2632C3F6A3B000D4B1A /* AppCoordinator.swift */; };
 		3133E2662C3F6A44000D4B1A /* BaseCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2652C3F6A44000D4B1A /* BaseCoordinator.swift */; };
 		3133E2682C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2672C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift */; };
@@ -255,6 +263,14 @@
 		3133E2442C3E2357000D4B1A /* MobitUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MobitUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3133E2482C3E2357000D4B1A /* MobitUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitUITests.swift; sourceTree = "<group>"; };
 		3133E24A2C3E2357000D4B1A /* MobitUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		C0D100032EF6000000000011 /* MarketFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketFormat.swift; sourceTree = "<group>"; };
+		C0D100042EF6000000000011 /* PortfolioCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioCalculator.swift; sourceTree = "<group>"; };
+		C0D100082EF6000000000011 /* PortfolioCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioCalculatorTests.swift; sourceTree = "<group>"; };
+		C0D100092EF6000000000011 /* MarketFormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketFormatTests.swift; sourceTree = "<group>"; };
+		C0D1000A2EF6000000000011 /* UserDataManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataManagerTests.swift; sourceTree = "<group>"; };
+		C0D1000C2EF6000000000011 /* SocketServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketServiceTests.swift; sourceTree = "<group>"; };
+		C0D1000E2EF6000000000011 /* TradeOrderValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeOrderValidator.swift; sourceTree = "<group>"; };
+		C0D100102EF6000000000011 /* TradeOrderValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeOrderValidatorTests.swift; sourceTree = "<group>"; };
 		3133E2632C3F6A3B000D4B1A /* AppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
 		3133E2652C3F6A44000D4B1A /* BaseCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseCoordinator.swift; sourceTree = "<group>"; };
 		3133E2672C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoordinatorFinishDelegate.swift; sourceTree = "<group>"; };
@@ -509,6 +525,11 @@
 			isa = PBXGroup;
 			children = (
 				3133E23E2C3E2357000D4B1A /* MobitTests.swift */,
+				C0D100082EF6000000000011 /* PortfolioCalculatorTests.swift */,
+				C0D100092EF6000000000011 /* MarketFormatTests.swift */,
+				C0D1000A2EF6000000000011 /* UserDataManagerTests.swift */,
+				C0D1000C2EF6000000000011 /* SocketServiceTests.swift */,
+				C0D100102EF6000000000011 /* TradeOrderValidatorTests.swift */,
 			);
 			path = MobitTests;
 			sourceTree = "<group>";
@@ -935,6 +956,9 @@
 				C1B8F3C02E2783EA00C46734 /* MobitAnalyticsUtil.swift */,
 				C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */,
 				C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */,
+				C0D100032EF6000000000011 /* MarketFormat.swift */,
+				C0D100042EF6000000000011 /* PortfolioCalculator.swift */,
+				C0D1000E2EF6000000000011 /* TradeOrderValidator.swift */,
 				C1B327842E8523F400E50C50 /* SkeletonDiffableDataSource.swift */,
 				C17EAE372E374515006ACA44 /* Log.swift */,
 			);
@@ -1419,6 +1443,9 @@
 				C174D8A52E24E8920015B6ED /* LabelExtension.swift in Sources */,
 				99C20A5D2C48DF11009276E7 /* CoinTableViewCell.swift in Sources */,
 				C1AEA1AF2D66E982001E2A9E /* CalculationUtil.swift in Sources */,
+				C0D100012EF6000000000011 /* MarketFormat.swift in Sources */,
+				C0D100022EF6000000000011 /* PortfolioCalculator.swift in Sources */,
+				C0D1000D2EF6000000000011 /* TradeOrderValidator.swift in Sources */,
 				36E771932D75AF1E00739CDE /* MobitTextField.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1428,6 +1455,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				3133E23F2C3E2357000D4B1A /* MobitTests.swift in Sources */,
+				C0D100052EF6000000000011 /* PortfolioCalculatorTests.swift in Sources */,
+				C0D100062EF6000000000011 /* MarketFormatTests.swift in Sources */,
+				C0D100072EF6000000000011 /* UserDataManagerTests.swift in Sources */,
+				C0D1000B2EF6000000000011 /* SocketServiceTests.swift in Sources */,
+				C0D1000F2EF6000000000011 /* TradeOrderValidatorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1537,7 +1569,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -1597,7 +1629,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -1701,7 +1733,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = L8AX56G69N;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kando.MobitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1721,7 +1753,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = L8AX56G69N;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kando.MobitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";

@@ -108,25 +108,27 @@ class TradeBidView: UIView, ViewRule {
 	vibrator.impactOccurred()
 	
 	guard let marketName = self.cryptoInfo?.market,
-		  let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
-		  let userBalance = UserDataManager.userInformation?.userAvailableBalance,
-		  inputAmount > 0
+		  let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8)
 	else {
-	  callBack?(.alert(title: "알림", message: "매수 금액을 입력해주세요"))
+	  callBack?(.alert(title: "알림", message: TradeOrderValidator.ValidationError.missingPrice.message))
 	  return
 	}
 	
-	// 매수 버튼 누르는 시점 기준, total 금액으로 비교
-	let executedTotalPrice = currentPrice * inputAmount
+	let validation = TradeOrderValidator.validateBid(
+	  price: currentPrice,
+	  quantity: inputAmount,
+	  availableBalance: UserDataManager.userInformation?.userAvailableBalance
+	)
 	
-	if executedTotalPrice > 0.0, userBalance >= executedTotalPrice {
+	switch validation {
+	case .success:
 	  self.updateTransaction(marketName: marketName) {
 		self.callBack?(.successLottie)
 		self.initTextFieldValue()
 		self.callBack?(.updateHistory)
 	  }
-	} else {
-	  callBack?(.alert(title: "알림", message: "매수 금액을 확인해 주세요"))
+	case .failure(let error):
+	  callBack?(.alert(title: "알림", message: error.message))
 	}
   }
   

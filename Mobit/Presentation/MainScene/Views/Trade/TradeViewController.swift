@@ -312,9 +312,19 @@ class TradeViewController: MobitBaseViewController {
 	let holdingQuantity = investData.staticData.holdingQuantity
 	guard averageBuyPrice > 0, holdingQuantity >= 0 else { return }
 	
-	let profitRate = (((currentPrice - averageBuyPrice) / averageBuyPrice) * 100).formatDigits(digits: 2)
-	let evaluationPrice = (currentPrice * holdingQuantity).formatDigits(digits: 8)
-	let evaluationProfitLoss = (currentPrice - averageBuyPrice) * holdingQuantity
+	let profitRate = PortfolioCalculator.profitRate(
+	  currentPrice: currentPrice,
+	  averageBuyPrice: averageBuyPrice
+	)
+	let evaluationPrice = PortfolioCalculator.evaluationPrice(
+	  currentPrice: currentPrice,
+	  holdingQuantity: holdingQuantity
+	)
+	let evaluationProfitLoss = PortfolioCalculator.evaluationProfitLoss(
+	  currentPrice: currentPrice,
+	  holdingQuantity: holdingQuantity,
+	  averageBuyPrice: averageBuyPrice
+	)
 	
 	investData.dynamicData.profitRate = profitRate
 	investData.dynamicData.evaluationPrice = evaluationPrice

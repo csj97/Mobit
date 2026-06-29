@@ -26,6 +26,12 @@ protocol SocketConnectable: AnyObject {
   func reconnectIfNeeded()
 }
 
+protocol WebSocketClientProtocol: SocketConnectable {
+  var onConnected: Observable<Void> { get }
+  var rawDataStream: Observable<Data> { get }
+  func sendSubscription(codes: [String])
+}
+
 protocol TickerSocketServiceProtocol: SocketConnectable {
   var stream: Observable<CryptoSocketTicker> { get }
   func subscribe(markets: [String])
@@ -36,13 +42,14 @@ protocol OrderBookSocketServiceProtocol: SocketConnectable {
   func subscribe(market: String)
 }
 
-final class UpbitWebSocketClient: WebSocketDelegate, SocketConnectable {
+final class UpbitWebSocketClient: WebSocketDelegate, WebSocketClientProtocol {
   private let socket: WebSocket
   private let socketType: SocketType
   private let connectedSubject = PublishSubject<Void>()
   private let dataSubject = PublishSubject<Data>()
   
   private(set) var isConnected = false
+  private var isConnecting = false
   private var isUserInitiatedDisconnect = false
   
   init(socketType: SocketType) {
@@ -65,16 +72,18 @@ final class UpbitWebSocketClient: WebSocketDelegate, SocketConnectable {
   }
   
   func connect() {
-	guard !isConnected else { return }
+	guard !isConnected, !isConnecting else { return }
 	isUserInitiatedDisconnect = false
+	isConnecting = true
 	socket.connect()
   }
   
   func disconnect(userInitiated: Bool = false) {
 	isUserInitiatedDisconnect = userInitiated
-	guard isConnected else { return }
+	guard isConnected || isConnecting else { return }
 	
 	Log.info("Disconnecting \(socketType.rawValue) socket...")
+    isConnecting = false
 	socket.disconnect()
   }
   
@@ -109,11 +118,13 @@ final class UpbitWebSocketClient: WebSocketDelegate, SocketConnectable {
   ) {
 	switch event {
 	case .connected:
+      isConnecting = false
 	  isConnected = true
 	  logConnectionEvent("connected")
 	  connectedSubject.onNext(())
 	  
 	case .disconnected(let reason, let code):
+      isConnecting = false
 	  isConnected = false
 	  logConnectionEvent("disconnected: \(reason) with code: \(code)")
 	  
@@ -124,10 +135,12 @@ final class UpbitWebSocketClient: WebSocketDelegate, SocketConnectable {
 	  dataSubject.onNext(data)
 	  
 	case .error(let error):
+      isConnecting = false
 	  isConnected = false
 	  Log.info("\(socketType.rawValue) socket error: \(String(describing: error))")
 	  
 	case .cancelled:
+      isConnecting = false
 	  isConnected = false
 	  logConnectionEvent("cancelled")
 	  
@@ -159,10 +172,11 @@ final class UpbitWebSocketClient: WebSocketDelegate, SocketConnectable {
 }
 
 final class TickerSocketService: TickerSocketServiceProtocol {
-  private let client: UpbitWebSocketClient
+  private let client: WebSocketClientProtocol
   private let disposeBag = DisposeBag()
   private let decoder = JSONDecoder()
   private var subscribedMarkets: [String] = []
+  private var sentMarkets: [String] = []
   
   lazy var stream: Observable<CryptoSocketTicker> = {
 	client.rawDataStream
@@ -180,7 +194,7 @@ final class TickerSocketService: TickerSocketServiceProtocol {
 	  .share()
   }()
   
-  init(client: UpbitWebSocketClient = UpbitWebSocketClient(socketType: .ticker)) {
+  init(client: WebSocketClientProtocol = UpbitWebSocketClient(socketType: .ticker)) {
 	self.client = client
 	
 	client.onConnected
@@ -199,6 +213,10 @@ final class TickerSocketService: TickerSocketServiceProtocol {
   }
   
   func disconnect(userInitiated: Bool = false) {
+    if userInitiated {
+      subscribedMarkets = []
+      sentMarkets = []
+    }
 	client.disconnect(userInitiated: userInitiated)
   }
   
@@ -207,22 +225,32 @@ final class TickerSocketService: TickerSocketServiceProtocol {
   }
   
   func subscribe(markets: [String]) {
-	subscribedMarkets = Array(Set(markets)).sorted()
+	let markets = Array(Set(markets)).sorted()
+    guard subscribedMarkets != markets || sentMarkets != markets else { return }
+    subscribedMarkets = markets
 	guard client.isConnected else { return }
-	client.sendSubscription(codes: subscribedMarkets)
+    sendSubscriptionIfNeeded(force: false)
   }
   
   private func resubscribeIfNeeded() {
 	guard !subscribedMarkets.isEmpty else { return }
-	client.sendSubscription(codes: subscribedMarkets)
+	sendSubscriptionIfNeeded(force: true)
+  }
+
+  private func sendSubscriptionIfNeeded(force: Bool) {
+    guard client.isConnected, !subscribedMarkets.isEmpty else { return }
+    guard force || sentMarkets != subscribedMarkets else { return }
+    client.sendSubscription(codes: subscribedMarkets)
+    sentMarkets = subscribedMarkets
   }
 }
 
 final class OrderBookSocketService: OrderBookSocketServiceProtocol {
-  private let client: UpbitWebSocketClient
+  private let client: WebSocketClientProtocol
   private let disposeBag = DisposeBag()
   private let decoder = JSONDecoder()
   private var subscribedMarket: String?
+  private var sentMarket: String?
   
   lazy var stream: Observable<Orderbook> = {
 	client.rawDataStream
@@ -240,7 +268,7 @@ final class OrderBookSocketService: OrderBookSocketServiceProtocol {
 	  .share()
   }()
   
-  init(client: UpbitWebSocketClient = UpbitWebSocketClient(socketType: .orderbook)) {
+  init(client: WebSocketClientProtocol = UpbitWebSocketClient(socketType: .orderbook)) {
 	self.client = client
 	
 	client.onConnected
@@ -259,6 +287,10 @@ final class OrderBookSocketService: OrderBookSocketServiceProtocol {
   }
   
   func disconnect(userInitiated: Bool = false) {
+    if userInitiated {
+      subscribedMarket = nil
+      sentMarket = nil
+    }
 	client.disconnect(userInitiated: userInitiated)
   }
   
@@ -267,13 +299,21 @@ final class OrderBookSocketService: OrderBookSocketServiceProtocol {
   }
   
   func subscribe(market: String) {
+    guard subscribedMarket != market || sentMarket != market else { return }
 	subscribedMarket = market
 	guard client.isConnected else { return }
-	client.sendSubscription(codes: [market])
+	sendSubscriptionIfNeeded(force: false)
   }
   
   private func resubscribeIfNeeded() {
-	guard let subscribedMarket else { return }
-	client.sendSubscription(codes: [subscribedMarket])
+	guard subscribedMarket != nil else { return }
+	sendSubscriptionIfNeeded(force: true)
+  }
+
+  private func sendSubscriptionIfNeeded(force: Bool) {
+    guard client.isConnected, let subscribedMarket else { return }
+    guard force || sentMarket != subscribedMarket else { return }
+    client.sendSubscription(codes: [subscribedMarket])
+    sentMarket = subscribedMarket
   }
 }

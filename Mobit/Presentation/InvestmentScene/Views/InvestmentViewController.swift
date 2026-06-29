@@ -137,26 +137,20 @@ class InvestmentViewController: MobitBaseViewController {
   func updateTotalDatas(cryptos: [CryptoTransactionDataModel]) {
 	guard let availableUserBalance = UserDataManager.userInformation?.userAvailableBalance else { return }
 	// 총 보유자산
-	let totalUserBalance = availableUserBalance + cryptos.reduce(0) {
-	  $0 + $1.self.dynamicData.evaluationPrice
-	}
+	let totalUserBalance = PortfolioCalculator.totalAssetValue(
+	  availableBalance: availableUserBalance,
+	  cryptos: cryptos
+	)
 	// 평가손익
-	let totalProfitLoss = cryptos.reduce(0) {
-	  $0 + $1.dynamicData.evaluationProfitLoss
-	}
+	let totalProfitLoss = PortfolioCalculator.totalEvaluationProfitLoss(cryptos: cryptos)
 	// 수익률
-	var totalProfitRate: Double
-
-	if totalUserBalance != 0 {
-		totalProfitRate = (totalProfitLoss / totalUserBalance) * 100
-	} else {
-		totalProfitRate = 0 // 혹은 nil 처리 또는 다른 기본값
-	}
+	let totalProfitRate = PortfolioCalculator.totalProfitRate(
+	  totalProfitLoss: totalProfitLoss,
+	  totalAssetValue: totalUserBalance
+	)
 	
 	// 총 매수
-	let totalBuyPrice = cryptos.reduce(0) {
-	  $0 + $1.self.staticData.buyAmount
-	}
+	let totalBuyPrice = PortfolioCalculator.totalBuyAmount(cryptos: cryptos)
 	
 	let availableUserBalanceString: String = availableUserBalance == 0 ? "0" : availableUserBalance.formatSignificantDigits()
 	let totalUserBalanceString: String = totalUserBalance == 0 ? "0" : totalUserBalance.formatSignificantDigits(digits: 0)

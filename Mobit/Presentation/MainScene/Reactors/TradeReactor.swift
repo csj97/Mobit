@@ -260,15 +260,7 @@ extension TradeReactor {
   }
   
   func transformMarketForm(market: String) -> String {
-    var transformMarket = market
-    let components = transformMarket.split(separator: "/")
-    if components.count == 2 {
-      transformMarket = "\(components[1])-\(components[0])"
-    } else {
-      // 기본값 유지
-      transformMarket = market
-    }
-    return transformMarket
+    return MarketFormat.apiMarket(fromDisplayMarket: market)
   }
   
   func transform(mutation: Observable<TradeMutation>) -> Observable<TradeMutation> {

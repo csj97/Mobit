@@ -48,7 +48,7 @@ class TradeAskView: UIView, ViewRule {
 	disposeBag: DisposeBag,
 	callBack: @escaping (OrderResult) -> ()
   ) ->  TradeAskView {
-	
+
 	let selfView = UINib(
 	  nibName: String(describing: self),
 	  bundle: nil
@@ -59,7 +59,7 @@ class TradeAskView: UIView, ViewRule {
 	guard let selfView = selfView else {
 	  return TradeAskView()
 	}
-	
+
 	selfView.reactor = reactor
 	selfView.disposeBag = disposeBag
 	selfView.callBack = callBack
@@ -158,24 +158,33 @@ class TradeAskView: UIView, ViewRule {
 			where: { $0.staticData.marketName == marketName }
 		  )
 	else {
-	  self.callBack?(.alert(title: "알림", message: "매도 수량을 확인 해주세요."))
+	  self.callBack?(.alert(title: "알림", message: TradeOrderValidator.ValidationError.missingPrice.message))
+	  return
+	}
+
+	let validation = TradeOrderValidator.validateAsk(
+	  price: currentPrice,
+	  quantity: inputAmount,
+	  holdingQuantity: crypto.staticData.holdingQuantity
+	)
+
+	guard case .success(let executedTotalPrice) = validation else {
+	  if case .failure(let error) = validation {
+		self.callBack?(.alert(title: "알림", message: error.message))
+	  }
 	  return
 	}
 	
-	// 매도 버튼 누르는 시점 기준, total 금액으로 비교
 	let calcUtil = CalculationUtil(currentPrice: currentPrice, newHoldingQuantity: inputAmount)
-	let executedTotalPrice = calcUtil.calcBuyAmount()
 	
 	let userCryptoList = UserDataManager.userCryptoList
 	var postStaticTransaction: CryptoTransactionDataModel.CryptoTransactionStaticData? = nil
-	var postDynamicTransaction: CryptoTransactionDataModel.CryptoTransactionDynamicData? = nil
 	var transactionIndex: Int = 0
 	
 	if let matchedIndex = userCryptoList?.compactMap({ $0 }).firstIndex(
 	  where: { $0.staticData.marketName == crypto.staticData.marketName }
 	) {
 	  postStaticTransaction = UserDataManager.userCryptoList?[matchedIndex].staticData
-	  postDynamicTransaction = UserDataManager.userCryptoList?[matchedIndex].dynamicData
 	  transactionIndex = matchedIndex
 	}
   
@@ -184,13 +193,6 @@ class TradeAskView: UIView, ViewRule {
 	guard let postStaticTransaction = postStaticTransaction else { return }
 	
 	if inputAmount > 0, inputAmount <= crypto.staticData.holdingQuantity {
-	  
-	  if let totalPrice = Double(self.totalPriceTextField.text ?? "0"),
-		 totalPrice < 500 {
-		self.callBack?(.alert(title: "알림", message: "500원 이상 매수/매도 가능합니다."))
-		return
-	  }
-	  
 	  let formatter = DateFormatter()
 	  formatter.dateFormat = "MM.dd HH:mm"
 	  formatter.locale = Locale(identifier: "ko_KR") // 한국 시간 기준
@@ -356,10 +358,6 @@ extension TradeAskView: UITextFieldDelegate {
 	replacementString string: String
   ) -> Bool {
 	let currentText = textField.text ?? ""
-	
-	// 바뀐 텍스트 예측
-	guard let stringRange = Range(range, in: currentText) else { return false }
-	let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
 	
 	let allowedCharacters = CharacterSet(charactersIn: "0123456789.")
 	if string.rangeOfCharacter(from: allowedCharacters.inverted) != nil {

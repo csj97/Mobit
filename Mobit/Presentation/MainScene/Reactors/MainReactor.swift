@@ -243,7 +243,7 @@ extension MainReactor {
 	
 	// 해당 마켓의 *인덱스* 찾기
 	guard let index = updatedList.firstIndex(where: {
-	  self.reverseTransformMarketForm(market: $0.market) == ticker.code
+	  MarketFormat.apiMarket(fromDisplayMarket: $0.market) == ticker.code
 	}) else {
 	  return updatedList
 	}
@@ -277,32 +277,12 @@ extension MainReactor {
   ) {
 	let totalList = totalList ?? self.currentState.totalCryptoList
 
-	// 탭에 따른 필터링 마켓 목록
-	let marketsToSubscribe: [String] = {
-	  switch tab {
-	  case .hold:
-		return totalList
-		  .filter { $0.market.contains("/KRW") }
-		  .map { self.reverseTransformMarketForm(market: $0.market) }
-		
-	  case .krw:
-		return totalList
-		  .filter { $0.market.contains("/KRW") }
-		  .map { self.reverseTransformMarketForm(market: $0.market) }
-		
-	  case .btc:
-		return totalList
-		  .filter { $0.market.contains("/BTC") }
-		  .map { self.reverseTransformMarketForm(market: $0.market) }
-		
-	  case .favorite:
-		// Set을 사용한 이유 : Array보다 해시테이블을 조회하기 때문에 탐색 시간이 빠름
-		let favorites = Set(UserDataManager.userFavoriteList)
-		return totalList
-		  .filter { favorites.contains($0.market) }
-		  .map { self.reverseTransformMarketForm(market: $0.market) }
-	  }
-	}()
+	let marketsToSubscribe = MarketFormat.apiMarketsForSubscription(
+	  tab: tab,
+	  totalList: totalList,
+	  userCryptos: UserDataManager.userCryptoList,
+	  favorites: UserDataManager.userFavoriteList
+	)
 	
 	// 소켓에 해당 마켓만 구독 요청
 	tickerSocketService.subscribe(markets: marketsToSubscribe)
@@ -353,7 +333,7 @@ extension MainReactor {
 	  
 	  return CryptoCellInfo(
 		cryptoName: crypto.koreanName,
-		market: self.transformMarketForm(market: crypto.market),
+		market: MarketFormat.displayMarket(fromAPIMarket: crypto.market),
 		marketEvent: crypto.marketEvent,
 		prevPrice: ticker.prevClosingPrice,
 		tradePrice: ticker.tradePrice,
@@ -453,16 +433,12 @@ extension MainReactor {
 extension MainReactor {
   /// 'KRW-BTC' → 'BTC/KRW' 변환
   func transformMarketForm(market: String) -> String {
-	let components = market.split(separator: "-")
-	guard components.count == 2 else { return market }
-	return "\(components[1])/\(components[0])"
+	return MarketFormat.displayMarket(fromAPIMarket: market)
   }
   
   /// 'BTC/KRW' → 'KRW-BTC' 역변환
   private func reverseTransformMarketForm(market: String) -> String {
-	let components = market.split(separator: "/")
-	guard components.count == 2 else { return market }
-	return "\(components[1])-\(components[0])"
+	return MarketFormat.apiMarket(fromDisplayMarket: market)
   }
   
   /// 앱 버전 체크

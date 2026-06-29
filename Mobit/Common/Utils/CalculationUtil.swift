@@ -33,7 +33,10 @@ class CalculationUtil {
   
   /// 누적 수량
   func cumulCalcHoldingQuantity() -> Double {
-	return prevHoldingQuantity + newHoldingQuantity
+	return PortfolioCalculator.cumulativeHoldingQuantity(
+	  previousQuantity: prevHoldingQuantity,
+	  newQuantity: newHoldingQuantity
+	)
   }
   
   /// new 수량
@@ -53,18 +56,20 @@ class CalculationUtil {
   
   /// 매수금액
   func calcBuyAmount() -> Double {
-	let newBuyAmount = floor(currentPrice * newHoldingQuantity)
-	// let fee = calcTradingFee(tradingPrice: newBuyAmount)
-	
-	return newBuyAmount
+	return PortfolioCalculator.executedAmount(
+	  price: currentPrice,
+	  quantity: newHoldingQuantity
+	)
   }
   
   /// 누적 총 매수금액 (이전 매수 금액 포함)
   /// prevBuyAmount + (현재 매수금액 * tradingFee)
   func cumulCalcBuyAmount() -> Double {
-	let cumulAmount = prevBuyAmount + calcBuyAmount()
-	
-	return cumulAmount
+	return PortfolioCalculator.cumulativeBuyAmount(
+	  previousBuyAmount: prevBuyAmount,
+	  price: currentPrice,
+	  quantity: newHoldingQuantity
+	)
   }
   
   /// 수수료 계산
@@ -77,6 +82,10 @@ class CalculationUtil {
   /// 실현손익 계산
   /// 실현손익 = (매도가 - 매수가)  * 수량
   func calcPnl(entryPrice: Double, exitPrice: Double, quantity: Double) -> Double {
-	return (exitPrice - entryPrice) * quantity
+	return PortfolioCalculator.realizedProfitLoss(
+	  entryPrice: entryPrice,
+	  exitPrice: exitPrice,
+	  quantity: quantity
+	)
   }
 }

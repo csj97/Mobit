@@ -305,19 +305,25 @@ class MarketDataServiceUtil {
 extension MarketDataServiceUtil {
   // 저장 없이 값만 계산
   func calculateProfitRate(currentPrice: Double, averageBuyPrice: Double) -> Double {
-	guard averageBuyPrice != 0 else { return 0 }
-	return (((currentPrice - averageBuyPrice) / averageBuyPrice) * 100).formatDigits(digits: 2)
+	return PortfolioCalculator.profitRate(
+	  currentPrice: currentPrice,
+	  averageBuyPrice: averageBuyPrice
+	)
   }
 
   func calculateEvalPrice(currentPrice: Double, holdingQuantity: Double) -> Double {
-	guard holdingQuantity >= 0 else { return 0 }
-	return (currentPrice * holdingQuantity).formatDigits(digits: 8)
+	return PortfolioCalculator.evaluationPrice(
+	  currentPrice: currentPrice,
+	  holdingQuantity: holdingQuantity
+	)
   }
 
   func calculateEvalProfitLoss(currentPrice: Double, holdingQuantity: Double, averageBuyPrice: Double) -> Double {
-	let evalPrice = currentPrice * holdingQuantity
-	let averagePrice = averageBuyPrice * holdingQuantity
-	return evalPrice - averagePrice
+	return PortfolioCalculator.evaluationProfitLoss(
+	  currentPrice: currentPrice,
+	  holdingQuantity: holdingQuantity,
+	  averageBuyPrice: averageBuyPrice
+	)
   }
 
 }

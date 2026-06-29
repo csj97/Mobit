@@ -100,10 +100,7 @@ class MoreViewController: MobitBaseViewController {
 	  content: noticeContent
 	) { isPositive in
 	  if isPositive {
-		UserDataManager.userInformation?.userAvailableBalance = 0
-		UserDataManager.userCryptoList = []
-		UserDataManager.userTransactionList = []
-		UserDataManager.userValidTransactionList = []
+		UserDataManager.resetInvestmentData()
 		
 		self.show(alertType: .onlyConfirm, content: "초기화 되었습니다.", callBack: nil)
 	  }

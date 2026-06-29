@@ -55,16 +55,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   
   /// App의 첫 실행 여부
   func checkFirstLaunch() {
-	// 첫 실행이면 천만원 설정
-	if UserDataManager.isFirstLaunch {
-	  UserDataManager.isFirstLaunch = false
-	  UserDataManager.userInformation = MobitUserInformation(
-		userAvailableBalance: 1_000_000
-	  )
-	} else {
-	  guard let userInfo = UserDataManager.userInformation else { return }
-	  // print("지금 내돈 : \(userInfo.userAvailableBalance)")
-	}
+	UserDataManager.seedInitialUserInformationIfNeeded()
   }
   
   func requestATT() {
@@ -88,4 +79,3 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 	}
   }
 }
-
