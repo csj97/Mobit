@@ -10,311 +10,162 @@ import UIKit
 import RxSwift
 
 class TradeBidView: UIView, ViewRule {
-  
+
   @IBOutlet weak var availableTradePrice: UILabel!
   @IBOutlet weak var inputTradeAmount: UITextField!
   @IBOutlet weak var currentPrice: UILabel!
   @IBOutlet weak var totalPriceTextField: UITextField!
   @IBOutlet weak var inputAmountTFView: UIView!
   @IBOutlet weak var inputMarketName: UILabel!
-  
+  @IBOutlet weak var orderButton: UIButton!
+  @IBOutlet weak var orderNoticeLabel: UILabel!
+
   weak var reactor: TradeReactor? = nil
   var callBack: ((OrderResult) -> ())? = nil
   var disposeBag = DisposeBag()
   var cryptoInfo: CryptoCellInfo? = nil
   // 매수 수량
   var inputAmount: Double = 0.0
-  
+  private let defaultOrderNotice = "*시장가 주문은 현재 시장 유동성에 따라\n체결 가격이 달라질 수 있습니다."
+
   deinit {
 	print("deinit : \(String(describing: type(of: self)))")
   }
-  
+
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
 	self.endEditing(true)
   }
-  
+
   static func instanceFromNib(
 	reactor: TradeReactor,
 	disposeBag: DisposeBag,
 	callBack: @escaping (OrderResult) -> ()
   ) -> TradeBidView {
-	
+
 	let selfView = UINib(
 	  nibName: String(describing: self),
 	  bundle: nil
 	).instantiate(
 	  withOwner: self, options: nil
 	).first as? TradeBidView
-	
+
 	guard let selfView = selfView else {
 	  return TradeBidView()
 	}
-	
+
 	selfView.reactor = reactor
 	selfView.disposeBag = disposeBag
 	selfView.callBack = callBack
 	selfView.setUI()
 	selfView.setData()
 	selfView.bind(reactor: reactor)
-	
+
 	return selfView
   }
-  
+
   func setUI() {
 	self.inputTradeAmount.setAdaptivePlaceholderColor()
 	self.totalPriceTextField.setAdaptivePlaceholderColor()
-	
+
 	self.inputMarketName.text = self.reactor?.selectCrypto.market.components(separatedBy: "/").first
 	self.inputTradeAmount.keyboardType = .decimalPad
 	self.totalPriceTextField.keyboardType = .numberPad
+	self.updateOrderValidationState()
   }
-  
+
   func setData() {
 	self.inputTradeAmount.delegate = self
 	self.totalPriceTextField.delegate = self
 	self.inputTradeAmount.accessibilityIdentifier = "amount"
 	self.totalPriceTextField.accessibilityIdentifier = "totalPrice"
-	
+
 	guard let userBalance = UserDataManager.userInformation?.userAvailableBalance
 	else { return }
-	
+
 	self.availableTradePrice.text = userBalance.formatSignificantDigits()
   }
-  
+
   @IBAction func tapOnMaxAmount(_ sender: UIButton) {
 	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
 		  let userBalance = UserDataManager.userInformation?.userAvailableBalance
 	else { return }
-	
+
 	inputAmount = (userBalance / currentPrice)
-	
+
 	let calcUtil = CalculationUtil(currentPrice: currentPrice, newHoldingQuantity: inputAmount)
 	let totalPrice = calcUtil.calcBuyAmount().formatSignificantDigits()
 	self.inputTradeAmount.text = inputAmount.formatSignificantDigits()
 	self.totalPriceTextField.text = String(totalPrice)
+	self.updateOrderValidationState()
   }
-  
+
   /// 초기화 버튼
   @IBAction func tapOnInitButton(_ sender: UIButton) {
-	self.inputAmount = 0
-	self.inputTradeAmount.text = ""
-	self.totalPriceTextField.text = ""
+	self.initTextFieldValue(focusAmount: true)
   }
-  
+
   @IBAction func tapOnBidButton(_ sender: UIButton) {
 	self.endEditing(true)
-	
+
 	let vibrator = UIImpactFeedbackGenerator(style: .medium)
 	vibrator.impactOccurred()
-	
+
 	guard let marketName = self.cryptoInfo?.market,
 		  let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8)
 	else {
 	  callBack?(.alert(title: "알림", message: TradeOrderValidator.ValidationError.missingPrice.message))
 	  return
 	}
-	
+
 	let validation = TradeOrderValidator.validateBid(
 	  price: currentPrice,
 	  quantity: inputAmount,
 	  availableBalance: UserDataManager.userInformation?.userAvailableBalance
 	)
-	
+
 	switch validation {
 	case .success:
-	  self.updateTransaction(marketName: marketName) {
+	  let result = TradeOrderService.executeBid(
+		marketName: marketName,
+		cryptoName: self.cryptoInfo?.cryptoName,
+		currentPrice: currentPrice,
+		quantity: inputAmount
+	  )
+
+	  switch result {
+	  case .success(let execution):
+		self.availableTradePrice.text = execution.availableBalance.formatSignificantDigits()
 		self.callBack?(.successLottie)
 		self.initTextFieldValue()
 		self.callBack?(.updateHistory)
+	  case .failure(let error):
+		callBack?(.alert(title: "알림", message: error.message))
 	  }
 	case .failure(let error):
 	  callBack?(.alert(title: "알림", message: error.message))
 	}
   }
-  
+
   /// 매매하고 나면 여기 업데이트
   func updateCryptoData() {
-	guard let crypto = UserDataManager.userCryptoList?
-	  .compactMap({ $0 })
-	  .first(where: { $0.staticData.marketName == self.reactor?.selectCrypto.market }),
-		  let currentPrice = self.cryptoInfo?.tradePrice
-	else {
+	guard self.cryptoInfo?.tradePrice != nil else {
 	  self.availableTradePrice.text = "0"
-	  
+	  self.updateOrderValidationState()
+
 	  return
 	}
-	
+
 	let userBalance = UserDataManager.userInformation?.userAvailableBalance
 	self.availableTradePrice.text = userBalance?.formatSignificantDigits()
+	self.updateOrderValidationState()
   }
-  
-  func updateTransaction(marketName: String, completion: @escaping () -> ()) {
-	 
-	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
-		  let cryptoName = self.cryptoInfo?.cryptoName,
-		  let userBalance = UserDataManager.userInformation?.userAvailableBalance
-	else { return }
-	
-	let formatter = DateFormatter()
-	formatter.dateFormat = "MM.dd HH:mm"
-	formatter.locale = Locale(identifier: "ko_KR") // 한국 시간 기준
-	let currentTime = Date()
-	let executedDate = formatter.string(from: currentTime)
-	
-	var availableBalance: Double = userBalance
-	var postStaticTransaction: CryptoTransactionDataModel.CryptoTransactionStaticData? = nil
-	
-	if let matchedIndex = UserDataManager.userCryptoList?.compactMap({ $0 })
-	  .firstIndex(where: { $0.staticData.marketName == marketName }) {
-	  postStaticTransaction = UserDataManager.userCryptoList?[matchedIndex].staticData
-	}
-	
-	// 체결 내역은 말그대로 체결된 내역이 전부 보여야 한다.
-	// 매수 내역은 현재 가지고 있는 매매 기록에 대해서만 나와야한다.
-	if let postStaticTransaction = postStaticTransaction {
-	  
-	  // *****기존 매수 내역이 있는 상태*****
-	  let calcUtil = CalculationUtil(
-		currentPrice: currentPrice.formatDigits(digits: 8),
-		prevHoldingQuantity: postStaticTransaction.holdingQuantity,
-		prevAverageBuyPrice: postStaticTransaction.averageBuyPrice,
-		prevBuyAmount: postStaticTransaction.buyAmount,
-		newHoldingQuantity: self.inputAmount
-	  )
-	  
-	  // 새 동적 데이터
-	  let newValidTransactionData = ValidTransactionInfo.Transaction(
-		orderType: .bid,
-		quantity: self.inputAmount,
-		buyPrice: currentPrice
-	  )
-	  
-	  // 새 동적 데이터 추가
-	  MarketDataServiceUtil.shared.addValidTransactionData(
-		for: marketName,
-		orderType: .bid,
-		postValidTransactionList: UserDataManager.userValidTransactionList,
-		newValidTransactionData: newValidTransactionData
-	  )
-	  
-	  // 새 매수 거래내역
-	  let newTransactionInfo = TransactionInfo(
-		marketName: marketName,
-		orderType: .bid,
-		executedDate: executedDate,
-		executedPrice: currentPrice,
-		executedQuantity: self.inputAmount,
-		executedAmount: currentPrice * self.inputAmount
-	  )
-	  
-	  // 새 매수 거래내역 추가
-	  MarketDataServiceUtil.shared.addTransactionData(
-		postTransactionList: UserDataManager.userTransactionList,
-		data: newTransactionInfo
-	  )
-	  
-	  // 기존 매수 내역의 (평균매수가, 매수금액, 보유수량)
-	  let averageBuyPrice = calcUtil.calcAverBuyPrice(for: marketName)
-	  let buyAmount = calcUtil.cumulCalcBuyAmount()
-	  let holdingQuantity = calcUtil.cumulCalcHoldingQuantity()
-	  let newBuyAmount = floor(currentPrice * self.inputAmount)
-	  
-	  // 새 정적 데이터
-	  let newCryptoStaticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
-		marketName: marketName,
-		cryptoName: cryptoName,
-		holdingQuantity: holdingQuantity,
-		averageBuyPrice: averageBuyPrice,
-		buyAmount: buyAmount
-	  )
-	  
-	  
-	  // 새 데이터 업데이트
-	  MarketDataServiceUtil.shared.fetchData(
-		data: newCryptoStaticData,
-		currentPrice: currentPrice
-	  )
-	  
-	  // 사용자 거래 가능 금액 업데이트
-	  MarketDataServiceUtil.shared.fetchUserAvailableBalance(
-		orderType: .bid,
-		balance: availableBalance,
-		newBuyAmount: newBuyAmount
-	  )
-	  
-	  availableBalance -= newBuyAmount
-	  
-	} else {
-	  // *****이전 매수 기록 없음*****
-	  let averageBuyPrice = currentPrice
-	  let buyAmount = floor(currentPrice * self.inputAmount)
-	  let holdingQuantity = self.inputAmount
-	  
-	  let newTransactionInfo = TransactionInfo(
-		marketName: marketName,
-		orderType: .bid,
-		executedDate: executedDate,
-		executedPrice: currentPrice,
-		executedQuantity: holdingQuantity,
-		executedAmount: buyAmount
-	  )
-	  
-	  let newCryptoStaticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
-		marketName: marketName,
-		cryptoName: cryptoName,
-		holdingQuantity: holdingQuantity,
-		averageBuyPrice: averageBuyPrice,
-		buyAmount: buyAmount
-	  )
-	  
-	  let newValidTransactionData = ValidTransactionInfo.Transaction(
-		orderType: .bid,
-		quantity: holdingQuantity,
-		buyPrice: currentPrice
-	  )
-	  
-	  MarketDataServiceUtil.shared.addValidTransactionData(
-		for: marketName,
-		orderType: .bid,
-		postValidTransactionList: UserDataManager.userValidTransactionList,
-		newValidTransactionData: newValidTransactionData
-	  )
-	  
-	  // 새 거래내역 추가
-	  MarketDataServiceUtil.shared.addTransactionData(
-		postTransactionList: UserDataManager.userTransactionList,
-		data: newTransactionInfo
-	  )
-	  
-	  // 이전 매매기록 없는 상황에서, 첫 데이터 등록
-	  MarketDataServiceUtil.shared.addCryptoFirstData(
-		for: marketName,
-		staticData: newCryptoStaticData,
-		currentPrice: currentPrice
-	  )
-	  
-	  // 사용자 거래 가능 금액 업데이트
-	  MarketDataServiceUtil.shared.fetchUserAvailableBalance(
-		orderType: .bid,
-		balance: availableBalance,
-		newBuyAmount: buyAmount
-	  )
-	  
-	  availableBalance -= buyAmount
-	}
-	
-	UserDataManager.userInformation?.userAvailableBalance = availableBalance
-	self.availableTradePrice.text = availableBalance.formatSignificantDigits()
-	
-	completion()
-  }
-  
+
   func updateUserInformation(availableBalance: Double) {
 	UserDataManager.userInformation = MobitUserInformation(
 	  userAvailableBalance: availableBalance
 	)
   }
-  
+
   /// price format
   func formatTradePrice(_ tradePrice: Double?, precision: Int = 8) -> String {
 	guard let price = tradePrice else {
@@ -322,31 +173,67 @@ class TradeBidView: UIView, ViewRule {
 	}
 	return String(format: "%.\(precision)f", price)
   }
-  
+
   func initTextFieldValue() {
+	self.initTextFieldValue(focusAmount: false)
+  }
+
+  func initTextFieldValue(focusAmount: Bool) {
 	self.inputTradeAmount.text = nil
 	self.totalPriceTextField.text = nil
 	self.inputAmount = 0
+	self.updateOrderValidationState()
+
+	if focusAmount {
+	  self.inputTradeAmount.becomeFirstResponder()
+	}
   }
-  
+
+  private func updateOrderValidationState() {
+	guard inputAmount > 0 else {
+	  applyOrderButtonState(isEnabled: false, notice: defaultOrderNotice, isError: false)
+	  return
+	}
+
+	let validation = TradeOrderValidator.validateBid(
+	  price: cryptoInfo?.tradePrice?.formatDigits(digits: 8),
+	  quantity: inputAmount,
+	  availableBalance: UserDataManager.userInformation?.userAvailableBalance
+	)
+
+	switch validation {
+	case .success:
+	  applyOrderButtonState(isEnabled: true, notice: defaultOrderNotice, isError: false)
+	case .failure(let error):
+	  applyOrderButtonState(isEnabled: false, notice: error.message, isError: true)
+	}
+  }
+
+  private func applyOrderButtonState(isEnabled: Bool, notice: String, isError: Bool) {
+	orderButton?.isEnabled = isEnabled
+	orderButton?.alpha = isEnabled ? 1 : 0.45
+	orderNoticeLabel?.text = notice
+	orderNoticeLabel?.textColor = .systemRed
+  }
+
   func bind(reactor: TradeReactor) {
-	
+
 	reactor.state.map { $0.cryptoCellInfo }
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] cellInfo in
 		guard let self = self else { return }
-		
+
 		let numberFormatter = NumberFormatter()
 		numberFormatter.numberStyle = .decimal
-		
+
 		self.cryptoInfo = cellInfo
-		
+
 		guard let tradePrice = self.cryptoInfo?.tradePrice else {
 		  self.currentPrice.text = "N/A"
 		  return
 		}
-		
+
 		if tradePrice < 1 {
 		  self.currentPrice.text = formatTradePrice(tradePrice)
 		} else {
@@ -354,50 +241,53 @@ class TradeBidView: UIView, ViewRule {
 			from: NSNumber(value: tradePrice)
 		  )
 		}
+		self.updateOrderValidationState()
 	  })
 	  .disposed(by: self.disposeBag)
   }
 }
 
 extension TradeBidView: UITextFieldDelegate {
-  
+
   enum InputType: String {
 	case amount, totalPrice
   }
-  
+
   func inputType(for textField: UITextField) -> InputType? {
 	guard let id = textField.accessibilityIdentifier else { return nil }
 	return InputType(rawValue: id)
   }
-  
+
   /// 텍스트 필드에 텍스트가 변경될 때, 호출
   /// 텍스트가 변경되지 않아도 selection만 변경되어도 호출
   func textFieldDidChangeSelection(_ textField: UITextField) {
 	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
 		  let type = inputType(for: textField) else { return }
-	
+
 	switch type {
 	case .totalPrice:
 	  let inputTotalPrice = textField.text?.digitsOnlyDouble ?? 0
 	  let inputAmount = inputTotalPrice / currentPrice
-	  
+
 	  self.inputAmount = inputAmount
 	  self.inputTradeAmount.text = inputAmount.formatSignificantDigits(digits: 4)
-	  
+
 	case .amount:
 	  let inputAmount = textField.text?.digitsOnlyDouble ?? 0
 	  self.inputAmount = inputAmount
-	  
+
 	  let totalPrice = floor(currentPrice * inputAmount)
 	  self.totalPriceTextField.text = totalPrice.formatSignificantDigits()
 	}
+
+	self.updateOrderValidationState()
   }
-  
+
   /// 텍스트 필드 포커스 해제시, 호출
   func textFieldDidEndEditing(_ textField: UITextField) {
 	textField.text = textField.text?.addComma()
   }
-  
+
   /// 텍스트 필드 입력을 시도할 때, 호출
   /// 입력값 허용 / 비허용, 입력 중간에 가로채서 수정할 수 있음
   func textField(
@@ -406,28 +296,28 @@ extension TradeBidView: UITextFieldDelegate {
 	replacementString string: String
   ) -> Bool {
 	let currentText = textField.text ?? ""
-	
+
 	// 바뀐 텍스트 예측
 	guard let stringRange = Range(range, in: currentText) else { return false }
 	let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
-	
+
 	let allowedCharacters = CharacterSet(charactersIn: "0123456789.")
 	if string.rangeOfCharacter(from: allowedCharacters.inverted) != nil {
 	  return false
 	}
-	
+
 	if string == "." {
 	  // 소숫점 중복 입력 방지
 	  if updatedText.filter({ $0 == "." }).count > 1 {
 		return false
 	  }
-	  
+
 	  if currentText.isEmpty {
 		textField.text = "0."
 		return false
 	  }
 	}
-	
+
 	// 선행 0 처리 (0으로 시작하고 뒤에 숫자가 오면 제거)
 	if currentText == "0", string != ".", !string.isEmpty {
 	  textField.text = string
@@ -436,7 +326,7 @@ extension TradeBidView: UITextFieldDelegate {
 	  }
 	  return false
 	}
-	
+
 	return true
   }
 }

@@ -68,8 +68,8 @@ extension MainNetworkService: TargetType {
   var headers: [String : String]? {
     switch self {
     case .getCryptoInformation:
-	 let apiKey = Bundle.main.infoDictionary?["COIN_MARKET_CAP_API_KEY"] as! String
-	 return ["X-CMC_PRO_API_KEY": apiKey]
+      guard let apiKey = Environment.coinMarketCapApiKey else { return nil }
+      return ["X-CMC_PRO_API_KEY": apiKey]
     default:
 	 return ["Accept":"application/json",
 		    "Content-type":"application/json"]

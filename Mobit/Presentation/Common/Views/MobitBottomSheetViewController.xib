@@ -87,11 +87,6 @@
                 <constraint firstItem="WmI-CI-Y2d" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="l34-QJ-aDy"/>
                 <constraint firstAttribute="bottom" secondItem="TcR-V2-VPb" secondAttribute="bottom" id="u7D-Kg-uVr"/>
             </constraints>
-            <variation key="default">
-                <mask key="subviews">
-                    <exclude reference="TcR-V2-VPb"/>
-                </mask>
-            </variation>
             <point key="canvasLocation" x="-135" y="-11"/>
         </view>
     </objects>

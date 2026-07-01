@@ -92,12 +92,12 @@ extension MobitCommunityViewController: WKScriptMessageHandler {
 		self.show(alertType: .onlyConfirm, title: "안내", content: "개발자에게 성공적으로 전달되었습니다.", callBack: nil)
 	  case "failure":
 		self.show(alertType: .onlyConfirm, title: "안내", content: "등록에 실패하였습니다.", callBack: nil)
-	  case "log":
-		let content = bridge["content"] as? String
-		self.show(alertType: .onlyConfirm, title: "안내", content: content ?? "알 수 없는 에러 발생", callBack: nil)
-	  case "input":
-		let content = bridge["content"] as? String
-		// TODO: - 패스워드 입력 받고 파이어베이스 검증하기
+		  case "log":
+			let content = bridge["content"] as? String
+			self.show(alertType: .onlyConfirm, title: "안내", content: content ?? "알 수 없는 에러 발생", callBack: nil)
+		  case "input":
+			// TODO: - 패스워드 입력 받고 파이어베이스 검증하기
+			break
 	  default:
 		self.show(alertType: .onlyConfirm, title: "안내", content: "알 수 없는 에러 발생", callBack: nil)
 	  }
@@ -160,6 +160,5 @@ extension MobitCommunityViewController: WKUIDelegate {
 	return nil
   }
 }
-
 
 

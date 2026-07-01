@@ -483,15 +483,7 @@ extension TradeViewController {
 	  })
 	  .disposed(by: self.disposeBag)
 	
-	reactor.state.map { $0.selectedWholeTab }
-	  .distinctUntilChanged()
-	  .observe(on: MainScheduler.instance)
-	  .subscribe(onNext: { [weak self] tab in
-		guard let self = self else { return }
-	  })
-	  .disposed(by: self.disposeBag)
-	
-	reactor.state.map { $0.candleMinuteResponse }
+		reactor.state.map { $0.candleMinuteResponse }
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] minuteCandleList in

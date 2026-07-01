@@ -29,6 +29,8 @@
 		C0D1000B2EF6000000000011 /* SocketServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D1000C2EF6000000000011 /* SocketServiceTests.swift */; };
 		C0D1000D2EF6000000000011 /* TradeOrderValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D1000E2EF6000000000011 /* TradeOrderValidator.swift */; };
 		C0D1000F2EF6000000000011 /* TradeOrderValidatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100102EF6000000000011 /* TradeOrderValidatorTests.swift */; };
+		C0D100112EF7000000000011 /* TradeOrderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100122EF7000000000011 /* TradeOrderService.swift */; };
+		C0D100132EF7000000000011 /* TradeOrderServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100142EF7000000000011 /* TradeOrderServiceTests.swift */; };
 		3133E2642C3F6A3B000D4B1A /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2632C3F6A3B000D4B1A /* AppCoordinator.swift */; };
 		3133E2662C3F6A44000D4B1A /* BaseCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2652C3F6A44000D4B1A /* BaseCoordinator.swift */; };
 		3133E2682C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2672C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift */; };
@@ -74,7 +76,6 @@
 		369E877F2C7D955E0020A0B3 /* OrderBookResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */; };
 		36E7718F2D7595A700739CDE /* CallbackResultEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E7718E2D7595A700739CDE /* CallbackResultEnums.swift */; };
 		36E771932D75AF1E00739CDE /* MobitTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E771922D75AF1E00739CDE /* MobitTextField.swift */; };
-		5F657F792E06B0E80065A029 /* MobitAPIKeys.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 5F657F782E06B0E80065A029 /* MobitAPIKeys.xcconfig */; };
 		5FA880E32E1A3D0B00F22F9C /* NoticeForceUpdateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA880E12E1A3D0B00F22F9C /* NoticeForceUpdateViewController.swift */; };
 		5FA880E42E1A3D0B00F22F9C /* NoticeForceUpdateViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5FA880E22E1A3D0B00F22F9C /* NoticeForceUpdateViewController.xib */; };
 		5FA880E62E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA880E52E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift */; };
@@ -271,6 +272,8 @@
 		C0D1000C2EF6000000000011 /* SocketServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketServiceTests.swift; sourceTree = "<group>"; };
 		C0D1000E2EF6000000000011 /* TradeOrderValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeOrderValidator.swift; sourceTree = "<group>"; };
 		C0D100102EF6000000000011 /* TradeOrderValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeOrderValidatorTests.swift; sourceTree = "<group>"; };
+		C0D100122EF7000000000011 /* TradeOrderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeOrderService.swift; sourceTree = "<group>"; };
+		C0D100142EF7000000000011 /* TradeOrderServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeOrderServiceTests.swift; sourceTree = "<group>"; };
 		3133E2632C3F6A3B000D4B1A /* AppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
 		3133E2652C3F6A44000D4B1A /* BaseCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseCoordinator.swift; sourceTree = "<group>"; };
 		3133E2672C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoordinatorFinishDelegate.swift; sourceTree = "<group>"; };
@@ -530,6 +533,7 @@
 				C0D1000A2EF6000000000011 /* UserDataManagerTests.swift */,
 				C0D1000C2EF6000000000011 /* SocketServiceTests.swift */,
 				C0D100102EF6000000000011 /* TradeOrderValidatorTests.swift */,
+				C0D100142EF7000000000011 /* TradeOrderServiceTests.swift */,
 			);
 			path = MobitTests;
 			sourceTree = "<group>";
@@ -959,6 +963,7 @@
 				C0D100032EF6000000000011 /* MarketFormat.swift */,
 				C0D100042EF6000000000011 /* PortfolioCalculator.swift */,
 				C0D1000E2EF6000000000011 /* TradeOrderValidator.swift */,
+				C0D100122EF7000000000011 /* TradeOrderService.swift */,
 				C1B327842E8523F400E50C50 /* SkeletonDiffableDataSource.swift */,
 				C17EAE372E374515006ACA44 /* Log.swift */,
 			);
@@ -1269,7 +1274,6 @@
 				C18650F32E865A17009F3E13 /* SUIT-ExtraLight.otf in Resources */,
 				31B742082D5A3BC400706340 /* tradingview.html in Resources */,
 				3133E2342C3E2357000D4B1A /* LaunchScreen.storyboard in Resources */,
-				5F657F792E06B0E80065A029 /* MobitAPIKeys.xcconfig in Resources */,
 				C19F77992E41A2F300863159 /* PNLShareView.xib in Resources */,
 				3133E2312C3E2357000D4B1A /* Assets.xcassets in Resources */,
 				C18EED532D55FE450038BBF7 /* TradeBidView.xib in Resources */,
@@ -1302,6 +1306,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		C174D89F2E24BB060015B6ED /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -1446,6 +1451,7 @@
 				C0D100012EF6000000000011 /* MarketFormat.swift in Sources */,
 				C0D100022EF6000000000011 /* PortfolioCalculator.swift in Sources */,
 				C0D1000D2EF6000000000011 /* TradeOrderValidator.swift in Sources */,
+				C0D100112EF7000000000011 /* TradeOrderService.swift in Sources */,
 				36E771932D75AF1E00739CDE /* MobitTextField.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1460,6 +1466,7 @@
 				C0D100072EF6000000000011 /* UserDataManagerTests.swift in Sources */,
 				C0D1000B2EF6000000000011 /* SocketServiceTests.swift in Sources */,
 				C0D1000F2EF6000000000011 /* TradeOrderValidatorTests.swift in Sources */,
+				C0D100132EF7000000000011 /* TradeOrderServiceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

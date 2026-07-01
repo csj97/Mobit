@@ -13,10 +13,14 @@ extension UIColor {
     switch mobitColorName {
     case .askLightBlue:
       return UIColor(named: "ask_light_blue")!
+    case .askActionBlue:
+      return UIColor(named: "ask_action_blue")!
     case .askDeepBlue:
       return UIColor(named: "ask_deep_blue")!
     case .bidLightRed:
       return UIColor(named: "bid_light_red")!
+    case .bidActionRed:
+      return UIColor(named: "bid_action_red")!
     case .bidDeepRed:
       return UIColor(named: "bid_deep_red")!
     case .lightGrayBG:
@@ -40,8 +44,10 @@ extension UIColor {
   
   enum MobitColors {
     case askLightBlue
+    case askActionBlue
     case askDeepBlue
     case bidLightRed
+    case bidActionRed
     case bidDeepRed
     case lightGrayBG
 	case lightYellowBG

@@ -327,22 +327,19 @@ class MainViewController: MobitBaseViewController {
 	case 0:
 	  self.reactor.action.onNext(.loadUserCryptos)
 	  self.selectedTab = .hold
-	  self.tableView.isHidden = false
-	  self.noFavoriteView.isHidden = true
+	  self.refreshDisplayedList()
 	  
 	case 1:
 	  self.selectedTab = .krw
-	  self.tableView.isHidden = false
-	  self.noFavoriteView.isHidden = true
+	  self.refreshDisplayedList()
 	  
 	case 2:
 	  self.selectedTab = .btc
-	  self.tableView.isHidden = false
-	  self.noFavoriteView.isHidden = true
+	  self.refreshDisplayedList()
 	  
 	case 3:
 	  self.selectedTab = .favorite
-	  self.updateFavoriteUI()
+	  self.refreshDisplayedList()
 	  
 	default:
 	  break
@@ -535,6 +532,16 @@ extension MainViewController: View {
 		self.reactor.action.onNext(.clearErrorMessage)
 	  })
 	  .disposed(by: self.disposeBag)
+
+	reactor.state
+	  .map { $0.userCryptos }
+	  .distinctUntilChanged()
+	  .observe(on: MainScheduler.instance)
+	  .subscribe(onNext: { [weak self] _ in
+		guard let self = self, self.selectedTab == .hold else { return }
+		self.refreshDisplayedList()
+	  })
+	  .disposed(by: self.disposeBag)
   }
   
   /// 현재 탭 + 검색어에 따라 리스트 필터링
@@ -584,6 +591,23 @@ extension MainViewController: View {
 	  self.dataSource?.apply(snapshot, animatingDifferences: false)
 	}
   }
+
+  private func refreshDisplayedList() {
+	let filteredList = self.filterListForCurrentTab(
+	  totalList: reactor.currentState.totalCryptoList
+	)
+
+	if self.selectedTab == .favorite, filteredList.isEmpty {
+	  self.tableView.isHidden = true
+	  self.noFavoriteView.isHidden = false
+	} else {
+	  self.tableView.isHidden = false
+	  self.noFavoriteView.isHidden = true
+	  self.applySnapshot(cellInfos: filteredList)
+	}
+
+	self.updateUserCryptoList(from: filteredList)
+  }
   
   /// 사용자 매수 목록 업데이트
   private func updateUserCryptoList(from cellInfos: [CryptoCellInfo]) {
@@ -624,19 +648,7 @@ extension MainViewController: View {
   
   /// 즐겨찾기 UI 업데이트
   private func updateFavoriteUI() {
-	let favoriteMarketNames = UserDataManager.userFavoriteList
-	let favoriteCellInfos = self.reactor.currentState.totalCryptoList.filter {
-	  favoriteMarketNames.contains($0.market)
-	}
-	
-	if favoriteCellInfos.isEmpty {
-	  self.tableView.isHidden = true
-	  self.noFavoriteView.isHidden = false
-	} else {
-	  self.tableView.isHidden = false
-	  self.noFavoriteView.isHidden = true
-	  self.applySnapshot(cellInfos: favoriteCellInfos)
-	}
+	self.refreshDisplayedList()
   }
 }
 

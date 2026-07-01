@@ -95,17 +95,11 @@ class TradeChartView: UIView, WKScriptMessageHandler {
   func userContentController(
 	_ userContentController: WKUserContentController,
 	didReceive message: WKScriptMessage
-  ) {
-	if message.name == javascriptBridgeInterfaceName {
-		guard
-			let bridge = message.body as? [String: Any]
-		else {
-			return
+	  ) {
+		if message.name == javascriptBridgeInterfaceName {
+	//		self.webViewBridgeAction?.action(bridge: bridge)
 		}
-		
-//		self.webViewBridgeAction?.action(bridge: bridge)
-	}
-  }
+	  }
     @IBAction func tapOnTradingViewChartButton(_ sender: UIButton) {
 	  self.tradingChartButtonImg.image = buttonOnImg
 	  self.mobitChartButtonImg.image = buttonOffImg
@@ -139,14 +133,13 @@ extension TradeChartView: WKNavigationDelegate {
 	}
   }
   
-  func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-	let upbitChartSymbol = self.toUpbitSymbol(symbol: self.symbol)
-	let script = "updateSymbol('\(upbitChartSymbol)');"
-	webView.evaluateJavaScript(script) { [weak self] (_, error) in
-	  guard let self = self else { return }
-	  if let error = error {
-		Log.error("JavaScript 실행 오류: \(error)")
-	  }
+	  func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+		let upbitChartSymbol = self.toUpbitSymbol(symbol: self.symbol)
+		let script = "updateSymbol('\(upbitChartSymbol)');"
+		webView.evaluateJavaScript(script) { _, error in
+		  if let error = error {
+			Log.error("JavaScript 실행 오류: \(error)")
+		  }
 	}
   }
 }

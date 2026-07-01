@@ -144,22 +144,21 @@ class NeumorphicSegmentedControl: UIView {
 	  let isSelected = (index == selectedIndex)
 	  button.setTitleColor(isSelected ? .white : .black, for: .normal)
 	  button.titleLabel?.font = isSelected ? .systemFont(ofSize: 14, weight: .bold) : .systemFont(ofSize: 12, weight: .regular)
-	}
-	
-	let selectedButton = buttons[selectedIndex]
-	
-	let targetFrame = selectedButton.convert(selectedButton.bounds, to: self)
-	let targetCornerRadius = targetFrame.height / 2
-	
-	if animated {
-	  UIView.animate(withDuration: 0.25) {
-		self.highlightView.frame = targetFrame
+		}
+
+		let selectedButton = buttons[selectedIndex]
+		let targetFrame = selectedButton.convert(selectedButton.bounds, to: self)
+
+		if animated {
+		  UIView.animate(withDuration: 0.25) {
+			self.highlightView.frame = targetFrame
 		self.highlightView.layer.cornerRadius = targetFrame.height / 2
 	  }
-	} else {
-	  self.highlightView.frame = targetFrame
-	}
-  }
+		} else {
+		  self.highlightView.frame = targetFrame
+		  self.highlightView.layer.cornerRadius = targetFrame.height / 2
+		}
+	  }
   
   override func layoutSubviews() {
 	super.layoutSubviews()

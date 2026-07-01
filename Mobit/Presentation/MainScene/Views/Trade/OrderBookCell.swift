@@ -122,13 +122,12 @@ class OrderBookCell: UITableViewCell {
 			.alignSelf(.center)
         }.width(35%)
     }
-  }
-  
-  func updateObBar(maxSize: Double, currentSize: Double) {
-	let parentViewSize = self.obBarView.superview?.frame
-	let newObBarWidthRatio = (currentSize / maxSize) * 100
-	
-	self.obBarView.flex.width(newObBarWidthRatio%)
+	  }
+
+	  func updateObBar(maxSize: Double, currentSize: Double) {
+		let newObBarWidthRatio = (currentSize / maxSize) * 100
+
+		self.obBarView.flex.width(newObBarWidthRatio%)
 	self.rootFlexContainer.flex.markDirty()
 	self.rootFlexContainer.flex.layout(mode: .adjustWidth)
   }

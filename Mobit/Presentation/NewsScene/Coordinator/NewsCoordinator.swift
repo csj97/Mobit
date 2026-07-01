@@ -19,13 +19,12 @@ class NewsCoordinator: BaseCoordinator {
   ) {
 	self.navigationController = navigationController
 	self.dataManager = dataManager
-  }
-  
-  func start() {
-	let reactor = InvestReactor()
-	let newsVC = NewsViewController()
-	newsVC.coordinator = self
-	self.navigationController.viewControllers = [newsVC]
+	  }
+
+	  func start() {
+		let newsVC = NewsViewController()
+		newsVC.coordinator = self
+		self.navigationController.viewControllers = [newsVC]
   }
 }
 

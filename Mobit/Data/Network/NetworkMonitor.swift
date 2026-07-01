@@ -36,11 +36,11 @@ final class NetworkMonitor {
 	  guard let self = self else { return }
 	  
 	  DispatchQueue.main.async {
-		self.isConnected = path.status == .satisfied
-		self.getConnectionType(path)
-		
-		let networkStatus = self.isConnected ? "✅연결됨" : "⛔️끊김"
-		print("Network 연결 상태 : \(self.isConnected)")
+			self.isConnected = path.status == .satisfied
+			self.getConnectionType(path)
+
+			let networkStatus = self.isConnected ? "✅연결됨" : "⛔️끊김"
+			print("Network 연결 상태 : \(networkStatus)")
 		
 		NotificationCenter.default.post(
 		  name: .networkStatusChanged,

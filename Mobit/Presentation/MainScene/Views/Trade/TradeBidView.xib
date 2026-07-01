@@ -122,7 +122,7 @@
                                                 </view>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jwI-8S-vTG">
                                                     <rect key="frame" x="247" y="0.0" width="106" height="35"/>
-                                                    <color key="backgroundColor" name="bid_light_red"/>
+                                                    <color key="backgroundColor" name="bid_action_red"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="35" id="ihL-8I-6Fj"/>
                                                     </constraints>
@@ -349,14 +349,16 @@
                 <outlet property="inputAmountTFView" destination="PRU-rP-cFe" id="sji-q6-YKA"/>
                 <outlet property="inputMarketName" destination="vPQ-Rf-LM6" id="FBf-4y-6k7"/>
                 <outlet property="inputTradeAmount" destination="OZS-Az-OMm" id="Rgy-pl-OWf"/>
+                <outlet property="orderButton" destination="sXP-Hr-Fin" id="vmh-WP-QKO"/>
+                <outlet property="orderNoticeLabel" destination="nom-M2-gyc" id="V74-26-u3J"/>
                 <outlet property="totalPriceTextField" destination="6QB-hI-x8D" id="gyN-n2-FH8"/>
             </connections>
             <point key="canvasLocation" x="1614.5038167938931" y="-250"/>
         </view>
     </objects>
     <resources>
-        <namedColor name="bid_light_red">
-            <color red="0.97647058823529409" green="0.94509803921568625" blue="0.94117647058823528" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+        <namedColor name="bid_action_red">
+            <color red="1" green="0.8784313725490196" blue="0.84705882352941175" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
         <namedColor name="primary_red">
             <color red="1" green="0.38039215686274508" blue="0.35294117647058826" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>

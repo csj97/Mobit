@@ -165,7 +165,7 @@
                                                 </view>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ECb-53-yEj">
                                                     <rect key="frame" x="247" y="0.0" width="106" height="35"/>
-                                                    <color key="backgroundColor" name="ask_light_blue"/>
+                                                    <color key="backgroundColor" name="ask_action_blue"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="35" id="p3w-MC-Qdc"/>
                                                     </constraints>
@@ -392,6 +392,8 @@
                 <outlet property="currentPrice" destination="G6u-2K-bzm" id="zhd-ie-Kln"/>
                 <outlet property="inputAmountTFView" destination="GAy-6Y-98x" id="iAO-Rt-0ph"/>
                 <outlet property="inputTradeAmount" destination="Mc4-7e-YVR" id="vdK-Li-WON"/>
+                <outlet property="orderButton" destination="IJV-Qt-hcU" id="Be4-Kg-6je"/>
+                <outlet property="orderNoticeLabel" destination="Is4-5R-ARg" id="NJJ-Ae-Ccd"/>
                 <outlet property="totalPriceTextField" destination="G5G-mj-fWO" id="K01-fn-ebD"/>
                 <outletCollection property="marketNameLabels" destination="2rX-th-pKl" collectionClass="NSMutableArray" id="O3v-0F-U2w"/>
                 <outletCollection property="marketNameLabels" destination="nZM-zg-Kqn" collectionClass="NSMutableArray" id="PGJ-GD-XQs"/>
@@ -400,8 +402,8 @@
         </view>
     </objects>
     <resources>
-        <namedColor name="ask_light_blue">
-            <color red="0.92941176470588238" green="0.95294117647058818" blue="0.98039215686274506" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+        <namedColor name="ask_action_blue">
+            <color red="0.85098039215686272" green="0.91764705882352937" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
         <namedColor name="primary_blue">
             <color red="0.11372549019607843" green="0.47058823529411764" blue="0.94901960784313721" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
