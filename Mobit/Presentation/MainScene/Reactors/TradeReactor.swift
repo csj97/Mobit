@@ -28,14 +28,14 @@ class TradeReactor: Reactor {
   
   let selectCrypto: CryptoCellInfo
   let initialState: TradeState = TradeState()
-  var cmcInformation: FirebaseCMCResponse
+  var cmcInformation: FirebaseCMCResponse?
   var cmcList: [FirebaseCMCResponse]?
   private(set) var isTickerConnected = false
   private(set) var isOrderBookConnected = false
   
   init(
     selectCrypto: CryptoCellInfo,
-	cmcInformation: FirebaseCMCResponse,
+	cmcInformation: FirebaseCMCResponse?,
     cryptoDetailUseCase: CryptoDetailUseCase,
     tickerSocketService: TickerSocketServiceProtocol = TickerSocketService(),
     orderBookSocketService: OrderBookSocketServiceProtocol = OrderBookSocketService()
@@ -74,6 +74,15 @@ class TradeReactor: Reactor {
       .map { TradeMutation.setOrderBookInfo(obTicker: $0) }
       .bind(to: mutationSubject)
       .disposed(by: disposeBag)
+  }
+
+  var hasInformationTabData: Bool {
+	guard self.cmcInformation != nil else { return false }
+	return self.selectCrypto.accTradePrice24h != nil &&
+	  self.selectCrypto.accTradeVolume24h != nil &&
+	  self.selectCrypto.prevPrice != nil &&
+	  self.selectCrypto.highest52WeekPrice != nil &&
+	  self.selectCrypto.lowest52WeekPrice != nil
   }
 }
 

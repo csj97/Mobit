@@ -11,12 +11,12 @@ class CryptoDetailCoordinator: BaseCoordinator {
   var childCoordinators = [BaseCoordinator]()
   var navigationController: UINavigationController
   var selectCrypto: CryptoCellInfo
-  var cmcInformation: FirebaseCMCResponse
+  var cmcInformation: FirebaseCMCResponse?
   weak var delegate: MainCoordinatorDelegate?
   
   init(
 	selectCrypto: CryptoCellInfo,
-	cmcInformation: FirebaseCMCResponse,
+	cmcInformation: FirebaseCMCResponse?,
 	navigationController: UINavigationController
   ) {
     self.selectCrypto = selectCrypto

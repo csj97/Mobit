@@ -189,6 +189,15 @@ class TradeViewController: MobitBaseViewController {
 		informationView.isHidden = true
 		self.reactor.action.onNext(.setSelectedWholeTab(selectedWholeTab: .chart))
 	  case 2:
+		guard self.reactor.hasInformationTabData else {
+		  self.showDefaultAlert(
+			title: "안내",
+			message: "해당 코인에 대한 정보 업데이트가 필요합니다.\n빠른 시일내에 해결하겠습니다."
+		  )
+		  self.restoreSelectedWholeTab()
+		  return
+		}
+
 		MobitAnalyticsUtil.sendScreenEvent(event: .trade_info)
 		orderView.isHidden = true
 		chartView.isHidden = true
@@ -202,6 +211,26 @@ class TradeViewController: MobitBaseViewController {
 	
 	self.mobitSegmentedControl.selectedIndex = 0
 	self.mobitSegmentedControl.onSegmentChanged?(self.mobitSegmentedControl.selectedIndex)
+  }
+
+  private func restoreSelectedWholeTab() {
+	switch self.reactor.currentState.selectedWholeTab {
+	case .trade:
+	  self.mobitSegmentedControl.selectedIndex = 0
+	  self.orderView?.isHidden = false
+	  self.chartView?.isHidden = true
+	  self.informationView?.isHidden = true
+	case .chart:
+	  self.mobitSegmentedControl.selectedIndex = 1
+	  self.orderView?.isHidden = true
+	  self.chartView?.isHidden = false
+	  self.informationView?.isHidden = true
+	case .info:
+	  self.mobitSegmentedControl.selectedIndex = 2
+	  self.orderView?.isHidden = true
+	  self.chartView?.isHidden = true
+	  self.informationView?.isHidden = false
+	}
   }
   
   
