@@ -27,6 +27,9 @@ class MainReactor: Reactor {
   
   // 탭별 정렬 포지션을 **하나로 통합**
   private var sortedCryptoPosition: [String: Int] = [:]
+
+  // 정렬 해제 시 되돌릴 초기(자연) 순서. combineCrypto가 만든 API 순서를 보관한다.
+  private var initialMarketOrder: [String] = []
   
   let initialState: MainReactorState = MainReactorState()
   private var firebaseDB = Database.database().reference()
@@ -71,6 +74,7 @@ extension MainReactor {
 	case setSortType(sortBy: CryptoSortType)
 	case setSelectedTab(tab: SelectedTab)
 	case loadUserCryptos
+	case loadFearGreedIndex
   }
   
   // MARK: Mutation
@@ -83,6 +87,7 @@ extension MainReactor {
 	case setUserCrypto([CryptoTransactionDataModel]?)	// user cryptos
     case setLoading(isLoading: Bool)
     case setErrorMessage(message: String?)
+	case setFearGreedIndex(FearGreedIndex?)
   }
   
   // MARK: State
@@ -99,6 +104,7 @@ extension MainReactor {
 	var userCryptos: [CryptoTransactionDataModel] = []
     var isLoading: Bool = false
     var errorMessage: String?
+	var fearGreedIndex: FearGreedIndex?
   }
 }
 
@@ -139,6 +145,15 @@ extension MainReactor {
 	  
 	case .loadUserCryptos:
 	  return .just(.setUserCrypto(UserDataManager.userCryptoList))
+
+	case .loadFearGreedIndex:
+	  return self.mainUseCase.loadFearGreedIndex()
+		.map { MainMutation.setFearGreedIndex($0) }
+		.catch { error in
+		  // 조회 실패 시 카드를 숨긴다(nil). 재시도는 다음 화면 진입에 맡긴다.
+		  Log.error("loadFearGreedIndex failed: \(error.localizedDescription)")
+		  return .just(.setFearGreedIndex(nil))
+		}
 	}
   }
   
@@ -164,6 +179,8 @@ extension MainReactor {
       newState.isLoading = isLoading
     case .setErrorMessage(let message):
       newState.errorMessage = message
+	case .setFearGreedIndex(let index):
+	  newState.fearGreedIndex = index
 	}
 	return newState
   }
@@ -326,11 +343,11 @@ extension MainReactor {
 	  uniqueKeysWithValues: cryptoTickerList.map { ($0.market, $0) }
 	)
 	
-	return cryptoList.compactMap { crypto in
+	let combined = cryptoList.compactMap { crypto -> CryptoCellInfo? in
 	  guard let ticker = tickerDict[crypto.market] else {
 		return nil
 	  }
-	  
+
 	  return CryptoCellInfo(
 		cryptoName: crypto.koreanName,
 		market: MarketFormat.displayMarket(fromAPIMarket: crypto.market),
@@ -346,6 +363,10 @@ extension MainReactor {
 		lowest52WeekPrice: ticker.lowest52WeekPrice
 	  )
 	}
+
+	// 정렬 해제 시 복귀할 초기 순서 저장 (항상 API 자연 순서)
+	self.initialMarketOrder = combined.map { $0.market }
+	return combined
   }
 }
 
@@ -395,8 +416,15 @@ extension MainReactor {
 	
 	switch sortBy {
 	case .normal:
-	  return cellInfos
-	  
+	  // 초기(자연) 순서로 복귀
+	  guard !self.initialMarketOrder.isEmpty else { return cellInfos }
+	  let orderIndex = Dictionary(
+		uniqueKeysWithValues: self.initialMarketOrder.enumerated().map { ($1, $0) }
+	  )
+	  return cellInfos.sorted {
+		(orderIndex[$0.market] ?? Int.max) < (orderIndex[$1.market] ?? Int.max)
+	  }
+
 	case .currentPriceAscending:
 	  return cellInfos.sorted { ($0.tradePrice ?? 0) < ($1.tradePrice ?? 0) }
 	  
@@ -414,6 +442,10 @@ extension MainReactor {
 	  
 	case .tradeVolumeDescending:
 	  return cellInfos.sorted { ($0.accTradePrice24h ?? 0) > ($1.accTradePrice24h ?? 0) }
+
+	default:
+	  // 보유 탭 전용 정렬은 뷰(표시 시점)에서 처리하므로 리액터에서는 원본 유지
+	  return cellInfos
 	}
   }
   

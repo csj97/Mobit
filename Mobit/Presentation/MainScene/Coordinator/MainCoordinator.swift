@@ -41,7 +41,7 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
 	self.navigationController.viewControllers = [mainVC]
   }
   
-  func pushCryptoDetailVC(
+  func pushCryptoTradeVC(
 	selectCrypto: CryptoCellInfo,
 	cmcSymbol: String,
 	completion: ((String?) -> Void)?
@@ -72,6 +72,17 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
 	completion?(nil)
   }
   
+  /// 공포·탐욕 지수 설명 바텀 시트
+  func presentFearGreedInfoVC(fearGreedIndex: FearGreedIndex?) {
+    let infoVC = FearGreedInfoViewController(fearGreedIndex: fearGreedIndex)
+    infoVC.modalPresentationStyle = .pageSheet
+    if let sheet = infoVC.sheetPresentationController {
+      sheet.detents = [.medium(), .large()]
+      sheet.prefersGrabberVisible = true
+    }
+    self.navigationController.present(infoVC, animated: true)
+  }
+
   func pushNoticeAppUpdateVC() {
 	let noticeAppUpdateCoordinator = NoticeAppUpdateCoordinator(
 	  navigationController: self.navigationController
@@ -83,9 +94,20 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
 	self.delegate?.mainCoordinatorDidRequestHideTabBar()
   }
   
+  /// 다른 탭(투자내역 등)에서 상세로 진입할 때, 메인 소켓을 메인 경로와 동일하게 제어한다.
+  func disconnectSocket() {
+    guard let mainVC = self.navigationController.viewControllers.first as? MainViewController else { return }
+    mainVC.reactor.action.onNext(.disconnectSocket)
+  }
+
+  func resumeSocket() {
+    guard let mainVC = self.navigationController.viewControllers.first as? MainViewController else { return }
+    mainVC.reactor.action.onNext(.resumeSocket)
+  }
+
   /// BTC 코인 목록 탭 노출
   func showBTCCoinList() {
-    
+
   }
   
   /// 관심 코인 목록 탭 노출

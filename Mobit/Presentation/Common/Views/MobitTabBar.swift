@@ -125,7 +125,8 @@ final class MobitTabBar: UIView {
 	stackView.snp.makeConstraints { make in
 	  make.leading.trailing.equalToSuperview()
 	  make.top.equalToSuperview().inset(10)
-	  make.bottom.equalToSuperview().inset(15)
+	  // 탭 아이템은 홈 인디케이터 영역을 피해 safe area 위쪽에 배치
+	  make.bottom.equalTo(self.safeAreaLayoutGuide).inset(15)
 	}
 	
   }

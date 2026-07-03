@@ -34,6 +34,14 @@ class AppTabBarCoordinator: BaseCoordinator {
 	  dataManager: AppDataManager.shared
 	)
 	investmentCoordinator.delegate = self
+	// 투자내역 실시간 갱신은 메인 소켓에 의존한다. 투자내역 → 상세(Trade) 진입 시
+	// 메인 소켓을 끊고, 복귀 시 다시 켜 메인 경로와 동일한 소켓 수명을 맞춘다.
+	investmentCoordinator.onEnterCryptoDetail = { [weak mainCoordinator] in
+	  mainCoordinator?.disconnectSocket()
+	}
+	investmentCoordinator.onExitCryptoDetail = { [weak mainCoordinator] in
+	  mainCoordinator?.resumeSocket()
+	}
 	self.childCoordinators.append(investmentCoordinator)
 	investmentCoordinator.start()
 	

@@ -12,6 +12,7 @@ import RxSwift
 protocol MainUseCaseProtocol {
   func loadCryptoList() -> Observable<CryptoList>
   func loadCryptoTicker(markets: [String]) -> Observable<CryptoTickerList>
+  func loadFearGreedIndex() -> Observable<FearGreedIndex>
 }
 
 class MainUseCase: MainUseCaseProtocol {
@@ -28,5 +29,8 @@ class MainUseCase: MainUseCaseProtocol {
   }
   func loadCryptoTicker(markets: [String]) -> Observable<CryptoTickerList> {
     return self.mainRepository.loadCryptoTicker(markets: markets)
+  }
+  func loadFearGreedIndex() -> Observable<FearGreedIndex> {
+    return self.mainRepository.loadFearGreedIndex()
   }
 }

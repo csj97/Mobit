@@ -72,6 +72,12 @@ enum PortfolioCalculator {
     cryptos.reduce(0) { $0 + $1.dynamicData.evaluationProfitLoss }
   }
 
+  static func totalEvaluationPrice(
+    cryptos: [CryptoTransactionDataModel]
+  ) -> Double {
+    cryptos.reduce(0) { $0 + $1.dynamicData.evaluationPrice }
+  }
+
   static func totalBuyAmount(
     cryptos: [CryptoTransactionDataModel]
   ) -> Double {

@@ -21,16 +21,6 @@
 		3133E23F2C3E2357000D4B1A /* MobitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E23E2C3E2357000D4B1A /* MobitTests.swift */; };
 		3133E2492C3E2357000D4B1A /* MobitUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2482C3E2357000D4B1A /* MobitUITests.swift */; };
 		3133E24B2C3E2357000D4B1A /* MobitUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E24A2C3E2357000D4B1A /* MobitUITestsLaunchTests.swift */; };
-		C0D100012EF6000000000011 /* MarketFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100032EF6000000000011 /* MarketFormat.swift */; };
-		C0D100022EF6000000000011 /* PortfolioCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100042EF6000000000011 /* PortfolioCalculator.swift */; };
-		C0D100052EF6000000000011 /* PortfolioCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100082EF6000000000011 /* PortfolioCalculatorTests.swift */; };
-		C0D100062EF6000000000011 /* MarketFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100092EF6000000000011 /* MarketFormatTests.swift */; };
-		C0D100072EF6000000000011 /* UserDataManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D1000A2EF6000000000011 /* UserDataManagerTests.swift */; };
-		C0D1000B2EF6000000000011 /* SocketServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D1000C2EF6000000000011 /* SocketServiceTests.swift */; };
-		C0D1000D2EF6000000000011 /* TradeOrderValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D1000E2EF6000000000011 /* TradeOrderValidator.swift */; };
-		C0D1000F2EF6000000000011 /* TradeOrderValidatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100102EF6000000000011 /* TradeOrderValidatorTests.swift */; };
-		C0D100112EF7000000000011 /* TradeOrderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100122EF7000000000011 /* TradeOrderService.swift */; };
-		C0D100132EF7000000000011 /* TradeOrderServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100142EF7000000000011 /* TradeOrderServiceTests.swift */; };
 		3133E2642C3F6A3B000D4B1A /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2632C3F6A3B000D4B1A /* AppCoordinator.swift */; };
 		3133E2662C3F6A44000D4B1A /* BaseCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2652C3F6A44000D4B1A /* BaseCoordinator.swift */; };
 		3133E2682C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2672C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift */; };
@@ -105,6 +95,16 @@
 		99C20AB22C4F6A04009276E7 /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB12C4F6A04009276E7 /* Environment.swift */; };
 		99C20AB42C4F7177009276E7 /* CryptoSocketTicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB32C4F7177009276E7 /* CryptoSocketTicker.swift */; };
 		99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB72C4F775B009276E7 /* Crypto.swift */; };
+		C0D100012EF6000000000011 /* MarketFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100032EF6000000000011 /* MarketFormat.swift */; };
+		C0D100022EF6000000000011 /* PortfolioCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100042EF6000000000011 /* PortfolioCalculator.swift */; };
+		C0D100052EF6000000000011 /* PortfolioCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100082EF6000000000011 /* PortfolioCalculatorTests.swift */; };
+		C0D100062EF6000000000011 /* MarketFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100092EF6000000000011 /* MarketFormatTests.swift */; };
+		C0D100072EF6000000000011 /* UserDataManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D1000A2EF6000000000011 /* UserDataManagerTests.swift */; };
+		C0D1000B2EF6000000000011 /* SocketServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D1000C2EF6000000000011 /* SocketServiceTests.swift */; };
+		C0D1000D2EF6000000000011 /* TradeOrderValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D1000E2EF6000000000011 /* TradeOrderValidator.swift */; };
+		C0D1000F2EF6000000000011 /* TradeOrderValidatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100102EF6000000000011 /* TradeOrderValidatorTests.swift */; };
+		C0D100112EF7000000000011 /* TradeOrderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100122EF7000000000011 /* TradeOrderService.swift */; };
+		C0D100132EF7000000000011 /* TradeOrderServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100142EF7000000000011 /* TradeOrderServiceTests.swift */; };
 		C1246B632ED979D400B24D3D /* ViewControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1246B622ED979D400B24D3D /* ViewControllerExtension.swift */; };
 		C13B29F22EE0149E00391683 /* TradeNetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13B29F12EE0149E00391683 /* TradeNetworkService.swift */; };
 		C13B29F42EE0173100391683 /* Candle+MinuteResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13B29F32EE0173100391683 /* Candle+MinuteResponseDTO.swift */; };
@@ -204,6 +204,11 @@
 		C1DF71172E16407E002E89E1 /* MainCryptoTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1DF71152E16407E002E89E1 /* MainCryptoTableViewCell.swift */; };
 		C1DF71182E16407E002E89E1 /* MainCryptoTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = C1DF71162E16407E002E89E1 /* MainCryptoTableViewCell.xib */; };
 		C1E12D402D7C29AF003C76F0 /* DoubleExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */; };
+		FEA000000000000000000011 /* FearGreedIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA000000000000000000010 /* FearGreedIndex.swift */; };
+		FEA000000000000000000021 /* FearGreedIndexResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA000000000000000000020 /* FearGreedIndexResponseDTO.swift */; };
+		FEA000000000000000000031 /* FearGreedIndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA000000000000000000030 /* FearGreedIndexView.swift */; };
+		FEA000000000000000000041 /* FearGreedInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA000000000000000000040 /* FearGreedInfoViewController.swift */; };
+		FEA000000000000000000051 /* MainHoldingTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA000000000000000000050 /* MainHoldingTableViewCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -264,16 +269,6 @@
 		3133E2442C3E2357000D4B1A /* MobitUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MobitUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3133E2482C3E2357000D4B1A /* MobitUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitUITests.swift; sourceTree = "<group>"; };
 		3133E24A2C3E2357000D4B1A /* MobitUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitUITestsLaunchTests.swift; sourceTree = "<group>"; };
-		C0D100032EF6000000000011 /* MarketFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketFormat.swift; sourceTree = "<group>"; };
-		C0D100042EF6000000000011 /* PortfolioCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioCalculator.swift; sourceTree = "<group>"; };
-		C0D100082EF6000000000011 /* PortfolioCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioCalculatorTests.swift; sourceTree = "<group>"; };
-		C0D100092EF6000000000011 /* MarketFormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketFormatTests.swift; sourceTree = "<group>"; };
-		C0D1000A2EF6000000000011 /* UserDataManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataManagerTests.swift; sourceTree = "<group>"; };
-		C0D1000C2EF6000000000011 /* SocketServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketServiceTests.swift; sourceTree = "<group>"; };
-		C0D1000E2EF6000000000011 /* TradeOrderValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeOrderValidator.swift; sourceTree = "<group>"; };
-		C0D100102EF6000000000011 /* TradeOrderValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeOrderValidatorTests.swift; sourceTree = "<group>"; };
-		C0D100122EF7000000000011 /* TradeOrderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeOrderService.swift; sourceTree = "<group>"; };
-		C0D100142EF7000000000011 /* TradeOrderServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeOrderServiceTests.swift; sourceTree = "<group>"; };
 		3133E2632C3F6A3B000D4B1A /* AppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
 		3133E2652C3F6A44000D4B1A /* BaseCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseCoordinator.swift; sourceTree = "<group>"; };
 		3133E2672C3F6A51000D4B1A /* CoordinatorFinishDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoordinatorFinishDelegate.swift; sourceTree = "<group>"; };
@@ -332,6 +327,16 @@
 		99C20AB12C4F6A04009276E7 /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
 		99C20AB32C4F7177009276E7 /* CryptoSocketTicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CryptoSocketTicker.swift; path = Mobit/Domain/Model/CryptoSocketTicker.swift; sourceTree = SOURCE_ROOT; };
 		99C20AB72C4F775B009276E7 /* Crypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Crypto.swift; sourceTree = "<group>"; };
+		C0D100032EF6000000000011 /* MarketFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketFormat.swift; sourceTree = "<group>"; };
+		C0D100042EF6000000000011 /* PortfolioCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioCalculator.swift; sourceTree = "<group>"; };
+		C0D100082EF6000000000011 /* PortfolioCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioCalculatorTests.swift; sourceTree = "<group>"; };
+		C0D100092EF6000000000011 /* MarketFormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketFormatTests.swift; sourceTree = "<group>"; };
+		C0D1000A2EF6000000000011 /* UserDataManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataManagerTests.swift; sourceTree = "<group>"; };
+		C0D1000C2EF6000000000011 /* SocketServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketServiceTests.swift; sourceTree = "<group>"; };
+		C0D1000E2EF6000000000011 /* TradeOrderValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeOrderValidator.swift; sourceTree = "<group>"; };
+		C0D100102EF6000000000011 /* TradeOrderValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeOrderValidatorTests.swift; sourceTree = "<group>"; };
+		C0D100122EF7000000000011 /* TradeOrderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeOrderService.swift; sourceTree = "<group>"; };
+		C0D100142EF7000000000011 /* TradeOrderServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeOrderServiceTests.swift; sourceTree = "<group>"; };
 		C1246B622ED979D400B24D3D /* ViewControllerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerExtension.swift; sourceTree = "<group>"; };
 		C13B29F12EE0149E00391683 /* TradeNetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeNetworkService.swift; sourceTree = "<group>"; };
 		C13B29F32EE0173100391683 /* Candle+MinuteResponseDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Candle+MinuteResponseDTO.swift"; sourceTree = "<group>"; };
@@ -428,6 +433,11 @@
 		C1DF71152E16407E002E89E1 /* MainCryptoTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCryptoTableViewCell.swift; sourceTree = "<group>"; };
 		C1DF71162E16407E002E89E1 /* MainCryptoTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainCryptoTableViewCell.xib; sourceTree = "<group>"; };
 		C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoubleExtension.swift; sourceTree = "<group>"; };
+		FEA000000000000000000010 /* FearGreedIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FearGreedIndex.swift; sourceTree = "<group>"; };
+		FEA000000000000000000020 /* FearGreedIndexResponseDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FearGreedIndexResponseDTO.swift; sourceTree = "<group>"; };
+		FEA000000000000000000030 /* FearGreedIndexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FearGreedIndexView.swift; sourceTree = "<group>"; };
+		FEA000000000000000000040 /* FearGreedInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FearGreedInfoViewController.swift; sourceTree = "<group>"; };
+		FEA000000000000000000050 /* MainHoldingTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainHoldingTableViewCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -827,6 +837,9 @@
 				99C20A5C2C48DF11009276E7 /* CoinTableViewCell.swift */,
 				C1DF71152E16407E002E89E1 /* MainCryptoTableViewCell.swift */,
 				C1DF71162E16407E002E89E1 /* MainCryptoTableViewCell.xib */,
+				FEA000000000000000000050 /* MainHoldingTableViewCell.swift */,
+				FEA000000000000000000040 /* FearGreedInfoViewController.swift */,
+				FEA000000000000000000030 /* FearGreedIndexView.swift */,
 			);
 			path = Main;
 			sourceTree = "<group>";
@@ -871,6 +884,7 @@
 			isa = PBXGroup;
 			children = (
 				99C20A782C490B08009276E7 /* CryptoDTO.swift */,
+				FEA000000000000000000020 /* FearGreedIndexResponseDTO.swift */,
 				99C20AAB2C4F458C009276E7 /* CryptoSocketTickerDTO.swift */,
 				998849E32C5378CD0073A27D /* CryptoTickerDTO.swift */,
 				369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */,
@@ -904,6 +918,7 @@
 				99C20AB32C4F7177009276E7 /* CryptoSocketTicker.swift */,
 				998849E52C5379960073A27D /* CryptoTicker.swift */,
 				99C20AB72C4F775B009276E7 /* Crypto.swift */,
+				FEA000000000000000000010 /* FearGreedIndex.swift */,
 				998849E12C524AAA0073A27D /* CryptoCellInfo.swift */,
 				367271AC2C7B2DA600F9D86E /* OrderBookResponse.swift */,
 				31B742112D5B967F00706340 /* TradeHistoryInformation.swift */,
@@ -1352,6 +1367,11 @@
 				3133E2702C3F7098000D4B1A /* MainUseCase.swift in Sources */,
 				C17BB4182E2F27A400BDAA0F /* MobitBaseViewController.swift in Sources */,
 				99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */,
+				FEA000000000000000000051 /* MainHoldingTableViewCell.swift in Sources */,
+				FEA000000000000000000041 /* FearGreedInfoViewController.swift in Sources */,
+				FEA000000000000000000011 /* FearGreedIndex.swift in Sources */,
+				FEA000000000000000000021 /* FearGreedIndexResponseDTO.swift in Sources */,
+				FEA000000000000000000031 /* FearGreedIndexView.swift in Sources */,
 				C1CCE8662EDEDC9B002D5DF9 /* LeaderBoardViewController.swift in Sources */,
 				C19818DF2EDFF19C0044A398 /* LeaderBoardCoordinator.swift in Sources */,
 				C182B6A92EF528910090CA34 /* Candle+DayResponseModel.swift in Sources */,

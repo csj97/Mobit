@@ -13,6 +13,7 @@ import RxSwift
 protocol MainRepositoryProtocol {
   func loadCryptoList() -> Observable<CryptoList>
   func loadCryptoTicker(markets: [String]) -> Observable<CryptoTickerList>
+  func loadFearGreedIndex() -> Observable<FearGreedIndex>
 }
 
 class MainRepository: MainRepositoryProtocol {
@@ -122,5 +123,38 @@ class MainRepository: MainRepositoryProtocol {
 		// 각 배치 결과를 하나로 합쳐 Observable<CryptoTickerList> 반환
         result + partial
       }
+  }
+
+  // 시장 공포·탐욕 지수 (CMC). 하루 단위 갱신이라 화면 진입 시 1회만 조회한다.
+  func loadFearGreedIndex() -> Observable<FearGreedIndex> {
+    let decodeTarget = FearGreedIndexResponseDTO.self
+
+    return Observable.create { observer in
+      let disposable = self.provider.rx.request(.getFearAndGreedIndex)
+        .subscribe { event in
+          switch event {
+          case .success(let response):
+            switch response.statusCode {
+            case 200..<300:
+              guard let dto = try? JSONDecoder().decode(decodeTarget, from: response.data) else {
+                observer.onError(ErrorType.dataMappingError)
+                return
+              }
+              observer.onNext(dto.toDomain())
+              observer.onCompleted()
+            case 400..<500:
+              observer.onError(ErrorType.badRequest)
+            default:
+              observer.onError(ErrorType.unknownError)
+            }
+          case .failure(let error):
+            Log.error(error.localizedDescription)
+            observer.onError(error)
+          }
+        }
+      return Disposables.create {
+        disposable.disposed(by: self.disposeBag)
+      }
+    }
   }
 }

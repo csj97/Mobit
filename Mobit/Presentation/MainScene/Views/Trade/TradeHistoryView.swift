@@ -63,6 +63,12 @@ class TradeHistoryView: UIView, ViewRule {
 	  forCellReuseIdentifier: "TradeHistoryTableViewCell"
 	)
 	self.historyTableView.rowHeight = UITableView.automaticDimension
+	// 최초 로드는 window에 붙은 뒤로 미룬다 (didMoveToWindow). off-window reloadData 경고 방지
+  }
+
+  override func didMoveToWindow() {
+	super.didMoveToWindow()
+	guard window != nil else { return }
 	self.updateHistory()
   }
   

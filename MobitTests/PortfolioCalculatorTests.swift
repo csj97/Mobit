@@ -59,6 +59,7 @@ final class PortfolioCalculatorTests: XCTestCase {
       cryptos: cryptos
     )
     let totalProfitLoss = PortfolioCalculator.totalEvaluationProfitLoss(cryptos: cryptos)
+    let totalEvaluationPrice = PortfolioCalculator.totalEvaluationPrice(cryptos: cryptos)
     let totalBuyAmount = PortfolioCalculator.totalBuyAmount(cryptos: cryptos)
     let totalProfitRate = PortfolioCalculator.totalProfitRate(
       totalProfitLoss: totalProfitLoss,
@@ -67,6 +68,7 @@ final class PortfolioCalculatorTests: XCTestCase {
 
     XCTAssertEqual(totalAsset, 2_000)
     XCTAssertEqual(totalProfitLoss, 100)
+    XCTAssertEqual(totalEvaluationPrice, 1_700)
     XCTAssertEqual(totalBuyAmount, 1_600)
     XCTAssertEqual(totalProfitRate, 5)
   }

@@ -29,6 +29,28 @@ enum CryptoSortType: String {
   case previousDayDescending = "전일대비↓"
   case tradeVolumeAscending = "거래대금↑"
   case tradeVolumeDescending = "거래대금↓"
+  // 보유 탭 전용 (표시 시점 정렬)
+  case evaluationPriceAscending = "평가금액↑"
+  case evaluationPriceDescending = "평가금액↓"
+  case averageBuyPriceAscending = "평균매수가↑"
+  case averageBuyPriceDescending = "평균매수가↓"
+  case profitRateAscending = "수익률↑"
+  case profitRateDescending = "수익률↓"
+}
+
+/// FlexLayout이 leaf로 측정할 때 내부 Auto Layout 콘텐츠 높이를 돌려주는 컨테이너.
+/// (기본 UIView.sizeThatFits는 Auto Layout 크기를 반영하지 않아 고정 높이가 필요해진다)
+final class SelfSizingContentView: UIView {
+  override func sizeThatFits(_ size: CGSize) -> CGSize {
+	let targetWidth = size.width.isFinite && size.width > 0
+	  ? size.width : UIView.layoutFittingCompressedSize.width
+	let fitting = systemLayoutSizeFitting(
+	  CGSize(width: targetWidth, height: UIView.layoutFittingCompressedSize.height),
+	  withHorizontalFittingPriority: .required,
+	  verticalFittingPriority: .fittingSizeLevel
+	)
+	return CGSize(width: size.width, height: fitting.height)
+  }
 }
 
 class MainViewController: MobitBaseViewController {
@@ -40,6 +62,9 @@ class MainViewController: MobitBaseViewController {
   var isSocketUpdating = false
   var prevSortedButton: UIButton?
   let defaultTitles = ["현재가 ↑↓", "전일대비 ↑↓", "거래대금 ↑↓"]
+  // 보유 탭 전용 헤더/정렬 상태 (마켓 정렬과 독립적으로 관리)
+  let holdDefaultTitles = ["평가금액 ↑↓", "평균매수가 ↑↓", "수익률 ↑↓"]
+  private var holdSortBy: CryptoSortType = .normal
   private let mainNativeAdLastShownDateKey = "main_native_ad_popup_last_shown_date"
   private var hasRequestedMainNativeAd = false
   private var isLoadingMainNativeAd = false
@@ -63,6 +88,75 @@ class MainViewController: MobitBaseViewController {
   
   // MARK: - UI Components
   let rootContainer: UIView = UIView()
+
+  // FlexLayout이 내부 Auto Layout 콘텐츠 높이를 스스로 측정하도록 SelfSizingContentView 사용
+  private let portfolioSummaryView = SelfSizingContentView().then {
+	$0.backgroundColor = UIColor.mobitColors(.white_FBFBFB)
+  }
+
+  private let totalBalanceTitleLabel: UILabel = UILabel().then {
+	$0.text = "총매수"
+	$0.font = UIFont(name: "SUIT-Medium", size: 12)
+	$0.textColor = .darkGray
+  }
+
+  private let totalBalanceLabel: UILabel = UILabel().then {
+	$0.text = "0"
+	$0.font = UIFont(name: "SUIT-SemiBold", size: 12)
+	$0.textColor = .black
+	$0.textAlignment = .right
+	$0.adjustsFontSizeToFitWidth = true
+	$0.minimumScaleFactor = 0.3
+  }
+
+  private let summaryVerticalDividerView: UIView = UIView().then {
+	$0.backgroundColor = UIColor.mobitColors(.lineLightGray)
+  }
+
+  private let profitLossTitleLabel: UILabel = UILabel().then {
+	$0.text = "평가손익"
+	$0.font = UIFont(name: "SUIT-Medium", size: 12)
+	$0.textColor = .darkGray
+  }
+
+  private let profitLossValueLabel: UILabel = UILabel().then {
+	$0.text = "0"
+	$0.font = UIFont(name: "SUIT-SemiBold", size: 12)
+	$0.textColor = .black
+	$0.textAlignment = .right
+	$0.adjustsFontSizeToFitWidth = true
+	$0.minimumScaleFactor = 0.4
+  }
+
+  private let evaluationPriceTitleLabel: UILabel = UILabel().then {
+	$0.text = "총평가"
+	$0.font = UIFont(name: "SUIT-Medium", size: 12)
+	$0.textColor = .darkGray
+  }
+
+  private let evaluationPriceValueLabel: UILabel = UILabel().then {
+	$0.text = "0"
+	$0.font = UIFont(name: "SUIT-SemiBold", size: 12)
+	$0.textColor = .black
+	$0.textAlignment = .right
+	$0.adjustsFontSizeToFitWidth = true
+	$0.minimumScaleFactor = 0.3
+  }
+
+  private let profitRateTitleLabel: UILabel = UILabel().then {
+	$0.text = "수익률"
+	$0.font = UIFont(name: "SUIT-Medium", size: 12)
+	$0.textColor = .darkGray
+  }
+
+  private let profitRateValueLabel: UILabel = UILabel().then {
+	$0.text = "0 %"
+	$0.font = UIFont(name: "SUIT-SemiBold", size: 12)
+	$0.textColor = .black
+	$0.textAlignment = .right
+	$0.adjustsFontSizeToFitWidth = true
+	$0.minimumScaleFactor = 0.4
+  }
   
   let searchBar = UISearchBar().then {
 	$0.backgroundColor = .white
@@ -131,6 +225,31 @@ class MainViewController: MobitBaseViewController {
 	$0.tag = 2
   }
   
+  // 우측 하단 플로팅 버튼: 탭하면 공포·탐욕 지수 바텀시트를 띄운다
+  private let fearGreedFloatingButton: UIButton = UIButton().then {
+	$0.backgroundColor = .white
+	$0.layer.cornerRadius = 28
+	// 떠 있는 듯한 입체 음영
+	$0.layer.applyShadow(color: .black, alpha: 0.25, x: 0, y: 4, blur: 12)
+
+	let font = UIFont(name: "SUIT-Bold", size: 12) ?? .systemFont(ofSize: 12, weight: .bold)
+	let paragraph = NSMutableParagraphStyle()
+	paragraph.alignment = .center
+	// 공포=파랑 / 탐욕=빨강 (앱 관례, 게이지와 동일)
+	let title = NSMutableAttributedString(
+	  string: "공포\n",
+	  attributes: [.foregroundColor: UIColor(hex: "#4C6EF5"), .font: font, .paragraphStyle: paragraph]
+	)
+	title.append(NSAttributedString(
+	  string: "탐욕",
+	  attributes: [.foregroundColor: UIColor(hex: "#FA5252"), .font: font, .paragraphStyle: paragraph]
+	))
+	$0.titleLabel?.numberOfLines = 2
+	$0.titleLabel?.textAlignment = .center
+	$0.setAttributedTitle(title, for: .normal)
+	$0.accessibilityLabel = "공포·탐욕 지수"
+  }
+
   let tableView: UITableView = UITableView().then {
 	$0.separatorStyle = .singleLine
 	$0.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
@@ -159,6 +278,7 @@ class MainViewController: MobitBaseViewController {
 	
 	// 필요할 때 주석 해제 후, 배포
 	// self.reactor.action.onNext(.checkNewVersion)
+	self.updatePortfolioSummary()
 	
 	guard self.selectedTab == .favorite else { return }
 	self.updateFavoriteUI()
@@ -175,15 +295,20 @@ class MainViewController: MobitBaseViewController {
 	UserDataManager.userCryptoList = list
 	
 	self.addViews()
+	self.setPortfolioSummaryView()
 	self.setSearchBar()
 	self.setTableView()
 	self.setTabButton()
 	self.setButtonGesture()
 	self.setUpFlexItems()
-	
+	self.setFearGreedFloatingButton()
+
 	self.showLoadingIndicator()
 	
 	self.bind(reactor: self.reactor)
+
+	// 공포·탐욕 지수는 하루 단위 갱신이므로 진입 시 1회만 조회
+	self.reactor.action.onNext(.loadFearGreedIndex)
   }
 
   override func viewDidAppear(_ animated: Bool) {
@@ -206,6 +331,7 @@ class MainViewController: MobitBaseViewController {
   func addViews() {
 	self.view.addSubview(self.rootContainer)
 	self.rootContainer.addSubview(self.searchBar)
+	self.rootContainer.addSubview(self.portfolioSummaryView)
 	self.rootContainer.addSubview(self.krwButton)
 	self.rootContainer.addSubview(self.favoriteButton)
 	self.rootContainer.addSubview(self.currentPriceButton)
@@ -213,28 +339,180 @@ class MainViewController: MobitBaseViewController {
 	self.rootContainer.addSubview(self.tradingVolumeButton)
 	self.rootContainer.addSubview(self.tableView)
   }
+
+  func setPortfolioSummaryView() {
+	let totalBalanceRow = makeSummaryRow(
+	  titleLabel: totalBalanceTitleLabel,
+	  valueLabel: totalBalanceLabel
+	)
+	let evaluationPriceRow = makeSummaryRow(
+	  titleLabel: evaluationPriceTitleLabel,
+	  valueLabel: evaluationPriceValueLabel
+	)
+	let profitLossRow = makeSummaryRow(
+	  titleLabel: profitLossTitleLabel,
+	  valueLabel: profitLossValueLabel
+	)
+	let profitRateRow = makeSummaryRow(
+	  titleLabel: profitRateTitleLabel,
+	  valueLabel: profitRateValueLabel
+	)
+
+	let leftColumnStack = UIStackView(arrangedSubviews: [
+	  totalBalanceRow,
+	  evaluationPriceRow
+	])
+	leftColumnStack.axis = .vertical
+	leftColumnStack.spacing = 5
+
+	let rightColumnStack = UIStackView(arrangedSubviews: [
+	  profitLossRow,
+	  profitRateRow
+	])
+	rightColumnStack.axis = .vertical
+	rightColumnStack.spacing = 5
+
+	let contentStack = UIStackView(arrangedSubviews: [
+	  leftColumnStack,
+	  summaryVerticalDividerView,
+	  rightColumnStack
+	])
+	contentStack.axis = .horizontal
+	contentStack.alignment = .fill
+	contentStack.distribution = .fill
+	contentStack.spacing = 14
+
+	self.portfolioSummaryView.addSubview(contentStack)
+
+	contentStack.snp.makeConstraints { make in
+	  make.top.equalToSuperview().offset(10)
+	  make.leading.equalToSuperview().inset(14)
+	  // FlexLayout이 폭을 정하기 전(초기 width 0) 순간 충돌 로그를 피하려 trailing만 양보 가능하게 둔다.
+	  make.trailing.equalToSuperview().inset(14).priority(999)
+	  make.bottom.equalToSuperview().offset(-10)
+	}
+
+	leftColumnStack.snp.makeConstraints { make in
+	  make.width.equalTo(rightColumnStack)
+	}
+
+	summaryVerticalDividerView.snp.makeConstraints { make in
+	  make.width.equalTo(1)
+	}
+
+	self.updatePortfolioSummary()
+  }
+
+  private func makeSummaryRow(
+	titleLabel: UILabel,
+	valueLabel: UILabel
+  ) -> UIStackView {
+	let stackView = UIStackView(arrangedSubviews: [titleLabel, valueLabel])
+	stackView.axis = .horizontal
+	stackView.alignment = .center
+	stackView.distribution = .fill
+	stackView.spacing = 8
+	return stackView
+  }
+
+  private func updatePortfolioSummary(
+	cryptos: [CryptoTransactionDataModel]? = UserDataManager.userCryptoList
+  ) {
+	let cryptos = cryptos ?? []
+	let availableBalance = UserDataManager.userInformation?.userAvailableBalance ?? 0
+	let totalBalance = PortfolioCalculator.totalAssetValue(
+	  availableBalance: availableBalance,
+	  cryptos: cryptos
+	)
+	let totalBuyAmount = PortfolioCalculator.totalBuyAmount(cryptos: cryptos)
+	let totalProfitLoss = PortfolioCalculator.totalEvaluationProfitLoss(cryptos: cryptos)
+	let totalEvaluationPrice = PortfolioCalculator.totalEvaluationPrice(cryptos: cryptos)
+	let totalProfitRate = PortfolioCalculator.totalProfitRate(
+	  totalProfitLoss: totalProfitLoss,
+	  totalAssetValue: totalBalance
+	)
+
+	self.totalBalanceLabel.attributedText = self.attributedKRWAmount(self.formattedKRW(totalBuyAmount))
+	self.profitLossValueLabel.attributedText = self.attributedKRWAmount(self.formattedSignedKRW(totalProfitLoss, includeUnit: false))
+	self.evaluationPriceValueLabel.attributedText = self.attributedKRWAmount(self.formattedKRW(totalEvaluationPrice))
+	self.profitRateValueLabel.text = self.formattedSignedPercent(totalProfitRate)
+	self.profitLossValueLabel.textColor = self.portfolioValueColor(totalProfitLoss)
+	self.profitRateValueLabel.textColor = self.portfolioValueColor(totalProfitRate)
+  }
+
+  private func formattedKRW(_ value: Double) -> String {
+	value == 0 ? "0" : abs(value).formatSignificantDigits(digits: 0)
+  }
+
+  // 금액 뒤에 작은 '원' 단위를 붙인다. 숫자는 라벨 기본 색/폰트 유지, '원'만 작게 회색 처리
+  private func attributedKRWAmount(_ amountText: String) -> NSAttributedString {
+	let numberFont = UIFont(name: "SUIT-SemiBold", size: 12) ?? .systemFont(ofSize: 12, weight: .semibold)
+	let unitFont = UIFont(name: "SUIT-Medium", size: 9) ?? .systemFont(ofSize: 9)
+	let result = NSMutableAttributedString(string: amountText, attributes: [.font: numberFont])
+	result.append(NSAttributedString(
+	  string: " 원",
+	  attributes: [.font: unitFont, .foregroundColor: UIColor.darkGray]
+	))
+	return result
+  }
+
+  private func formattedSignedKRW(_ value: Double, includeUnit: Bool = true) -> String {
+	guard value != 0 else { return includeUnit ? "0 KRW" : "0" }
+	let prefix = value > 0 ? "+" : "-"
+	let formattedValue = "\(prefix)\(self.formattedKRW(value))"
+	return includeUnit ? "\(formattedValue) KRW" : formattedValue
+  }
+
+  private func formattedSignedPercent(_ value: Double) -> String {
+	guard value != 0 else { return "0 %" }
+	let prefix = value > 0 ? "+" : "-"
+	let formattedValue = abs(value).formatSignificantDigits(digits: 2)
+	return "\(prefix)\(formattedValue) %"
+  }
+
+  private func portfolioValueColor(_ value: Double) -> UIColor {
+	if value > 0 {
+	  return .systemRed
+	} else if value < 0 {
+	  return .systemBlue
+	} else {
+	  return .black
+	}
+  }
   
   func setTableView() {
 	let nib = UINib(nibName: "MainCryptoTableViewCell", bundle: nil)
 	self.tableView.register(nib, forCellReuseIdentifier: self.cellIndentifier)
+	self.tableView.register(
+	  MainHoldingTableViewCell.self,
+	  forCellReuseIdentifier: MainHoldingTableViewCell.reuseIdentifier
+	)
 	self.tableView.keyboardDismissMode = .onDrag
 	self.tableView.backgroundColor = .white
 	self.tableView.backgroundView = nil
+	// 하단 탭바에 마지막 행이 가리지 않도록 여백 확보
 	self.tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 70, right: 0)
 	
 	self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoCellInfo>(
 	  tableView: self.tableView
 	) { [weak self] (tableView, indexPath, crypto) -> UITableViewCell? in
-	  guard let self = self,
-			let cell = tableView.dequeueReusableCell(
-			  withIdentifier: self.cellIndentifier,
-			  for: indexPath
-			) as? MainCryptoTableViewCell else {
-		return UITableViewCell()
+	  guard let self = self else { return UITableViewCell() }
+
+	  // 보유 탭은 전용 셀(평가금액·보유량/평균매수가/수익률·평가손익)
+	  if self.selectedTab == .hold {
+		guard let cell = tableView.dequeueReusableCell(
+		  withIdentifier: MainHoldingTableViewCell.reuseIdentifier,
+		  for: indexPath
+		) as? MainHoldingTableViewCell else { return UITableViewCell() }
+		cell.configure(crypto: crypto)
+		return cell
 	  }
-	  
-	  // self.hideLoadingIndicator()
-	  
+
+	  guard let cell = tableView.dequeueReusableCell(
+		withIdentifier: self.cellIndentifier,
+		for: indexPath
+	  ) as? MainCryptoTableViewCell else { return UITableViewCell() }
+
 	  cell.configure(crypto: crypto, isScrolling: self.isSocketUpdating)
 	  cell.selectionStyle = .none
 	  return cell
@@ -262,40 +540,47 @@ class MainViewController: MobitBaseViewController {
 	MobitAnalyticsUtil.sendClickEvent(event: .exchange_sort)
 	
 	self.resumeSocket()
-	
+
+	let isHold = (self.selectedTab == .hold)
+	let titles = isHold ? holdDefaultTitles : defaultTitles
+
 	// 직전 선택 버튼 해제
 	if let prevSortedButton = self.prevSortedButton,
 	   prevSortedButton !== sender {
-	  let title = defaultTitles[prevSortedButton.tag]
-	  prevSortedButton.setTitle(title, for: .normal)
+	  prevSortedButton.setTitle(titles[prevSortedButton.tag], for: .normal)
 	  prevSortedButton.isSelected = false
 	}
-	
-	// 새 정렬 타입 결정
-	let newSortType: CryptoSortType? = {
-	  switch sender.tag {
-	  case 0:
-		return self.reactor.currentState.sortBy == .currentPriceAscending
-		? .currentPriceDescending : .currentPriceAscending
-	  case 1:
-		return self.reactor.currentState.sortBy == .previousDayAscending
-		? .previousDayDescending : .previousDayAscending
-	  case 2:
-		return self.reactor.currentState.sortBy == .tradeVolumeAscending
-		? .tradeVolumeDescending : .tradeVolumeAscending
-	  default:
-		return nil
-	  }
-	}()
-	
-	guard let newSortType = newSortType else { return }
-	
-	self.reactor.action.onNext(.setSortType(sortBy: newSortType))
-	
-	let sortedTitle = self.reactor.currentState.sortBy.rawValue
-	sender.setTitle(sortedTitle, for: .normal)
-	sender.isSelected = true
-	self.prevSortedButton = sender
+
+	// 오름↑ → 내림↓ → 초기(.normal) 3단계 순환
+	let (ascending, descending) = self.sortTypes(forButtonTag: sender.tag, isHold: isHold)
+	let current = isHold ? self.holdSortBy : self.reactor.currentState.sortBy
+	let newSortType: CryptoSortType
+	if current == ascending {
+	  newSortType = descending
+	} else if current == descending {
+	  newSortType = .normal
+	} else {
+	  newSortType = ascending
+	}
+
+	// 적용: 보유는 표시 시점 정렬(리액터 미변경), 마켓은 기존 리액터 정렬
+	if isHold {
+	  self.holdSortBy = newSortType
+	  self.refreshDisplayedList()
+	} else {
+	  self.reactor.action.onNext(.setSortType(sortBy: newSortType))
+	}
+
+	// 버튼 비주얼 (초기 순서면 기본 상태로 리셋)
+	if newSortType == .normal {
+	  sender.setTitle(titles[sender.tag], for: .normal)
+	  sender.isSelected = false
+	  self.prevSortedButton = nil
+	} else {
+	  sender.setTitle(newSortType.rawValue, for: .normal)
+	  sender.isSelected = true
+	  self.prevSortedButton = sender
+	}
   }
   
   func setTabButton() {
@@ -340,10 +625,13 @@ class MainViewController: MobitBaseViewController {
 	case 3:
 	  self.selectedTab = .favorite
 	  self.refreshDisplayedList()
-	  
+
 	default:
 	  break
 	}
+
+	// 탭별 정렬 상태에 맞춰 헤더(정렬 버튼) 복원
+	self.updateSortHeaderUI()
   }
   
   /// UISearchBar 설정
@@ -370,7 +658,11 @@ class MainViewController: MobitBaseViewController {
 	  .justifyContent(.start)
 	  .direction(.column).define { flex in
 		flex.addItem(self.searchBar).height(45).width(100%)
-		
+
+		flex.addItem(self.portfolioSummaryView)
+		  .marginTop(4)
+		  .marginBottom(6)
+
 		// KRW, BTC, 관심
 		flex.addItem().direction(.row).define { flex in
 		  flex.addItem(self.holdButton).width(25%)
@@ -385,6 +677,7 @@ class MainViewController: MobitBaseViewController {
 		  flex.addItem(self.currentPriceButton).width(25%)
 		  flex.addItem(self.previousDayButton).width(25%)
 		  flex.addItem(self.tradingVolumeButton).width(25%)
+		  flex.backgroundColor(.whiteFBFBFB)
 		}
 		
 		flex.addItem(DividerLineView()).height(1)
@@ -403,6 +696,25 @@ class MainViewController: MobitBaseViewController {
 			}
 		}.grow(1)
 	  }
+  }
+
+  private func setFearGreedFloatingButton() {
+	self.view.addSubview(self.fearGreedFloatingButton)
+	self.fearGreedFloatingButton.snp.makeConstraints { make in
+	  make.trailing.equalTo(self.view.safeAreaLayoutGuide).offset(-16)
+	  // 하단 탭바(65pt) 위에 띄운다
+	  make.bottom.equalTo(self.view.safeAreaLayoutGuide).offset(-(65 + 16))
+	  make.width.height.equalTo(56)
+	}
+	self.fearGreedFloatingButton.addTarget(
+	  self, action: #selector(didTapFearGreedButton), for: .touchUpInside
+	)
+  }
+
+  @objc private func didTapFearGreedButton() {
+	self.coordinator?.presentFearGreedInfoVC(
+	  fearGreedIndex: self.reactor.currentState.fearGreedIndex
+	)
   }
 }
 
@@ -479,18 +791,17 @@ extension MainViewController: View {
 	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
-	  .subscribe(onNext: { [weak self] totalList in
+	.subscribe(onNext: { [weak self] totalList in
 		guard let self = self else { return }
 		guard !self.isSocketUpdating else { return }
+		
+		self.updateUserCryptoList(from: totalList)
 		
 		// 현재 탭 + 검색어에 맞게 필터링
 		let filteredList = self.filterListForCurrentTab(totalList: totalList)
 		
 		// 테이블뷰 업데이트
 		self.applySnapshot(cellInfos: filteredList)
-		
-		// 사용자 매수 목록 업데이트
-		self.updateUserCryptoList(from: filteredList)
 	  })
 	  .disposed(by: self.disposeBag)
 	
@@ -538,8 +849,17 @@ extension MainViewController: View {
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] _ in
-		guard let self = self, self.selectedTab == .hold else { return }
+		guard let self = self else { return }
+		self.updatePortfolioSummary()
+		guard self.selectedTab == .hold else { return }
 		self.refreshDisplayedList()
+	  })
+	  .disposed(by: self.disposeBag)
+
+	UserDataManager.userAvailableBalanceObservable
+	  .observe(on: MainScheduler.instance)
+	  .subscribe(onNext: { [weak self] _ in
+		self?.updatePortfolioSummary()
 	  })
 	  .disposed(by: self.disposeBag)
   }
@@ -554,10 +874,30 @@ extension MainViewController: View {
 	// 1. 탭별 필터링
 	switch self.selectedTab {
 	case .hold:
-	  let userCryptos = self.reactor.currentState.userCryptos
-	  let holdingMarkets = userCryptos.map { $0.staticData.marketName }
-	  filteredList = filteredList.filter { holdingMarkets.contains($0.market) }
-	  
+	  // 보유 코인만 남기고, 보유데이터(보유량/평단/평가금액/수익률)를 표시 시세 기준으로 채운다.
+	  let holdingByMarket = Dictionary(
+		self.reactor.currentState.userCryptos.map { ($0.staticData.marketName, $0) },
+		uniquingKeysWith: { first, _ in first }
+	  )
+	  filteredList = filteredList.compactMap { cell in
+		guard let holding = holdingByMarket[cell.market] else { return nil }
+		var enriched = cell
+		let qty = holding.staticData.holdingQuantity
+		let avg = holding.staticData.averageBuyPrice
+		enriched.holdingQuantity = qty
+		enriched.averageBuyPrice = avg
+		if let price = cell.tradePrice {
+		  enriched.evaluationPrice = price * qty
+		  enriched.evaluationProfitLoss = (price - avg) * qty
+		  enriched.profitRate = avg > 0 ? ((price - avg) / avg) * 100 : 0
+		} else {
+		  enriched.evaluationPrice = holding.dynamicData.evaluationPrice
+		  enriched.evaluationProfitLoss = holding.dynamicData.evaluationProfitLoss
+		  enriched.profitRate = holding.dynamicData.profitRate
+		}
+		return enriched
+	  }
+
 	case .krw:
 	  filteredList = filteredList.filter { $0.market.contains("/KRW") }
 	  
@@ -575,8 +915,72 @@ extension MainViewController: View {
 		$0.cryptoName.lowercased().contains(searchText)
 	  }
 	}
-	
+
+	// 3. 보유 탭은 마켓 정렬과 독립적으로 표시 시점에 정렬
+	if self.selectedTab == .hold {
+	  filteredList = self.sortHoldList(filteredList, by: self.holdSortBy)
+	}
+
 	return filteredList
+  }
+
+  /// 보유 탭 표시 시점 정렬 (마켓 정렬과 분리)
+  private func sortHoldList(_ list: [CryptoCellInfo], by sortType: CryptoSortType) -> [CryptoCellInfo] {
+	switch sortType {
+	case .evaluationPriceAscending:  return list.sorted { ($0.evaluationPrice ?? 0) < ($1.evaluationPrice ?? 0) }
+	case .evaluationPriceDescending: return list.sorted { ($0.evaluationPrice ?? 0) > ($1.evaluationPrice ?? 0) }
+	case .averageBuyPriceAscending:  return list.sorted { ($0.averageBuyPrice ?? 0) < ($1.averageBuyPrice ?? 0) }
+	case .averageBuyPriceDescending: return list.sorted { ($0.averageBuyPrice ?? 0) > ($1.averageBuyPrice ?? 0) }
+	case .profitRateAscending:       return list.sorted { ($0.profitRate ?? 0) < ($1.profitRate ?? 0) }
+	case .profitRateDescending:      return list.sorted { ($0.profitRate ?? 0) > ($1.profitRate ?? 0) }
+	default:
+	  // 초기 순서: 보유 목록 순서 기준 (마켓 정렬 영향 없음)
+	  let order = Dictionary(
+		self.reactor.currentState.userCryptos.enumerated().map { ($1.staticData.marketName, $0) },
+		uniquingKeysWith: { first, _ in first }
+	  )
+	  return list.sorted { (order[$0.market] ?? Int.max) < (order[$1.market] ?? Int.max) }
+	}
+  }
+
+  /// 버튼 태그 → (오름, 내림) 정렬 타입 (탭에 따라 마켓/보유 컬럼)
+  private func sortTypes(forButtonTag tag: Int, isHold: Bool) -> (CryptoSortType, CryptoSortType) {
+	if isHold {
+	  switch tag {
+	  case 0: return (.evaluationPriceAscending, .evaluationPriceDescending)
+	  case 1: return (.averageBuyPriceAscending, .averageBuyPriceDescending)
+	  case 2: return (.profitRateAscending, .profitRateDescending)
+	  default: return (.normal, .normal)
+	  }
+	} else {
+	  switch tag {
+	  case 0: return (.currentPriceAscending, .currentPriceDescending)
+	  case 1: return (.previousDayAscending, .previousDayDescending)
+	  case 2: return (.tradeVolumeAscending, .tradeVolumeDescending)
+	  default: return (.normal, .normal)
+	  }
+	}
+  }
+
+  /// 현재 탭의 정렬 상태에 맞춰 헤더(정렬 버튼) 타이틀·선택 상태를 복원한다.
+  private func updateSortHeaderUI() {
+	let isHold = (self.selectedTab == .hold)
+	let titles = isHold ? holdDefaultTitles : defaultTitles
+	let currentSort = isHold ? self.holdSortBy : self.reactor.currentState.sortBy
+	let buttons = [self.currentPriceButton, self.previousDayButton, self.tradingVolumeButton]
+
+	self.prevSortedButton = nil
+	for button in buttons {
+	  let (asc, desc) = self.sortTypes(forButtonTag: button.tag, isHold: isHold)
+	  if currentSort == asc || currentSort == desc {
+		button.setTitle(currentSort.rawValue, for: .normal)
+		button.isSelected = true
+		self.prevSortedButton = button
+	  } else {
+		button.setTitle(titles[button.tag], for: .normal)
+		button.isSelected = false
+	  }
+	}
   }
   
   /// 스냅샷 적용
@@ -605,8 +1009,6 @@ extension MainViewController: View {
 	  self.noFavoriteView.isHidden = true
 	  self.applySnapshot(cellInfos: filteredList)
 	}
-
-	self.updateUserCryptoList(from: filteredList)
   }
   
   /// 사용자 매수 목록 업데이트
@@ -644,6 +1046,7 @@ extension MainViewController: View {
 
 	// 최종적으로 1회 저장 (반복문 안에서 저장 연산 X)
 	UserDataManager.userCryptoList = userCryptoList
+	self.updatePortfolioSummary(cryptos: userCryptoList)
   }
   
   /// 즐겨찾기 UI 업데이트
@@ -671,7 +1074,7 @@ extension MainViewController: UITableViewDelegate {
 	  options: .regularExpression
 	)
 	
-	self.coordinator?.pushCryptoDetailVC(
+	self.coordinator?.pushCryptoTradeVC(
 	  selectCrypto: selectedCrypto,
 	  cmcSymbol: symbol,
 	  completion: { [weak self] errorMsg in
