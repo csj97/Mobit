@@ -40,13 +40,7 @@ class PNLTableViewCell: UITableViewCell {
 	self.exitPriceLabel.text = "\(pnlHistory.exitPrice.formatSignificantDigits(digits: 2))".addComma()
 	self.transactionDateLabel.text = "\(pnlHistory.transactionDate)"
 	
-	if pnlHistory.pnl > 0 {
-	  self.pnlLabel.textColor = .systemRed
-	} else if pnlHistory.pnl < 0 {
-	  self.pnlLabel.textColor = .systemBlue
-	} else {
-	  self.pnlLabel.textColor = .black
-	}
+	self.pnlLabel.textColor = MarketColorPalette.color(forSignedValue: pnlHistory.pnl)
 	
 	self.layer.cornerRadius = 8
   }

@@ -137,9 +137,7 @@ final class MainHoldingTableViewCell: UITableViewCell {
 
   // 국내 관례: 이익=빨강, 손실=파랑
   private static func signColor(_ value: Double) -> UIColor {
-    if value > 0 { return .systemRed }
-    if value < 0 { return .systemBlue }
-    return .black
+    MarketColorPalette.color(forSignedValue: value)
   }
 
   private static func valueLabel(size: CGFloat, weight: UIFont.Weight) -> UILabel {

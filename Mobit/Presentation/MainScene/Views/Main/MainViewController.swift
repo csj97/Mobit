@@ -471,13 +471,7 @@ class MainViewController: MobitBaseViewController {
   }
 
   private func portfolioValueColor(_ value: Double) -> UIColor {
-	if value > 0 {
-	  return .systemRed
-	} else if value < 0 {
-	  return .systemBlue
-	} else {
-	  return .black
-	}
+	MarketColorPalette.color(forSignedValue: value)
   }
   
   func setTableView() {

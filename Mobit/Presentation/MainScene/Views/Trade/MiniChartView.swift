@@ -30,10 +30,10 @@ struct MiniChartView: View {
 	
 	return LinearGradient(
 	  gradient: Gradient(stops: [
-		.init(color: .blue.opacity(0.18), location: 0.0),
-		.init(color: .blue.opacity(0.18), location: clamped),
-		.init(color: .red.opacity(0.18), location: upper),
-		.init(color: .red.opacity(0.18), location: 1.0)
+		.init(color: MarketColorPalette.fallSwiftUIColor.opacity(0.18), location: 0.0),
+		.init(color: MarketColorPalette.fallSwiftUIColor.opacity(0.18), location: clamped),
+		.init(color: MarketColorPalette.riseSwiftUIColor.opacity(0.18), location: upper),
+		.init(color: MarketColorPalette.riseSwiftUIColor.opacity(0.18), location: 1.0)
 	  ]),
 	  startPoint: .bottom,
 	  endPoint: .top
@@ -55,10 +55,10 @@ struct MiniChartView: View {
 	
 	return LinearGradient(
 	  gradient: Gradient(stops: [
-		.init(color: .blue.opacity(0.65), location: 0.0),
-		.init(color: .blue.opacity(0.65), location: clamped),
-		.init(color: .red.opacity(0.65), location: upper),
-		.init(color: .red.opacity(0.65), location: 1.0)
+		.init(color: MarketColorPalette.fallSwiftUIColor.opacity(0.65), location: 0.0),
+		.init(color: MarketColorPalette.fallSwiftUIColor.opacity(0.65), location: clamped),
+		.init(color: MarketColorPalette.riseSwiftUIColor.opacity(0.65), location: upper),
+		.init(color: MarketColorPalette.riseSwiftUIColor.opacity(0.65), location: 1.0)
 	  ]),
 	  startPoint: .bottom,
 	  endPoint: .top

@@ -76,14 +76,14 @@ class MainCryptoTableViewCell: UITableViewCell {
 	)
 	
 	if signedChangeRate < 0 {
-	  self.cryptoPrice.textColor = .blue
-	  self.cryptoChangeRate.textColor = .blue
+	  self.cryptoPrice.textColor = MarketColorPalette.fallColor
+	  self.cryptoChangeRate.textColor = MarketColorPalette.fallColor
 	} else if signedChangeRate == 0 {
 	  self.cryptoPrice.textColor = .black
 	  self.cryptoChangeRate.textColor = .black
 	} else {
-	  self.cryptoPrice.textColor = .red
-	  self.cryptoChangeRate.textColor = .red
+	  self.cryptoPrice.textColor = MarketColorPalette.riseColor
+	  self.cryptoChangeRate.textColor = MarketColorPalette.riseColor
 	}
 	
 	if isScrolling == false {
@@ -91,7 +91,7 @@ class MainCryptoTableViewCell: UITableViewCell {
 	  case "RISE":
 		DispatchQueue.main.async {
 		  UIView.animate(withDuration: 0.15) {
-			self.priceBox.layer.borderColor = UIColor.red.cgColor
+			self.priceBox.layer.borderColor = MarketColorPalette.riseColor.cgColor
 		  } completion: { _ in
 			self.priceBox.layer.borderColor = UIColor.clear.cgColor
 		  }
@@ -100,7 +100,7 @@ class MainCryptoTableViewCell: UITableViewCell {
 	  case "FALL":
 		DispatchQueue.main.async {
 		  UIView.animate(withDuration: 0.15) {
-			self.priceBox.layer.borderColor = UIColor.blue.cgColor
+			self.priceBox.layer.borderColor = MarketColorPalette.fallColor.cgColor
 		  } completion: { _ in
 			self.priceBox.layer.borderColor = UIColor.clear.cgColor
 		  }

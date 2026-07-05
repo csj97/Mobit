@@ -168,14 +168,14 @@ class CoinTableViewCell: UITableViewCell {
     )
     
     if signedChangeRate < 0 {
-      self.price.textColor = .blue
-      self.changeRate.textColor = .blue
+      self.price.textColor = MarketColorPalette.fallColor
+      self.changeRate.textColor = MarketColorPalette.fallColor
     } else if signedChangeRate == 0 {
       self.price.textColor = .black
       self.changeRate.textColor = .black
     } else {
-      self.price.textColor = .red
-      self.changeRate.textColor = .red
+      self.price.textColor = MarketColorPalette.riseColor
+      self.changeRate.textColor = MarketColorPalette.riseColor
     }
     
     if isScrolling == false {
@@ -183,7 +183,7 @@ class CoinTableViewCell: UITableViewCell {
       case "RISE":
         DispatchQueue.main.async {
           UIView.animate(withDuration: 0.15) {
-            self.priceBox.layer.borderColor = UIColor.red.cgColor
+            self.priceBox.layer.borderColor = MarketColorPalette.riseColor.cgColor
           } completion: { _ in
             self.priceBox.layer.borderColor = UIColor.clear.cgColor
           }
@@ -192,7 +192,7 @@ class CoinTableViewCell: UITableViewCell {
       case "FALL":
         DispatchQueue.main.async {
           UIView.animate(withDuration: 0.15) {
-            self.priceBox.layer.borderColor = UIColor.blue.cgColor
+            self.priceBox.layer.borderColor = MarketColorPalette.fallColor.cgColor
           } completion: { _ in
             self.priceBox.layer.borderColor = UIColor.clear.cgColor
           }
@@ -257,4 +257,3 @@ enum CryptoSymbolType: String {
   case krw = "KRW"
   case btc = "BTC"
 }
-

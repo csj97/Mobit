@@ -72,10 +72,10 @@ class PNLShareView: UIView {
 	
 	var pnlSign = ""
 	if pnlShareUnit.pnl > 0 {
-	  self.pnlLabel.textColor = .systemRed
+	  self.pnlLabel.textColor = MarketColorPalette.riseColor
 	  pnlSign = "+"
 	} else if pnlShareUnit.pnl < 0 {
-	  self.pnlLabel.textColor = .systemBlue
+	  self.pnlLabel.textColor = MarketColorPalette.fallColor
 	  pnlSign = ""
 	} else {
 	  self.pnlLabel.textColor = .white
@@ -85,10 +85,10 @@ class PNLShareView: UIView {
 	
 	var roiSign = ""
 	if pnlShareUnit.roi > 0 {
-	  self.roiLabel.textColor = .systemRed
+	  self.roiLabel.textColor = MarketColorPalette.riseColor
 	  roiSign = "+"
 	} else if pnlShareUnit.pnl < 0 {
-	  self.roiLabel.textColor = .systemBlue
+	  self.roiLabel.textColor = MarketColorPalette.fallColor
 	  roiSign = ""
 	} else {
 	  self.roiLabel.textColor = .white

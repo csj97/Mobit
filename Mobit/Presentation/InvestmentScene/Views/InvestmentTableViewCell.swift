@@ -40,19 +40,9 @@ class InvestmentTableViewCell: UITableViewCell {
 	self.cryptoEvalLoss.text = "\(crypto.dynamicData.evaluationProfitLoss.formatSignificantDigits(digits: 0))"
 	self.cryptoProfitRate.text = "\(crypto.dynamicData.profitRate.formatSignificantDigits(digits: 2))" + " %"
 	
-	if crypto.dynamicData.profitRate > 0 {
-	  // +
-	  self.cryptoProfitRate.textColor = .systemRed
-	  self.cryptoEvalLoss.textColor = .systemRed
-	} else if crypto.dynamicData.profitRate == 0 {
-	  // 보합
-	  self.cryptoProfitRate.textColor = .black
-	  self.cryptoEvalLoss.textColor = .black
-	} else {
-	  // -
-	  self.cryptoProfitRate.textColor = .systemBlue
-	  self.cryptoEvalLoss.textColor = .systemBlue
-	}
+	let pnlColor = MarketColorPalette.color(forSignedValue: crypto.dynamicData.profitRate)
+	self.cryptoProfitRate.textColor = pnlColor
+	self.cryptoEvalLoss.textColor = pnlColor
 	
 	self.dividerView.isHidden = isLast
 	

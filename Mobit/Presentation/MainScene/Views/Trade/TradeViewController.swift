@@ -270,11 +270,11 @@ class TradeViewController: MobitBaseViewController {
 	
 	switch selectCrypto.change {
 	case "RISE":
-	  self.tradeColor = .red
+	  self.tradeColor = MarketColorPalette.riseColor
 	  self.arrowImage = UIImage(systemName: "arrowtriangle.up.fill")!
 	  self.arrowColor = self.tradeColor
 	case "FALL":
-	  self.tradeColor = .blue
+	  self.tradeColor = MarketColorPalette.fallColor
 	  self.arrowImage = UIImage(systemName: "arrowtriangle.down.fill")!
 	  self.arrowColor = self.tradeColor
 	case "EVEN":

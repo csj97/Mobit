@@ -10,17 +10,16 @@ import WebKit
 
 class TradeChartView: UIView, WKScriptMessageHandler {
   
+  @IBOutlet weak var settingsContainerView: UIView!
+  @IBOutlet weak var intervalSegmentedControl: UISegmentedControl!
+  @IBOutlet weak var themeSegmentedControl: UISegmentedControl!
+  @IBOutlet weak var persistenceGuideLabel: UILabel!
   @IBOutlet weak var webView: WKWebView!
-  @IBOutlet weak var tradingChartButtonImg: UIImageView!
-  @IBOutlet weak var mobitChartButtonImg: UIImageView!
-  @IBOutlet weak var mobitChartContainerView: UIView!
     
   var symbol: String? = nil
   var html: String? = nil
   var javascriptBridgeInterfaceName = "MobitTradingViewChart"
-  
-  let buttonOffImg: UIImage = UIImage(named: "button_check_off")!
-  let buttonOnImg: UIImage = UIImage(named: "button_check_on")!
+  private var chartSettings = UserDataManager.tradingViewChartSettings
   
   deinit {
 	print("deinit : \(String(describing: type(of: self)))")
@@ -48,10 +47,7 @@ class TradeChartView: UIView, WKScriptMessageHandler {
   }
   
   func configure() {
-	// 초기 설정
-	self.tradingChartButtonImg.image = buttonOnImg
-	self.mobitChartButtonImg.image = buttonOffImg
-	self.mobitChartContainerView.isHidden = true
+	self.configureSettingsUI()
 	
 	Task {
 	  guard let symbol = self.symbol else {
@@ -63,6 +59,15 @@ class TradeChartView: UIView, WKScriptMessageHandler {
 	  await self.loadLocalHTML(symbol: symbol)
 	  self.webView.isHidden = false
 	}
+  }
+  
+  private func configureSettingsUI() {
+	self.settingsContainerView.layer.cornerRadius = 12
+	self.settingsContainerView.layer.borderWidth = 0.5
+	self.settingsContainerView.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.35).cgColor
+	self.persistenceGuideLabel.text = "여기서 선택한 차트 설정은 앱을 종료했다가 다시 들어와도 그대로 유지돼요."
+	self.intervalSegmentedControl.selectedSegmentIndex = self.index(for: chartSettings.interval)
+	self.themeSegmentedControl.selectedSegmentIndex = self.index(for: chartSettings.theme)
   }
   
   func configureWebView() async {
@@ -92,6 +97,69 @@ class TradeChartView: UIView, WKScriptMessageHandler {
 	return "UPBIT:" + symbol.replacingOccurrences(of: "/", with: "")
   }
   
+  private func index(for interval: UserDataManager.TradingViewChartSettings.Interval) -> Int {
+	switch interval {
+	case .minute15:
+	  return 0
+	case .hour1:
+	  return 1
+	case .hour4:
+	  return 2
+	case .day1:
+	  return 3
+	}
+  }
+  
+  private func index(for theme: UserDataManager.TradingViewChartSettings.Theme) -> Int {
+	switch theme {
+	case .light:
+	  return 0
+	case .dark:
+	  return 1
+	}
+  }
+  
+  private func selectedInterval() -> UserDataManager.TradingViewChartSettings.Interval {
+	switch self.intervalSegmentedControl.selectedSegmentIndex {
+	case 0:
+	  return .minute15
+	case 2:
+	  return .hour4
+	case 3:
+	  return .day1
+	default:
+	  return .hour1
+	}
+  }
+  
+  private func selectedTheme() -> UserDataManager.TradingViewChartSettings.Theme {
+	self.themeSegmentedControl.selectedSegmentIndex == 1 ? .dark : .light
+  }
+  
+  private func applyCurrentSettings() {
+	self.chartSettings = UserDataManager.TradingViewChartSettings(
+	  interval: self.selectedInterval(),
+	  theme: self.selectedTheme(),
+	  showsToolbar: self.chartSettings.showsToolbar
+	)
+	UserDataManager.tradingViewChartSettings = self.chartSettings
+	self.refreshChart()
+  }
+  
+  private func refreshChart() {
+	guard let symbol = self.symbol else { return }
+	let upbitChartSymbol = self.toUpbitSymbol(symbol: symbol)
+	let themeValue = self.chartSettings.theme.rawValue.jsEscaped
+	let intervalValue = self.chartSettings.interval.rawValue.jsEscaped
+	let symbolValue = upbitChartSymbol.jsEscaped
+	let script = "updateChart('\(symbolValue)', '\(intervalValue)', '\(themeValue)');"
+	webView.evaluateJavaScript(script) { _, error in
+	  if let error = error {
+		Log.error("JavaScript 실행 오류: \(error)")
+	  }
+	}
+  }
+  
   func userContentController(
 	_ userContentController: WKUserContentController,
 	didReceive message: WKScriptMessage
@@ -100,19 +168,14 @@ class TradeChartView: UIView, WKScriptMessageHandler {
 	//		self.webViewBridgeAction?.action(bridge: bridge)
 		}
 	  }
-    @IBAction func tapOnTradingViewChartButton(_ sender: UIButton) {
-	  self.tradingChartButtonImg.image = buttonOnImg
-	  self.mobitChartButtonImg.image = buttonOffImg
-	  self.webView.isHidden = false
-	  self.mobitChartContainerView.isHidden = true
-    }
-    
-    @IBAction func tapOnMobitChartButton(_ sender: UIButton) {
-	  self.tradingChartButtonImg.image = buttonOffImg
-	  self.mobitChartButtonImg.image = buttonOnImg
-	  self.webView.isHidden = true
-	  self.mobitChartContainerView.isHidden = false
-    }
+  
+  @IBAction func intervalValueChanged(_ sender: UISegmentedControl) {
+	self.applyCurrentSettings()
+  }
+  
+  @IBAction func themeValueChanged(_ sender: UISegmentedControl) {
+	self.applyCurrentSettings()
+  }
 }
 
 // MARK: - WKNavigationDelegate
@@ -131,16 +194,10 @@ extension TradeChartView: WKNavigationDelegate {
 	} else {
 	  decisionHandler(.allow)
 	}
-  }
+	  }
   
 	  func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-		let upbitChartSymbol = self.toUpbitSymbol(symbol: self.symbol)
-		let script = "updateSymbol('\(upbitChartSymbol)');"
-		webView.evaluateJavaScript(script) { _, error in
-		  if let error = error {
-			Log.error("JavaScript 실행 오류: \(error)")
-		  }
-	}
+		self.refreshChart()
   }
 }
 
@@ -162,5 +219,13 @@ extension TradeChartView: WKUIDelegate {
 extension TradeChartView: UIScrollViewDelegate {
   func scrollViewWillBeginZooming(_ scrollView: UIScrollView, with view: UIView?) {
 	scrollView.pinchGestureRecognizer?.isEnabled = false
+  }
+}
+
+private extension String {
+  var jsEscaped: String {
+	self
+	  .replacingOccurrences(of: "\\", with: "\\\\")
+	  .replacingOccurrences(of: "'", with: "\\'")
   }
 }

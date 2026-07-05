@@ -9,6 +9,35 @@ import Foundation
 import RxSwift
 
 class UserDataManager: NSObject {
+  struct TradingViewChartSettings: Codable, Equatable {
+	enum Interval: String, Codable {
+	  case minute15 = "15"
+	  case hour1 = "60"
+	  case hour4 = "240"
+	  case day1 = "1D"
+	}
+	
+	enum Theme: String, Codable {
+	  case light
+	  case dark
+	}
+	
+	var interval: Interval
+	var theme: Theme
+	var showsToolbar: Bool
+	
+	static let `default` = TradingViewChartSettings(
+	  interval: .hour1,
+	  theme: .light,
+	  showsToolbar: true
+	)
+  }
+  
+  enum MarketColorTheme: String, Codable {
+	case riseRedFallBlue
+	case riseGreenFallRed
+  }
+
   enum Keys {
 	static let isFirstLaunch = "isFirstLaunch"
 	static let userFavoriteList = "user-favorite-list"
@@ -17,6 +46,8 @@ class UserDataManager: NSObject {
 	static let userCryptoList = "user-crypto-list"
 	static let userPNLHistory = "user-pnl-list"
 	static let userInformation = "user-information"
+	static let tradingViewChartSettings = "tradingview-chart-settings"
+	static let marketColorTheme = "market-color-theme"
   }
 
   static let userAvailableBalanceSubject = BehaviorSubject<Double?>(value: nil)
@@ -174,6 +205,39 @@ class UserDataManager: NSObject {
         }
       }
     }
+  }
+  
+  static var tradingViewChartSettings: TradingViewChartSettings {
+	get {
+	  let defaults = UserDefaults.standard
+	  guard let data = defaults.data(forKey: Keys.tradingViewChartSettings),
+			let decodedData = try? JSONDecoder().decode(TradingViewChartSettings.self, from: data)
+	  else {
+		return .default
+	  }
+	  return decodedData
+	}
+	set {
+	  let defaults = UserDefaults.standard
+	  guard let encodedData = try? JSONEncoder().encode(newValue) else { return }
+	  defaults.set(encodedData, forKey: Keys.tradingViewChartSettings)
+	}
+  }
+  
+  static var marketColorTheme: MarketColorTheme {
+	get {
+	  let defaults = UserDefaults.standard
+	  guard let rawValue = defaults.string(forKey: Keys.marketColorTheme),
+			let theme = MarketColorTheme(rawValue: rawValue)
+	  else {
+		return .riseRedFallBlue
+	  }
+	  return theme
+	}
+	set {
+	  let defaults = UserDefaults.standard
+	  defaults.set(newValue.rawValue, forKey: Keys.marketColorTheme)
+	}
   }
 
   @discardableResult

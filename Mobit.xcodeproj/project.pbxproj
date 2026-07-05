@@ -66,6 +66,7 @@
 		369E877F2C7D955E0020A0B3 /* OrderBookResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */; };
 		36E7718F2D7595A700739CDE /* CallbackResultEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E7718E2D7595A700739CDE /* CallbackResultEnums.swift */; };
 		36E771932D75AF1E00739CDE /* MobitTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E771922D75AF1E00739CDE /* MobitTextField.swift */; };
+		5F5EDD442FFAA20D008ED0B3 /* MarketColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F5EDD432FFAA20D008ED0B3 /* MarketColorPalette.swift */; };
 		5FA880E32E1A3D0B00F22F9C /* NoticeForceUpdateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA880E12E1A3D0B00F22F9C /* NoticeForceUpdateViewController.swift */; };
 		5FA880E42E1A3D0B00F22F9C /* NoticeForceUpdateViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5FA880E22E1A3D0B00F22F9C /* NoticeForceUpdateViewController.xib */; };
 		5FA880E62E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA880E52E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift */; };
@@ -309,6 +310,7 @@
 		369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderBookResponseDTO.swift; sourceTree = "<group>"; };
 		36E7718E2D7595A700739CDE /* CallbackResultEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallbackResultEnums.swift; sourceTree = "<group>"; };
 		36E771922D75AF1E00739CDE /* MobitTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitTextField.swift; sourceTree = "<group>"; };
+		5F5EDD432FFAA20D008ED0B3 /* MarketColorPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketColorPalette.swift; sourceTree = "<group>"; };
 		5F657F782E06B0E80065A029 /* MobitAPIKeys.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MobitAPIKeys.xcconfig; sourceTree = "<group>"; };
 		5FA880E12E1A3D0B00F22F9C /* NoticeForceUpdateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoticeForceUpdateViewController.swift; sourceTree = "<group>"; };
 		5FA880E22E1A3D0B00F22F9C /* NoticeForceUpdateViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = NoticeForceUpdateViewController.xib; sourceTree = "<group>"; };
@@ -976,6 +978,7 @@
 				C154CA182D97D63D006923BD /* MarketDataServiceUtil.swift */,
 				C1AEA1AE2D66E982001E2A9E /* CalculationUtil.swift */,
 				C0D100032EF6000000000011 /* MarketFormat.swift */,
+				5F5EDD432FFAA20D008ED0B3 /* MarketColorPalette.swift */,
 				C0D100042EF6000000000011 /* PortfolioCalculator.swift */,
 				C0D1000E2EF6000000000011 /* TradeOrderValidator.swift */,
 				C0D100122EF7000000000011 /* TradeOrderService.swift */,
@@ -1395,6 +1398,7 @@
 				C17424C62D460478009861CC /* MobitUserInformation.swift in Sources */,
 				3133E2662C3F6A44000D4B1A /* BaseCoordinator.swift in Sources */,
 				C1B8F3BC2E272E6800C46734 /* SelfSizingViews.swift in Sources */,
+				5F5EDD442FFAA20D008ED0B3 /* MarketColorPalette.swift in Sources */,
 				C1B327852E8523F400E50C50 /* SkeletonDiffableDataSource.swift in Sources */,
 				C17424C42D4600A8009861CC /* UserDataManager.swift in Sources */,
 				C174D8A32E24DBEC0015B6ED /* TradeInfoCollectionViewCell.swift in Sources */,
