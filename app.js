@@ -246,8 +246,9 @@ function showAdminUI(postKey, container) {
   container.appendChild(replyForm);
 }
 
-// 초기 실행
-// loadPosts();
+// 초기 실행: iOS 브리지(setDeviceUUID) 없이도 페이지 로드 시 목록을 바로 표시.
+// 관리자 판별(setDeviceUUID→checkIfAdmin)이 들어오면 loadPosts가 다시 호출되어 관리자 UI가 반영된다.
+loadPosts();
 
 // submitPost를 window에 붙여서 버튼에서도 작동하게 함
 window.submitPost = submitPost;
