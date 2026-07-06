@@ -28,16 +28,18 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
-/* WKWebView 네이티브 스크롤이 꺼져 있어(iOS) body를 스크롤 컨테이너로 사용 */
 body {
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
 }
 
 .wrap {
-  max-width: 640px;
+  width: min(100%, 640px);
+  height: 100dvh;
   margin: 0 auto;
   padding: 28px 20px 64px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 
 /* ── Header ─────────────────────────────── */
