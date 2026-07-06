@@ -46,7 +46,7 @@ class MobitCommunityViewController: UIViewController, UIScrollViewDelegate, Mobi
 	mobitWebView.navigationDelegate = self
 	mobitWebView.uiDelegate = self
 	mobitWebView.scrollView.delegate = self
-	mobitWebView.scrollView.isScrollEnabled = false
+	mobitWebView.scrollView.isScrollEnabled = true
 	
 	self.baseView.addSubview(mobitWebView)
   }
@@ -162,5 +162,4 @@ extension MobitCommunityViewController: WKUIDelegate {
 	return nil
   }
 }
-
 
