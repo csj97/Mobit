@@ -10,8 +10,8 @@ import UIKit
 
 enum MarketColorPalette {
   // 원본 hex를 단일 소스로 둔다 (UIColor + 차트 override 공용)
-  static let riseRedFallBlueRiseHex = "#125ECE"
-  static let riseRedFallBlueFallHex = "#E71A06"
+  static let riseRedFallBlueRiseHex = "#E71A06"  // 상승 = 빨강
+  static let riseRedFallBlueFallHex = "#125ECE"  // 하락 = 파랑
   static let riseGreenFallRedRiseHex = "#0A9981"
   static let riseGreenFallRedFallHex = "#F23545"
 

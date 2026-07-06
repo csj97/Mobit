@@ -215,14 +215,8 @@ class TradeOrderView: UIView, ViewRule {
 	self.cryptoEvalLoss.text = "\(data.dynamicData.evaluationProfitLoss.formatSignificantDigits(digits: 0))" + " KRW"
 	self.cryptoProfitRate.text = "\(data.dynamicData.profitRate.formatSignificantDigits(digits: 2))" + " %"
 	
-	var textColor: UIColor = .black
-	if data.dynamicData.evaluationProfitLoss < 0 {
-	  textColor = .systemBlue
-	} else if data.dynamicData.evaluationProfitLoss > 0 {
-	  textColor = .systemRed
-	} else {
-	  textColor = .black
-	}
+	// 상승/하락 색상 테마(MarketColorPalette) 반영
+	let textColor = MarketColorPalette.color(forSignedValue: data.dynamicData.evaluationProfitLoss)
 	self.cryptoEvalLoss.textColor = textColor
 	self.cryptoProfitRate.textColor = textColor
   }
