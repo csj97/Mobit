@@ -23,7 +23,7 @@ window.setDeviceUUID = function(uuid) {
     }
     return;
   }
-  
+
   DEVICE_UUID = uuid;
   checkIfAdmin(uuid);
 };
@@ -80,6 +80,12 @@ function getInputVal(id) {
   return document.getElementById(id).value;
 }
 
+// 시간 포맷
+function formatDate(timestamp) {
+  const date = new Date(timestamp);
+  return date.toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
+}
+
 // 글 목록 로딩
 function loadPosts() {
   const dataRef = database.ref("mobit_community").orderByChild("createdAt");
@@ -87,55 +93,99 @@ function loadPosts() {
   dataRef.on("value", (snapshot) => {
     const data = snapshot.val();
     const postsContainer = document.getElementById("postsContainer");
+    const countEl = document.getElementById("postsCount");
+    const emptyEl = document.getElementById("postsEmpty");
     postsContainer.innerHTML = "";
 
-    if (!data) return;
+    const sortedKeys = data
+      ? Object.keys(data).sort((a, b) => data[b].createdAt - data[a].createdAt)
+      : [];
 
-    const sortedKeys = Object.keys(data).sort((a, b) => data[b].createdAt - data[a].createdAt);
+    if (countEl) countEl.textContent = sortedKeys.length ? String(sortedKeys.length) : "";
+    if (emptyEl) emptyEl.hidden = sortedKeys.length > 0;
+
     sortedKeys.forEach((key) => {
       const post = data[key];
-      const div = document.createElement("div");
-      div.className = "post-box";
-
-      const contentDiv = document.createElement("div");
-      contentDiv.className = "post-content";
-      contentDiv.textContent = `💵 ${post.content}`;
-
-      const timeDiv = document.createElement("div");
-      timeDiv.className = "post-time";
-      const date = new Date(post.createdAt);
-      timeDiv.textContent = date.toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
-
-      div.appendChild(contentDiv);
-      div.appendChild(timeDiv);
-      
-      // ✅ 관리자 댓글 UI
-      if (post.adminReply?.content) {
-        const replyDiv = document.createElement("div");
-        replyDiv.className = "admin-reply";
-        
-        const replyContentDiv = document.createElement("div");
-        replyContentDiv.className = "admin-reply-content";
-        replyContentDiv.textContent = `👨‍💻 관리자: ${post.adminReply.content}`;
-        
-        const replyTimeDiv = document.createElement("div");
-        replyTimeDiv.className = "admin-reply-time";
-        const replyDate = new Date(post.adminReply.createdAt);
-        replyTimeDiv.textContent = replyDate.toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
-        
-        replyDiv.appendChild(replyContentDiv);
-        replyDiv.appendChild(replyTimeDiv);
-        div.appendChild(replyDiv);
-      }
-      
-      // ✅ 관리자 모드일 경우 댓글 작성 UI 노출
-      if (ADMIN_MODE) {
-        showAdminUI(key, div);
-      }
-      
-      postsContainer.appendChild(div);
+      postsContainer.appendChild(createPostElement(key, post));
     });
   });
+}
+
+// 게시글 DOM 생성
+function createPostElement(key, post) {
+  const article = document.createElement("article");
+  article.className = "post";
+
+  // 작성자 헤더 (익명 아바타 + 이름 + 시간)
+  const head = document.createElement("div");
+  head.className = "post-head";
+
+  const avatar = document.createElement("div");
+  avatar.className = "avatar";
+  avatar.textContent = "익";
+
+  const meta = document.createElement("div");
+  meta.className = "post-meta";
+
+  const author = document.createElement("span");
+  author.className = "post-author";
+  author.textContent = "익명 사용자";
+
+  const time = document.createElement("span");
+  time.className = "post-date";
+  time.textContent = formatDate(post.createdAt);
+
+  meta.appendChild(author);
+  meta.appendChild(time);
+  head.appendChild(avatar);
+  head.appendChild(meta);
+  article.appendChild(head);
+
+  // 본문
+  const content = document.createElement("div");
+  content.className = "post-content";
+  content.textContent = post.content;
+  article.appendChild(content);
+
+  // 관리자 답변
+  if (post.adminReply?.content) {
+    article.appendChild(createReplyElement(post.adminReply));
+  }
+
+  // 관리자 모드일 경우 답변 작성 UI 노출
+  if (ADMIN_MODE) {
+    showAdminUI(key, article);
+  }
+
+  return article;
+}
+
+// 관리자 답변 DOM 생성 (좌측 색바 없이 배지 + 들여쓰기)
+function createReplyElement(adminReply) {
+  const reply = document.createElement("div");
+  reply.className = "reply";
+
+  const head = document.createElement("div");
+  head.className = "reply-head";
+
+  const badge = document.createElement("span");
+  badge.className = "reply-badge";
+  badge.textContent = "관리자";
+
+  const time = document.createElement("span");
+  time.className = "reply-date";
+  time.textContent = formatDate(adminReply.createdAt);
+
+  head.appendChild(badge);
+  head.appendChild(time);
+
+  const content = document.createElement("div");
+  content.className = "reply-content";
+  content.textContent = adminReply.content;
+
+  reply.appendChild(head);
+  reply.appendChild(content);
+  return reply;
 }
 
 // ✅ 관리자 여부를 확인하고 UI를 조정
@@ -160,26 +210,27 @@ function checkIfAdmin(uuid) {
     }
     console.error("🔥 Firebase read 실패:", error);
   });
-  
+
   loadPosts();
 }
 
 function showAdminUI(postKey, container) {
   const replyForm = document.createElement("div");
-  replyForm.className = "admin-reply-form";
-  
+  replyForm.className = "reply-form";
+
   const replyTextarea = document.createElement("textarea");
-  replyTextarea.placeholder = "관리자 댓글 작성...";
-  replyTextarea.className = "admin-reply-input";
+  replyTextarea.placeholder = "관리자 답변 작성...";
+  replyTextarea.className = "reply-input";
   replyTextarea.rows = 2;
-  
+
   const replyButton = document.createElement("button");
-  replyButton.textContent = "댓글 등록";
-  replyButton.className = "admin-reply-button";
-  
+  replyButton.type = "button";
+  replyButton.textContent = "답변 등록";
+  replyButton.className = "reply-submit";
+
   replyButton.onclick = () => {
     const replyContent = replyTextarea.value.trim();
-    if (!replyContent) return alert("댓글 내용을 입력해주세요.");
+    if (!replyContent) return alert("답변 내용을 입력해주세요.");
 
     const updateRef = database.ref(`mobit_community/${postKey}/adminReply`);
     updateRef.set({

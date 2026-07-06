@@ -1,127 +1,291 @@
+:root {
+  --bg: #ffffff;
+  --text: #17181c;
+  --muted: #6b7280;
+  --faint: #9aa0a8;
+  --border: #ececf0;
+  --surface: #f6f7f9;
+  --surface-strong: #eef0f3;
+  --accent: #1f2430;
+  --accent-hover: #12151d;
+}
+
 * {
   box-sizing: border-box;
 }
 
-html, body {
-  height: 100%;
+html,
+body {
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background-color: #fff;
-  color: #222;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, "Apple SD Gothic Neo", sans-serif;
   line-height: 1.6;
-  overflow-y: auto;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
 }
 
-body {
-  padding: 0rem 1rem 1rem 1rem;
+.wrap {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 28px 20px 64px;
 }
 
-h1 {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
+/* ── Header ─────────────────────────────── */
+.board-header {
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--border);
 }
 
-h5 {
-  font-size: 0.95rem;
-  font-weight: 400;
-  margin: 0.3rem 0;
+.eyebrow {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--faint);
+  text-transform: uppercase;
 }
 
-textarea {
+.board-title {
+  margin: 0 0 10px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.board-desc {
+  margin: 0 0 16px;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 13.5px;
+  color: var(--text);
+  text-decoration: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.contact-label {
+  font-weight: 600;
+  color: var(--faint);
+}
+
+/* ── Composer ───────────────────────────── */
+.composer {
+  margin-top: 22px;
+}
+
+#postContent {
   width: 100%;
-  padding: 0.8rem;
-  margin-top: 1rem;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  resize: vertical;
-}
-
-button {
-  margin-top: 0.7rem;
-  padding: 0.8rem 1.2rem;
-  margin-bottom: 1rem;
-  font-size: 1rem;
-  border: none;
-  border-radius: 8px;
-  background-color: #4f6ef7;
-  color: white;
-  width: 100%;
-}
-
-#postsScrollArea {
-  width: 100%;
-  padding: 0;
-}
-
-#postsContainer {
-  padding: 0;
-}
-
-.post-box {
-  background-color: #f4f6fa;
+  padding: 14px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 12px 16px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+#postContent::placeholder {
+  color: var(--faint);
+}
+
+#postContent:focus {
+  border-color: var(--accent);
+}
+
+.composer-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.btn-primary {
+  padding: 11px 22px;
+  font-size: 14.5px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-primary:hover,
+.btn-primary:active {
+  background: var(--accent-hover);
+}
+
+/* ── Posts ──────────────────────────────── */
+.posts {
+  margin-top: 36px;
+}
+
+.posts-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.posts-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.posts-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--faint);
+}
+
+.posts-empty {
+  padding: 40px 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--faint);
+}
+
+/* ── Post item ──────────────────────────── */
+.post {
+  padding: 16px 0;
+  border-top: 1px solid var(--border);
+}
+
+.post:first-child {
+  border-top: none;
+}
+
+.post-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.avatar {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--surface-strong);
+  border-radius: 10px;
+}
+
+.post-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.post-author {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.post-date {
+  font-size: 12px;
+  color: var(--faint);
 }
 
 .post-content {
+  font-size: 15px;
+  color: var(--text);
   white-space: pre-wrap;
   word-break: break-word;
-  font-size: 16px;
-  color: #333;
+}
+
+/* ── Admin reply (좌측 색바 없이 들여쓰기 + 배지) ── */
+.reply {
+  margin: 12px 0 2px 42px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.reply-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 6px;
 }
 
-.post-time {
-  font-size: 12px;
-  color: #888;
+.reply-badge {
+  padding: 2px 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 999px;
 }
 
-.admin-reply {
-  margin-top: 12px;
-  padding: 10px 12px;
-  background-color: #e9f5ff;
-  border-left: 4px solid #4f6ef7;
-  border-radius: 8px;
+.reply-date {
+  font-size: 11.5px;
+  color: var(--faint);
 }
 
-.admin-reply-content {
-  font-size: 15px;
-  color: #2a4a78;
-  margin-bottom: 4px;
+.reply-content {
+  font-size: 14.5px;
+  color: #2c2f36;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
-.admin-reply-time {
-  font-size: 12px;
-  color: #888;
-}
-
-.admin-reply-form {
-  margin-top: 10px;
+/* ── Admin composer (관리자 모드) ───────────── */
+.reply-form {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  margin: 12px 0 2px 42px;
 }
 
-.admin-reply-input {
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+.reply-input {
+  width: 100%;
+  padding: 10px 12px;
   font-size: 14px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  resize: vertical;
+  outline: none;
 }
 
-.admin-reply-button {
+.reply-input:focus {
+  border-color: var(--accent);
+}
+
+.reply-submit {
   align-self: flex-end;
-  padding: 6px 12px;
-  font-size: 14px;
-  background-color: #ff8800;
-  color: white;
+  padding: 8px 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #fff;
+  background: var(--accent);
   border: none;
-  border-radius: 6px;
+  border-radius: 9px;
   cursor: pointer;
 }
