@@ -152,7 +152,10 @@ class TradeChartView: UIView, WKScriptMessageHandler {
 	let themeValue = self.chartSettings.theme.rawValue.jsEscaped
 	let intervalValue = self.chartSettings.interval.rawValue.jsEscaped
 	let symbolValue = upbitChartSymbol.jsEscaped
-	let script = "updateChart('\(symbolValue)', '\(intervalValue)', '\(themeValue)');"
+	// 앱의 상승/하락 색상 테마를 캔들 색에 반영
+	let upColorValue = MarketColorPalette.riseColorHex.jsEscaped
+	let downColorValue = MarketColorPalette.fallColorHex.jsEscaped
+	let script = "updateChart('\(symbolValue)', '\(intervalValue)', '\(themeValue)', '\(upColorValue)', '\(downColorValue)');"
 	webView.evaluateJavaScript(script) { _, error in
 	  if let error = error {
 		Log.error("JavaScript 실행 오류: \(error)")

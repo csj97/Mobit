@@ -48,6 +48,7 @@ class UserDataManager: NSObject {
 	static let userInformation = "user-information"
 	static let tradingViewChartSettings = "tradingview-chart-settings"
 	static let marketColorTheme = "market-color-theme"
+	static let marketCellTintEnabled = "market-cell-tint-enabled"
   }
 
   static let userAvailableBalanceSubject = BehaviorSubject<Double?>(value: nil)
@@ -237,6 +238,20 @@ class UserDataManager: NSObject {
 	set {
 	  let defaults = UserDefaults.standard
 	  defaults.set(newValue.rawValue, forKey: Keys.marketColorTheme)
+	}
+  }
+
+  // 시세 리스트 셀 배경 색상 틴트 표시 여부 (기본 ON)
+  static var marketCellTintEnabled: Bool {
+	get {
+	  let defaults = UserDefaults.standard
+	  if defaults.object(forKey: Keys.marketCellTintEnabled) == nil {
+		return true
+	  }
+	  return defaults.bool(forKey: Keys.marketCellTintEnabled)
+	}
+	set {
+	  UserDefaults.standard.set(newValue, forKey: Keys.marketCellTintEnabled)
 	}
   }
 

@@ -18,6 +18,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
 	self.window = CustomWindow(frame: UIScreen.main.bounds)
 	self.window?.windowScene = windowScene
+	// 다크모드 미지원: 시스템 동적 색상이 검정으로 바뀌지 않도록 앱을 라이트로 고정 (라이트/다크 전환은 추후 반영)
+	self.window?.overrideUserInterfaceStyle = .light
 	
 	let mobitLaunchScreen = MobitLaunchScreen()
 	self.window?.rootViewController = mobitLaunchScreen

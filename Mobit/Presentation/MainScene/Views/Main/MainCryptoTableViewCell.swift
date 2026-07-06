@@ -19,7 +19,12 @@ class MainCryptoTableViewCell: UITableViewCell {
   
   override func awakeFromNib() {
 	super.awakeFromNib()
-	// Initialization code
+	// 현재가·전일대비는 regular라 다소 연해 보여 medium으로 강조
+	self.cryptoPrice.font = .systemFont(ofSize: 13, weight: .medium)
+	self.cryptoChangeRate.font = .systemFont(ofSize: 13, weight: .medium)
+	// 셀 배경 틴트가 보이도록 내부 스택뷰의 흰 배경을 비움
+	self.priceBox.superview?.backgroundColor = .clear
+	self.cryptoName.superview?.backgroundColor = .clear
   }
   
   override func setSelected(_ selected: Bool, animated: Bool) {
@@ -85,7 +90,18 @@ class MainCryptoTableViewCell: UITableViewCell {
 	  self.cryptoPrice.textColor = MarketColorPalette.riseColor
 	  self.cryptoChangeRate.textColor = MarketColorPalette.riseColor
 	}
-	
+
+	// 상승/하락/보합 색을 아주 연하게 셀 배경 틴트로 표시 (더보기에서 on/off)
+	if UserDataManager.marketCellTintEnabled == false {
+	  self.contentView.backgroundColor = .clear
+	} else if signedChangeRate > 0 {
+	  self.contentView.backgroundColor = MarketColorPalette.riseColor.withAlphaComponent(0.08)
+	} else if signedChangeRate < 0 {
+	  self.contentView.backgroundColor = MarketColorPalette.fallColor.withAlphaComponent(0.08)
+	} else {
+	  self.contentView.backgroundColor = UIColor.black.withAlphaComponent(0.03)
+	}
+
 	if isScrolling == false {
 	  switch change {
 	  case "RISE":

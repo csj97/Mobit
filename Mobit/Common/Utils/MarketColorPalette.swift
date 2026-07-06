@@ -9,11 +9,36 @@ import SwiftUI
 import UIKit
 
 enum MarketColorPalette {
-  static let riseRedFallBlueRiseColor = UIColor(hex: "#F04452")
-  static let riseRedFallBlueFallColor = UIColor(hex: "#3B82F6")
-  static let riseGreenFallRedRiseColor = UIColor(hex: "#20C997")
-  static let riseGreenFallRedFallColor = UIColor(hex: "#EB4D72")
-  
+  // 원본 hex를 단일 소스로 둔다 (UIColor + 차트 override 공용)
+  static let riseRedFallBlueRiseHex = "#125ECE"
+  static let riseRedFallBlueFallHex = "#E71A06"
+  static let riseGreenFallRedRiseHex = "#0A9981"
+  static let riseGreenFallRedFallHex = "#F23545"
+
+  static let riseRedFallBlueRiseColor = UIColor(hex: riseRedFallBlueRiseHex)
+  static let riseRedFallBlueFallColor = UIColor(hex: riseRedFallBlueFallHex)
+  static let riseGreenFallRedRiseColor = UIColor(hex: riseGreenFallRedRiseHex)
+  static let riseGreenFallRedFallColor = UIColor(hex: riseGreenFallRedFallHex)
+
+  // 차트(TradingView) 등 hex 문자열이 필요한 곳에서 사용
+  static var riseColorHex: String {
+	switch UserDataManager.marketColorTheme {
+	case .riseRedFallBlue:
+	  return self.riseRedFallBlueRiseHex
+	case .riseGreenFallRed:
+	  return self.riseGreenFallRedRiseHex
+	}
+  }
+
+  static var fallColorHex: String {
+	switch UserDataManager.marketColorTheme {
+	case .riseRedFallBlue:
+	  return self.riseRedFallBlueFallHex
+	case .riseGreenFallRed:
+	  return self.riseGreenFallRedFallHex
+	}
+  }
+
   static var riseColor: UIColor {
 	switch UserDataManager.marketColorTheme {
 	case .riseRedFallBlue:

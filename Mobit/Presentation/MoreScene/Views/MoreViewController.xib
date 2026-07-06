@@ -11,11 +11,9 @@
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="MoreViewController" customModule="Mobit" customModuleProvider="target">
             <connections>
                 <outlet property="chargeMoneyButton" destination="LmI-xJ-5oP" id="eRj-E2-XF5"/>
-                <outlet property="fallColorPreviewView" destination="Wso-6x-fb0" id="hRF-rn-Z5y"/>
                 <outlet property="investInitButton" destination="bME-qa-wuz" id="WEX-3X-EaM"/>
-                <outlet property="marketColorThemeButton" destination="jZr-Hs-Y0i" id="kk0-DN-fb7"/>
+                <outlet property="settingsButton" destination="jZr-Hs-Y0i" id="kk0-DN-fb7"/>
                 <outlet property="naviBar" destination="Of0-zp-4hq" id="3y1-Am-NZ3"/>
-                <outlet property="riseColorPreviewView" destination="LJT-v6-CKv" id="f1f-zx-0ES"/>
                 <outlet property="userNoticeButton" destination="PIX-eV-2no" id="rPA-bg-bf7"/>
                 <outlet property="versionLabel" destination="sRb-9r-BlS" id="7H0-jE-1fK"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
@@ -183,39 +181,20 @@
                                     </constraints>
                                     <fontDescription key="fontDescription" type="system" weight="medium" pointSize="16"/>
                                     <color key="tintColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    <state key="normal" title="캔들 색상 변경"/>
+                                    <state key="normal" title="설정"/>
                                     <connections>
-                                        <action selector="tapOnMarketColorThemeButton:" destination="-1" eventType="touchUpInside" id="Y47-Oh-ewn"/>
+                                        <action selector="tapOnSettingsButton:" destination="-1" eventType="touchUpInside" id="Y47-Oh-ewn"/>
                                     </connections>
                                 </button>
-                                <stackView opaque="NO" contentMode="scaleToFill" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="c0j-dE-i8X">
-                                    <rect key="frame" x="243" y="22" width="40" height="10"/>
-                                    <subviews>
-                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="LJT-v6-CKv">
-                                            <rect key="frame" x="0.0" y="0.0" width="17" height="10"/>
-                                            <constraints>
-                                                <constraint firstAttribute="height" constant="10" id="Mfp-bb-kWV"/>
-                                                <constraint firstAttribute="width" constant="17" id="gwP-1o-jvT"/>
-                                            </constraints>
-                                        </view>
-                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Wso-6x-fb0">
-                                            <rect key="frame" x="23" y="0.0" width="17" height="10"/>
-                                            <constraints>
-                                                <constraint firstAttribute="height" constant="10" id="5jy-cG-pG3"/>
-                                                <constraint firstAttribute="width" constant="17" id="hKu-Bc-lt3"/>
-                                            </constraints>
-                                        </view>
-                                    </subviews>
-                                </stackView>
                                 <button opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wUV-Mn-YSr">
                                     <rect key="frame" x="283" y="0.0" width="90" height="54"/>
                                     <constraints>
-                                        <constraint firstAttribute="width" constant="90" id="xGj-8J-9nE"/>
+                                        <constraint firstAttribute="width" constant="54" id="xGj-8J-9nE"/>
                                     </constraints>
                                     <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     <state key="normal" image="chevron.right" catalog="system"/>
                                     <connections>
-                                        <action selector="tapOnMarketColorThemeButton:" destination="-1" eventType="touchUpInside" id="Cf1-cn-Mpv"/>
+                                        <action selector="tapOnSettingsButton:" destination="-1" eventType="touchUpInside" id="Cf1-cn-Mpv"/>
                                     </connections>
                                 </button>
                             </subviews>

@@ -23,7 +23,9 @@
 	  const defaultSettings = {
 		symbol: "UPBIT:BTCKRW",
 		interval: "60",
-		theme: "light"
+		theme: "light",
+		upColor: "#125ECE",
+		downColor: "#E71A06"
 	  };
 
 	  function getQueryParam(param) {
@@ -59,17 +61,27 @@
 		  "hide_side_toolbar": false,
 		  "allow_symbol_change": true,
 		  "autosize": true,
-		  "disabled_features": ["header_symbol_search"]
+		  "disabled_features": ["header_symbol_search"],
+		  "overrides": {
+			"mainSeriesProperties.candleStyle.upColor": settings.upColor,
+			"mainSeriesProperties.candleStyle.downColor": settings.downColor,
+			"mainSeriesProperties.candleStyle.borderUpColor": settings.upColor,
+			"mainSeriesProperties.candleStyle.borderDownColor": settings.downColor,
+			"mainSeriesProperties.candleStyle.wickUpColor": settings.upColor,
+			"mainSeriesProperties.candleStyle.wickDownColor": settings.downColor
+		  }
 		});
 	  }
 	  
 	  createWidget({ ...defaultSettings, symbol });
 	  
-	  function updateChart(newSymbol, interval, theme) {
+	  function updateChart(newSymbol, interval, theme, upColor, downColor) {
 		createWidget({
 		  symbol: newSymbol || defaultSettings.symbol,
 		  interval: interval || defaultSettings.interval,
-		  theme: theme || defaultSettings.theme
+		  theme: theme || defaultSettings.theme,
+		  upColor: upColor || defaultSettings.upColor,
+		  downColor: downColor || defaultSettings.downColor
 		});
 	  }
 	</script>

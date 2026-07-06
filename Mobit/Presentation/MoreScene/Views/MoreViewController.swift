@@ -13,14 +13,12 @@ import UIKit
 class MoreViewController: MobitBaseViewController {
   
   @IBOutlet weak var naviBar: UIView!
-  @IBOutlet weak var marketColorThemeButton: UIButton!
-  @IBOutlet weak var riseColorPreviewView: UIView!
-  @IBOutlet weak var fallColorPreviewView: UIView!
+  @IBOutlet weak var settingsButton: UIButton!
   @IBOutlet weak var chargeMoneyButton: UIButton!
   @IBOutlet weak var userNoticeButton: UIButton!
   @IBOutlet weak var investInitButton: UIButton!
   @IBOutlet weak var versionLabel: UILabel!
-  
+
   weak var coordinator: MoreCoordinator?
   
   override func viewDidLoad() {
@@ -37,13 +35,25 @@ class MoreViewController: MobitBaseViewController {
   func setUI() {
 	self.navigationController?.navigationBar.isHidden = true
 	self.naviBar.layer.applyShadow(color: .lightGray, alpha: 0.3, x: 0, y: 10, blur: 20)
-	self.marketColorThemeButton.contentHorizontalAlignment = .leading
-	self.configurePreviewViews()
+	self.expandSettingsRowTouchArea()
   }
-  
+
+  /// "설정" 행 전체를 터치 영역으로 만든다 (행 위에 투명 버튼을 덮음)
+  private func expandSettingsRowTouchArea() {
+	guard let settingsRow = self.settingsButton.superview else { return }
+	let overlayButton = UIButton(type: .custom)
+	overlayButton.backgroundColor = .clear
+	overlayButton.addTarget(
+	  self, action: #selector(self.tapOnSettingsButton(_:)), for: .touchUpInside
+	)
+	settingsRow.addSubview(overlayButton)
+	overlayButton.snp.makeConstraints { make in
+	  make.edges.equalToSuperview()
+	}
+  }
+
   func setData() {
 	self.updateVersionLabel()
-	self.updateMarketColorThemeButtonTitle()
   }
   
   @IBAction func tapOnChargeMoney(_ sender: UIButton) {
@@ -114,16 +124,11 @@ class MoreViewController: MobitBaseViewController {
 	}
   }
   
-  @IBAction func tapOnMarketColorThemeButton(_ sender: UIButton) {
-	let selectionViewController = MarketColorThemeSelectionViewController(
-	  selectedTheme: UserDataManager.marketColorTheme
-	) { [weak self] selectedTheme in
-	  UserDataManager.marketColorTheme = selectedTheme
-	  self?.updateMarketColorThemeButtonTitle()
-	}
-	selectionViewController.modalPresentationStyle = .overFullScreen
-	selectionViewController.modalTransitionStyle = .crossDissolve
-	self.present(selectionViewController, animated: true)
+  @IBAction func tapOnSettingsButton(_ sender: UIButton) {
+	let settingsViewController = AppSettingsViewController()
+	settingsViewController.modalPresentationStyle = .overFullScreen
+	settingsViewController.modalTransitionStyle = .crossDissolve
+	self.present(settingsViewController, animated: true)
   }
   
   /// MOBIT 이용자 커뮤니티
@@ -146,35 +151,22 @@ class MoreViewController: MobitBaseViewController {
 	
 	self.versionLabel.text = "앱 버전: \(fixedVersion)"
   }
-  
-  private func updateMarketColorThemeButtonTitle() {
-	self.marketColorThemeButton.setTitle("캔들 색상 변경", for: .normal)
-	self.riseColorPreviewView.backgroundColor = MarketColorPalette.riseColor
-	self.fallColorPreviewView.backgroundColor = MarketColorPalette.fallColor
-  }
-  
-  private func configurePreviewViews() {
-	[self.riseColorPreviewView, self.fallColorPreviewView].forEach { previewView in
-	  previewView?.layer.cornerRadius = 5
-	  previewView?.layer.borderWidth = 0.5
-	  previewView?.layer.borderColor = UIColor.black.withAlphaComponent(0.12).cgColor
-	  previewView?.clipsToBounds = true
-	}
-  }
 }
 
-private final class MarketColorThemeSelectionViewController: UIViewController {
-  private let applyHandler: (UserDataManager.MarketColorTheme) -> Void
-  private var pendingTheme: UserDataManager.MarketColorTheme
-  
+private final class AppSettingsViewController: UIViewController {
+  private var pendingTheme: UserDataManager.MarketColorTheme = UserDataManager.marketColorTheme
+
   private let dimView = UIView()
   private let containerView = UIView()
   private let titleLabel = UILabel()
   private let descriptionLabel = UILabel()
   private let optionsStackView = UIStackView()
+  private let tintRow = UIView()
+  private let tintTitleLabel = UILabel()
+  private let tintSwitch = UISwitch()
   private let cancelButton = UIButton(type: .system)
   private let confirmButton = UIButton(type: .system)
-  
+
   private lazy var optionViews: [MarketColorThemeOptionView] = [
 	MarketColorThemeOptionView(
 	  title: "한국형",
@@ -192,12 +184,7 @@ private final class MarketColorThemeSelectionViewController: UIViewController {
 	)
   ]
   
-  init(
-	selectedTheme: UserDataManager.MarketColorTheme,
-	applyHandler: @escaping (UserDataManager.MarketColorTheme) -> Void
-  ) {
-	self.pendingTheme = selectedTheme
-	self.applyHandler = applyHandler
+  init() {
 	super.init(nibName: nil, bundle: nil)
   }
   
@@ -215,92 +202,122 @@ private final class MarketColorThemeSelectionViewController: UIViewController {
   private func configureUI() {
 	self.view.backgroundColor = .clear
 	
-	self.dimView.backgroundColor = UIColor(red: 0.01, green: 0.06, blue: 0.11, alpha: 0.82)
+	self.dimView.backgroundColor = UIColor.black.withAlphaComponent(0.15)
 	self.view.addSubview(self.dimView)
-	
-	self.containerView.backgroundColor = UIColor(hex: "#1C2636")
-	self.containerView.layer.cornerRadius = 28
-	self.containerView.layer.borderWidth = 1
-	self.containerView.layer.borderColor = UIColor.white.withAlphaComponent(0.14).cgColor
-	self.containerView.layer.shadowColor = UIColor.black.withAlphaComponent(0.35).cgColor
-	self.containerView.layer.shadowOpacity = 1
-	self.containerView.layer.shadowRadius = 24
-	self.containerView.layer.shadowOffset = CGSize(width: 0, height: 12)
+
+	// 앱 표준 alert(MobitAlertViewController)와 동일한 라이트 스타일
+	self.containerView.backgroundColor = .white
+	self.containerView.layer.cornerRadius = 8
+	self.containerView.clipsToBounds = true
 	self.view.addSubview(self.containerView)
-	
-	self.titleLabel.text = "상승/하락 색상 설정"
-	self.titleLabel.font = UIFont.systemFont(ofSize: 22, weight: .bold)
-	self.titleLabel.textColor = UIColor(hex: "#E8F1FF")
+
+	self.titleLabel.text = "설정"
+	self.titleLabel.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
+	self.titleLabel.textColor = .black
 	self.titleLabel.numberOfLines = 0
-	
-	self.descriptionLabel.text = "차트와 가격의 상승/하락 지표 색상을 선택하세요."
-	self.descriptionLabel.font = UIFont.systemFont(ofSize: 14, weight: .medium)
-	self.descriptionLabel.textColor = UIColor.white.withAlphaComponent(0.76)
+
+	// 캔들 색상 섹션 헤더
+	self.descriptionLabel.text = "캔들 색상"
+	self.descriptionLabel.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
+	self.descriptionLabel.textColor = UIColor(white: 0.33, alpha: 1)
 	self.descriptionLabel.numberOfLines = 0
-	
+
 	self.optionsStackView.axis = .vertical
-	self.optionsStackView.spacing = 16
-	
+	self.optionsStackView.spacing = 12
+
+	self.tintTitleLabel.text = "시세 배경 색상 표시"
+	self.tintTitleLabel.font = UIFont.systemFont(ofSize: 15, weight: .medium)
+	self.tintTitleLabel.textColor = .black
+	self.tintSwitch.onTintColor = UIColor.systemBlue
+	self.tintSwitch.isOn = UserDataManager.marketCellTintEnabled
+	self.tintSwitch.setContentHuggingPriority(.required, for: .horizontal)
+
 	self.cancelButton.setTitle("취소", for: .normal)
-	self.cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .bold)
-	self.cancelButton.setTitleColor(UIColor(hex: "#DCE7F8"), for: .normal)
-	self.cancelButton.backgroundColor = UIColor(hex: "#253247")
-	self.cancelButton.layer.cornerRadius = 18
-	
+	self.cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 18)
+	self.cancelButton.setTitleColor(UIColor(hex: "#F85858"), for: .normal)
+	self.cancelButton.backgroundColor = .white
+
 	self.confirmButton.setTitle("변경하기", for: .normal)
-	self.confirmButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .bold)
-	self.confirmButton.setTitleColor(UIColor(hex: "#183247"), for: .normal)
-	self.confirmButton.backgroundColor = UIColor(hex: "#79C9FF")
-	self.confirmButton.layer.cornerRadius = 18
-	self.confirmButton.layer.shadowColor = UIColor(hex: "#79C9FF").withAlphaComponent(0.45).cgColor
-	self.confirmButton.layer.shadowOpacity = 1
-	self.confirmButton.layer.shadowRadius = 14
-	self.confirmButton.layer.shadowOffset = CGSize(width: 0, height: 8)
+	self.confirmButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .medium)
+	self.confirmButton.setTitleColor(UIColor.hexStringToUIColor(hex: "#006cd1"), for: .normal)
+	self.confirmButton.backgroundColor = .white
 	
-	[self.titleLabel, self.descriptionLabel, self.optionsStackView, self.cancelButton, self.confirmButton]
+	// 버튼 위 구분선 + 버튼 사이 세로 구분선 (MobitAlert 버튼 행 스타일)
+	let topDivider = UIView()
+	topDivider.backgroundColor = UIColor(white: 0.33, alpha: 0.1)
+	let buttonDivider = UIView()
+	buttonDivider.backgroundColor = UIColor(white: 0.66, alpha: 0.26)
+
+	self.tintRow.addSubview(self.tintTitleLabel)
+	self.tintRow.addSubview(self.tintSwitch)
+
+	[self.titleLabel, self.descriptionLabel, self.optionsStackView, self.tintRow, topDivider, self.cancelButton, buttonDivider, self.confirmButton]
 	  .forEach { self.containerView.addSubview($0) }
-	
+
 	self.optionViews.forEach { optionView in
 	  self.optionsStackView.addArrangedSubview(optionView)
 	}
-	
+
 	self.dimView.snp.makeConstraints { make in
 	  make.edges.equalToSuperview()
 	}
-	
+
 	self.containerView.snp.makeConstraints { make in
-	  make.leading.trailing.equalToSuperview().inset(24)
-	  make.centerY.equalToSuperview().offset(12)
+	  make.leading.trailing.equalToSuperview().inset(25)
+	  make.centerY.equalToSuperview()
 	}
-	
+
 	self.titleLabel.snp.makeConstraints { make in
-	  make.top.equalToSuperview().inset(28)
-	  make.leading.trailing.equalToSuperview().inset(24)
+	  make.top.equalToSuperview().inset(24)
+	  make.leading.trailing.equalToSuperview().inset(20)
 	}
-	
+
 	self.descriptionLabel.snp.makeConstraints { make in
-	  make.top.equalTo(self.titleLabel.snp.bottom).offset(16)
-	  make.leading.trailing.equalToSuperview().inset(24)
+	  make.top.equalTo(self.titleLabel.snp.bottom).offset(10)
+	  make.leading.trailing.equalToSuperview().inset(20)
 	}
-	
+
 	self.optionsStackView.snp.makeConstraints { make in
-	  make.top.equalTo(self.descriptionLabel.snp.bottom).offset(28)
-	  make.leading.trailing.equalToSuperview().inset(24)
+	  make.top.equalTo(self.descriptionLabel.snp.bottom).offset(12)
+	  make.leading.trailing.equalToSuperview().inset(20)
 	}
-	
+
+	// 시세 배경 색상 표시 토글 행
+	self.tintRow.snp.makeConstraints { make in
+	  make.top.equalTo(self.optionsStackView.snp.bottom).offset(18)
+	  make.leading.trailing.equalToSuperview().inset(20)
+	}
+	self.tintTitleLabel.snp.makeConstraints { make in
+	  make.leading.centerY.equalToSuperview()
+	}
+	self.tintSwitch.snp.makeConstraints { make in
+	  make.trailing.top.bottom.equalToSuperview()
+	  make.leading.greaterThanOrEqualTo(self.tintTitleLabel.snp.trailing).offset(12)
+	}
+
+	topDivider.snp.makeConstraints { make in
+	  make.top.equalTo(self.tintRow.snp.bottom).offset(18)
+	  make.leading.trailing.equalToSuperview()
+	  make.height.equalTo(1)
+	}
+
 	self.cancelButton.snp.makeConstraints { make in
-	  make.top.equalTo(self.optionsStackView.snp.bottom).offset(28)
-	  make.leading.equalToSuperview().inset(24)
-	  make.height.equalTo(56)
-	  make.bottom.equalToSuperview().inset(24)
+	  make.top.equalTo(topDivider.snp.bottom)
+	  make.leading.bottom.equalToSuperview()
+	  make.height.equalTo(52)
 	}
-	
+
+	buttonDivider.snp.makeConstraints { make in
+	  make.top.bottom.equalTo(self.cancelButton)
+	  make.leading.equalTo(self.cancelButton.snp.trailing)
+	  make.width.equalTo(1)
+	}
+
 	self.confirmButton.snp.makeConstraints { make in
-	  make.top.equalTo(self.cancelButton)
-	  make.leading.equalTo(self.cancelButton.snp.trailing).offset(16)
-	  make.trailing.equalToSuperview().inset(24)
+	  make.top.bottom.equalTo(self.cancelButton)
+	  make.leading.equalTo(buttonDivider.snp.trailing)
+	  make.trailing.equalToSuperview()
 	  make.width.equalTo(self.cancelButton)
-	  make.height.equalTo(56)
 	}
   }
   
@@ -323,9 +340,9 @@ private final class MarketColorThemeSelectionViewController: UIViewController {
   }
   
   @objc private func tapOnConfirmButton() {
-	self.dismiss(animated: true) {
-	  self.applyHandler(self.pendingTheme)
-	}
+	UserDataManager.marketColorTheme = self.pendingTheme
+	UserDataManager.marketCellTintEnabled = self.tintSwitch.isOn
+	self.dismiss(animated: true)
   }
   
   @objc private func tapOnOptionView(_ sender: MarketColorThemeOptionView) {
@@ -375,16 +392,21 @@ private final class MarketColorThemeOptionView: UIControl {
 	self.addSubview(self.cardView)
 	self.cardView.addSubview(self.firstPaletteView)
 	self.cardView.addSubview(self.secondPaletteView)
-	self.cardView.addSubview(self.titleLabel)
-	self.cardView.addSubview(self.descriptionLabel)
+	let textStack = UIStackView(arrangedSubviews: [self.titleLabel, self.descriptionLabel])
+	textStack.axis = .vertical
+	textStack.alignment = .leading
+	textStack.spacing = 4
+	self.cardView.addSubview(textStack)
 	self.cardView.addSubview(self.radioOuterView)
 	self.radioOuterView.addSubview(self.radioInnerView)
 	
-	self.cardView.backgroundColor = UIColor(hex: "#223146")
-	self.cardView.layer.cornerRadius = 22
+	self.cardView.backgroundColor = UIColor.mobitColors(.lightGrayBG)
+	self.cardView.layer.cornerRadius = 12
+	// 카드/하위 뷰가 터치를 가로채면 UIControl(touchUpInside)이 동작하지 않으므로 비활성화
+	self.cardView.isUserInteractionEnabled = false
 	
 	[self.firstPaletteView, self.secondPaletteView].forEach { paletteView in
-	  paletteView.layer.cornerRadius = 18
+	  paletteView.layer.cornerRadius = 12
 	  paletteView.layer.shadowColor = UIColor.black.withAlphaComponent(0.22).cgColor
 	  paletteView.layer.shadowOpacity = 1
 	  paletteView.layer.shadowRadius = 4
@@ -394,12 +416,12 @@ private final class MarketColorThemeOptionView: UIControl {
 	self.secondPaletteView.backgroundColor = fallColor
 	
 	self.titleLabel.text = title
-	self.titleLabel.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
-	self.titleLabel.textColor = UIColor(hex: "#E6F0FF")
+	self.titleLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+	self.titleLabel.textColor = .black
 	
 	self.descriptionLabel.text = description
-	self.descriptionLabel.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-	self.descriptionLabel.textColor = UIColor.white.withAlphaComponent(0.93)
+	self.descriptionLabel.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+	self.descriptionLabel.textColor = .darkGray
 	self.descriptionLabel.numberOfLines = 0
 	
 	self.radioOuterView.layer.cornerRadius = 14
@@ -413,26 +435,21 @@ private final class MarketColorThemeOptionView: UIControl {
 	self.firstPaletteView.snp.makeConstraints { make in
 	  make.leading.equalToSuperview().inset(18)
 	  make.centerY.equalToSuperview()
-	  make.width.height.equalTo(36)
+	  make.width.height.equalTo(24)
 	}
 	
 	self.secondPaletteView.snp.makeConstraints { make in
 	  make.leading.equalTo(self.firstPaletteView.snp.trailing).offset(-10)
 	  make.centerY.equalTo(self.firstPaletteView)
-	  make.width.height.equalTo(36)
+	  make.width.height.equalTo(24)
 	}
 	
-	self.titleLabel.snp.makeConstraints { make in
-	  make.top.equalToSuperview().inset(18)
+	textStack.snp.makeConstraints { make in
 	  make.leading.equalTo(self.secondPaletteView.snp.trailing).offset(22)
 	  make.trailing.lessThanOrEqualTo(self.radioOuterView.snp.leading).offset(-16)
-	}
-	
-	self.descriptionLabel.snp.makeConstraints { make in
-	  make.top.equalTo(self.titleLabel.snp.bottom).offset(4)
-	  make.leading.equalTo(self.titleLabel)
-	  make.trailing.lessThanOrEqualTo(self.radioOuterView.snp.leading).offset(-16)
-	  make.bottom.equalToSuperview().inset(18)
+	  make.centerY.equalToSuperview()
+	  make.top.greaterThanOrEqualToSuperview().inset(14)
+	  make.bottom.lessThanOrEqualToSuperview().inset(14)
 	}
 	
 	self.radioOuterView.snp.makeConstraints { make in
@@ -449,21 +466,21 @@ private final class MarketColorThemeOptionView: UIControl {
   
   private func updateSelectionStyle() {
 	if self.isSelectedTheme {
-	  self.cardView.layer.borderWidth = 2
-	  self.cardView.layer.borderColor = UIColor(hex: "#7FCBFF").cgColor
-	  self.cardView.backgroundColor = UIColor(hex: "#2A384E")
-	  self.radioOuterView.layer.borderColor = UIColor(hex: "#7FCBFF").cgColor
-	  self.radioInnerView.backgroundColor = UIColor(hex: "#7FCBFF")
+	  self.cardView.layer.borderWidth = 1.5
+	  self.cardView.layer.borderColor = UIColor.hexStringToUIColor(hex: "#006cd1").cgColor
+	  self.cardView.backgroundColor = UIColor.mobitColors(.blue_E8F9FF)
+	  self.radioOuterView.layer.borderColor = UIColor.hexStringToUIColor(hex: "#006cd1").cgColor
+	  self.radioInnerView.backgroundColor = UIColor.hexStringToUIColor(hex: "#006cd1")
 	} else {
 	  self.cardView.layer.borderWidth = 0
 	  self.cardView.layer.borderColor = UIColor.clear.cgColor
-	  self.cardView.backgroundColor = UIColor(hex: "#223146")
-	  self.radioOuterView.layer.borderColor = UIColor.white.withAlphaComponent(0.18).cgColor
+	  self.cardView.backgroundColor = UIColor.hexStringToUIColor(hex: "#f2f2f2")
+	  self.radioOuterView.layer.borderColor = UIColor.mobitColors(.lineLightGray).cgColor
 	  self.radioInnerView.backgroundColor = .clear
 	}
   }
   
   override var intrinsicContentSize: CGSize {
-	CGSize(width: UIView.noIntrinsicMetric, height: 118)
+	CGSize(width: UIView.noIntrinsicMetric, height: 88)
   }
 }
