@@ -238,6 +238,13 @@ class InvestmentViewController: MobitBaseViewController {
 	  sortType: self.selectedSortType
 	) { index in
 	  self.selectedSortType = sortTypes[index]
+	  MobitAnalyticsUtil.sendClickEvent(
+		location: "투자내역_화면",
+		stepDepth01: "투자내역_탭",
+		stepDepth02: "정렬_변경",
+		stepDepth03: sortTypes[index].rawValue,
+		extraParameters: ["selected_sort": sortTypes[index].rawValue]
+	  )
 	}
   }
 }

@@ -530,9 +530,6 @@ class MainViewController: MobitBaseViewController {
   }
   
   @objc private func tapOnSortButton(_ sender: UIButton) {
-	
-	MobitAnalyticsUtil.sendClickEvent(event: .exchange_sort)
-	
 	self.resumeSocket()
 
 	let isHold = (self.selectedTab == .hold)
@@ -564,6 +561,20 @@ class MainViewController: MobitBaseViewController {
 	} else {
 	  self.reactor.action.onNext(.setSortType(sortBy: newSortType))
 	}
+
+	MobitAnalyticsUtil.sendClickEvent(event: .exchange_sort)
+	MobitAnalyticsUtil.sendClickEvent(
+	  location: "거래소_화면",
+	  stepDepth01: "\(self.analyticsTabName(self.selectedTab))_탭",
+	  stepDepth02: "정렬_변경",
+	  stepDepth03: "\(self.analyticsSortCriterion(forButtonTag: sender.tag, isHold: isHold))_\(self.analyticsSortDirection(for: newSortType))",
+	  extraParameters: [
+		"selected_tab": self.analyticsTabName(self.selectedTab),
+		"sort_criterion": self.analyticsSortCriterion(forButtonTag: sender.tag, isHold: isHold),
+		"sort_direction": self.analyticsSortDirection(for: newSortType),
+		"sort_label": newSortType == .normal ? "기본순서" : newSortType.rawValue
+	  ]
+	)
 
 	// 버튼 비주얼 (초기 순서면 기본 상태로 리셋)
 	if newSortType == .normal {
@@ -623,6 +634,14 @@ class MainViewController: MobitBaseViewController {
 	default:
 	  break
 	}
+
+	MobitAnalyticsUtil.sendClickEvent(
+	  location: "거래소_화면",
+	  stepDepth01: "메인_탭",
+	  stepDepth02: "탭_선택",
+	  stepDepth03: self.analyticsTabName(self.selectedTab),
+	  extraParameters: ["selected_tab": self.analyticsTabName(self.selectedTab)]
+	)
 
 	// 탭별 정렬 상태에 맞춰 헤더(정렬 버튼) 복원
 	self.updateSortHeaderUI()
@@ -706,9 +725,77 @@ class MainViewController: MobitBaseViewController {
   }
 
   @objc private func didTapFearGreedButton() {
+	let levelTitle = self.analyticsFearGreedLevelTitle()
+	MobitAnalyticsUtil.sendClickEvent(
+	  location: "거래소_화면",
+	  stepDepth01: "메인_플로팅버튼",
+	  stepDepth02: "공포탐욕_설명_열기",
+	  stepDepth03: levelTitle,
+	  extraParameters: [
+		"fear_greed_level": levelTitle,
+		"fear_greed_value": self.reactor.currentState.fearGreedIndex?.value ?? -1
+	  ]
+	)
 	self.coordinator?.presentFearGreedInfoVC(
 	  fearGreedIndex: self.reactor.currentState.fearGreedIndex
 	)
+  }
+}
+
+private extension MainViewController {
+  func analyticsTabName(_ tab: SelectedTab) -> String {
+	switch tab {
+	case .hold: return "보유코인"
+	case .krw: return "원화마켓"
+	case .btc: return "BTC마켓"
+	case .favorite: return "즐겨찾기"
+	}
+  }
+
+  func analyticsSortCriterion(forButtonTag tag: Int, isHold: Bool) -> String {
+	if isHold {
+	  switch tag {
+	  case 0: return "평가금액"
+	  case 1: return "평균매수가"
+	  case 2: return "수익률"
+	  default: return "알수없음"
+	  }
+	}
+
+	switch tag {
+	case 0: return "현재가"
+	case 1: return "전일대비"
+	case 2: return "거래대금"
+	default: return "알수없음"
+	}
+  }
+
+  func analyticsSortDirection(for sortType: CryptoSortType) -> String {
+	switch sortType {
+	case .normal:
+	  return "기본순서"
+	case .currentPriceAscending,
+		.previousDayAscending,
+		.tradeVolumeAscending,
+		.evaluationPriceAscending,
+		.averageBuyPriceAscending,
+		.profitRateAscending:
+	  return "오름차순"
+	case .currentPriceDescending,
+		.previousDayDescending,
+		.tradeVolumeDescending,
+		.evaluationPriceDescending,
+		.averageBuyPriceDescending,
+		.profitRateDescending:
+	  return "내림차순"
+	}
+  }
+
+  func analyticsFearGreedLevelTitle() -> String {
+	guard let value = self.reactor.currentState.fearGreedIndex?.value else {
+	  return "데이터없음"
+	}
+	return FearGreedLevel(value: value).title
   }
 }
 

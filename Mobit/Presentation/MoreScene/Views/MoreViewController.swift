@@ -125,6 +125,11 @@ class MoreViewController: MobitBaseViewController {
   }
   
   @IBAction func tapOnSettingsButton(_ sender: UIButton) {
+	MobitAnalyticsUtil.sendClickEvent(
+	  location: "더보기_화면",
+	  stepDepth01: "더보기_탭",
+	  stepDepth02: "설정_버튼_클릭"
+	)
 	let settingsViewController = AppSettingsViewController()
 	settingsViewController.modalPresentationStyle = .overFullScreen
 	settingsViewController.modalTransitionStyle = .crossDissolve
@@ -197,6 +202,7 @@ private final class AppSettingsViewController: UIViewController {
 	self.configureUI()
 	self.bindActions()
 	self.updateSelectionUI()
+	self.sendSettingsViewEvent()
   }
   
   private func configureUI() {
@@ -324,6 +330,7 @@ private final class AppSettingsViewController: UIViewController {
   private func bindActions() {
 	self.cancelButton.addTarget(self, action: #selector(self.tapOnCancelButton), for: .touchUpInside)
 	self.confirmButton.addTarget(self, action: #selector(self.tapOnConfirmButton), for: .touchUpInside)
+	self.tintSwitch.addTarget(self, action: #selector(self.didChangeTintSwitch(_:)), for: .valueChanged)
 	self.optionViews.forEach { optionView in
 	  optionView.addTarget(self, action: #selector(self.tapOnOptionView(_:)), for: .touchUpInside)
 	}
@@ -340,6 +347,24 @@ private final class AppSettingsViewController: UIViewController {
   }
   
   @objc private func tapOnConfirmButton() {
+	let previousTheme = UserDataManager.marketColorTheme
+	let previousTintEnabled = UserDataManager.marketCellTintEnabled
+	let changeStatus = previousTheme == self.pendingTheme && previousTintEnabled == self.tintSwitch.isOn
+	  ? "변경없음" : "변경있음"
+
+	MobitAnalyticsUtil.sendClickEvent(
+	  location: "더보기_화면",
+	  stepDepth01: "더보기_설정",
+	  stepDepth02: "캔들_테마_적용",
+	  stepDepth03: self.analyticsThemeName(self.pendingTheme),
+	  extraParameters: [
+		"selected_theme": self.analyticsThemeName(self.pendingTheme),
+		"background_tint": self.tintSwitch.isOn ? "켜짐" : "꺼짐",
+		"previous_theme": self.analyticsThemeName(previousTheme),
+		"previous_background_tint": previousTintEnabled ? "켜짐" : "꺼짐",
+		"change_status": changeStatus
+	  ]
+	)
 	UserDataManager.marketColorTheme = self.pendingTheme
 	UserDataManager.marketCellTintEnabled = self.tintSwitch.isOn
 	self.dismiss(animated: true)
@@ -348,6 +373,51 @@ private final class AppSettingsViewController: UIViewController {
   @objc private func tapOnOptionView(_ sender: MarketColorThemeOptionView) {
 	self.pendingTheme = sender.theme
 	self.updateSelectionUI()
+	MobitAnalyticsUtil.sendClickEvent(
+	  location: "더보기_화면",
+	  stepDepth01: "더보기_설정",
+	  stepDepth02: "캔들_테마_선택",
+	  stepDepth03: self.analyticsThemeName(sender.theme),
+	  extraParameters: [
+		"selected_theme": self.analyticsThemeName(sender.theme),
+		"background_tint": self.tintSwitch.isOn ? "켜짐" : "꺼짐"
+	  ]
+	)
+  }
+
+  @objc private func didChangeTintSwitch(_ sender: UISwitch) {
+	MobitAnalyticsUtil.sendClickEvent(
+	  location: "더보기_화면",
+	  stepDepth01: "더보기_설정",
+	  stepDepth02: "배경색_토글_변경",
+	  stepDepth03: sender.isOn ? "켜짐" : "꺼짐",
+	  extraParameters: [
+		"background_tint": sender.isOn ? "켜짐" : "꺼짐",
+		"selected_theme": self.analyticsThemeName(self.pendingTheme)
+	  ]
+	)
+  }
+
+  private func sendSettingsViewEvent() {
+	MobitAnalyticsUtil.sendClickEvent(
+	  location: "더보기_화면",
+	  stepDepth01: "더보기_설정",
+	  stepDepth02: "설정_화면_노출",
+	  stepDepth03: self.analyticsThemeName(self.pendingTheme),
+	  extraParameters: [
+		"selected_theme": self.analyticsThemeName(self.pendingTheme),
+		"background_tint": self.tintSwitch.isOn ? "켜짐" : "꺼짐"
+	  ]
+	)
+  }
+
+  private func analyticsThemeName(_ theme: UserDataManager.MarketColorTheme) -> String {
+	switch theme {
+	case .riseRedFallBlue:
+	  return "한국형"
+	case .riseGreenFallRed:
+	  return "글로벌"
+	}
   }
 }
 

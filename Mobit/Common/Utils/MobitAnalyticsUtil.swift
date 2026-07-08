@@ -230,19 +230,64 @@ class MobitAnalyticsUtil {
   static func sendClickEvent(event: MobitAnalyticsClickEventType) {
 	self.sendBaseLegacyEvent(eventName: "mobit_click_event", type: event)
   }
+
+  static func sendClickEvent(
+	location: String,
+	stepDepth01: String,
+	stepDepth02: String,
+	stepDepth03: String? = nil,
+	extraParameters: [String: Any] = [:]
+  ) {
+	self.sendLegacyEvent(
+	  eventName: "mobit_click_event",
+	  location: location,
+	  stepDepth01: stepDepth01,
+	  stepDepth02: stepDepth02,
+	  stepDepth03: stepDepth03,
+	  extraParameters: extraParameters
+	)
+  }
   
   static func sendBaseLegacyEvent<T: MobitAnalyticsEventRule>(eventName: String, type: T) {
+	self.sendLegacyEvent(
+	  eventName: eventName,
+	  location: type.location,
+	  stepDepth01: type.stepDepth01,
+	  stepDepth02: type.stepDepth02
+	)
+  }
+
+  private static func sendLegacyEvent(
+	eventName: String,
+	location: String,
+	stepDepth01: String,
+	stepDepth02: String,
+	stepDepth03: String? = nil,
+	extraParameters: [String: Any] = [:]
+  ) {
 	let requestParameters: [String: Any] = [
-	  "location": type.location,
-	  "Step_depth_01": type.stepDepth01,
-	  "Step_depth_02": type.stepDepth02
-	]
+	  "location": location,
+	  "Step_depth_01": stepDepth01,
+	  "Step_depth_02": stepDepth02
+	].merging(
+	  stepDepth03.map { ["Step_depth_03": $0] } ?? [:],
+	  uniquingKeysWith: { _, new in new }
+	).merging(
+	  extraParameters,
+	  uniquingKeysWith: { _, new in new }
+	)
 	
 	Analytics.logEvent(eventName, parameters: requestParameters)
 	
 	Log.info("MOBIT Analytics [Event Name] - \(eventName)")
-	Log.info("MOBIT Analytics [Event Location] - \(type.location)")
-	Log.info("MOBIT Analytics [Event Depth 01] - \(type.stepDepth01)")
-	Log.info("MOBIT Analytics [Event Depth 02] - \(type.stepDepth02)")
+	Log.info("MOBIT Analytics [Event Location] - \(location)")
+	Log.info("MOBIT Analytics [Event Depth 01] - \(stepDepth01)")
+	Log.info("MOBIT Analytics [Event Depth 02] - \(stepDepth02)")
+	if let stepDepth03 {
+	  Log.info("MOBIT Analytics [Event Depth 03] - \(stepDepth03)")
+	}
+	if !extraParameters.isEmpty {
+	  Log.info("MOBIT Analytics [Extra Parameters] - \(extraParameters)")
+	}
   }
 }
