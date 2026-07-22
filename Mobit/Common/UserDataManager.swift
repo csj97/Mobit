@@ -46,6 +46,7 @@ class UserDataManager: NSObject {
 	static let userCryptoList = "user-crypto-list"
 	static let userPNLHistory = "user-pnl-list"
 	static let userInformation = "user-information"
+	static let userInformationByExchange = "user-information-by-exchange"
 	static let tradingViewChartSettings = "tradingview-chart-settings"
 	static let marketColorTheme = "market-color-theme"
 	static let marketCellTintEnabled = "market-cell-tint-enabled"
@@ -75,18 +76,40 @@ class UserDataManager: NSObject {
     }
   }
   
-  /// 사용자 즐겨찾기 (marketName을 String 배열로 저장)
+  /// 사용자 즐겨찾기 레거시 호환용 표시 마켓 목록
   static var userFavoriteList: [String] {
-	get {
-	  let defaults = UserDefaults.standard
-	  if let data = defaults.stringArray(forKey: Keys.userFavoriteList) {
-		return data
-	  }
-	  return []
-	}
-	set {
-	  UserDefaults.standard.set(newValue, forKey: Keys.userFavoriteList)
-	}
+    get {
+      userFavoritePairs.map(\.displayMarket)
+    }
+    set {
+      userFavoritePairs = UserDataMigration.migrateFavoritePairs(from: newValue)
+    }
+  }
+
+  static var userFavoritePairs: [FavoritePair] {
+    get {
+      let defaults = UserDefaults.standard
+
+      if let data = defaults.data(forKey: Keys.userFavoriteList),
+         let decoded = try? JSONDecoder().decode([FavoritePair].self, from: data) {
+        return decoded
+      }
+
+      if let legacy = defaults.stringArray(forKey: Keys.userFavoriteList) {
+        let migrated = UserDataMigration.migrateFavoritePairs(from: legacy)
+        if let encoded = try? JSONEncoder().encode(migrated) {
+          defaults.set(encoded, forKey: Keys.userFavoriteList)
+        }
+        return migrated
+      }
+
+      return []
+    }
+    set {
+      let defaults = UserDefaults.standard
+      guard let encoded = try? JSONEncoder().encode(newValue) else { return }
+      defaults.set(encoded, forKey: Keys.userFavoriteList)
+    }
   }
   
   /// 거래내역만 저장
@@ -138,7 +161,7 @@ class UserDataManager: NSObject {
 		// Decoding 실패
 		// Legacy -> Migrate
 		if let legacy = try? JSONDecoder().decode([LegacyModel].self, from: data) {
-		  let migrated = migratedUserCryptoList(from: legacy)
+		  let migrated = UserDataMigration.migrateUserCryptoList(from: legacy)
 		  
 		  // migration 데이터 저장 **성공시에만 덮어쓰기
 		  if let migratedDataEncode = try? JSONEncoder().encode(migrated) {
@@ -188,24 +211,55 @@ class UserDataManager: NSObject {
 	}
   }
   
-  static var userInformation: MobitUserInformation? {
+  /// 거래소별 보유 현금 저장소. 레거시 단일 잔고는 최초 접근 시 Upbit 잔고로 승격한다.
+  private static var userInformationStore: [String: MobitUserInformation] {
     get {
       let defaults = UserDefaults.standard
-      if let data = defaults.data(forKey: Keys.userInformation) {
-        let decodedData = try? JSONDecoder().decode(MobitUserInformation.self, from: data)
-        return decodedData
+      if let data = defaults.data(forKey: Keys.userInformationByExchange),
+         let decoded = try? JSONDecoder().decode([String: MobitUserInformation].self, from: data) {
+        return decoded
       }
-      return nil
+      // 레거시 단일 거래소 잔고를 Upbit 잔고로 이관. 신규 거래소는 0원으로 시작한다.
+      if let legacyData = defaults.data(forKey: Keys.userInformation),
+         let legacy = try? JSONDecoder().decode(MobitUserInformation.self, from: legacyData) {
+        let migrated = UserDataMigration.migrateUserInformationStore(from: legacy)
+        if let encoded = try? JSONEncoder().encode(migrated) {
+          defaults.set(encoded, forKey: Keys.userInformationByExchange)
+        }
+        return migrated
+      }
+      return [:]
     }
     set {
       let defaults = UserDefaults.standard
-      if let encodedData = try? JSONEncoder().encode(newValue) {
-        defaults.set(encodedData, forKey: Keys.userInformation)
-        DispatchQueue.main.async {
-		  self.userAvailableBalanceSubject.onNext(newValue?.userAvailableBalance)
-        }
+      guard let encoded = try? JSONEncoder().encode(newValue) else { return }
+      defaults.set(encoded, forKey: Keys.userInformationByExchange)
+    }
+  }
+
+  /// 현재 선택 거래소의 보유 현금 정보. 신규 거래소는 0원으로 시작한다.
+  static var userInformation: MobitUserInformation? {
+    get {
+      let store = userInformationStore
+      // 최초 실행(시드) 이전에는 nil, 이후에는 거래소별 잔고(없으면 0원)를 반환한다.
+      guard !store.isEmpty else { return nil }
+      return store[ExchangeSelectionStore.currentExchange.rawValue]
+        ?? MobitUserInformation(userAvailableBalance: 0)
+    }
+    set {
+      guard let newValue else { return }
+      var store = userInformationStore
+      store[ExchangeSelectionStore.currentExchange.rawValue] = newValue
+      userInformationStore = store
+      DispatchQueue.main.async {
+        self.userAvailableBalanceSubject.onNext(newValue.userAvailableBalance)
       }
     }
+  }
+
+  /// 거래소 전환 시 현재 거래소 잔고를 구독자에게 다시 브로드캐스트한다.
+  static func publishCurrentExchangeBalance() {
+    userAvailableBalanceSubject.onNext(userInformation?.userAvailableBalance)
   }
   
   static var tradingViewChartSettings: TradingViewChartSettings {
@@ -266,38 +320,39 @@ class UserDataManager: NSObject {
   }
 
   static func resetInvestmentData(availableBalance: Double = 0) {
-	userInformation = MobitUserInformation(userAvailableBalance: availableBalance)
+	// 투자내역 초기화는 전 거래소 대상이다. 현재 거래소는 지정 금액, 나머지는 0원으로 맞춘다.
+	var store: [String: MobitUserInformation] = [:]
+	for exchange in Exchange.allCases {
+	  store[exchange.rawValue] = MobitUserInformation(userAvailableBalance: 0)
+	}
+	store[ExchangeSelectionStore.currentExchange.rawValue] = MobitUserInformation(
+	  userAvailableBalance: availableBalance
+	)
+	userInformationStore = store
+	DispatchQueue.main.async {
+	  userAvailableBalanceSubject.onNext(availableBalance)
+	}
 	userCryptoList = []
 	userTransactionList = []
 	userValidTransactionList = []
 	userPNLHistory = []
   }
 
-  static func migratedUserCryptoList(
-	from legacy: [LegacyModel]
-  ) -> [CryptoTransactionDataModel] {
-	legacy.map { item in
-	  let staticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
-		identifier: UUID(),
-		marketName: item.staticData.marketName,
-		cryptoName: item.staticData.cryptoName,
-		holdingQuantity: item.staticData.holdingQuantity,
-		averageBuyPrice: item.staticData.averageBuyPrice,
-		buyAmount: item.staticData.buyAmount
-	  )
-	  let dynamicData = CryptoTransactionDataModel.CryptoTransactionDynamicData(
-		identifier: UUID(),
-		marketName: item.dynamicData.marketName,
-		profitRate: item.dynamicData.profitRate,
-		evaluationProfitLoss: item.dynamicData.evaluationProfitLoss,
-		evaluationPrice: item.dynamicData.evaluationPrice
-	  )
-	  return CryptoTransactionDataModel(
-		identifier: UUID(),
-		staticData: staticData,
-		dynamicData: dynamicData
-	  )
-	}
+  static func isFavorite(pairID: ExchangePairID) -> Bool {
+    userFavoritePairs.contains { $0.pairID == pairID }
   }
-  
+
+  static func addFavorite(displayMarket: String, exchange: Exchange) {
+    let favorite = FavoritePair(displayMarket: displayMarket, exchange: exchange)
+    guard !isFavorite(pairID: favorite.pairID) else { return }
+    userFavoritePairs.append(favorite)
+  }
+
+  static func removeFavorite(displayMarket: String, exchange: Exchange) {
+    let pairID = ExchangeMarketCodeConverter.pairID(
+      fromDisplayMarket: displayMarket,
+      exchange: exchange
+    )
+    userFavoritePairs.removeAll { $0.pairID == pairID }
+  }
 }

@@ -129,7 +129,8 @@ class TradeBidView: UIView, ViewRule {
 		marketName: marketName,
 		cryptoName: self.cryptoInfo?.cryptoName,
 		currentPrice: currentPrice,
-		quantity: inputAmount
+		quantity: inputAmount,
+        exchange: ExchangeSelectionStore.currentExchange
 	  )
 
 	  switch result {

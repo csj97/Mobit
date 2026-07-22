@@ -96,7 +96,9 @@ extension InvestReactor {
 	var newState = state
 	switch mutation {
 	case .setUserCrypto(let cryptos):
-	  newState.cryptos = cryptos ?? []
+	  // 거래소별 보유자산 분리: 현재 선택 거래소 보유분만 노출한다.
+	  let currentExchange = ExchangeSelectionStore.currentExchange
+	  newState.cryptos = (cryptos ?? []).filter { $0.staticData.exchange == currentExchange }
 	case .setUserAvailableBalance(let userAvailableBalance):
 	  newState.userAvailableBalance = userAvailableBalance
 	case .setDetailCrypto(let detailCrypto):

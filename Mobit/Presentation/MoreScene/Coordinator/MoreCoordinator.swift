@@ -45,6 +45,7 @@ class MoreCoordinator: BaseCoordinator {
 	// 하단 탭바 숨기기
 	self.delegate?.mainCoordinatorDidRequestHideTabBar()
   }
+
 }
 
 extension MoreCoordinator: MainCoordinatorDelegate {

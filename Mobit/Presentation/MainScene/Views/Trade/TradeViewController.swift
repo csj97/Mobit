@@ -300,10 +300,13 @@ class TradeViewController: MobitBaseViewController {
   func setFavoriteButton() {
 	let emptyStar = UIImage(systemName: "star")
 	let fillStar = UIImage(systemName: "star.fill")?.withRenderingMode(.alwaysTemplate)
+    let exchange = ExchangeSelectionStore.currentExchange
+    let pairID = ExchangeMarketCodeConverter.pairID(
+      fromDisplayMarket: self.reactor.selectCrypto.market,
+      exchange: exchange
+    )
 	
-	let isFavorite = UserDataManager.userFavoriteList.contains(
-	  where: { $0 == self.reactor.selectCrypto.market }
-	)
+    let isFavorite = UserDataManager.isFavorite(pairID: pairID)
 	let starImage = isFavorite ? fillStar : emptyStar
 	
 	self.favoriteButton.tintColor = .systemYellow
@@ -330,8 +333,12 @@ class TradeViewController: MobitBaseViewController {
 	currentPrice: Double?
   ) {
 	guard let currentPrice = currentPrice else { return }
+    let targetPairID = ExchangeMarketCodeConverter.pairID(
+      fromDisplayMarket: marketName,
+      exchange: ExchangeSelectionStore.currentExchange
+    )
 	guard var investData = self.currentInvestData,
-		  investData.staticData.marketName == marketName else {
+		  investData.staticData.exchangePairID == targetPairID else {
 	  self.orderView?.cryptoInvestData = nil
 	  self.orderView?.investLiveView.isHidden = true
 	  return
@@ -453,16 +460,23 @@ class TradeViewController: MobitBaseViewController {
   
   // MARK: - Button Actions
   @IBAction func tapOnFavoriteButton(_ sender: UIButton) {
-	let isFavorite = UserDataManager.userFavoriteList.contains(
-	  where: { $0 == self.reactor.selectCrypto.market }
-	)
+    let exchange = ExchangeSelectionStore.currentExchange
+    let pairID = ExchangeMarketCodeConverter.pairID(
+      fromDisplayMarket: self.reactor.selectCrypto.market,
+      exchange: exchange
+    )
+    let isFavorite = UserDataManager.isFavorite(pairID: pairID)
 	
 	if !isFavorite {
-	  UserDataManager.userFavoriteList.append(self.reactor.selectCrypto.market)
+      UserDataManager.addFavorite(
+        displayMarket: self.reactor.selectCrypto.market,
+        exchange: exchange
+      )
 	} else {
-	  UserDataManager.userFavoriteList.removeAll(
-		where: { $0 == self.reactor.selectCrypto.market }
-	  )
+      UserDataManager.removeFavorite(
+        displayMarket: self.reactor.selectCrypto.market,
+        exchange: exchange
+      )
 	}
 	setFavoriteButton()
   }
@@ -529,8 +543,12 @@ extension TradeViewController {
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] cryptos in
 		guard let self = self else { return }
+        let targetPairID = ExchangeMarketCodeConverter.pairID(
+          fromDisplayMarket: reactor.selectCrypto.market,
+          exchange: ExchangeSelectionStore.currentExchange
+        )
 		self.currentInvestData = cryptos.first(where: {
-		  $0.staticData.marketName == reactor.selectCrypto.market
+		  $0.staticData.exchangePairID == targetPairID
 		})
 	  })
 	  .disposed(by: self.disposeBag)

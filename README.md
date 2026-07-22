@@ -107,3 +107,5 @@ xcrun simctl list devices available
 - `AGENTS.md`: 개발자와 AI 에이전트 작업 지침
 - `CLAUDE.md`: Claude 사용 시 동일하게 적용할 작업 지침
 - `README.md`: 프로젝트 개요와 빌드/구조 안내
+- `docs/exchange-extension-architecture-spec.md`: 다중 거래소 확장 아키텍처 기준
+- `docs/data-migration-blueprint.md`: 거래소 확장용 저장 데이터 이관 기준

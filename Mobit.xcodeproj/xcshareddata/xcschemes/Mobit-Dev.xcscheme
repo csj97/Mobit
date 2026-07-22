@@ -55,6 +55,17 @@
                ReferencedContainer = "container:Mobit.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "3133E2432C3E2357000D4B1A"
+               BuildableName = "MobitUITests.xctest"
+               BlueprintName = "MobitUITests"
+               ReferencedContainer = "container:Mobit.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

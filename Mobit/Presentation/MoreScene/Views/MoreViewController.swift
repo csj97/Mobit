@@ -349,13 +349,14 @@ private final class AppSettingsViewController: UIViewController {
   @objc private func tapOnConfirmButton() {
 	let previousTheme = UserDataManager.marketColorTheme
 	let previousTintEnabled = UserDataManager.marketCellTintEnabled
-	let changeStatus = previousTheme == self.pendingTheme && previousTintEnabled == self.tintSwitch.isOn
+	let changeStatus = previousTheme == self.pendingTheme &&
+	  previousTintEnabled == self.tintSwitch.isOn
 	  ? "변경없음" : "변경있음"
 
 	MobitAnalyticsUtil.sendClickEvent(
 	  location: "더보기_화면",
 	  stepDepth01: "더보기_설정",
-	  stepDepth02: "캔들_테마_적용",
+	  stepDepth02: "설정_적용",
 	  stepDepth03: self.analyticsThemeName(self.pendingTheme),
 	  extraParameters: [
 		"selected_theme": self.analyticsThemeName(self.pendingTheme),

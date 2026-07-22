@@ -11,12 +11,23 @@ import Foundation
 class MarketDataServiceUtil {
   static let shared = MarketDataServiceUtil()
 
+  private func pairID(
+    for marketName: String,
+    exchange: Exchange
+  ) -> ExchangePairID {
+    ExchangeMarketCodeConverter.pairID(
+      fromDisplayMarket: marketName,
+      exchange: exchange
+    )
+  }
+
   func fetchData(
 	data: CryptoTransactionDataModel.CryptoTransactionStaticData,
 	currentPrice: Double
   ) {
 	fetchAll(
 	  for: data.marketName,
+      exchange: data.exchange,
 	  cryptoName: data.cryptoName,
 	  currentPrice: currentPrice,
 	  holdingQuantity: data.holdingQuantity,
@@ -33,12 +44,14 @@ class MarketDataServiceUtil {
   ) {
 	let profitRate = fetchProfitRate(
 	  for: marketName,
+      exchange: staticData.exchange,
 	  currentPrice: currentPrice,
 	  averageBuyPrice: staticData.averageBuyPrice
 	)
 	
 	let evalProfitLoss = fetchEvalProfitLoss(
 	  for: marketName,
+      exchange: staticData.exchange,
 	  currentPrice: currentPrice,
 	  holdingQuantity: staticData.holdingQuantity,
 	  averageBuyPrice: staticData.averageBuyPrice
@@ -46,11 +59,13 @@ class MarketDataServiceUtil {
 	
 	let evalPrice = fetchEvalPrice(
 	  for: marketName,
+      exchange: staticData.exchange,
 	  currentPrice: currentPrice,
 	  holdingQuantity: staticData.holdingQuantity
 	)
 	
 	let dynamicData = CryptoTransactionDataModel.CryptoTransactionDynamicData(
+      exchange: staticData.exchange,
 	  marketName: marketName,
 	  profitRate: profitRate,
 	  evaluationProfitLoss: evalProfitLoss,
@@ -68,6 +83,7 @@ class MarketDataServiceUtil {
   /// Static & Dynamic Data Fetch
   func fetchAll(
 	for marketName: String,
+    exchange: Exchange = ExchangeSelectionStore.currentExchange,
 	cryptoName: String?,
 	currentPrice: Double,
 	holdingQuantity: Double,
@@ -77,6 +93,7 @@ class MarketDataServiceUtil {
 	// 정적 데이터 업데이트
 	fetchStaticData(
 	  for: marketName,
+      exchange: exchange,
 	  cryptoName: cryptoName,
 	  averageBuyAmount: averageBuyPrice,
 	  holdingQuantity: holdingQuantity,
@@ -85,12 +102,14 @@ class MarketDataServiceUtil {
 	// 수익률
 	fetchProfitRate(
 	  for: marketName,
+      exchange: exchange,
 	  currentPrice: currentPrice,
 	  averageBuyPrice: averageBuyPrice
 	)
 	// 평가손익
 	fetchEvalProfitLoss(
 	  for: marketName,
+      exchange: exchange,
 	  currentPrice: currentPrice,
 	  holdingQuantity: holdingQuantity,
 	  averageBuyPrice: averageBuyPrice
@@ -98,6 +117,7 @@ class MarketDataServiceUtil {
 	// 평가금액
 	fetchEvalPrice(
 	  for: marketName,
+      exchange: exchange,
 	  currentPrice: currentPrice,
 	  holdingQuantity: holdingQuantity
 	)
@@ -106,13 +126,17 @@ class MarketDataServiceUtil {
   /// 정적 데이터 업데이트 (평균매수가, 개수, 매수금액)
   func fetchStaticData(
 	for marketName: String,
+    exchange: Exchange = ExchangeSelectionStore.currentExchange,
 	cryptoName: String?,
 	averageBuyAmount: Double,
 	holdingQuantity: Double,
 	buyAmount: Double
   ) {
+    let targetPairID = self.pairID(for: marketName, exchange: exchange)
 	if var userCryptoList = UserDataManager.userCryptoList,
-	   let index = userCryptoList.firstIndex(where: { $0.staticData.marketName == marketName }) {
+	   let index = userCryptoList.firstIndex(where: {
+         $0.staticData.exchangePairID == targetPairID
+       }) {
 	  
 	  userCryptoList[index].staticData.cryptoName = cryptoName
 	  userCryptoList[index].staticData.averageBuyPrice = averageBuyAmount
@@ -139,10 +163,14 @@ class MarketDataServiceUtil {
 	for marketName: String,
 	orderType: OrderType,
 	postValidTransactionList: [ValidTransactionInfo]?,
-	newValidTransactionData: ValidTransactionInfo.Transaction
+	newValidTransactionData: ValidTransactionInfo.Transaction,
+    exchange: Exchange = ExchangeSelectionStore.currentExchange
   ) {
+    let targetPairID = self.pairID(for: marketName, exchange: exchange)
 	// 이미 해당 마켓의 거래 내역이 존재하는 경우
-	if let index = postValidTransactionList?.firstIndex(where: { $0.marketName == marketName }) {
+	if let index = postValidTransactionList?.firstIndex(where: {
+      $0.exchangePairID == targetPairID
+    }) {
 	  let target = UserDataManager.userValidTransactionList?[index]
 	  guard var targetTransactionList = target?.transaction else { return }
 
@@ -198,6 +226,7 @@ class MarketDataServiceUtil {
 	  guard orderType == .bid else { return }
 
 	  let newValidTransaction = ValidTransactionInfo(
+        exchange: exchange,
 		marketName: marketName,
 		transaction: [newValidTransactionData]
 	  )
@@ -230,6 +259,7 @@ class MarketDataServiceUtil {
   @discardableResult
   func fetchProfitRate(
 	for marketName: String,
+    exchange: Exchange = ExchangeSelectionStore.currentExchange,
 	currentPrice: Double,
 	averageBuyPrice: Double
   ) -> Double {
@@ -238,8 +268,11 @@ class MarketDataServiceUtil {
 	
 	let profitRate = (((currentPrice - averageBuyPrice) / averageBuyPrice) * 100).formatDigits(digits: 2)
 	
+    let targetPairID = self.pairID(for: marketName, exchange: exchange)
 	if var userCryptoList = UserDataManager.userCryptoList,
-	   let index = userCryptoList.firstIndex(where: { $0.staticData.marketName == marketName }) {
+	   let index = userCryptoList.firstIndex(where: {
+         $0.staticData.exchangePairID == targetPairID
+       }) {
 	  
 	  // 수익률 (%) = [(현재 가격 - 평균 매수가) ÷ 평균 매수가] × 100
 	  userCryptoList[index].dynamicData.profitRate = profitRate
@@ -253,6 +286,7 @@ class MarketDataServiceUtil {
   @discardableResult
   func fetchEvalProfitLoss(
 	for marketName: String,
+    exchange: Exchange = ExchangeSelectionStore.currentExchange,
 	currentPrice: Double,
 	holdingQuantity: Double,
 	averageBuyPrice: Double,
@@ -266,8 +300,11 @@ class MarketDataServiceUtil {
 	// 평가 손익
 	let profitLoss = evalPrice - averagePrice
 	
+    let targetPairID = self.pairID(for: marketName, exchange: exchange)
 	if var userCryptoList = UserDataManager.userCryptoList,
-	   let index = userCryptoList.firstIndex(where: { $0.staticData.marketName == marketName }) {
+	   let index = userCryptoList.firstIndex(where: {
+         $0.staticData.exchangePairID == targetPairID
+       }) {
 	  
 	  userCryptoList[index].dynamicData.evaluationProfitLoss = profitLoss
 	  UserDataManager.userCryptoList = userCryptoList
@@ -280,6 +317,7 @@ class MarketDataServiceUtil {
   @discardableResult
   func fetchEvalPrice(
 	for marketName: String,
+    exchange: Exchange = ExchangeSelectionStore.currentExchange,
 	currentPrice: Double,
 	holdingQuantity: Double
   ) -> Double {
@@ -288,8 +326,11 @@ class MarketDataServiceUtil {
 	
 	let evalPrice = (currentPrice * holdingQuantity).formatDigits(digits: 8)
 	
+    let targetPairID = self.pairID(for: marketName, exchange: exchange)
 	if var userCryptoList = UserDataManager.userCryptoList,
-	   let index = userCryptoList.firstIndex(where: { $0.staticData.marketName == marketName }) {
+	   let index = userCryptoList.firstIndex(where: {
+         $0.staticData.exchangePairID == targetPairID
+       }) {
 	  
 	  userCryptoList[index].dynamicData.evaluationPrice = evalPrice
 	  UserDataManager.userCryptoList = userCryptoList

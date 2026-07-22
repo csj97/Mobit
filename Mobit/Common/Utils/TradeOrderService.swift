@@ -19,6 +19,7 @@ enum TradeOrderService {
     cryptoName: String?,
     currentPrice: Double,
     quantity: Double,
+    exchange: Exchange = ExchangeSelectionStore.currentExchange,
     executedAt: Date = Date()
   ) -> Result<Execution, TradeOrderValidator.ValidationError> {
     let validation = TradeOrderValidator.validateBid(
@@ -34,9 +35,13 @@ enum TradeOrderService {
       return .failure(.invalidQuantity)
     }
 
+    let targetPairID = ExchangeMarketCodeConverter.pairID(
+      fromDisplayMarket: marketName,
+      exchange: exchange
+    )
     let executedDate = formattedDate(executedAt)
     let existingStaticData = UserDataManager.userCryptoList?
-      .first(where: { $0.staticData.marketName == marketName })?
+      .first(where: { $0.staticData.exchangePairID == targetPairID })?
       .staticData
 
     let validTransaction = ValidTransactionInfo.Transaction(
@@ -49,10 +54,12 @@ enum TradeOrderService {
       for: marketName,
       orderType: .bid,
       postValidTransactionList: UserDataManager.userValidTransactionList,
-      newValidTransactionData: validTransaction
+      newValidTransactionData: validTransaction,
+      exchange: exchange
     )
 
     let transaction = TransactionInfo(
+      exchange: exchange,
       marketName: marketName,
       orderType: .bid,
       executedDate: executedDate,
@@ -68,7 +75,7 @@ enum TradeOrderService {
 
     if let existingStaticData {
       let averageBuyPrice = UserDataManager.userValidTransactionList?
-        .first(where: { $0.marketName == marketName })?
+        .first(where: { $0.exchangePairID == targetPairID })?
         .averageBuyPrice ?? 0
       let holdingQuantity = PortfolioCalculator.cumulativeHoldingQuantity(
         previousQuantity: existingStaticData.holdingQuantity,
@@ -81,6 +88,7 @@ enum TradeOrderService {
       )
 
       let staticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
+        exchange: exchange,
         marketName: marketName,
         cryptoName: cryptoName,
         holdingQuantity: holdingQuantity,
@@ -94,6 +102,7 @@ enum TradeOrderService {
       )
     } else {
       let staticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
+        exchange: exchange,
         marketName: marketName,
         cryptoName: cryptoName,
         holdingQuantity: quantity,
@@ -126,10 +135,15 @@ enum TradeOrderService {
     marketName: String,
     currentPrice: Double,
     quantity: Double,
+    exchange: Exchange = ExchangeSelectionStore.currentExchange,
     executedAt: Date = Date()
   ) -> Result<Execution, TradeOrderValidator.ValidationError> {
+    let targetPairID = ExchangeMarketCodeConverter.pairID(
+      fromDisplayMarket: marketName,
+      exchange: exchange
+    )
     guard let cryptoIndex = UserDataManager.userCryptoList?
-      .firstIndex(where: { $0.staticData.marketName == marketName }),
+      .firstIndex(where: { $0.staticData.exchangePairID == targetPairID }),
       let crypto = UserDataManager.userCryptoList?[cryptoIndex]
     else {
       return .failure(.insufficientHolding)
@@ -150,6 +164,7 @@ enum TradeOrderService {
 
     let executedDate = formattedDate(executedAt)
     let transaction = TransactionInfo(
+      exchange: exchange,
       marketName: marketName,
       orderType: .ask,
       executedDate: executedDate,
@@ -173,7 +188,8 @@ enum TradeOrderService {
       for: marketName,
       orderType: .ask,
       postValidTransactionList: UserDataManager.userValidTransactionList,
-      newValidTransactionData: validTransaction
+      newValidTransactionData: validTransaction,
+      exchange: exchange
     )
 
     let staticData = crypto.staticData
@@ -181,6 +197,7 @@ enum TradeOrderService {
       let newHoldingQuantity = staticData.holdingQuantity - quantity
       let newBuyAmount = newHoldingQuantity * staticData.averageBuyPrice
       let newStaticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
+        exchange: staticData.exchange,
         marketName: staticData.marketName,
         cryptoName: staticData.cryptoName,
         holdingQuantity: newHoldingQuantity,
@@ -203,6 +220,7 @@ enum TradeOrderService {
     )
 
     let pnlHistory = UserPNLHistoryModel(
+      exchange: exchange,
       marketName: staticData.marketName,
       entryPrice: staticData.averageBuyPrice,
       exitPrice: currentPrice,

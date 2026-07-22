@@ -73,8 +73,13 @@ class TradeHistoryView: UIView, ViewRule {
   }
   
   func updateHistory() {
+    guard let selectMarket = self.reactor?.selectCrypto.market else { return }
+    let targetPairID = ExchangeMarketCodeConverter.pairID(
+      fromDisplayMarket: selectMarket,
+      exchange: ExchangeSelectionStore.currentExchange
+    )
 	guard let transaction = UserDataManager.userTransactionList?.filter({
-			$0.marketName == self.reactor?.selectCrypto.market
+			$0.exchangePairID == targetPairID
 		  }) else { return }
 	
 	if transaction.count == 0 {

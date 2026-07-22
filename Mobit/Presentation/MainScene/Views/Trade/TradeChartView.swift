@@ -92,9 +92,11 @@ class TradeChartView: UIView, WKScriptMessageHandler {
 	}
   }
   
-  func toUpbitSymbol(symbol: String?) -> String {
-	guard let symbol = symbol else { return "UPBIT:BTCKRW" }
-	return "UPBIT:" + symbol.replacingOccurrences(of: "/", with: "")
+  private func tradingViewSymbol(symbol: String?) -> String {
+	MarketFormat.tradingViewSymbol(
+	  fromDisplayMarket: symbol,
+	  exchange: ExchangeSelectionStore.currentExchange
+	)
   }
   
   private func index(for interval: UserDataManager.TradingViewChartSettings.Interval) -> Int {
@@ -148,10 +150,10 @@ class TradeChartView: UIView, WKScriptMessageHandler {
   
   private func refreshChart() {
 	guard let symbol = self.symbol else { return }
-	let upbitChartSymbol = self.toUpbitSymbol(symbol: symbol)
+	let tradingViewSymbol = self.tradingViewSymbol(symbol: symbol)
 	let themeValue = self.chartSettings.theme.rawValue.jsEscaped
 	let intervalValue = self.chartSettings.interval.rawValue.jsEscaped
-	let symbolValue = upbitChartSymbol.jsEscaped
+	let symbolValue = tradingViewSymbol.jsEscaped
 	// 앱의 상승/하락 색상 테마를 캔들 색에 반영
 	let upColorValue = MarketColorPalette.riseColorHex.jsEscaped
 	let downColorValue = MarketColorPalette.fallColorHex.jsEscaped

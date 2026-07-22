@@ -20,6 +20,7 @@ class MobitTabBarViewController: UIViewController {
   let mobitTabBar = MobitTabBar(tabItems: [.exchange, .wallet, .news, .more])
   private var currentViewController: UIViewController?
   private var viewControllers: [UIViewController] = []
+  private(set) var selectedIndex: Int = 0
 
   var onTabSelected: ((Int) -> Void)?
 
@@ -67,12 +68,14 @@ class MobitTabBarViewController: UIViewController {
 	}
   }
   
-  func setViewControllers(_ controllers: [UIViewController]) {
+  func setViewControllers(_ controllers: [UIViewController], selectedIndex: Int = 0) {
 	self.viewControllers = controllers
-	switchToTab(index: 0)
+	let normalizedIndex = max(0, min(selectedIndex, controllers.count - 1))
+	switchToTab(index: normalizedIndex)
   }
   
-  private func switchToTab(index: Int) {
+  func switchToTab(index: Int) {
+	guard viewControllers.indices.contains(index) else { return }
 	let newVC = viewControllers[index]
 	
 	if currentViewController != nil {
@@ -92,6 +95,7 @@ class MobitTabBarViewController: UIViewController {
 	
 	newVC.didMove(toParent: self)
 	currentViewController = newVC
+	self.selectedIndex = index
   }
   
   func controlSocket(appState: AppState) {

@@ -173,8 +173,8 @@ final class UpbitWebSocketClient: WebSocketDelegate, WebSocketClientProtocol {
 
 final class TickerSocketService: TickerSocketServiceProtocol {
   private let client: WebSocketClientProtocol
+  private let exchangeProvider: ExchangeMarketDataProviding
   private let disposeBag = DisposeBag()
-  private let decoder = JSONDecoder()
   private var subscribedMarkets: [String] = []
   private var sentMarkets: [String] = []
   
@@ -184,8 +184,9 @@ final class TickerSocketService: TickerSocketServiceProtocol {
 		guard let self = self else { return nil }
 		
 		do {
-		  let dto = try self.decoder.decode(CryptoSocketTickerDTO.self, from: data)
-		  return dto.toDomain()
+		  return try self.exchangeProvider.decodeTickerWebSocketMessage(
+            from: data
+          )
 		} catch {
 		  Log.error("Ticker websocket decode error: \(error.localizedDescription)")
 		  return nil
@@ -194,10 +195,14 @@ final class TickerSocketService: TickerSocketServiceProtocol {
 	  .share()
   }()
   
-  init(client: WebSocketClientProtocol = UpbitWebSocketClient(socketType: .ticker)) {
-	self.client = client
+  init(
+    client: WebSocketClientProtocol? = nil,
+    exchangeProvider: ExchangeMarketDataProviding = ExchangeAdapterRegistry.default
+  ) {
+    self.exchangeProvider = exchangeProvider
+	self.client = client ?? exchangeProvider.makeTickerWebSocketClient()
 	
-	client.onConnected
+	self.client.onConnected
 	  .subscribe(onNext: { [weak self] in
 		self?.resubscribeIfNeeded()
 	  })
@@ -247,8 +252,8 @@ final class TickerSocketService: TickerSocketServiceProtocol {
 
 final class OrderBookSocketService: OrderBookSocketServiceProtocol {
   private let client: WebSocketClientProtocol
+  private let exchangeProvider: ExchangeMarketDataProviding
   private let disposeBag = DisposeBag()
-  private let decoder = JSONDecoder()
   private var subscribedMarket: String?
   private var sentMarket: String?
   
@@ -258,8 +263,9 @@ final class OrderBookSocketService: OrderBookSocketServiceProtocol {
 		guard let self = self else { return nil }
 		
 		do {
-		  let dto = try self.decoder.decode(OrderbookDTO.self, from: data)
-		  return dto.toDomain()
+		  return try self.exchangeProvider.decodeOrderBookWebSocketMessage(
+            from: data
+          )
 		} catch {
 		  Log.error("Orderbook websocket decode error: \(error.localizedDescription)")
 		  return nil
@@ -268,10 +274,14 @@ final class OrderBookSocketService: OrderBookSocketServiceProtocol {
 	  .share()
   }()
   
-  init(client: WebSocketClientProtocol = UpbitWebSocketClient(socketType: .orderbook)) {
-	self.client = client
+  init(
+    client: WebSocketClientProtocol? = nil,
+    exchangeProvider: ExchangeMarketDataProviding = ExchangeAdapterRegistry.default
+  ) {
+    self.exchangeProvider = exchangeProvider
+	self.client = client ?? exchangeProvider.makeOrderBookWebSocketClient()
 	
-	client.onConnected
+	self.client.onConnected
 	  .subscribe(onNext: { [weak self] in
 		self?.resubscribeIfNeeded()
 	  })

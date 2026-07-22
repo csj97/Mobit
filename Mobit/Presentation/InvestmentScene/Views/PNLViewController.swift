@@ -41,7 +41,12 @@ class PNLViewController: MobitBaseViewController {
   
   func setData() {
 	// 최신순을 위해 reversed
-	if let datas = UserDataManager.userPNLHistory, datas.count > 0 {
+    let currentExchange = ExchangeSelectionStore.currentExchange
+    let datas = UserDataManager.userPNLHistory?.filter {
+      $0.exchange == currentExchange
+    } ?? []
+
+	if datas.count > 0 {
 	  self.noResultView.isHidden = true
 	  self.pnlHistoryDatas = datas.reversed()
 	  self.pnlTableView.reloadData()

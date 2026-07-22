@@ -134,9 +134,15 @@ class TradeAskView: UIView, ViewRule {
 
   /// 최대 수량 버튼
   @IBAction func tapOnMaxAmount(_ sender: UIButton) {
+    guard let targetPairID = self.reactor.map({
+      ExchangeMarketCodeConverter.pairID(
+        fromDisplayMarket: $0.selectCrypto.market,
+        exchange: ExchangeSelectionStore.currentExchange
+      )
+    }) else { return }
 	guard let availableCrypto = UserDataManager.userCryptoList?
 			.compactMap({ $0 })
-			.first(where: { $0.staticData.marketName == self.reactor?.selectCrypto.market }),
+			.first(where: { $0.staticData.exchangePairID == targetPairID }),
 		  let currentPrice = self.cryptoInfo?.tradePrice
 	else { return }
 
@@ -159,9 +165,14 @@ class TradeAskView: UIView, ViewRule {
 	vibrator.impactOccurred()
 
 	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
-		  let marketName = self.reactor?.selectCrypto.market,
+          let targetPairID = self.reactor.map({
+            ExchangeMarketCodeConverter.pairID(
+              fromDisplayMarket: $0.selectCrypto.market,
+              exchange: ExchangeSelectionStore.currentExchange
+            )
+          }),
 		  let crypto = UserDataManager.userCryptoList?.compactMap({ $0 }).first(
-			where: { $0.staticData.marketName == marketName }
+			where: { $0.staticData.exchangePairID == targetPairID }
 		  )
 	else {
 	  self.callBack?(.alert(title: "알림", message: TradeOrderValidator.ValidationError.missingPrice.message))
@@ -184,7 +195,8 @@ class TradeAskView: UIView, ViewRule {
 	let result = TradeOrderService.executeAsk(
 	  marketName: crypto.staticData.marketName,
 	  currentPrice: currentPrice,
-	  quantity: inputAmount
+	  quantity: inputAmount,
+      exchange: crypto.staticData.exchange
 	)
 
 	switch result {
@@ -192,7 +204,7 @@ class TradeAskView: UIView, ViewRule {
 	  self.callBack?(.successLottie)
 	  self.initTextFieldValue()
 	  self.currentInvestData = UserDataManager.userCryptoList?.first(where: {
-		$0.staticData.marketName == marketName
+		$0.staticData.exchangePairID == targetPairID
 	  })
 	  self.updateCryptoData()
 	  self.callBack?(.updateHistory)

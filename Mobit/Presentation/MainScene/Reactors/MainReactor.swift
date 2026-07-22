@@ -189,6 +189,12 @@ extension MainReactor {
 // MARK: - Load Crypto & Socket
 
 extension MainReactor {
+  private func initialTickerMarkets(from cryptoList: CryptoList) -> [String] {
+    let currentExchange = ExchangeSelectionStore.currentExchange
+    Log.info("📊 initial ticker scope exchange=\(currentExchange.rawValue) totalMarkets=\(cryptoList.count)")
+    return cryptoList.map { $0.market }
+  }
+
   
   /// 1️⃣ 암호화폐 목록 로드 및 초기 티커 조회
   func loadCryptoList() -> Observable<MainMutation> {
@@ -198,11 +204,10 @@ extension MainReactor {
 		
 		self.tickerSocketService.connect()
 		
-		// 전체 마켓 목록 (KRW + BTC)
-		let allMarkets = cryptoList.map { $0.market }
+		let initialMarkets = self.initialTickerMarkets(from: cryptoList)
 		
 		// REST API로 전체 티커 조회
-		return self.loadInitialTicker(cryptoList: cryptoList, markets: allMarkets)
+		return self.loadInitialTicker(cryptoList: cryptoList, markets: initialMarkets)
 	  }
 	
 	return Observable.concat([
@@ -213,7 +218,7 @@ extension MainReactor {
 	.catch { error in
 	  Log.error("loadCryptoList failed: \(error.localizedDescription)")
 	  return Observable.concat([
-		.just(.setErrorMessage(message: "시세 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.")),
+		.just(.setErrorMessage(message: "시세 데이터를 불러오지 못했습니다. [DEBUG:\(error)]")),
 		.just(.setLoading(isLoading: false))
 	  ])
 	}
@@ -298,7 +303,7 @@ extension MainReactor {
 	  tab: tab,
 	  totalList: totalList,
 	  userCryptos: UserDataManager.userCryptoList,
-	  favorites: UserDataManager.userFavoriteList
+	  favorites: UserDataManager.userFavoritePairs
 	)
 	
 	// 소켓에 해당 마켓만 구독 요청

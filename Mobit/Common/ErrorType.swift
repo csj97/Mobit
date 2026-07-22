@@ -9,6 +9,7 @@ import Foundation
 
 enum ErrorType: Error {
   case badRequest
+  case rateLimited
   case unknownError
   case dataMappingError
   case socketError
@@ -19,6 +20,8 @@ extension ErrorType: LocalizedError {
     switch self {
     case .badRequest:
       return "잘못된 접근입니다."
+    case .rateLimited:
+      return "요청이 많아 잠시 후 다시 시도해주세요."
     case .dataMappingError:
       return "Data의 맵핑이 잘못됐습니다."
     case .unknownError:

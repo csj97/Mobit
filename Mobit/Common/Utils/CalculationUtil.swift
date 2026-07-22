@@ -45,9 +45,18 @@ class CalculationUtil {
   }
   
   /// 평단가 계산: 매수 금액과 수량에 따라 평단가 계산
-  func calcAverBuyPrice(for marketName: String) -> Double {
+  func calcAverBuyPrice(
+    for marketName: String,
+    exchange: Exchange = ExchangeSelectionStore.currentExchange
+  ) -> Double {
 	let userValidTransactionList = UserDataManager.userValidTransactionList
-	let validTransactionData = userValidTransactionList?.first { $0.marketName == marketName }
+    let targetPairID = ExchangeMarketCodeConverter.pairID(
+      fromDisplayMarket: marketName,
+      exchange: exchange
+    )
+	let validTransactionData = userValidTransactionList?.first {
+      $0.exchangePairID == targetPairID
+    }
 	
 	let averageBuyPrice = validTransactionData?.averageBuyPrice
 	

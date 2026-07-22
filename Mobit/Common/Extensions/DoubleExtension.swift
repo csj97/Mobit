@@ -21,8 +21,8 @@ extension Double {
 	let digitStandard = pow(10.0, Double(digits))
 	let formattedValue = floor(self * digitStandard) / digitStandard
 	
-	// 1000 이상이면 무조건 정수로 변환
-	if formattedValue >= 1000 {
+	// 절댓값 1000 이상이면 무조건 정수로 변환 (음수 큰 손익도 동일하게 소수점 절삭)
+	if abs(formattedValue) >= 1000 {
 	  let stringValue = String(format: "%.0f", formattedValue)
 		.replacingOccurrences(
 		  of: "(?<=\\d)(?=(\\d{3})+(?!\\d))",

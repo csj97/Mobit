@@ -216,7 +216,8 @@ final class TradeOrderServiceTests: XCTestCase {
       UserDataManager.Keys.userValidTransactionList,
       UserDataManager.Keys.userCryptoList,
       UserDataManager.Keys.userPNLHistory,
-      UserDataManager.Keys.userInformation
+      UserDataManager.Keys.userInformation,
+      UserDataManager.Keys.userInformationByExchange
     ].forEach {
       UserDefaults.standard.removeObject(forKey: $0)
     }

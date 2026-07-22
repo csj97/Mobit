@@ -62,10 +62,7 @@ extension String {
   
   /// 슬래쉬 > 하이푼 으로 바꾸고 앞뒤 순서 바꿔주는 역할
   var marketForCandleRequest: String {
-	let symbol = self.components(separatedBy: "/").first ?? ""
-	let currency = self.components(separatedBy: "/").last ?? ""
-	let market = "\(currency)-\(symbol)"
-	return market
+    MarketFormat.apiMarket(fromDisplayMarket: self)
   }
   
   /// 텍스트 강조

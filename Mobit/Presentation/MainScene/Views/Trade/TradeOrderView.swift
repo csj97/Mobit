@@ -299,13 +299,17 @@ extension TradeOrderView {
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] cryptos in
 		guard let self else { return }
+        let targetPairID = ExchangeMarketCodeConverter.pairID(
+          fromDisplayMarket: reactor.selectCrypto.market,
+          exchange: ExchangeSelectionStore.currentExchange
+        )
 		
 		// 거래 내역에선 업데이트 안하기 때문
 		if self.segmentedControl.selectedIndex == 2 {
 		  self.investLiveView.isHidden = true
 		} else {
 		  guard let cryptoInvestData = cryptos.first(where: {
-			$0.staticData.marketName ==  reactor.selectCrypto.market
+			$0.staticData.exchangePairID == targetPairID
 		  }) else {
 			self.cryptoInvestData = nil
 			self.investLiveView.isHidden = true

@@ -9,6 +9,16 @@ import XCTest
 @testable import Mobit
 
 final class MarketFormatTests: XCTestCase {
+  override func setUp() {
+    super.setUp()
+    ExchangeSelectionStore.currentExchange = .upbit
+  }
+
+  override func tearDown() {
+    ExchangeSelectionStore.currentExchange = .upbit
+    super.tearDown()
+  }
+
   func testDisplayMarketFromAPIMarket() {
     XCTAssertEqual(
       MarketFormat.displayMarket(fromAPIMarket: "KRW-BTC"),
@@ -21,6 +31,48 @@ final class MarketFormatTests: XCTestCase {
       MarketFormat.apiMarket(fromDisplayMarket: "ETH/BTC"),
       "BTC-ETH"
     )
+  }
+
+  func testBithumbAPIMarketFromDisplayMarket() {
+    XCTAssertEqual(
+      MarketFormat.apiMarket(
+        fromDisplayMarket: "ETH/KRW",
+        exchange: .bithumb
+      ),
+      "KRW-ETH"
+    )
+  }
+
+  func testTradingViewSymbolUsesCurrentExchangeSelection() {
+    ExchangeSelectionStore.currentExchange = .bithumb
+
+    XCTAssertEqual(
+      MarketFormat.tradingViewSymbol(fromDisplayMarket: "BTC/KRW"),
+      "BITHUMB:BTCKRW"
+    )
+  }
+
+  func testTradingViewSymbolUsesDisplayMarketOrderForUpbit() {
+    XCTAssertEqual(
+      MarketFormat.tradingViewSymbol(
+        fromDisplayMarket: "BTC/KRW",
+        exchange: .upbit
+      ),
+      "UPBIT:BTCKRW"
+    )
+    XCTAssertEqual(
+      MarketFormat.tradingViewSymbol(
+        fromDisplayMarket: "ETH/BTC",
+        exchange: .upbit
+      ),
+      "UPBIT:ETHBTC"
+    )
+  }
+
+  func testExchangeAdapterRegistryUsesCurrentExchangeSelection() {
+    ExchangeSelectionStore.currentExchange = .bithumb
+
+    XCTAssertEqual(ExchangeAdapterRegistry.default.exchange, .bithumb)
   }
 
   func testInvalidMarketFormatReturnsOriginalValue() {
@@ -65,10 +117,48 @@ final class MarketFormatTests: XCTestCase {
       tab: .favorite,
       totalList: totalList,
       userCryptos: [],
-      favorites: ["BTC/KRW"]
+      favorites: [FavoritePair(displayMarket: "BTC/KRW", exchange: .upbit)]
     )
 
     XCTAssertEqual(markets, ["KRW-BTC"])
+  }
+
+  func testFavoriteTabSkipsFavoritesFromOtherExchange() {
+    let totalList = [
+      makeCell(market: "BTC/KRW"),
+      makeCell(market: "ETH/KRW")
+    ]
+
+    let markets = MarketFormat.apiMarketsForSubscription(
+      tab: .favorite,
+      totalList: totalList,
+      userCryptos: [],
+      favorites: [FavoritePair(displayMarket: "BTC/KRW", exchange: .bithumb)],
+      exchange: .upbit
+    )
+
+    XCTAssertEqual(markets, [])
+  }
+
+  func testHoldTabSkipsHoldingsFromOtherExchange() {
+    let totalList = [
+      makeCell(market: "BTC/KRW"),
+      makeCell(market: "ETH/KRW")
+    ]
+    let userCryptos = [
+      makeTransaction(market: "BTC/KRW", exchange: .bithumb),
+      makeTransaction(market: "ETH/KRW", exchange: .upbit)
+    ]
+
+    let markets = MarketFormat.apiMarketsForSubscription(
+      tab: .hold,
+      totalList: totalList,
+      userCryptos: userCryptos,
+      favorites: [],
+      exchange: .upbit
+    )
+
+    XCTAssertEqual(markets, ["KRW-ETH"])
   }
 
   private func makeCell(market: String) -> CryptoCellInfo {
@@ -88,9 +178,13 @@ final class MarketFormatTests: XCTestCase {
     )
   }
 
-  private func makeTransaction(market: String) -> CryptoTransactionDataModel {
+  private func makeTransaction(
+    market: String,
+    exchange: Exchange = .upbit
+  ) -> CryptoTransactionDataModel {
     CryptoTransactionDataModel(
       staticData: .init(
+        exchange: exchange,
         marketName: market,
         cryptoName: market,
         holdingQuantity: 1,
@@ -98,6 +192,7 @@ final class MarketFormatTests: XCTestCase {
         buyAmount: 100
       ),
       dynamicData: .init(
+        exchange: exchange,
         marketName: market,
         profitRate: 0,
         evaluationProfitLoss: 0,

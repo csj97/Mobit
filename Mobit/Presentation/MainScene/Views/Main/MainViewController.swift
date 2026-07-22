@@ -163,6 +163,19 @@ class MainViewController: MobitBaseViewController {
 	$0.backgroundImage = UIImage()
 	$0.translatesAutoresizingMaskIntoConstraints = true
   }
+
+  private let exchangeSelectorButton = UIButton(type: .system).then {
+	$0.configuration = .plain()
+	$0.configuration?.contentInsets = NSDirectionalEdgeInsets(
+	  top: 10,
+	  leading: 14,
+	  bottom: 10,
+	  trailing: 12
+	)
+	$0.configuration?.imagePadding = 10
+	$0.tintColor = UIColor(hex: "#4A5568")
+	$0.clipsToBounds = true
+  }
   
   let holdButton: UIButton = UIButton().then {
 	$0.setTitle("보유코인", for: .normal)
@@ -297,6 +310,7 @@ class MainViewController: MobitBaseViewController {
 	self.addViews()
 	self.setPortfolioSummaryView()
 	self.setSearchBar()
+	self.setExchangeSelectorButton()
 	self.setTableView()
 	self.setTabButton()
 	self.setButtonGesture()
@@ -331,6 +345,7 @@ class MainViewController: MobitBaseViewController {
   func addViews() {
 	self.view.addSubview(self.rootContainer)
 	self.rootContainer.addSubview(self.searchBar)
+	self.rootContainer.addSubview(self.exchangeSelectorButton)
 	self.rootContainer.addSubview(self.portfolioSummaryView)
 	self.rootContainer.addSubview(self.krwButton)
 	self.rootContainer.addSubview(self.favoriteButton)
@@ -418,7 +433,9 @@ class MainViewController: MobitBaseViewController {
   private func updatePortfolioSummary(
 	cryptos: [CryptoTransactionDataModel]? = UserDataManager.userCryptoList
   ) {
-	let cryptos = cryptos ?? []
+	// 거래소별 자산 분리: 현재 선택 거래소 보유분만 합산한다.
+	let currentExchange = ExchangeSelectionStore.currentExchange
+	let cryptos = (cryptos ?? []).filter { $0.staticData.exchange == currentExchange }
 	let availableBalance = UserDataManager.userInformation?.userAvailableBalance ?? 0
 	let totalBalance = PortfolioCalculator.totalAssetValue(
 	  availableBalance: availableBalance,
@@ -526,6 +543,11 @@ class MainViewController: MobitBaseViewController {
 	)
 	self.tradingVolumeButton.addTarget(
 	  self, action: #selector(tapOnSortButton(_:)), for: .touchUpInside
+	)
+	self.exchangeSelectorButton.addTarget(
+	  self,
+	  action: #selector(didTapExchangeSelectorButton),
+	  for: .touchUpInside
 	)
   }
   
@@ -664,13 +686,38 @@ class MainViewController: MobitBaseViewController {
 	}
 	self.searchBar.delegate = self
   }
+
+  func setExchangeSelectorButton() {
+	var configuration = UIButton.Configuration.plain()
+	configuration.imagePlacement = .leading
+	configuration.imagePadding = 6
+	configuration.contentInsets = NSDirectionalEdgeInsets(
+	  top: 7,
+	  leading: 10,
+	  bottom: 7,
+	  trailing: 12
+	)
+	configuration.baseForegroundColor = UIColor(hex: "#1F2937")
+	// 단일 중립 톤 pill 하나만 사용하고 테두리는 두지 않는다.
+	var background = UIButton.Configuration.plain().background
+	background.backgroundColor = UIColor(hex: "#F2F4F7")
+	background.strokeWidth = 0
+	background.cornerRadius = 18
+	configuration.background = background
+	self.exchangeSelectorButton.configuration = configuration
+	self.exchangeSelectorButton.layer.cornerCurve = .continuous
+	self.updateExchangeSelectorButtonTitle()
+  }
   
   /// FlexItem 설정
   func setUpFlexItems() {
 	rootContainer.flex
 	  .justifyContent(.start)
 	  .direction(.column).define { flex in
-		flex.addItem(self.searchBar).height(45).width(100%)
+		flex.addItem().direction(.row).alignItems(.center).define { flex in
+		  flex.addItem(self.searchBar).grow(1).shrink(1).height(45)
+		  flex.addItem(self.exchangeSelectorButton).marginLeft(8).marginRight(6).height(45)
+		}
 
 		flex.addItem(self.portfolioSummaryView)
 		  .marginTop(4)
@@ -740,9 +787,120 @@ class MainViewController: MobitBaseViewController {
 	  fearGreedIndex: self.reactor.currentState.fearGreedIndex
 	)
   }
+
+  @objc private func didTapExchangeSelectorButton() {
+	let currentExchange = ExchangeSelectionStore.currentExchange
+	let alert = UIAlertController(title: "거래소 선택", message: nil, preferredStyle: .actionSheet)
+
+	[Exchange.upbit, .bithumb].forEach { exchange in
+	  let exchangeName = self.analyticsExchangeName(exchange)
+	  // 표시는 버튼과 동일하게 영어 이름으로 통일하고, 분석 파라미터는 기존 한글 이름을 유지한다.
+	  let displayName = self.exchangeSelectorDisplayName(exchange)
+	  let isCurrent = currentExchange == exchange
+	  let title = isCurrent ? "\(displayName) · 현재 선택" : displayName
+	  let action = UIAlertAction(title: title, style: .default) { [weak self] _ in
+		guard let self = self else { return }
+		MobitAnalyticsUtil.sendClickEvent(
+		  location: "거래소_화면",
+		  stepDepth01: "거래소_선택",
+		  stepDepth02: "거래소_변경",
+		  stepDepth03: exchangeName,
+		  extraParameters: [
+			"selected_exchange": exchangeName,
+			"previous_exchange": self.analyticsExchangeName(currentExchange),
+			"change_status": isCurrent ? "변경없음" : "변경있음"
+		  ]
+		)
+		guard isCurrent == false else { return }
+		self.coordinator?.switchExchange(to: exchange)
+	  }
+	  if let logoImage = self.exchangeLogoImage(exchange, size: 24) {
+		action.setValue(logoImage, forKey: "image")
+	  }
+	  alert.addAction(action)
+	}
+
+	alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+
+	if let popover = alert.popoverPresentationController {
+	  popover.sourceView = self.exchangeSelectorButton
+	  popover.sourceRect = self.exchangeSelectorButton.bounds
+	}
+
+	MobitAnalyticsUtil.sendClickEvent(
+	  location: "거래소_화면",
+	  stepDepth01: "거래소_선택",
+	  stepDepth02: "거래소_바텀시트_노출",
+	  stepDepth03: self.analyticsExchangeName(currentExchange),
+	  extraParameters: ["selected_exchange": self.analyticsExchangeName(currentExchange)]
+	)
+	self.present(alert, animated: true)
+  }
+
+  private func updateExchangeSelectorButtonTitle() {
+	let currentExchange = ExchangeSelectionStore.currentExchange
+	let displayName = self.exchangeSelectorDisplayName(currentExchange)
+
+	var nameAttributes = AttributeContainer()
+	nameAttributes.font = .systemFont(ofSize: 15, weight: .semibold)
+	nameAttributes.foregroundColor = UIColor(hex: "#1F2937")
+	var title = AttributedString(displayName, attributes: nameAttributes)
+
+	// 펼침 캐럿은 이름보다 약하게 처리해 시선을 뺏지 않는다.
+	var caretAttributes = AttributeContainer()
+	caretAttributes.font = .systemFont(ofSize: 12, weight: .semibold)
+	caretAttributes.foregroundColor = UIColor(hex: "#9CA3AF")
+	title.append(AttributedString("  ▾", attributes: caretAttributes))
+
+	self.exchangeSelectorButton.configuration?.attributedTitle = title
+	self.exchangeSelectorButton.configuration?.image = self.exchangeLogoImage(
+	  currentExchange,
+	  size: 22
+	)
+	self.exchangeSelectorButton.configuration?.imagePlacement = .leading
+	self.exchangeSelectorButton.configuration?.imagePadding = 6
+	self.exchangeSelectorButton.configuration?.contentInsets = NSDirectionalEdgeInsets(
+	  top: 7,
+	  leading: 10,
+	  bottom: 7,
+	  trailing: 12
+	)
+  }
 }
 
 private extension MainViewController {
+  func exchangeSelectorDisplayName(_ exchange: Exchange) -> String {
+	switch exchange {
+	case .upbit:
+	  return "Upbit"
+	case .bithumb:
+	  return "Bithumb"
+	case .binance:
+	  return "Binance"
+	case .okx:
+	  return "OKX"
+	}
+  }
+
+  func exchangeLogoImage(_ exchange: Exchange, size: CGFloat) -> UIImage? {
+	let assetName: String
+	switch exchange {
+	case .upbit:
+	  assetName = "upbit_logo"
+	case .bithumb:
+	  assetName = "bithumb_logo"
+	case .binance, .okx:
+	  return nil
+	}
+
+	guard let image = UIImage(named: assetName) else { return nil }
+	let targetSize = CGSize(width: size, height: size)
+	let renderer = UIGraphicsImageRenderer(size: targetSize)
+	return renderer.image { _ in
+	  image.draw(in: CGRect(origin: .zero, size: targetSize))
+	}.withRenderingMode(.alwaysOriginal)
+  }
+
   func analyticsTabName(_ tab: SelectedTab) -> String {
 	switch tab {
 	case .hold: return "보유코인"
@@ -796,6 +954,19 @@ private extension MainViewController {
 	  return "데이터없음"
 	}
 	return FearGreedLevel(value: value).title
+  }
+
+  func analyticsExchangeName(_ exchange: Exchange) -> String {
+	switch exchange {
+	case .upbit:
+	  return "업비트"
+	case .bithumb:
+	  return "빗썸"
+	case .binance:
+	  return "바이낸스"
+	case .okx:
+	  return "OKX"
+	}
   }
 }
 
@@ -948,7 +1119,12 @@ extension MainViewController: View {
   /// 현재 탭 + 검색어에 따라 리스트 필터링
   private func filterListForCurrentTab(totalList: [CryptoCellInfo]) -> [CryptoCellInfo] {
 	let searchText = self.searchBar.text?.lowercased() ?? ""
-	let favoriteMarkets = Set(UserDataManager.userFavoriteList)
+    let currentExchange = ExchangeSelectionStore.currentExchange
+    let favoritePairIDs = Set(
+      UserDataManager.userFavoritePairs
+        .filter { $0.exchange == currentExchange }
+        .map(\.pairID)
+    )
 	
 	var filteredList = totalList
 	
@@ -957,11 +1133,13 @@ extension MainViewController: View {
 	case .hold:
 	  // 보유 코인만 남기고, 보유데이터(보유량/평단/평가금액/수익률)를 표시 시세 기준으로 채운다.
 	  let holdingByMarket = Dictionary(
-		self.reactor.currentState.userCryptos.map { ($0.staticData.marketName, $0) },
+        self.reactor.currentState.userCryptos
+          .filter { $0.staticData.exchange == currentExchange }
+          .map { ($0.staticData.exchangePairID, $0) },
 		uniquingKeysWith: { first, _ in first }
 	  )
 	  filteredList = filteredList.compactMap { cell in
-		guard let holding = holdingByMarket[cell.market] else { return nil }
+        guard let holding = holdingByMarket[cell.exchangePairID] else { return nil }
 		var enriched = cell
 		let qty = holding.staticData.holdingQuantity
 		let avg = holding.staticData.averageBuyPrice
@@ -986,7 +1164,7 @@ extension MainViewController: View {
 	  filteredList = filteredList.filter { $0.market.contains("/BTC") }
 	  
 	case .favorite:
-	  filteredList = filteredList.filter { favoriteMarkets.contains($0.market) }
+      filteredList = filteredList.filter { favoritePairIDs.contains($0.exchangePairID) }
 	}
 	
 	// 2. 검색어 필터링
@@ -1017,10 +1195,15 @@ extension MainViewController: View {
 	default:
 	  // 초기 순서: 보유 목록 순서 기준 (마켓 정렬 영향 없음)
 	  let order = Dictionary(
-		self.reactor.currentState.userCryptos.enumerated().map { ($1.staticData.marketName, $0) },
+        self.reactor.currentState.userCryptos
+          .filter { $0.staticData.exchange == ExchangeSelectionStore.currentExchange }
+          .enumerated()
+          .map { ($1.staticData.exchangePairID, $0) },
 		uniquingKeysWith: { first, _ in first }
 	  )
-	  return list.sorted { (order[$0.market] ?? Int.max) < (order[$1.market] ?? Int.max) }
+      return list.sorted {
+        (order[$0.exchangePairID] ?? Int.max) < (order[$1.exchangePairID] ?? Int.max)
+      }
 	}
   }
 
@@ -1096,14 +1279,15 @@ extension MainViewController: View {
   private func updateUserCryptoList(from cellInfos: [CryptoCellInfo]) {
 	guard var userCryptoList = UserDataManager.userCryptoList, !userCryptoList.isEmpty else { return }
 
-	// market -> index 맵 (탐색 O(1))
-	let indexByMarket = Dictionary(
-	  uniqueKeysWithValues: userCryptoList.enumerated().map { ($1.staticData.marketName, $0) }
+	// pairID -> index 맵 (탐색 O(1))
+	// 거래소가 다르면 같은 marketName(예: "ETH/KRW")이 공존하므로 거래소를 포함한 pairID를 키로 쓴다.
+	let indexByPairID = Dictionary(
+	  uniqueKeysWithValues: userCryptoList.enumerated().map { ($1.staticData.exchangePairID, $0) }
 	)
 
 	for cell in cellInfos {
 	  guard let currentPrice = cell.tradePrice,
-			let idx = indexByMarket[cell.market] else { continue }
+			let idx = indexByPairID[cell.exchangePairID] else { continue }
 
 	  let avg = userCryptoList[idx].staticData.averageBuyPrice
 	  let qty = userCryptoList[idx].staticData.holdingQuantity
