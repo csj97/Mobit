@@ -257,6 +257,28 @@ class UserDataManager: NSObject {
     }
   }
 
+  /// 지정한 거래소의 보유 현금 정보. 주문 처리처럼 대상 거래소가 명시된 흐름에서 사용한다.
+  static func userInformation(for exchange: Exchange) -> MobitUserInformation? {
+    let store = userInformationStore
+    guard !store.isEmpty else { return nil }
+    return store[exchange.rawValue] ?? MobitUserInformation(userAvailableBalance: 0)
+  }
+
+  /// 지정한 거래소의 보유 현금 갱신. 선택 거래소가 바뀐 뒤 주문이 끝나도 잔고가 섞이지 않도록 분리한다.
+  static func updateUserInformation(
+    _ information: MobitUserInformation,
+    for exchange: Exchange
+  ) {
+    var store = userInformationStore
+    store[exchange.rawValue] = information
+    userInformationStore = store
+
+    guard exchange == ExchangeSelectionStore.currentExchange else { return }
+    DispatchQueue.main.async {
+      self.userAvailableBalanceSubject.onNext(information.userAvailableBalance)
+    }
+  }
+
   /// 거래소 전환 시 현재 거래소 잔고를 구독자에게 다시 브로드캐스트한다.
   static func publishCurrentExchangeBalance() {
     userAvailableBalanceSubject.onNext(userInformation?.userAvailableBalance)

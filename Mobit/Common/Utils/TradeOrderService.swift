@@ -25,7 +25,7 @@ enum TradeOrderService {
     let validation = TradeOrderValidator.validateBid(
       price: currentPrice,
       quantity: quantity,
-      availableBalance: UserDataManager.userInformation?.userAvailableBalance
+      availableBalance: UserDataManager.userInformation(for: exchange)?.userAvailableBalance
     )
 
     guard case .success(let executedAmount) = validation else {
@@ -117,9 +117,10 @@ enum TradeOrderService {
       )
     }
 
-    let availableBalance = (UserDataManager.userInformation?.userAvailableBalance ?? 0) - executedAmount
-    UserDataManager.userInformation = MobitUserInformation(
-      userAvailableBalance: availableBalance
+    let availableBalance = (UserDataManager.userInformation(for: exchange)?.userAvailableBalance ?? 0) - executedAmount
+    UserDataManager.updateUserInformation(
+      MobitUserInformation(userAvailableBalance: availableBalance),
+      for: exchange
     )
 
     return .success(
@@ -155,12 +156,24 @@ enum TradeOrderService {
       holdingQuantity: crypto.staticData.holdingQuantity
     )
 
-    guard case .success(let executedAmount) = validation else {
+    guard case .success = validation else {
       if case .failure(let error) = validation {
         return .failure(error)
       }
       return .failure(.invalidQuantity)
     }
+
+    // 입력 수량은 화면 표시용으로 소수점 8자리까지만 넘어오므로, 남는 양이 허용 오차 이내면 보유 수량 전체를 체결시킨다.
+    let staticData = crypto.staticData
+    let isFullySold = PortfolioCalculator.isFullySold(
+      holdingQuantity: staticData.holdingQuantity,
+      sellQuantity: quantity
+    )
+    let executedQuantity = isFullySold ? staticData.holdingQuantity : quantity
+    let executedAmount = PortfolioCalculator.executedAmount(
+      price: currentPrice,
+      quantity: executedQuantity
+    )
 
     let executedDate = formattedDate(executedAt)
     let transaction = TransactionInfo(
@@ -169,7 +182,7 @@ enum TradeOrderService {
       orderType: .ask,
       executedDate: executedDate,
       executedPrice: currentPrice,
-      executedQuantity: quantity,
+      executedQuantity: executedQuantity,
       executedAmount: executedAmount
     )
 
@@ -180,7 +193,7 @@ enum TradeOrderService {
 
     let validTransaction = ValidTransactionInfo.Transaction(
       orderType: .ask,
-      quantity: quantity,
+      quantity: executedQuantity,
       buyPrice: currentPrice
     )
 
@@ -192,9 +205,8 @@ enum TradeOrderService {
       exchange: exchange
     )
 
-    let staticData = crypto.staticData
-    if quantity < staticData.holdingQuantity {
-      let newHoldingQuantity = staticData.holdingQuantity - quantity
+    if !isFullySold {
+      let newHoldingQuantity = staticData.holdingQuantity - executedQuantity
       let newBuyAmount = newHoldingQuantity * staticData.averageBuyPrice
       let newStaticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
         exchange: staticData.exchange,
@@ -216,7 +228,7 @@ enum TradeOrderService {
     let pnl = PortfolioCalculator.realizedProfitLoss(
       entryPrice: staticData.averageBuyPrice,
       exitPrice: currentPrice,
-      quantity: quantity
+      quantity: executedQuantity
     )
 
     let pnlHistory = UserPNLHistoryModel(
@@ -225,14 +237,15 @@ enum TradeOrderService {
       entryPrice: staticData.averageBuyPrice,
       exitPrice: currentPrice,
       transactionDate: executedDate,
-      orderQuantity: quantity,
+      orderQuantity: executedQuantity,
       pnl: pnl
     )
     UserDataManager.userPNLHistory?.append(pnlHistory)
 
-    let availableBalance = (UserDataManager.userInformation?.userAvailableBalance ?? 0) + executedAmount
-    UserDataManager.userInformation = MobitUserInformation(
-      userAvailableBalance: availableBalance
+    let availableBalance = (UserDataManager.userInformation(for: exchange)?.userAvailableBalance ?? 0) + executedAmount
+    UserDataManager.updateUserInformation(
+      MobitUserInformation(userAvailableBalance: availableBalance),
+      for: exchange
     )
 
     return .success(

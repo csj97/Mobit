@@ -8,8 +8,15 @@
 import Foundation
 
 enum PortfolioCalculator {
+  /// 수량 비교 허용 오차. 소수점 아래가 잘린 입력값 때문에 생기는 미세 잔량을 보유로 취급하지 않기 위한 기준이다.
+  static let quantityTolerance: Double = 0.000001
+
   static func executedAmount(price: Double, quantity: Double) -> Double {
     floor(price * quantity)
+  }
+
+  static func isFullySold(holdingQuantity: Double, sellQuantity: Double) -> Bool {
+    holdingQuantity - sellQuantity < quantityTolerance
   }
 
   static func cumulativeHoldingQuantity(

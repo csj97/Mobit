@@ -238,6 +238,6 @@ extension ValidTransactionInfo {
   }
   
   var isFullySoldOut: Bool {
-	abs(totalHoldingQuantity) < 0.000001
+	abs(totalHoldingQuantity) < PortfolioCalculator.quantityTolerance
   }
 }

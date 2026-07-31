@@ -268,6 +268,18 @@ class MainViewController: MobitBaseViewController {
 	$0.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
   }
   
+  let noHoldView: UIView = UIView().then {
+	$0.backgroundColor = .white
+	$0.isHidden = true
+  }
+  
+  let noHoldLabel: UILabel = UILabel().then {
+	$0.text = "보유중인 코인이 없습니다."
+	$0.font = UIFont(name: "SUIT-Medium", size: 14)
+	$0.textAlignment = .center
+	$0.textColor = .black
+  }
+  
   let noFavoriteView: UIView = UIView().then {
 	$0.backgroundColor = .white
 	$0.isHidden = true
@@ -745,6 +757,16 @@ class MainViewController: MobitBaseViewController {
 		flex.addItem().direction(.column).define { flex in
 		  flex.addItem(self.tableView).grow(1)
 		  
+		  flex.addItem(self.noHoldView)
+			.position(.absolute)
+			.top(0).bottom(80).left(0).right(0)
+			.justifyContent(.center)
+			.alignItems(.center)
+			.backgroundColor(.white)
+			.define { flex in
+			  flex.addItem(self.noHoldLabel)
+			}
+
 		  flex.addItem(self.noFavoriteView)
 			.position(.absolute)
 			.top(0).bottom(80).left(0).right(0)
@@ -1265,11 +1287,23 @@ extension MainViewController: View {
 	  totalList: reactor.currentState.totalCryptoList
 	)
 
-	if self.selectedTab == .favorite, filteredList.isEmpty {
+	// 보유, 즐겨찾기 탭은 목록이 비면 테이블 대신 안내문구를 보여준다
+	let emptyGuideTab: SelectedTab? = filteredList.isEmpty ? self.selectedTab : nil
+
+	switch emptyGuideTab {
+	case .hold:
 	  self.tableView.isHidden = true
+	  self.noHoldView.isHidden = false
+	  self.noFavoriteView.isHidden = true
+
+	case .favorite:
+	  self.tableView.isHidden = true
+	  self.noHoldView.isHidden = true
 	  self.noFavoriteView.isHidden = false
-	} else {
+
+	default:
 	  self.tableView.isHidden = false
+	  self.noHoldView.isHidden = true
 	  self.noFavoriteView.isHidden = true
 	  self.applySnapshot(cellInfos: filteredList)
 	}

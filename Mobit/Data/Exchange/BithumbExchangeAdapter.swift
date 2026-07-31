@@ -740,14 +740,22 @@ extension BithumbTradeNetworkService: TargetType {
     ]
   }
 
-  // 빗썸 캔들 API는 소수초 포함 ISO8601 to를 거부(400)하므로 소수초를 제거해 전달한다.
+  // 빗썸 캔들 API는 타임존 suffix(Z/offset)와 소수초를 거부하고, tz 없는 시각을 KST로 해석한다.
+  // 앱은 to를 UTC ISO8601로 넘기므로, 같은 순간의 KST 벽시계(yyyy-MM-dd'T'HH:mm:ss)로 변환해 전달한다.
+  // (Z만 떼면 UTC 값이 KST로 오해돼 9시간 과거 캔들이 조회된다.)
   private static func candleToParameter(from to: String) -> String {
-    let withFraction = ISO8601DateFormatter()
-    withFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    guard let date = withFraction.date(from: to) else { return to }
-    let withoutFraction = ISO8601DateFormatter()
-    withoutFraction.formatOptions = [.withInternetDateTime]
-    return withoutFraction.string(from: date)
+    let isoWithFraction = ISO8601DateFormatter()
+    isoWithFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    let isoPlain = ISO8601DateFormatter()
+    isoPlain.formatOptions = [.withInternetDateTime]
+    guard let date = isoWithFraction.date(from: to) ?? isoPlain.date(from: to) else {
+      return to
+    }
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+    formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+    return formatter.string(from: date)
   }
 }
 

@@ -7,10 +7,12 @@
 
 import UIKit
 import WebKit
+import SnapKit
 
 class TradeChartView: UIView, WKScriptMessageHandler {
   
   @IBOutlet weak var settingsContainerView: UIView!
+  @IBOutlet weak var chartSettingsTitleLabel: UILabel!
   @IBOutlet weak var intervalSegmentedControl: UISegmentedControl!
   @IBOutlet weak var themeSegmentedControl: UISegmentedControl!
   @IBOutlet weak var persistenceGuideLabel: UILabel!
@@ -65,9 +67,52 @@ class TradeChartView: UIView, WKScriptMessageHandler {
 	self.settingsContainerView.layer.cornerRadius = 12
 	self.settingsContainerView.layer.borderWidth = 0.5
 	self.settingsContainerView.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.35).cgColor
-	self.persistenceGuideLabel.text = "여기서 선택한 차트 설정은 앱을 종료했다가 다시 들어와도 그대로 유지돼요."
+	// 인라인 안내문은 info 버튼 + 팝업으로 대체한다. 라벨은 숨기고 높이를 접어 레이아웃에서 제거한다.
+	self.persistenceGuideLabel.isHidden = true
+	self.persistenceGuideLabel.text = nil
+	self.persistenceGuideLabel.snp.makeConstraints { $0.height.equalTo(0) }
+	self.configureChartInfoButton()
 	self.intervalSegmentedControl.selectedSegmentIndex = self.index(for: chartSettings.interval)
 	self.themeSegmentedControl.selectedSegmentIndex = self.index(for: chartSettings.theme)
+  }
+
+  private lazy var chartInfoButton: UIButton = {
+	let button = UIButton(type: .system)
+	let config = UIImage.SymbolConfiguration(pointSize: 16, weight: .regular)
+	button.setImage(UIImage(systemName: "info.circle", withConfiguration: config), for: .normal)
+	button.tintColor = UIColor(hex: "#6B7280")
+	button.accessibilityLabel = "차트 설정 안내"
+	button.addTarget(self, action: #selector(didTapChartInfoButton), for: .touchUpInside)
+	return button
+  }()
+
+  private func configureChartInfoButton() {
+	self.settingsContainerView.addSubview(self.chartInfoButton)
+	self.chartInfoButton.snp.makeConstraints { make in
+	  make.leading.equalTo(self.chartSettingsTitleLabel.snp.trailing).offset(4)
+	  make.centerY.equalTo(self.chartSettingsTitleLabel)
+	  make.width.height.equalTo(20)
+	}
+  }
+
+  @objc private func didTapChartInfoButton() {
+	let alert = UIAlertController(
+	  title: "차트 설정 안내",
+	  message: "기간·테마 설정은 앱을 종료했다가 다시 들어와도 그대로 유지돼요.\n\n차트 안에서 추가한 지표·그림은 저장되지 않아요.",
+	  preferredStyle: .alert
+	)
+	alert.addAction(UIAlertAction(title: "확인", style: .default))
+	self.ownerViewController()?.present(alert, animated: true)
+  }
+
+  // UIView에서 알럿을 present하기 위해 responder chain으로 소유 뷰컨트롤러를 찾는다.
+  private func ownerViewController() -> UIViewController? {
+	var responder: UIResponder? = self
+	while let current = responder {
+	  if let viewController = current as? UIViewController { return viewController }
+	  responder = current.next
+	}
+	return nil
   }
   
   func configureWebView() async {

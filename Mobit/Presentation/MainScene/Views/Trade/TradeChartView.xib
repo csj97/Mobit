@@ -135,6 +135,7 @@
             </constraints>
             <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
             <connections>
+                <outlet property="chartSettingsTitleLabel" destination="u4u-6t-dtv" id="c1L-tt-i7f"/>
                 <outlet property="intervalSegmentedControl" destination="lXZ-QQ-p27" id="6KQ-TB-rHB"/>
                 <outlet property="persistenceGuideLabel" destination="S3G-JQ-zHe" id="Ddg-9r-yPZ"/>
                 <outlet property="settingsContainerView" destination="SyQ-yP-M9M" id="2Tm-V3-djv"/>

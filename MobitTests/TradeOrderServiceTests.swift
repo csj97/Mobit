@@ -12,11 +12,13 @@ final class TradeOrderServiceTests: XCTestCase {
   override func setUp() {
     super.setUp()
     clearUserDefaults()
+    ExchangeSelectionStore.currentExchange = .upbit
     UserDataManager.resetInvestmentData(availableBalance: 10_000)
   }
 
   override func tearDown() {
     clearUserDefaults()
+    ExchangeSelectionStore.currentExchange = .upbit
     super.tearDown()
   }
 
@@ -206,6 +208,57 @@ final class TradeOrderServiceTests: XCTestCase {
     XCTAssertEqual(UserDataManager.userCryptoList?.count, 0)
     XCTAssertEqual(UserDataManager.userValidTransactionList?.count, 0)
     XCTAssertEqual(UserDataManager.userPNLHistory?.count, 1)
+  }
+
+  func testExecuteAskTreatsTruncatedQuantityAsFullSell() throws {
+    // 최대 수량 버튼은 소수점 8자리로 절삭된 값을 넘기므로, 미세 잔량이 남지 않아야 한다.
+    let holdingQuantity = 0.123456789
+    _ = TradeOrderService.executeBid(
+      marketName: "BTC/KRW",
+      cryptoName: "비트코인",
+      currentPrice: 10_000,
+      quantity: holdingQuantity
+    )
+
+    let result = TradeOrderService.executeAsk(
+      marketName: "BTC/KRW",
+      currentPrice: 10_000,
+      quantity: holdingQuantity.formatDigits(digits: 8)
+    )
+
+    let execution = try result.get()
+
+    XCTAssertEqual(execution.executedAmount, floor(10_000 * holdingQuantity))
+    XCTAssertEqual(UserDataManager.userCryptoList?.count, 0)
+    XCTAssertEqual(UserDataManager.userValidTransactionList?.count, 0)
+    XCTAssertEqual(UserDataManager.userPNLHistory?.first?.orderQuantity, holdingQuantity)
+  }
+
+  func testExecuteAskAppliesProceedsToOrderExchangeNotSelectedExchange() throws {
+    ExchangeSelectionStore.currentExchange = .bithumb
+    UserDataManager.resetInvestmentData(availableBalance: 10_000)
+
+    _ = TradeOrderService.executeBid(
+      marketName: "BTC/KRW",
+      cryptoName: "비트코인",
+      currentPrice: 1_000,
+      quantity: 2,
+      exchange: .bithumb
+    )
+
+    // 매도 체결 처리 도중 거래소가 전환된 상황
+    ExchangeSelectionStore.currentExchange = .upbit
+    let result = TradeOrderService.executeAsk(
+      marketName: "BTC/KRW",
+      currentPrice: 1_500,
+      quantity: 2,
+      exchange: .bithumb
+    )
+
+    _ = try result.get()
+
+    XCTAssertEqual(UserDataManager.userInformation(for: .bithumb)?.userAvailableBalance, 11_000)
+    XCTAssertEqual(UserDataManager.userInformation(for: .upbit)?.userAvailableBalance, 0)
   }
 
   private func clearUserDefaults() {

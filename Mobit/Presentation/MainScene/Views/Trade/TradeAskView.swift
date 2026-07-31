@@ -120,11 +120,11 @@ class TradeAskView: UIView, ViewRule {
 	let krwAvailablePrice = currentPrice * crypto.staticData.holdingQuantity
 	self.availableCryptoCount = crypto.staticData.holdingQuantity
 	self.availableCrypto.text = String(self.availableCryptoCount.formatSignificantDigits())
-	self.availableTradePrice.text = "≈ " + String(floor(krwAvailablePrice)).addComma()
+	self.availableTradePrice.text = "≈ " + floor(krwAvailablePrice).formatSignificantDigits()
 
 	if self.inputAmount > 0 {
 	  let totalPriceFromInputAmount = currentPrice * self.inputAmount
-	  self.totalPriceTextField.text = String(floor(totalPriceFromInputAmount)).addComma()
+	  self.totalPriceTextField.text = floor(totalPriceFromInputAmount).formatSignificantDigits()
 	} else {
 	  self.totalPriceTextField.text = "0"
 	}
@@ -134,6 +134,9 @@ class TradeAskView: UIView, ViewRule {
 
   /// 최대 수량 버튼
   @IBAction func tapOnMaxAmount(_ sender: UIButton) {
+    // 키보드가 올라온 채로 값을 채우면 편집 콜백이 화면 표시용(소수점 8자리) 값으로 수량을 덮어써 전량 매도가 되지 않는다.
+    self.endEditing(true)
+
     guard let targetPairID = self.reactor.map({
       ExchangeMarketCodeConverter.pairID(
         fromDisplayMarket: $0.selectCrypto.market,
@@ -149,7 +152,7 @@ class TradeAskView: UIView, ViewRule {
 	let krwAvailablePrice = currentPrice * availableCrypto.staticData.holdingQuantity
 	self.inputTradeAmount.text = String(availableCrypto.staticData.holdingQuantity.formatSignificantDigits())
 	self.inputAmount = availableCrypto.staticData.holdingQuantity
-	self.totalPriceTextField.text = String(floor(krwAvailablePrice)).addComma()
+	self.totalPriceTextField.text = floor(krwAvailablePrice).formatSignificantDigits()
 	self.updateOrderValidationState()
   }
 
@@ -271,8 +274,12 @@ class TradeAskView: UIView, ViewRule {
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] cryptos in
 		guard let self = self else { return }
+        let targetPairID = ExchangeMarketCodeConverter.pairID(
+          fromDisplayMarket: reactor.selectCrypto.market,
+          exchange: ExchangeSelectionStore.currentExchange
+        )
 		self.currentInvestData = cryptos.first(where: {
-		  $0.staticData.marketName == reactor.selectCrypto.market
+		  $0.staticData.exchangePairID == targetPairID
 		})
 		self.updateCryptoData()
 	  })
@@ -294,7 +301,9 @@ extension TradeAskView: UITextFieldDelegate {
   /// 텍스트 필드에 텍스트가 변경될 때, 호출
   /// 텍스트가 변경되지 않아도 selection만 변경되어도 호출
   func textFieldDidChangeSelection(_ textField: UITextField) {
-	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
+	// 코드로 텍스트를 채울 때도 호출되므로, 반대편 필드 값이 서로를 덮어쓰지 않도록 편집 중인 필드만 반영한다.
+	guard textField.isFirstResponder,
+		  let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
 		  let type = inputType(for: textField) else { return }
 
 	switch type {
@@ -329,6 +338,21 @@ extension TradeAskView: UITextFieldDelegate {
 	replacementString string: String
   ) -> Bool {
 	let currentText = textField.text ?? ""
+
+	// 삭제 결과 끝에 콤마만 남으면 사용자가 콤마까지 다시 지워야 하므로 함께 제거한다
+	if string.isEmpty, let deletionRange = Range(range, in: currentText) {
+	  var deletedText = currentText.replacingCharacters(in: deletionRange, with: "")
+	  guard deletedText.hasSuffix(",") else { return true }
+
+	  while deletedText.hasSuffix(",") {
+		deletedText.removeLast()
+	  }
+	  textField.text = deletedText
+	  DispatchQueue.main.async {
+		self.textFieldDidChangeSelection(textField)
+	  }
+	  return false
+	}
 
 	let allowedCharacters = CharacterSet(charactersIn: "0123456789.")
 	if string.rangeOfCharacter(from: allowedCharacters.inverted) != nil {
