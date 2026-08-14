@@ -30,7 +30,7 @@ class MobitTextField: UITextField {
   }
   
   private func addBottomBorder() {
-	bottomLine.backgroundColor = UIColor.mobitColors(.lineLightGray).cgColor
+	bottomLine.backgroundColor = UIColor.mobitColors(.borderPrimary).cgColor
 	layer.addSublayer(bottomLine)
   }
   

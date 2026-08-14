@@ -51,6 +51,9 @@ class TradeHistoryView: UIView, ViewRule {
   }
   
   func setUI() {
+	self.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.historyTableView.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.noHistoryView.backgroundColor = .mobitColors(.backgroundPrimary)
     self.noHistoryView.isHidden = true
 	self.historyTableView.separatorStyle = .none
   }

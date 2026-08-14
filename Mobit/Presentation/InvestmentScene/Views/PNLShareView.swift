@@ -78,7 +78,7 @@ class PNLShareView: UIView {
 	  self.pnlLabel.textColor = MarketColorPalette.fallColor
 	  pnlSign = ""
 	} else {
-	  self.pnlLabel.textColor = .white
+	  self.pnlLabel.textColor = .mobitColors(.textPrimary)
 	  pnlSign = ""
 	}
 	self.pnlLabel.text = pnlSign + "\(pnlShareUnit.pnl.formatSignificantDigits(digits: 2))".addComma() + " ₩"
@@ -91,7 +91,7 @@ class PNLShareView: UIView {
 	  self.roiLabel.textColor = MarketColorPalette.fallColor
 	  roiSign = ""
 	} else {
-	  self.roiLabel.textColor = .white
+	  self.roiLabel.textColor = .mobitColors(.textPrimary)
 	  roiSign = ""
 	}
 	
@@ -125,7 +125,7 @@ class PNLShareView: UIView {
 
 	let screenSize = UIScreen.main.bounds.size
 	let captureView = UIView(frame: CGRect(origin: .zero, size: screenSize))
-	captureView.backgroundColor = .white
+	captureView.backgroundColor = .mobitColors(.backgroundPrimary)
 
 	let pnlImage = pnlView.asImage()
 	let pnlImageView = UIImageView(image: pnlImage)

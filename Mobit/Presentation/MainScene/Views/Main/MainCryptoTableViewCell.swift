@@ -19,6 +19,11 @@ class MainCryptoTableViewCell: UITableViewCell {
   
   override func awakeFromNib() {
 	super.awakeFromNib()
+	self.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.contentView.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.cryptoName.textColor = .mobitColors(.textPrimary)
+	self.cryptoSymbol.textColor = .mobitColors(.textTertiary)
+	self.cryptoAccTradePrice.textColor = .mobitColors(.textPrimary)
 	// 현재가·전일대비는 regular라 다소 연해 보여 medium으로 강조
 	self.cryptoPrice.font = .systemFont(ofSize: 13, weight: .medium)
 	self.cryptoChangeRate.font = .systemFont(ofSize: 13, weight: .medium)
@@ -51,17 +56,25 @@ class MainCryptoTableViewCell: UITableViewCell {
 	if marketEvent.warning == true {
 	  let fullText = "[유]\(crypto.cryptoName)"
 	  let attributedString = NSMutableAttributedString(string: fullText)
-	  
-	  // [유]에만 색상 적용
+	  attributedString.addAttribute(
+		.foregroundColor,
+		value: UIColor.mobitColors(.textPrimary),
+		range: NSRange(location: 0, length: attributedString.length)
+	  )
+	  // [유]에만 경고 색상 적용
 	  attributedString.addAttribute(.foregroundColor,
 									value: UIColor.red,
 									range: NSRange(location: 0, length: 3))
 	  
 	  self.cryptoName.attributedText = attributedString
 	} else {
+	  self.cryptoName.attributedText = nil
+	  self.cryptoName.textColor = .mobitColors(.textPrimary)
 	  self.cryptoName.text = crypto.cryptoName
 	}
 	self.cryptoSymbol.text = crypto.market
+	self.cryptoSymbol.textColor = .mobitColors(.textTertiary)
+	self.cryptoAccTradePrice.textColor = .mobitColors(.textPrimary)
 	
 	let numberFormatter = NumberFormatter()
 	numberFormatter.numberStyle = .decimal
@@ -84,8 +97,8 @@ class MainCryptoTableViewCell: UITableViewCell {
 	  self.cryptoPrice.textColor = MarketColorPalette.fallColor
 	  self.cryptoChangeRate.textColor = MarketColorPalette.fallColor
 	} else if signedChangeRate == 0 {
-	  self.cryptoPrice.textColor = .black
-	  self.cryptoChangeRate.textColor = .black
+	  self.cryptoPrice.textColor = .mobitColors(.textPrimary)
+	  self.cryptoChangeRate.textColor = .mobitColors(.textPrimary)
 	} else {
 	  self.cryptoPrice.textColor = MarketColorPalette.riseColor
 	  self.cryptoChangeRate.textColor = MarketColorPalette.riseColor
@@ -99,7 +112,7 @@ class MainCryptoTableViewCell: UITableViewCell {
 	} else if signedChangeRate < 0 {
 	  self.contentView.backgroundColor = MarketColorPalette.fallColor.withAlphaComponent(0.08)
 	} else {
-	  self.contentView.backgroundColor = UIColor.black.withAlphaComponent(0.03)
+	  self.contentView.backgroundColor = UIColor.mobitColors(.surfacePrimary)
 	}
 
 	if isScrolling == false {

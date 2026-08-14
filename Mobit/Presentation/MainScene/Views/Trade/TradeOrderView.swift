@@ -76,6 +76,14 @@ class TradeOrderView: UIView, ViewRule {
   func setUI() {
 	
 	guard let reactor = self.reactor else { return }
+	self.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.segmentedContainerView.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.investLiveView.backgroundColor = .mobitColors(.surfacePrimary)
+	[
+	  self.cryptoAveragePrice,
+	  self.cryptoHoldingQuantity,
+	  self.cryptoEvalPrice
+	].forEach { $0?.textColor = .mobitColors(.textPrimary) }
 	historyView = TradeHistoryView.instanceFromNib(reactor: reactor) { }
 	bidView = TradeBidView.instanceFromNib(
 	  reactor: reactor,

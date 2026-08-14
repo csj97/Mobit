@@ -67,6 +67,19 @@ class TradeAverageCalcView: UIView {
   func setUI() {
 	self.newBuyQuantityTextField.setAdaptivePlaceholderColor()
 	self.newBuyPriceTextField.setAdaptivePlaceholderColor()
+	self.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.calcResultView.backgroundColor = .mobitColors(.surfacePrimary)
+	[
+	  self.averageResultLabel,
+	  self.holdingQuantityLabel,
+	  self.holdingAverageLabel,
+	  self.newBuyQuantitySymbolLabel,
+	  self.newBuyAveragePriceCurrencyLabel
+	].forEach { $0?.textColor = .mobitColors(.textPrimary) }
+	[self.newBuyQuantityTextField, self.newBuyPriceTextField].forEach { textField in
+	  textField?.textColor = .mobitColors(.textPrimary)
+	  textField?.backgroundColor = .mobitColors(.surfacePrimary)
+	}
 	
 	self.calcResultView.isHidden = true
 	self.newBuyQuantitySymbolLabel.isHidden = true

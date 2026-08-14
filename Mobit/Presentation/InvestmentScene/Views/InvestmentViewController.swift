@@ -79,7 +79,67 @@ class InvestmentViewController: MobitBaseViewController {
   func setUI() {
 //	self.transactionTableview.delegate = self
 //	self.transactionTableview.dataSource = self
+	self.view.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.transactionTableview.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.noResultView.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.transactionTableview.superview?.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.dimView.backgroundColor = UIColor.black.withAlphaComponent(0.35)
+	self.sortLabel.textColor = .mobitColors(.textPrimary)
+	[
+	  self.totalUserBalance,
+	  self.totalEvalProfitLoss,
+	  self.totalBuyPrice,
+	  self.availableUserBalance
+	].forEach { $0?.textColor = .mobitColors(.textPrimary) }
+	self.applyTheme(to: self.view)
+	self.applyInvestmentPanelTheme()
 	self.transactionTableview.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 70, right: 0)
+  }
+
+  private func applyTheme(to view: UIView) {
+	if view !== self.view,
+	   view !== self.transactionTableview,
+	   view !== self.noResultView,
+	   view !== self.dimView,
+	   view.backgroundColor != .clear {
+	  view.backgroundColor = .mobitColors(.surfacePrimary)
+	}
+
+	if let label = view as? UILabel {
+	  label.textColor = self.isSecondaryInvestmentLabel(label)
+		? .mobitColors(.textSecondary)
+		: .mobitColors(.textPrimary)
+	}
+
+	if let button = view as? UIButton {
+	  button.tintColor = .mobitColors(.textPrimary)
+	  button.setTitleColor(.mobitColors(.textPrimary), for: .normal)
+	}
+
+	if let imageView = view as? UIImageView {
+	  imageView.tintColor = .mobitColors(.textSecondary)
+	}
+
+	view.subviews.forEach { self.applyTheme(to: $0) }
+  }
+
+  private func applyInvestmentPanelTheme() {
+	self.transactionTableview.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.transactionTableview.superview?.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.noResultView.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.dimView.backgroundColor = UIColor.black.withAlphaComponent(0.35)
+	self.sortLabel.textColor = .mobitColors(.textSecondary)
+  }
+
+  private func isSecondaryInvestmentLabel(_ label: UILabel) -> Bool {
+	let secondaryTexts = [
+	  "평가손익",
+	  "수익률",
+	  "총 매수금액",
+	  "주문가능금액",
+	  "보유중인 코인이 없습니다."
+	]
+	return secondaryTexts.contains(label.text ?? "")
   }
   
   func setData() {

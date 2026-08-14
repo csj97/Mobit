@@ -55,9 +55,32 @@ class MobitAlertViewController: UIViewController {
   }
   
   override func viewDidLoad() {
-	super.viewDidLoad()
-	
-	self.configure(alertType: alertType, title: titleString, content: content, callBack: callBack)
+    super.viewDidLoad()
+    self.view.backgroundColor = .clear
+	self.dimView.backgroundColor = UIColor.black.withAlphaComponent(0.35)
+	self.labelStackView.superview?.backgroundColor = .mobitColors(.surfaceElevated)
+	self.labelStackView.backgroundColor = .clear
+	self.labelStackView.arrangedSubviews
+	  .filter { $0 !== self.titleLabel && $0 !== self.contentLabel && $0 !== self.dividerView }
+	  .forEach { $0.backgroundColor = .clear }
+    self.titleLabel.textColor = .mobitColors(.textPrimary)
+	self.contentLabel.textColor = .mobitColors(.textSecondary)
+    self.dividerView.backgroundColor = .mobitColors(.borderPrimary)
+	self.buttonStackView.backgroundColor = .clear
+	self.buttonStackView.superview?.subviews
+	  .filter { $0 !== self.labelStackView && $0 !== self.buttonStackView }
+	  .forEach { $0.backgroundColor = .mobitColors(.borderPrimary) }
+	self.buttonStackView.arrangedSubviews
+	  .filter { !($0 is UIButton) }
+	  .forEach { $0.backgroundColor = .mobitColors(.borderPrimary) }
+	self.cancelButton.backgroundColor = .mobitColors(.surfaceElevated)
+	self.confirmButton.backgroundColor = .mobitColors(.surfaceElevated)
+	self.cancelButton.setTitleColor(MarketColorPalette.fallColor, for: .normal)
+    self.confirmButton.setTitleColor(.mobitColors(.accentPrimary), for: .normal)
+	self.cancelButton.configuration?.baseForegroundColor = MarketColorPalette.fallColor
+	self.confirmButton.configuration?.baseForegroundColor = .mobitColors(.accentPrimary)
+
+    self.configure(alertType: alertType, title: titleString, content: content, callBack: callBack)
   }
   
   func configure(

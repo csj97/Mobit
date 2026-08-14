@@ -215,6 +215,7 @@
                 <outlet property="investLiveView" destination="CKp-xp-5Mi" id="EPQ-3A-Y75"/>
                 <outlet property="orderbookTableView" destination="UkH-LF-ZKU" id="nJ8-lv-eIY"/>
                 <outlet property="segmentedContainerStackView" destination="6C3-2U-Zz0" id="ZiR-nw-tFn"/>
+                <outlet property="segmentedContainerView" destination="e0J-eg-XXq" id="F0Z-fs-1Z8"/>
                 <outlet property="segmentedControl" destination="eCB-Un-W2a" id="Rfy-NG-Itt"/>
             </connections>
             <point key="canvasLocation" x="910.68702290076328" y="-12.67605633802817"/>

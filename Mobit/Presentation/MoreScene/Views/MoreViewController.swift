@@ -34,8 +34,30 @@ class MoreViewController: MobitBaseViewController {
   
   func setUI() {
 	self.navigationController?.navigationBar.isHidden = true
-	self.naviBar.layer.applyShadow(color: .lightGray, alpha: 0.3, x: 0, y: 10, blur: 20)
+	self.view.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.naviBar.backgroundColor = .mobitColors(.surfacePrimary)
+	self.naviBar.layer.applyShadow(color: .mobitColors(.borderPrimary), alpha: 0.3, x: 0, y: 10, blur: 20)
+	self.applyTheme(to: self.view)
 	self.expandSettingsRowTouchArea()
+  }
+
+  private func applyTheme(to view: UIView) {
+	if view !== self.view && view !== self.naviBar && view.backgroundColor != .clear {
+	  view.backgroundColor = .mobitColors(.surfacePrimary)
+	}
+
+	if let label = view as? UILabel {
+	  label.textColor = label === self.versionLabel
+		? .mobitColors(.textTertiary)
+		: .mobitColors(.textPrimary)
+	}
+
+	if let button = view as? UIButton {
+	  button.tintColor = .mobitColors(.textPrimary)
+	  button.setTitleColor(.mobitColors(.textPrimary), for: .normal)
+	}
+
+	view.subviews.forEach { self.applyTheme(to: $0) }
   }
 
   /// "설정" 행 전체를 터치 영역으로 만든다 (행 위에 투명 버튼을 덮음)
@@ -160,10 +182,13 @@ class MoreViewController: MobitBaseViewController {
 
 private final class AppSettingsViewController: UIViewController {
   private var pendingTheme: UserDataManager.MarketColorTheme = UserDataManager.marketColorTheme
+  private var pendingAppTheme: UserDataManager.AppTheme = UserDataManager.appTheme
 
   private let dimView = UIView()
   private let containerView = UIView()
   private let titleLabel = UILabel()
+  private let appThemeTitleLabel = UILabel()
+  private let appThemeSegmentedControl = UISegmentedControl(items: ["시스템", "라이트", "다크"])
   private let descriptionLabel = UILabel()
   private let optionsStackView = UIStackView()
   private let tintRow = UIView()
@@ -208,24 +233,40 @@ private final class AppSettingsViewController: UIViewController {
   private func configureUI() {
 	self.view.backgroundColor = .clear
 	
-	self.dimView.backgroundColor = UIColor.black.withAlphaComponent(0.15)
+	self.dimView.backgroundColor = UIColor.black.withAlphaComponent(0.35)
 	self.view.addSubview(self.dimView)
 
-	// 앱 표준 alert(MobitAlertViewController)와 동일한 라이트 스타일
-	self.containerView.backgroundColor = .white
+	self.containerView.backgroundColor = .mobitColors(.surfaceElevated)
 	self.containerView.layer.cornerRadius = 8
 	self.containerView.clipsToBounds = true
 	self.view.addSubview(self.containerView)
 
 	self.titleLabel.text = "설정"
 	self.titleLabel.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
-	self.titleLabel.textColor = .black
+	self.titleLabel.textColor = .mobitColors(.textPrimary)
 	self.titleLabel.numberOfLines = 0
+
+	self.appThemeTitleLabel.text = "앱 테마"
+	self.appThemeTitleLabel.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
+	self.appThemeTitleLabel.textColor = .mobitColors(.textSecondary)
+	self.appThemeTitleLabel.numberOfLines = 0
+
+	self.appThemeSegmentedControl.selectedSegmentIndex = self.segmentIndex(for: self.pendingAppTheme)
+	self.appThemeSegmentedControl.selectedSegmentTintColor = .mobitColors(.accentPrimary)
+	self.appThemeSegmentedControl.backgroundColor = .mobitColors(.surfacePrimary)
+	self.appThemeSegmentedControl.setTitleTextAttributes(
+	  [.foregroundColor: UIColor.mobitColors(.textSecondary)],
+	  for: .normal
+	)
+	self.appThemeSegmentedControl.setTitleTextAttributes(
+	  [.foregroundColor: UIColor.white],
+	  for: .selected
+	)
 
 	// 캔들 색상 섹션 헤더
 	self.descriptionLabel.text = "캔들 색상"
 	self.descriptionLabel.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
-	self.descriptionLabel.textColor = UIColor(white: 0.33, alpha: 1)
+	self.descriptionLabel.textColor = .mobitColors(.textSecondary)
 	self.descriptionLabel.numberOfLines = 0
 
 	self.optionsStackView.axis = .vertical
@@ -233,31 +274,42 @@ private final class AppSettingsViewController: UIViewController {
 
 	self.tintTitleLabel.text = "시세 배경 색상 표시"
 	self.tintTitleLabel.font = UIFont.systemFont(ofSize: 15, weight: .medium)
-	self.tintTitleLabel.textColor = .black
-	self.tintSwitch.onTintColor = UIColor.systemBlue
+	self.tintTitleLabel.textColor = .mobitColors(.textPrimary)
+	self.tintSwitch.onTintColor = .mobitColors(.accentPrimary)
 	self.tintSwitch.isOn = UserDataManager.marketCellTintEnabled
 	self.tintSwitch.setContentHuggingPriority(.required, for: .horizontal)
 
 	self.cancelButton.setTitle("취소", for: .normal)
 	self.cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 18)
 	self.cancelButton.setTitleColor(UIColor(hex: "#F85858"), for: .normal)
-	self.cancelButton.backgroundColor = .white
+	self.cancelButton.backgroundColor = .mobitColors(.surfaceElevated)
 
 	self.confirmButton.setTitle("변경하기", for: .normal)
 	self.confirmButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .medium)
-	self.confirmButton.setTitleColor(UIColor.hexStringToUIColor(hex: "#006cd1"), for: .normal)
-	self.confirmButton.backgroundColor = .white
+	self.confirmButton.setTitleColor(.mobitColors(.accentPrimary), for: .normal)
+	self.confirmButton.backgroundColor = .mobitColors(.surfaceElevated)
 	
 	// 버튼 위 구분선 + 버튼 사이 세로 구분선 (MobitAlert 버튼 행 스타일)
 	let topDivider = UIView()
-	topDivider.backgroundColor = UIColor(white: 0.33, alpha: 0.1)
+	topDivider.backgroundColor = .mobitColors(.borderPrimary)
 	let buttonDivider = UIView()
-	buttonDivider.backgroundColor = UIColor(white: 0.66, alpha: 0.26)
+	buttonDivider.backgroundColor = .mobitColors(.borderPrimary)
 
 	self.tintRow.addSubview(self.tintTitleLabel)
 	self.tintRow.addSubview(self.tintSwitch)
 
-	[self.titleLabel, self.descriptionLabel, self.optionsStackView, self.tintRow, topDivider, self.cancelButton, buttonDivider, self.confirmButton]
+	[
+	  self.titleLabel,
+	  self.appThemeTitleLabel,
+	  self.appThemeSegmentedControl,
+	  self.descriptionLabel,
+	  self.optionsStackView,
+	  self.tintRow,
+	  topDivider,
+	  self.cancelButton,
+	  buttonDivider,
+	  self.confirmButton
+	]
 	  .forEach { self.containerView.addSubview($0) }
 
 	self.optionViews.forEach { optionView in
@@ -278,8 +330,19 @@ private final class AppSettingsViewController: UIViewController {
 	  make.leading.trailing.equalToSuperview().inset(20)
 	}
 
-	self.descriptionLabel.snp.makeConstraints { make in
+	self.appThemeTitleLabel.snp.makeConstraints { make in
 	  make.top.equalTo(self.titleLabel.snp.bottom).offset(10)
+	  make.leading.trailing.equalToSuperview().inset(20)
+	}
+
+	self.appThemeSegmentedControl.snp.makeConstraints { make in
+	  make.top.equalTo(self.appThemeTitleLabel.snp.bottom).offset(10)
+	  make.leading.trailing.equalToSuperview().inset(20)
+	  make.height.equalTo(34)
+	}
+
+	self.descriptionLabel.snp.makeConstraints { make in
+	  make.top.equalTo(self.appThemeSegmentedControl.snp.bottom).offset(18)
 	  make.leading.trailing.equalToSuperview().inset(20)
 	}
 
@@ -330,6 +393,7 @@ private final class AppSettingsViewController: UIViewController {
   private func bindActions() {
 	self.cancelButton.addTarget(self, action: #selector(self.tapOnCancelButton), for: .touchUpInside)
 	self.confirmButton.addTarget(self, action: #selector(self.tapOnConfirmButton), for: .touchUpInside)
+	self.appThemeSegmentedControl.addTarget(self, action: #selector(self.didChangeAppTheme(_:)), for: .valueChanged)
 	self.tintSwitch.addTarget(self, action: #selector(self.didChangeTintSwitch(_:)), for: .valueChanged)
 	self.optionViews.forEach { optionView in
 	  optionView.addTarget(self, action: #selector(self.tapOnOptionView(_:)), for: .touchUpInside)
@@ -349,7 +413,9 @@ private final class AppSettingsViewController: UIViewController {
   @objc private func tapOnConfirmButton() {
 	let previousTheme = UserDataManager.marketColorTheme
 	let previousTintEnabled = UserDataManager.marketCellTintEnabled
+	let previousAppTheme = UserDataManager.appTheme
 	let changeStatus = previousTheme == self.pendingTheme &&
+	  previousAppTheme == self.pendingAppTheme &&
 	  previousTintEnabled == self.tintSwitch.isOn
 	  ? "변경없음" : "변경있음"
 
@@ -359,16 +425,35 @@ private final class AppSettingsViewController: UIViewController {
 	  stepDepth02: "설정_적용",
 	  stepDepth03: self.analyticsThemeName(self.pendingTheme),
 	  extraParameters: [
+		"selected_app_theme": self.analyticsAppThemeName(self.pendingAppTheme),
 		"selected_theme": self.analyticsThemeName(self.pendingTheme),
 		"background_tint": self.tintSwitch.isOn ? "켜짐" : "꺼짐",
+		"previous_app_theme": self.analyticsAppThemeName(previousAppTheme),
 		"previous_theme": self.analyticsThemeName(previousTheme),
 		"previous_background_tint": previousTintEnabled ? "켜짐" : "꺼짐",
 		"change_status": changeStatus
 	  ]
 	)
+	UserDataManager.appTheme = self.pendingAppTheme
 	UserDataManager.marketColorTheme = self.pendingTheme
 	UserDataManager.marketCellTintEnabled = self.tintSwitch.isOn
+	self.applyAppTheme(self.pendingAppTheme)
 	self.dismiss(animated: true)
+  }
+
+  @objc private func didChangeAppTheme(_ sender: UISegmentedControl) {
+	self.pendingAppTheme = self.appTheme(for: sender.selectedSegmentIndex)
+	MobitAnalyticsUtil.sendClickEvent(
+	  location: "더보기_화면",
+	  stepDepth01: "더보기_설정",
+	  stepDepth02: "앱_테마_선택",
+	  stepDepth03: self.analyticsAppThemeName(self.pendingAppTheme),
+	  extraParameters: [
+		"selected_app_theme": self.analyticsAppThemeName(self.pendingAppTheme),
+		"selected_theme": self.analyticsThemeName(self.pendingTheme),
+		"background_tint": self.tintSwitch.isOn ? "켜짐" : "꺼짐"
+	  ]
+	)
   }
   
   @objc private func tapOnOptionView(_ sender: MarketColorThemeOptionView) {
@@ -393,6 +478,7 @@ private final class AppSettingsViewController: UIViewController {
 	  stepDepth02: "배경색_토글_변경",
 	  stepDepth03: sender.isOn ? "켜짐" : "꺼짐",
 	  extraParameters: [
+		"selected_app_theme": self.analyticsAppThemeName(self.pendingAppTheme),
 		"background_tint": sender.isOn ? "켜짐" : "꺼짐",
 		"selected_theme": self.analyticsThemeName(self.pendingTheme)
 	  ]
@@ -406,6 +492,7 @@ private final class AppSettingsViewController: UIViewController {
 	  stepDepth02: "설정_화면_노출",
 	  stepDepth03: self.analyticsThemeName(self.pendingTheme),
 	  extraParameters: [
+		"selected_app_theme": self.analyticsAppThemeName(self.pendingAppTheme),
 		"selected_theme": self.analyticsThemeName(self.pendingTheme),
 		"background_tint": self.tintSwitch.isOn ? "켜짐" : "꺼짐"
 	  ]
@@ -419,6 +506,46 @@ private final class AppSettingsViewController: UIViewController {
 	case .riseGreenFallRed:
 	  return "글로벌"
 	}
+  }
+
+  private func segmentIndex(for theme: UserDataManager.AppTheme) -> Int {
+	switch theme {
+	case .system:
+	  return 0
+	case .light:
+	  return 1
+	case .dark:
+	  return 2
+	}
+  }
+
+  private func appTheme(for index: Int) -> UserDataManager.AppTheme {
+	switch index {
+	case 1:
+	  return .light
+	case 2:
+	  return .dark
+	default:
+	  return .system
+	}
+  }
+
+  private func analyticsAppThemeName(_ theme: UserDataManager.AppTheme) -> String {
+	switch theme {
+	case .system:
+	  return "시스템"
+	case .light:
+	  return "라이트"
+	case .dark:
+	  return "다크"
+	}
+  }
+
+  private func applyAppTheme(_ theme: UserDataManager.AppTheme) {
+	UIApplication.shared.connectedScenes
+	  .compactMap { $0 as? UIWindowScene }
+	  .flatMap { $0.windows }
+	  .forEach { $0.overrideUserInterfaceStyle = theme.userInterfaceStyle }
   }
 }
 
@@ -471,7 +598,7 @@ private final class MarketColorThemeOptionView: UIControl {
 	self.cardView.addSubview(self.radioOuterView)
 	self.radioOuterView.addSubview(self.radioInnerView)
 	
-	self.cardView.backgroundColor = UIColor.mobitColors(.lightGrayBG)
+	self.cardView.backgroundColor = .mobitColors(.surfacePrimary)
 	self.cardView.layer.cornerRadius = 12
 	// 카드/하위 뷰가 터치를 가로채면 UIControl(touchUpInside)이 동작하지 않으므로 비활성화
 	self.cardView.isUserInteractionEnabled = false
@@ -488,11 +615,11 @@ private final class MarketColorThemeOptionView: UIControl {
 	
 	self.titleLabel.text = title
 	self.titleLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
-	self.titleLabel.textColor = .black
+	self.titleLabel.textColor = .mobitColors(.textPrimary)
 	
 	self.descriptionLabel.text = description
 	self.descriptionLabel.font = UIFont.systemFont(ofSize: 14, weight: .regular)
-	self.descriptionLabel.textColor = .darkGray
+	self.descriptionLabel.textColor = .mobitColors(.textSecondary)
 	self.descriptionLabel.numberOfLines = 0
 	
 	self.radioOuterView.layer.cornerRadius = 14
@@ -538,15 +665,15 @@ private final class MarketColorThemeOptionView: UIControl {
   private func updateSelectionStyle() {
 	if self.isSelectedTheme {
 	  self.cardView.layer.borderWidth = 1.5
-	  self.cardView.layer.borderColor = UIColor.hexStringToUIColor(hex: "#006cd1").cgColor
+	  self.cardView.layer.borderColor = UIColor.mobitColors(.accentPrimary).cgColor
 	  self.cardView.backgroundColor = UIColor.mobitColors(.blue_E8F9FF)
-	  self.radioOuterView.layer.borderColor = UIColor.hexStringToUIColor(hex: "#006cd1").cgColor
-	  self.radioInnerView.backgroundColor = UIColor.hexStringToUIColor(hex: "#006cd1")
+	  self.radioOuterView.layer.borderColor = UIColor.mobitColors(.accentPrimary).cgColor
+	  self.radioInnerView.backgroundColor = .mobitColors(.accentPrimary)
 	} else {
 	  self.cardView.layer.borderWidth = 0
 	  self.cardView.layer.borderColor = UIColor.clear.cgColor
-	  self.cardView.backgroundColor = UIColor.hexStringToUIColor(hex: "#f2f2f2")
-	  self.radioOuterView.layer.borderColor = UIColor.mobitColors(.lineLightGray).cgColor
+	  self.cardView.backgroundColor = .mobitColors(.surfacePrimary)
+	  self.radioOuterView.layer.borderColor = UIColor.mobitColors(.borderPrimary).cgColor
 	  self.radioInnerView.backgroundColor = .clear
 	}
   }

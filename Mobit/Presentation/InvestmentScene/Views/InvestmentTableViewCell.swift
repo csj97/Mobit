@@ -21,7 +21,18 @@ class InvestmentTableViewCell: UITableViewCell {
     
   override func awakeFromNib() {
 	super.awakeFromNib()
-	// Initialization code
+	self.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.contentView.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.bgView.backgroundColor = .mobitColors(.surfaceElevated)
+	self.dividerView.backgroundColor = .mobitColors(.borderPrimary)
+	self.applyTheme(to: self.bgView)
+	[
+	  self.cryptoName,
+	  self.cryptoAmount,
+	  self.cryptoEvalPrice,
+	  self.cryptoAveragePrice,
+	  self.cryptoBuyPrice
+	].forEach { $0?.textColor = .mobitColors(.textPrimary) }
   }
   
   override func setSelected(_ selected: Bool, animated: Bool) {
@@ -45,6 +56,30 @@ class InvestmentTableViewCell: UITableViewCell {
 	self.cryptoEvalLoss.textColor = pnlColor
 	
 	self.dividerView.isHidden = isLast
-	
+
+  }
+
+  private func applyTheme(to view: UIView) {
+	if view !== self.bgView && view.backgroundColor != .clear {
+	  view.backgroundColor = .mobitColors(.surfaceElevated)
+	}
+
+	if let label = view as? UILabel {
+	  label.textColor = self.isValueLabel(label)
+		? .mobitColors(.textPrimary)
+		: .mobitColors(.textSecondary)
+	}
+
+	view.subviews.forEach { self.applyTheme(to: $0) }
+  }
+
+  private func isValueLabel(_ label: UILabel) -> Bool {
+	return label === self.cryptoName
+	  || label === self.cryptoAmount
+	  || label === self.cryptoEvalPrice
+	  || label === self.cryptoEvalLoss
+	  || label === self.cryptoAveragePrice
+	  || label === self.cryptoBuyPrice
+	  || label === self.cryptoProfitRate
   }
 }

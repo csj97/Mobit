@@ -18,7 +18,15 @@ class TradeHistoryTableViewCell: UITableViewCell {
   
   override func awakeFromNib() {
     super.awakeFromNib()
-    // Initialization code
+	self.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.contentView.backgroundColor = .mobitColors(.backgroundPrimary)
+	[
+	  self.tradeDate,
+	  self.marketName,
+	  self.tradeCryptoPrice,
+	  self.tradeAmount,
+	  self.tradeTotalPrice
+	].forEach { $0?.textColor = .mobitColors(.textPrimary) }
   }
   
   func configure(
@@ -27,10 +35,10 @@ class TradeHistoryTableViewCell: UITableViewCell {
   ) {
 	if transactionInfo.orderType == .ask {
 	  self.orderTypeLabel.text = "매도"
-	  self.orderTypeLabel.textColor = .systemBlue
+	  self.orderTypeLabel.textColor = MarketColorPalette.fallColor
 	} else {
 	  self.orderTypeLabel.text = "매수"
-	  self.orderTypeLabel.textColor = .systemRed
+	  self.orderTypeLabel.textColor = MarketColorPalette.riseColor
 	}
 	self.tradeDate.text = transactionInfo.executedDate
 	self.marketName.text = marketName

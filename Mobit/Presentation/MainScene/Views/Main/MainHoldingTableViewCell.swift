@@ -16,11 +16,11 @@ final class MainHoldingTableViewCell: UITableViewCell {
 
   private let cryptoNameLabel = UILabel().then {
     $0.font = .systemFont(ofSize: 14, weight: .medium)
-    $0.textColor = .black
+    $0.textColor = .mobitColors(.textPrimary)
   }
   private let cryptoSymbolLabel = UILabel().then {
 	$0.font = .systemFont(ofSize: 12, weight: .regular)
-	$0.textColor = .lightGray
+	$0.textColor = .mobitColors(.textTertiary)
   }
 
   private let evaluationPriceLabel = valueLabel(size: 12, weight: .medium)
@@ -40,6 +40,8 @@ final class MainHoldingTableViewCell: UITableViewCell {
 
   private func setUp() {
     selectionStyle = .none
+	backgroundColor = .mobitColors(.backgroundPrimary)
+	contentView.backgroundColor = .mobitColors(.backgroundPrimary)
 
     let nameStack = UIStackView(arrangedSubviews: [cryptoNameLabel, cryptoSymbolLabel]).then {
       $0.axis = .vertical
@@ -143,7 +145,7 @@ final class MainHoldingTableViewCell: UITableViewCell {
   private static func valueLabel(size: CGFloat, weight: UIFont.Weight) -> UILabel {
     let label = UILabel()
     label.font = UIFont(name: "SUIT-SemiBold", size: size) ?? .systemFont(ofSize: size, weight: weight)
-    label.textColor = .black
+    label.textColor = .mobitColors(.textPrimary)
     label.textAlignment = .right
     label.adjustsFontSizeToFitWidth = true
     label.minimumScaleFactor = 0.5
@@ -153,7 +155,7 @@ final class MainHoldingTableViewCell: UITableViewCell {
   private static func subLabel() -> UILabel {
     let label = UILabel()
     label.font = UIFont(name: "SUIT-Medium", size: 11) ?? .systemFont(ofSize: 11)
-    label.textColor = .gray
+    label.textColor = .mobitColors(.textSecondary)
     label.textAlignment = .right
     label.adjustsFontSizeToFitWidth = true
     label.minimumScaleFactor = 0.5

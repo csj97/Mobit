@@ -75,7 +75,7 @@ class NeumorphicSegmentedControl: UIView {
 	let lightShadow = CALayer()
 	lightShadow.frame = bounds
 	lightShadow.backgroundColor = backgroundColor?.cgColor
-	lightShadow.shadowColor = UIColor.white.cgColor
+	lightShadow.shadowColor = UIColor.mobitColors(.surfaceElevated).cgColor
 	lightShadow.shadowOffset = CGSize(width: -6, height: -6)
 	lightShadow.shadowOpacity = 1.0
 	lightShadow.shadowRadius = 8
@@ -88,7 +88,7 @@ class NeumorphicSegmentedControl: UIView {
 	stackView.spacing = 0
 	stackView.translatesAutoresizingMaskIntoConstraints = false
 	
-	highlightView.backgroundColor = UIColor.systemRed.withAlphaComponent(0.15)
+	highlightView.backgroundColor = MarketColorPalette.riseColor.withAlphaComponent(0.15)
 	highlightView.layer.cornerRadius = 18
 	highlightView.isUserInteractionEnabled = false
 	addSubview(highlightView)
@@ -110,7 +110,7 @@ class NeumorphicSegmentedControl: UIView {
 	for (index, title) in segments.enumerated() {
 	  let button = UIButton(type: .custom)
 	  button.setTitle(title, for: .normal)
-	  button.setTitleColor(.black, for: .normal)
+	  button.setTitleColor(.mobitColors(.textPrimary), for: .normal)
 	  button.titleLabel?.font = .systemFont(ofSize: 12, weight: .bold)
 	  button.contentHorizontalAlignment = .center
 	  button.tag = index
@@ -133,16 +133,16 @@ class NeumorphicSegmentedControl: UIView {
 	guard selectedIndex < buttons.count else { return }
 	
 	if selectedIndex == 0 {
-	  highlightView.backgroundColor = UIColor(hex: "#FF615A")
+	  highlightView.backgroundColor = MarketColorPalette.riseColor
 	} else if selectedIndex == 1 {
-	  highlightView.backgroundColor = UIColor(hex: "#1D78F2")
+	  highlightView.backgroundColor = MarketColorPalette.fallColor
 	} else {
-	  highlightView.backgroundColor = UIColor.lightGray
+	  highlightView.backgroundColor = .mobitColors(.borderPrimary)
 	}
 	
 	for (index, button) in buttons.enumerated() {
 	  let isSelected = (index == selectedIndex)
-	  button.setTitleColor(isSelected ? .white : .black, for: .normal)
+	  button.setTitleColor(isSelected ? .white : .mobitColors(.textPrimary), for: .normal)
 	  button.titleLabel?.font = isSelected ? .systemFont(ofSize: 14, weight: .bold) : .systemFont(ofSize: 12, weight: .regular)
 		}
 

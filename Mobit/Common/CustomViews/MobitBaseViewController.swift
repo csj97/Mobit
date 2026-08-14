@@ -29,7 +29,7 @@ class MobitBaseViewController: UIViewController, MobitAlertDelegate, MobitBottom
 	  let overlay = MobitLottieView(
 		lottieName: "exchange_loading",
 		loopMode: .loop,
-		bgColor: .white.withAlphaComponent(0.6)
+		bgColor: UIColor.mobitColors(.backgroundPrimary).withAlphaComponent(0.6)
 	  )
 	  overlay.frame = window.bounds
 	  overlay.tag = self.indicatorViewTag

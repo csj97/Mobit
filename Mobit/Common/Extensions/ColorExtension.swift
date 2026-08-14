@@ -11,6 +11,26 @@ import UIKit
 extension UIColor {
   static func mobitColors(_ mobitColorName: MobitColors) -> UIColor {
     switch mobitColorName {
+	case .backgroundPrimary:
+	  return UIColor(named: "background_primary")!
+	case .surfacePrimary:
+	  return UIColor(named: "surface_primary")!
+	case .surfaceElevated:
+	  return UIColor(named: "surface_elevated")!
+	case .borderPrimary:
+	  return UIColor(named: "border_primary")!
+	case .textPrimary:
+	  return UIColor(named: "text_primary")!
+	case .textSecondary:
+	  return UIColor(named: "text_secondary")!
+	case .textTertiary:
+	  return UIColor(named: "text_tertiary")!
+	case .accentPrimary:
+	  return UIColor(named: "accent_primary")!
+	case .chartBackground:
+	  return UIColor(named: "chart_background")!
+	case .chartGrid:
+	  return UIColor(named: "chart_grid")!
     case .askLightBlue:
       return UIColor(named: "ask_light_blue")!
     case .askActionBlue:
@@ -43,6 +63,16 @@ extension UIColor {
   }
   
   enum MobitColors {
+	case backgroundPrimary
+	case surfacePrimary
+	case surfaceElevated
+	case borderPrimary
+	case textPrimary
+	case textSecondary
+	case textTertiary
+	case accentPrimary
+	case chartBackground
+	case chartGrid
     case askLightBlue
     case askActionBlue
     case askDeepBlue

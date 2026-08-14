@@ -48,7 +48,7 @@ class TradeViewController: MobitBaseViewController {
   var prevClosingPrice: Double? = nil
   var disposeBag = DisposeBag()
   /// 가격 변동 -/+/보합에 따른 색상 변경
-  var tradeColor: UIColor = .black
+  var tradeColor: UIColor = .mobitColors(.textPrimary)
   var arrowImage: UIImage = UIImage()
   var arrowColor: UIColor = .clear
   
@@ -107,7 +107,7 @@ class TradeViewController: MobitBaseViewController {
   func setUI() {
 	setFavoriteButton()
 	
-	self.miniChartContainerView.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.3).cgColor
+	self.miniChartContainerView.layer.borderColor = UIColor.mobitColors(.borderPrimary).cgColor
 	self.miniChartContainerView.layer.borderWidth = 0.5
 	
 	orderView = TradeOrderView.instanceFromNib(
@@ -122,7 +122,7 @@ class TradeViewController: MobitBaseViewController {
 		  lottieName: "check_deep_blue",
 		  loopMode: .playOnce,
 		  lottieSpeed: 1.7,
-		  bgColor: .white.withAlphaComponent(0.3)
+		  bgColor: UIColor.mobitColors(.backgroundPrimary).withAlphaComponent(0.3)
 		)
 		lottieView.configure()
 		
@@ -278,7 +278,7 @@ class TradeViewController: MobitBaseViewController {
 	  self.arrowImage = UIImage(systemName: "arrowtriangle.down.fill")!
 	  self.arrowColor = self.tradeColor
 	case "EVEN":
-	  self.tradeColor = .black
+	  self.tradeColor = .mobitColors(.textPrimary)
 	  self.arrowImage = UIImage()
 	  self.arrowColor = .clear
 	default:
@@ -402,7 +402,7 @@ class TradeViewController: MobitBaseViewController {
     let bannerView = BannerView(adSize: AdSizeBanner)
     bannerView.adUnitID = MobitConstants.bannerAdType
     bannerView.rootViewController = self
-	bannerView.backgroundColor = .white
+	bannerView.backgroundColor = .mobitColors(.surfacePrimary)
     self.bannerContainerView.addSubview(bannerView)
 
     bannerView.snp.makeConstraints { make in

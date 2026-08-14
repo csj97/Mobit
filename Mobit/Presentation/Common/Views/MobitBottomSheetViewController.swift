@@ -42,6 +42,11 @@ class MobitBottomSheetViewController: MobitBaseViewController {
   
   override func viewDidLoad() {
 	super.viewDidLoad()
+	self.view.backgroundColor = .clear
+	self.dimView.backgroundColor = UIColor.black.withAlphaComponent(0.35)
+	self.sheetView.backgroundColor = .mobitColors(.surfaceElevated)
+	self.stackView.backgroundColor = .mobitColors(.surfaceElevated)
+	self.titleLabel.textColor = .mobitColors(.textPrimary)
 	
 	self.sheetView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
 	self.sheetView.layer.cornerRadius = 20
@@ -75,7 +80,7 @@ class MobitBottomSheetViewController: MobitBaseViewController {
 	let view: UIView = UIView()
 	let label: UILabel = UILabel().then { label in
 	  label.text = sortType
-	  label.textColor = .black
+	  label.textColor = .mobitColors(.textPrimary)
 	  label.font = .systemFont(ofSize: 14, weight: .medium)
 	}
 	let imageView: UIImageView = UIImageView().then { imageView in
@@ -87,7 +92,7 @@ class MobitBottomSheetViewController: MobitBaseViewController {
 	button.tag = index
 	button.addTarget(self, action: #selector(buttonTapped(_:)), for: .touchUpInside)
 	
-	view.backgroundColor = .white
+	view.backgroundColor = .mobitColors(.surfaceElevated)
 	view.addSubview(label)
 	view.addSubview(imageView)
 	view.addSubview(button)

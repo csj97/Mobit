@@ -57,7 +57,7 @@ enum MarketColorPalette {
 	}
   }
   
-  static var neutralColor: UIColor { .black }
+  static var neutralColor: UIColor { .mobitColors(.textPrimary) }
   
   static var riseSwiftUIColor: Color { Color(uiColor: riseColor) }
   static var fallSwiftUIColor: Color { Color(uiColor: fallColor) }

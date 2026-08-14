@@ -61,9 +61,9 @@ class TradeInformationView: UIView, ViewRule {
   }
   
   func configure() {
-	self.basicInfoView.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.5).cgColor
+	self.basicInfoView.layer.borderColor = UIColor.mobitColors(.borderPrimary).cgColor
 	self.basicInfoView.layer.borderWidth = 1
-	self.priceInfoView.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.5).cgColor
+	self.priceInfoView.layer.borderColor = UIColor.mobitColors(.borderPrimary).cgColor
 	self.priceInfoView.layer.borderWidth = 1
   }
   

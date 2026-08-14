@@ -18,13 +18,6 @@ extension UITextField {
   }
   
   func setAdaptivePlaceholderColor() {
-	let adaptiveColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
-	  if traitCollection.userInterfaceStyle == .dark {
-		return UIColor.lightGray.withAlphaComponent(0.8)
-	  } else {
-		return UIColor.darkGray.withAlphaComponent(0.6)
-	  }
-	}
-	setPlaceholderColor(adaptiveColor)
+	setPlaceholderColor(.mobitColors(.textTertiary))
   }
 }

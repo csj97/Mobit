@@ -76,6 +76,20 @@ class TradeAskView: UIView, ViewRule {
   func setUI() {
 	self.inputTradeAmount.setAdaptivePlaceholderColor()
 	self.totalPriceTextField.setAdaptivePlaceholderColor()
+	self.backgroundColor = .mobitColors(.backgroundPrimary)
+	[
+	  self.availableCrypto,
+	  self.availableTradePrice,
+	  self.currentPrice
+	].forEach { $0?.textColor = .mobitColors(.textPrimary) }
+	self.marketNameLabels.forEach { $0.textColor = .mobitColors(.textPrimary) }
+	[self.inputTradeAmount, self.totalPriceTextField].forEach { textField in
+	  textField?.textColor = .mobitColors(.textPrimary)
+	  textField?.backgroundColor = .mobitColors(.surfacePrimary)
+	}
+	self.inputAmountTFView.backgroundColor = .mobitColors(.surfacePrimary)
+	self.orderButton.setTitleColor(.white, for: .normal)
+	self.orderButton.backgroundColor = MarketColorPalette.fallColor
 
 	let marketName = self.reactor?.selectCrypto.market.components(separatedBy: "/").first
 	self.marketNameLabels.forEach({ $0.text = marketName })
@@ -85,13 +99,13 @@ class TradeAskView: UIView, ViewRule {
 	self.inputTradeAmount.attributedPlaceholder = NSAttributedString(
 	  string: "0",
 	  attributes: [
-		.foregroundColor: UIColor.lightGray
+		.foregroundColor: UIColor.mobitColors(.textTertiary)
 	  ]
 	)
 	self.totalPriceTextField.attributedPlaceholder = NSAttributedString(
 	  string: "0",
 	  attributes: [
-		.foregroundColor: UIColor.lightGray
+		.foregroundColor: UIColor.mobitColors(.textTertiary)
 	  ]
 	)
 	self.updateOrderValidationState()
@@ -256,7 +270,7 @@ class TradeAskView: UIView, ViewRule {
 	orderButton?.isEnabled = isEnabled
 	orderButton?.alpha = isEnabled ? 1 : 0.45
 	orderNoticeLabel?.text = notice
-	orderNoticeLabel?.textColor = isError ? .systemRed : .systemBlue
+	orderNoticeLabel?.textColor = isError ? MarketColorPalette.fallColor : .mobitColors(.accentPrimary)
   }
 
   func bind(reactor: TradeReactor) {

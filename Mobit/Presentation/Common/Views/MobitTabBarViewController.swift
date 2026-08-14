@@ -50,7 +50,7 @@ class MobitTabBarViewController: UIViewController {
 	switch style {
 	case .standard:
 	  // 상단 경계에 길게 떨어지는 음영으로 위 콘텐츠와 분리감 표현
-	  mobitTabBar.layer.applyShadow(color: .gray, alpha: 0.22, x: 0, y: -4, blur: 16)
+	  mobitTabBar.layer.applyShadow(color: .mobitColors(.borderPrimary), alpha: 0.22, x: 0, y: -4, blur: 16)
 	  mobitTabBar.snp.makeConstraints { make in
 		make.leading.trailing.bottom.equalToSuperview()
 		// 탭 콘텐츠 65pt + 하단 safe area(홈 인디케이터)는 배경으로 채움
@@ -58,7 +58,7 @@ class MobitTabBarViewController: UIViewController {
 	  }
 	case .floating:
 	  // 카드가 떠 있는 느낌의 사방 그림자
-	  mobitTabBar.layer.applyShadow(color: .gray, alpha: 0.3, x: 0, y: 0, blur: 12)
+	  mobitTabBar.layer.applyShadow(color: .mobitColors(.borderPrimary), alpha: 0.3, x: 0, y: 0, blur: 12)
 	  mobitTabBar.snp.makeConstraints { make in
 		make.leading.equalToSuperview().offset(10)
 		make.trailing.equalToSuperview().offset(-10)
@@ -108,7 +108,7 @@ class MobitTabBarViewController: UIViewController {
 extension CALayer {
   // Sketch 스타일의 그림자를 생성하는 유틸리티 함수
   func applyShadow(
-	color: UIColor = .black,
+	color: UIColor = .mobitColors(.borderPrimary),
 	alpha: Float = 0.5,
 	x: CGFloat = 0,
 	y: CGFloat = 2,
@@ -126,6 +126,6 @@ extension UITabBar {
   static func clearShadow() {
 	UITabBar.appearance().shadowImage = UIImage()
 	UITabBar.appearance().backgroundImage = UIImage()
-	UITabBar.appearance().backgroundColor = UIColor.white
+	UITabBar.appearance().backgroundColor = .mobitColors(.surfacePrimary)
   }
 }

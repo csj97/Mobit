@@ -26,21 +26,21 @@ class CoinTableViewCell: UITableViewCell {
   
   var coinName = UILabel().then {
     $0.text = "-"
-    $0.textColor = .black
+    $0.textColor = .mobitColors(.textPrimary)
     $0.font = UIFont.systemFont(ofSize: 12)
     $0.numberOfLines = 1
     $0.textAlignment = .left
   }
   var coinSymbol = UILabel().then {
     $0.text = "-/KRW"
-    $0.textColor = .lightGray
+    $0.textColor = .mobitColors(.textTertiary)
     $0.font = UIFont.systemFont(ofSize: 10)
     $0.numberOfLines = 1
     $0.textAlignment = .left
   }
   var price = UILabel().then {
     $0.text = "0"
-    $0.textColor = .black
+    $0.textColor = .mobitColors(.textPrimary)
     $0.font = UIFont.systemFont(ofSize: 10)
     $0.adjustsFontSizeToFitWidth = true
     $0.minimumScaleFactor = 0.7
@@ -49,14 +49,14 @@ class CoinTableViewCell: UITableViewCell {
   }
   var changeRate = UILabel().then {
     $0.text = "0.0%"
-    $0.textColor = .black
+    $0.textColor = .mobitColors(.textPrimary)
     $0.font = UIFont.systemFont(ofSize: 10)
     $0.numberOfLines = 1
     $0.textAlignment = .center
   }
   var accTradePrice = UILabel().then {
     $0.text = "0"
-    $0.textColor = .black
+    $0.textColor = .mobitColors(.textPrimary)
     $0.font = UIFont.systemFont(ofSize: 12)
     $0.adjustsFontSizeToFitWidth = true
     $0.minimumScaleFactor = 0.7
@@ -88,7 +88,8 @@ class CoinTableViewCell: UITableViewCell {
   }
   
   func setupViews() {
-    self.backgroundColor = .white
+    self.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.contentView.backgroundColor = .mobitColors(.backgroundPrimary)
     self.isHighlighted = false
     self.addSubview(rootFlexContainer)
     
@@ -135,20 +136,28 @@ class CoinTableViewCell: UITableViewCell {
           let accTradeVolume = crypto.accTradePrice24h,
           let change = crypto.change  else { return }
     
-    if marketEvent.warning == true {
+	if marketEvent.warning == true {
 	  let fullText = "[유]\(crypto.cryptoName)"
 	  let attributedString = NSMutableAttributedString(string: fullText)
+	  attributedString.addAttribute(
+		.foregroundColor,
+		value: UIColor.mobitColors(.textPrimary),
+		range: NSRange(location: 0, length: attributedString.length)
+	  )
 
-	  // [유]에만 색상 적용
+	  // [유]에만 경고 색상 적용
 	  attributedString.addAttribute(.foregroundColor,
 									 value: UIColor.red,
 									 range: NSRange(location: 0, length: 3))
 
 	  self.coinName.attributedText = attributedString
-    } else {
-      self.coinName.text = crypto.cryptoName
-    }
-    self.coinSymbol.text = crypto.market
+	} else {
+	  self.coinName.attributedText = nil
+	  self.coinName.textColor = .mobitColors(.textPrimary)
+	  self.coinName.text = crypto.cryptoName
+	}
+	self.coinSymbol.text = crypto.market
+	self.coinSymbol.textColor = .mobitColors(.textTertiary)
     
     let numberFormatter = NumberFormatter()
     numberFormatter.numberStyle = .decimal
@@ -171,8 +180,8 @@ class CoinTableViewCell: UITableViewCell {
       self.price.textColor = MarketColorPalette.fallColor
       self.changeRate.textColor = MarketColorPalette.fallColor
     } else if signedChangeRate == 0 {
-      self.price.textColor = .black
-      self.changeRate.textColor = .black
+      self.price.textColor = .mobitColors(.textPrimary)
+      self.changeRate.textColor = .mobitColors(.textPrimary)
     } else {
       self.price.textColor = MarketColorPalette.riseColor
       self.changeRate.textColor = MarketColorPalette.riseColor

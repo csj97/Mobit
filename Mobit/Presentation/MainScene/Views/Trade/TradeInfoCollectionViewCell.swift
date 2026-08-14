@@ -19,10 +19,10 @@ class TradeInfoCollectionViewCell: UICollectionViewCell {
   func configure(tag: String) {
 	self.layer.cornerRadius = 16
 	self.layer.borderWidth = 1
-	self.layer.borderColor = UIColor.lightGray.cgColor
+	self.layer.borderColor = UIColor.mobitColors(.borderPrimary).cgColor
 	self.layer.masksToBounds = true
 	
-	self.cryptoTagLabel.textColor = .systemGray
+	self.cryptoTagLabel.textColor = .mobitColors(.textSecondary)
 	self.cryptoTagLabel.text = tag
   }
 }

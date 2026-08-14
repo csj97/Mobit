@@ -24,7 +24,18 @@ class PNLTableViewCell: UITableViewCell {
   
   override func awakeFromNib() {
 	super.awakeFromNib()
-	// Initialization code
+	self.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.contentView.backgroundColor = .mobitColors(.backgroundPrimary)
+	if let containerView = self.contentView.subviews.first {
+	  containerView.backgroundColor = .mobitColors(.surfaceElevated)
+	}
+	[
+	  self.marketNameLabel,
+	  self.quantityLabel,
+	  self.entryPriceLabel,
+	  self.exitPriceLabel,
+	  self.transactionDateLabel
+	].forEach { $0?.textColor = .mobitColors(.textPrimary) }
   }
   
   override func setSelected(_ selected: Bool, animated: Bool) {

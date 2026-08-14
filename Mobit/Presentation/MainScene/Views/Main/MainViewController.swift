@@ -91,38 +91,38 @@ class MainViewController: MobitBaseViewController {
 
   // FlexLayout이 내부 Auto Layout 콘텐츠 높이를 스스로 측정하도록 SelfSizingContentView 사용
   private let portfolioSummaryView = SelfSizingContentView().then {
-	$0.backgroundColor = UIColor.mobitColors(.white_FBFBFB)
+	$0.backgroundColor = UIColor.mobitColors(.surfacePrimary)
   }
 
   private let totalBalanceTitleLabel: UILabel = UILabel().then {
 	$0.text = "총매수"
 	$0.font = UIFont(name: "SUIT-Medium", size: 12)
-	$0.textColor = .darkGray
+	$0.textColor = .mobitColors(.textSecondary)
   }
 
   private let totalBalanceLabel: UILabel = UILabel().then {
 	$0.text = "0"
 	$0.font = UIFont(name: "SUIT-SemiBold", size: 12)
-	$0.textColor = .black
+	$0.textColor = .mobitColors(.textPrimary)
 	$0.textAlignment = .right
 	$0.adjustsFontSizeToFitWidth = true
 	$0.minimumScaleFactor = 0.3
   }
 
   private let summaryVerticalDividerView: UIView = UIView().then {
-	$0.backgroundColor = UIColor.mobitColors(.lineLightGray)
+	$0.backgroundColor = UIColor.mobitColors(.borderPrimary)
   }
 
   private let profitLossTitleLabel: UILabel = UILabel().then {
 	$0.text = "평가손익"
 	$0.font = UIFont(name: "SUIT-Medium", size: 12)
-	$0.textColor = .darkGray
+	$0.textColor = .mobitColors(.textSecondary)
   }
 
   private let profitLossValueLabel: UILabel = UILabel().then {
 	$0.text = "0"
 	$0.font = UIFont(name: "SUIT-SemiBold", size: 12)
-	$0.textColor = .black
+	$0.textColor = .mobitColors(.textPrimary)
 	$0.textAlignment = .right
 	$0.adjustsFontSizeToFitWidth = true
 	$0.minimumScaleFactor = 0.4
@@ -131,13 +131,13 @@ class MainViewController: MobitBaseViewController {
   private let evaluationPriceTitleLabel: UILabel = UILabel().then {
 	$0.text = "총평가"
 	$0.font = UIFont(name: "SUIT-Medium", size: 12)
-	$0.textColor = .darkGray
+	$0.textColor = .mobitColors(.textSecondary)
   }
 
   private let evaluationPriceValueLabel: UILabel = UILabel().then {
 	$0.text = "0"
 	$0.font = UIFont(name: "SUIT-SemiBold", size: 12)
-	$0.textColor = .black
+	$0.textColor = .mobitColors(.textPrimary)
 	$0.textAlignment = .right
 	$0.adjustsFontSizeToFitWidth = true
 	$0.minimumScaleFactor = 0.3
@@ -146,20 +146,20 @@ class MainViewController: MobitBaseViewController {
   private let profitRateTitleLabel: UILabel = UILabel().then {
 	$0.text = "수익률"
 	$0.font = UIFont(name: "SUIT-Medium", size: 12)
-	$0.textColor = .darkGray
+	$0.textColor = .mobitColors(.textSecondary)
   }
 
   private let profitRateValueLabel: UILabel = UILabel().then {
 	$0.text = "0 %"
 	$0.font = UIFont(name: "SUIT-SemiBold", size: 12)
-	$0.textColor = .black
+	$0.textColor = .mobitColors(.textPrimary)
 	$0.textAlignment = .right
 	$0.adjustsFontSizeToFitWidth = true
 	$0.minimumScaleFactor = 0.4
   }
   
   let searchBar = UISearchBar().then {
-	$0.backgroundColor = .white
+	$0.backgroundColor = .mobitColors(.surfacePrimary)
 	$0.backgroundImage = UIImage()
 	$0.translatesAutoresizingMaskIntoConstraints = true
   }
@@ -173,23 +173,23 @@ class MainViewController: MobitBaseViewController {
 	  trailing: 12
 	)
 	$0.configuration?.imagePadding = 10
-	$0.tintColor = UIColor(hex: "#4A5568")
+	$0.tintColor = UIColor.mobitColors(.textSecondary)
 	$0.clipsToBounds = true
   }
   
   let holdButton: UIButton = UIButton().then {
 	$0.setTitle("보유코인", for: .normal)
 	$0.titleLabel?.font = UIFont(name: "SUIT-SemiBold", size: 15)
-	$0.setTitleColor(.black, for: .normal)
-	$0.setTitleColor(.blue, for: .selected)
+	$0.setTitleColor(.mobitColors(.textPrimary), for: .normal)
+	$0.setTitleColor(.mobitColors(.accentPrimary), for: .selected)
 	$0.tag = 0
   }
   
   let krwButton: UIButton = UIButton().then {
 	$0.setTitle("원화마켓", for: .normal)
 	$0.titleLabel?.font = UIFont(name: "SUIT-SemiBold", size: 15)
-	$0.setTitleColor(.black, for: .normal)
-	$0.setTitleColor(.blue, for: .selected)
+	$0.setTitleColor(.mobitColors(.textPrimary), for: .normal)
+	$0.setTitleColor(.mobitColors(.accentPrimary), for: .selected)
 	$0.isSelected = true
 	$0.tag = 1
   }
@@ -197,8 +197,8 @@ class MainViewController: MobitBaseViewController {
   let btcButton: UIButton = UIButton().then {
 	$0.setTitle("BTC마켓", for: .normal)
 	$0.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
-	$0.setTitleColor(.black, for: .normal)
-	$0.setTitleColor(.blue, for: .selected)
+	$0.setTitleColor(.mobitColors(.textPrimary), for: .normal)
+	$0.setTitleColor(.mobitColors(.accentPrimary), for: .selected)
 	$0.tag = 2
   }
   
@@ -206,8 +206,8 @@ class MainViewController: MobitBaseViewController {
   let favoriteButton: UIButton = UIButton().then {
 	$0.setTitle("즐겨찾기", for: .normal)
 	$0.titleLabel?.font = UIFont(name: "SUIT-SemiBold", size: 15)
-	$0.setTitleColor(.black, for: .normal)
-	$0.setTitleColor(.blue, for: .selected)
+	$0.setTitleColor(.mobitColors(.textPrimary), for: .normal)
+	$0.setTitleColor(.mobitColors(.accentPrimary), for: .selected)
 	$0.tag = 3
   }
   
@@ -215,8 +215,8 @@ class MainViewController: MobitBaseViewController {
   let currentPriceButton: UIButton = UIButton().then {
 	$0.setTitle("현재가↓↑", for: .normal)
 	$0.titleLabel?.font = UIFont(name: "SUIT-SemiBold", size: 12)
-	$0.setTitleColor(.gray, for: .normal)
-	$0.setTitleColor(.blue, for: .selected)
+	$0.setTitleColor(.mobitColors(.textTertiary), for: .normal)
+	$0.setTitleColor(.mobitColors(.accentPrimary), for: .selected)
 	$0.tag = 0
   }
   
@@ -224,8 +224,8 @@ class MainViewController: MobitBaseViewController {
   let previousDayButton: UIButton = UIButton().then {
 	$0.setTitle("전일대비↓↑", for: .normal)
 	$0.titleLabel?.font = UIFont(name: "SUIT-SemiBold", size: 12)
-	$0.setTitleColor(.gray, for: .normal)
-	$0.setTitleColor(.blue, for: .selected)
+	$0.setTitleColor(.mobitColors(.textTertiary), for: .normal)
+	$0.setTitleColor(.mobitColors(.accentPrimary), for: .selected)
 	$0.tag = 1
   }
   
@@ -233,14 +233,14 @@ class MainViewController: MobitBaseViewController {
   let tradingVolumeButton: UIButton = UIButton().then {
 	$0.setTitle("거래대금↓↑", for: .normal)
 	$0.titleLabel?.font = UIFont(name: "SUIT-SemiBold", size: 12)
-	$0.setTitleColor(.gray, for: .normal)
-	$0.setTitleColor(.blue, for: .selected)
+	$0.setTitleColor(.mobitColors(.textTertiary), for: .normal)
+	$0.setTitleColor(.mobitColors(.accentPrimary), for: .selected)
 	$0.tag = 2
   }
   
   // 우측 하단 플로팅 버튼: 탭하면 공포·탐욕 지수 바텀시트를 띄운다
   private let fearGreedFloatingButton: UIButton = UIButton().then {
-	$0.backgroundColor = .white
+	$0.backgroundColor = .mobitColors(.surfaceElevated)
 	$0.layer.cornerRadius = 28
 	// 떠 있는 듯한 입체 음영
 	$0.layer.applyShadow(color: .black, alpha: 0.25, x: 0, y: 4, blur: 12)
@@ -269,7 +269,7 @@ class MainViewController: MobitBaseViewController {
   }
   
   let noHoldView: UIView = UIView().then {
-	$0.backgroundColor = .white
+	$0.backgroundColor = .mobitColors(.backgroundPrimary)
 	$0.isHidden = true
   }
   
@@ -277,11 +277,11 @@ class MainViewController: MobitBaseViewController {
 	$0.text = "보유중인 코인이 없습니다."
 	$0.font = UIFont(name: "SUIT-Medium", size: 14)
 	$0.textAlignment = .center
-	$0.textColor = .black
+	$0.textColor = .mobitColors(.textPrimary)
   }
   
   let noFavoriteView: UIView = UIView().then {
-	$0.backgroundColor = .white
+	$0.backgroundColor = .mobitColors(.backgroundPrimary)
 	$0.isHidden = true
   }
   
@@ -289,7 +289,7 @@ class MainViewController: MobitBaseViewController {
 	$0.text = "즐겨찾기 설정된 코인이 없습니다."
 	$0.font = UIFont(name: "SUIT-Medium", size: 14)
 	$0.textAlignment = .center
-	$0.textColor = .black
+	$0.textColor = .mobitColors(.textPrimary)
   }
   
   var networkLostView: NetworkLostView? = nil
@@ -311,7 +311,7 @@ class MainViewController: MobitBaseViewController {
   
   override func viewDidLoad() {
 	super.viewDidLoad()
-	self.view.backgroundColor = .white
+	self.view.backgroundColor = .mobitColors(.backgroundPrimary)
 	
 	self.checkNetworkStatus()
 	
@@ -480,7 +480,7 @@ class MainViewController: MobitBaseViewController {
 	let result = NSMutableAttributedString(string: amountText, attributes: [.font: numberFont])
 	result.append(NSAttributedString(
 	  string: " 원",
-	  attributes: [.font: unitFont, .foregroundColor: UIColor.darkGray]
+	  attributes: [.font: unitFont, .foregroundColor: UIColor.mobitColors(.textSecondary)]
 	))
 	return result
   }
@@ -511,7 +511,7 @@ class MainViewController: MobitBaseViewController {
 	  forCellReuseIdentifier: MainHoldingTableViewCell.reuseIdentifier
 	)
 	self.tableView.keyboardDismissMode = .onDrag
-	self.tableView.backgroundColor = .white
+	self.tableView.backgroundColor = .mobitColors(.backgroundPrimary)
 	self.tableView.backgroundView = nil
 	// 하단 탭바에 마지막 행이 가리지 않도록 여백 확보
 	self.tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 70, right: 0)
@@ -688,11 +688,11 @@ class MainViewController: MobitBaseViewController {
 	) as? UISearchTextField {
 	  searchTextField.do {
 		$0.backgroundColor = .clear
-		$0.textColor = .black
+		$0.textColor = .mobitColors(.textPrimary)
 		$0.font = UIFont(name: "SUIT-SemiBold", size: 13)
 		$0.attributedPlaceholder = NSAttributedString(
 		  string: "코인명/심볼 검색",
-		  attributes: [NSAttributedString.Key.foregroundColor: UIColor.lightGray]
+		  attributes: [NSAttributedString.Key.foregroundColor: UIColor.mobitColors(.textTertiary)]
 		)
 	  }
 	}
@@ -709,10 +709,10 @@ class MainViewController: MobitBaseViewController {
 	  bottom: 7,
 	  trailing: 12
 	)
-	configuration.baseForegroundColor = UIColor(hex: "#1F2937")
+	configuration.baseForegroundColor = .mobitColors(.textPrimary)
 	// 단일 중립 톤 pill 하나만 사용하고 테두리는 두지 않는다.
 	var background = UIButton.Configuration.plain().background
-	background.backgroundColor = UIColor(hex: "#F2F4F7")
+	background.backgroundColor = .mobitColors(.surfacePrimary)
 	background.strokeWidth = 0
 	background.cornerRadius = 18
 	configuration.background = background
@@ -749,7 +749,7 @@ class MainViewController: MobitBaseViewController {
 		  flex.addItem(self.currentPriceButton).width(25%)
 		  flex.addItem(self.previousDayButton).width(25%)
 		  flex.addItem(self.tradingVolumeButton).width(25%)
-		  flex.backgroundColor(.whiteFBFBFB)
+		  flex.backgroundColor(UIColor.mobitColors(.surfacePrimary))
 		}
 		
 		flex.addItem(DividerLineView()).height(1)
@@ -762,7 +762,7 @@ class MainViewController: MobitBaseViewController {
 			.top(0).bottom(80).left(0).right(0)
 			.justifyContent(.center)
 			.alignItems(.center)
-			.backgroundColor(.white)
+			.backgroundColor(UIColor.mobitColors(.backgroundPrimary))
 			.define { flex in
 			  flex.addItem(self.noHoldLabel)
 			}
@@ -772,7 +772,7 @@ class MainViewController: MobitBaseViewController {
 			.top(0).bottom(80).left(0).right(0)
 			.justifyContent(.center)
 			.alignItems(.center)
-			.backgroundColor(.white)
+			.backgroundColor(UIColor.mobitColors(.backgroundPrimary))
 			.define { flex in
 			  flex.addItem(self.noFavoriteLabel)
 			}
@@ -865,13 +865,13 @@ class MainViewController: MobitBaseViewController {
 
 	var nameAttributes = AttributeContainer()
 	nameAttributes.font = .systemFont(ofSize: 15, weight: .semibold)
-	nameAttributes.foregroundColor = UIColor(hex: "#1F2937")
+	nameAttributes.foregroundColor = UIColor.mobitColors(.textPrimary)
 	var title = AttributedString(displayName, attributes: nameAttributes)
 
 	// 펼침 캐럿은 이름보다 약하게 처리해 시선을 뺏지 않는다.
 	var caretAttributes = AttributeContainer()
 	caretAttributes.font = .systemFont(ofSize: 12, weight: .semibold)
-	caretAttributes.foregroundColor = UIColor(hex: "#9CA3AF")
+	caretAttributes.foregroundColor = UIColor.mobitColors(.textTertiary)
 	title.append(AttributedString("  ▾", attributes: caretAttributes))
 
 	self.exchangeSelectorButton.configuration?.attributedTitle = title
@@ -1548,7 +1548,7 @@ final class MainNativeAdPopupViewController: UIViewController {
     dimView.addGestureRecognizer(tapGesture)
 
 	let closeBackgroundView = UIView()
-	closeBackgroundView.backgroundColor = .darkGray
+	closeBackgroundView.backgroundColor = .mobitColors(.surfaceElevated)
 	closeBackgroundView.clipsToBounds = true
 
 	let closeButton = UIButton(type: .system)
@@ -1593,7 +1593,7 @@ final class MainNativeAdPopupViewController: UIViewController {
 
   private func makeAdCardView(ad: NativeAd) -> NativeAdView {
     let adView = NativeAdView()
-    adView.backgroundColor = .white
+    adView.backgroundColor = .mobitColors(.surfaceElevated)
     adView.layer.cornerRadius = 4
     adView.layer.masksToBounds = true
 
@@ -1621,12 +1621,12 @@ final class MainNativeAdPopupViewController: UIViewController {
     let headlineLabel = UILabel()
     headlineLabel.font = UIFont.boldSystemFont(ofSize: 16)
     headlineLabel.numberOfLines = 0
-	headlineLabel.textColor = .black
+	headlineLabel.textColor = .mobitColors(.textPrimary)
 
     let bodyLabel = UILabel()
     bodyLabel.font = UIFont.systemFont(ofSize: 12)
     bodyLabel.numberOfLines = 0
-	bodyLabel.textColor = .black
+	bodyLabel.textColor = .mobitColors(.textSecondary)
 
     let ctaButton = UIButton(type: .system)
 	

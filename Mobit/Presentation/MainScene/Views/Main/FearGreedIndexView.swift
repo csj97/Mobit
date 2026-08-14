@@ -19,12 +19,12 @@ final class FearGreedIndexView: UIView {
   private let titleLabel = UILabel().then {
     $0.text = "시장 공포·탐욕 지수"
     $0.font = UIFont(name: "SUIT-SemiBold", size: 15) ?? .systemFont(ofSize: 15, weight: .semibold)
-    $0.textColor = .black
+    $0.textColor = .mobitColors(.textPrimary)
   }
 
   private let infoButton = UIButton(type: .system).then {
     $0.setImage(UIImage(systemName: "info.circle"), for: .normal)
-    $0.tintColor = UIColor(hex: "#868E96")
+    $0.tintColor = .mobitColors(.textTertiary)
     $0.accessibilityLabel = "공포·탐욕 지수 설명"
   }
 
@@ -40,7 +40,7 @@ final class FearGreedIndexView: UIView {
   }
 
   private let track = UIView().then {
-    $0.backgroundColor = UIColor(hex: "#E9ECEF")
+    $0.backgroundColor = .mobitColors(.chartGrid)
     $0.clipsToBounds = true
   }
 
@@ -65,7 +65,7 @@ final class FearGreedIndexView: UIView {
   required init?(coder: NSCoder) { fatalError() }
 
   private func setUp() {
-    backgroundColor = UIColor(hex: "#F2F4F6")
+    backgroundColor = .mobitColors(.surfacePrimary)
     layer.cornerRadius = 12
     isAccessibilityElement = true
 
@@ -148,7 +148,7 @@ final class FearGreedIndexView: UIView {
     let label = UILabel()
     label.text = text
     label.font = UIFont(name: "SUIT-Medium", size: 11) ?? .systemFont(ofSize: 11, weight: .medium)
-    label.textColor = UIColor(hex: "#868E96")
+    label.textColor = .mobitColors(.textTertiary)
     return label
   }
 }

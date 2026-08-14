@@ -25,8 +25,8 @@ class GradientView: UIView {
 	gradientLayer.frame = self.bounds
 	
 	gradientLayer.colors = [
-	  UIColor(hex: "#e9ecef").cgColor,
-	  UIColor(hex: "#f8f9fa").cgColor,
+	  UIColor.mobitColors(.surfacePrimary).cgColor,
+	  UIColor.mobitColors(.backgroundPrimary).cgColor,
 	]
 	
 	// 방향 위에서 아래로
@@ -39,5 +39,9 @@ class GradientView: UIView {
   override func layoutSubviews() {
 	super.layoutSubviews()
 	gradientLayer.frame = bounds // 뷰 크기 바뀔 때마다 업데이트
+	gradientLayer.colors = [
+	  UIColor.mobitColors(.surfacePrimary).cgColor,
+	  UIColor.mobitColors(.backgroundPrimary).cgColor,
+	]
   }
 }

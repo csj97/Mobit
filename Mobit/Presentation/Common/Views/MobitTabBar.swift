@@ -117,7 +117,7 @@ final class MobitTabBar: UIView {
 		stackView.addArrangedSubview(container)
 	  }
 	
-	backgroundColor = .white
+	backgroundColor = .mobitColors(.surfacePrimary)
 	
 	addSubview(stackView)
 	stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -137,7 +137,7 @@ final class MobitTabBar: UIView {
 	  .forEach { i, item in
 		let isButtonSelected = selectedIndex == i
 		let image = isButtonSelected ? item.selectedImage : item.normalImage
-		let textColor = isButtonSelected ? UIColor(hex: "#657fe6") : .black
+		let textColor = isButtonSelected ? UIColor.mobitColors(.accentPrimary) : .mobitColors(.textPrimary)
 		let font = isButtonSelected ? UIFont.systemFont(ofSize: 14, weight: .bold) : UIFont.systemFont(ofSize: 12, weight: .regular)
 		let selectedImage = tabImageViews[i]
 		let selectedTextLabel = tabLabels[i]

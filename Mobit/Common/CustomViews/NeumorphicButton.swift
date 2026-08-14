@@ -22,12 +22,12 @@ class NeumorphicButton: UIButton {
   
   private func setupNeumorphicStyle() {
 	// 기본 스타일
-	backgroundColor = UIColor(red: 0.925, green: 0.941, blue: 0.953, alpha: 1.0) // #ecf0f3
+	backgroundColor = .mobitColors(.surfacePrimary)
 	layer.cornerRadius = 16
 	layer.masksToBounds = false
 	
 	// 그림자 1: 아래쪽 (어두운 음영)
-	layer.shadowColor = UIColor(red: 0.6, green: 0.6, blue: 0.7, alpha: 1.0).cgColor
+	layer.shadowColor = UIColor.mobitColors(.borderPrimary).cgColor
 	layer.shadowOffset = CGSize(width: 6, height: 6)
 	layer.shadowOpacity = 0.7
 	layer.shadowRadius = 6
@@ -36,7 +36,7 @@ class NeumorphicButton: UIButton {
 	let lightShadow = CALayer()
 	lightShadow.frame = bounds
 	lightShadow.backgroundColor = backgroundColor?.cgColor
-	lightShadow.shadowColor = UIColor.white.cgColor
+	lightShadow.shadowColor = UIColor.mobitColors(.surfaceElevated).cgColor
 	lightShadow.shadowOffset = CGSize(width: -6, height: -6)
 	lightShadow.shadowOpacity = 1.0
 	lightShadow.shadowRadius = 6

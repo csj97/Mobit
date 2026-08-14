@@ -41,7 +41,7 @@ class MobitNeumorphicSegmentedControl: UIView {
   }
   
   private func setupBaseStyle() {
-	backgroundColor = UIColor(hex: "#FBFBFB")
+	backgroundColor = .mobitColors(.surfacePrimary)
 	layer.cornerRadius = 18
 	layer.maskedCorners = CACornerMask(arrayLiteral: .layerMinXMinYCorner, .layerMaxXMinYCorner)
 	layer.masksToBounds = false
@@ -55,7 +55,7 @@ class MobitNeumorphicSegmentedControl: UIView {
 	let lightShadow = CALayer()
 	lightShadow.frame = bounds
 	lightShadow.backgroundColor = backgroundColor?.cgColor
-	lightShadow.shadowColor = UIColor.white.cgColor
+	lightShadow.shadowColor = UIColor.mobitColors(.surfaceElevated).cgColor
 	lightShadow.shadowOffset = CGSize(width: -6, height: -6)
 	lightShadow.shadowOpacity = 1.0
 	lightShadow.shadowRadius = 18
@@ -97,7 +97,7 @@ class MobitNeumorphicSegmentedControl: UIView {
 	  if index < segments.count - 1 {
 		// 🔥 마지막 인덱스가 아닐 경우에만 separator 추가
 		let separator = UIView()
-		separator.backgroundColor = .mobitColors(.lineLightGray)
+		separator.backgroundColor = .mobitColors(.borderPrimary)
 		container.addSubview(separator)
 		
 		button.snp.makeConstraints { make in
@@ -135,7 +135,7 @@ class MobitNeumorphicSegmentedControl: UIView {
 	
 	for (index, button) in buttons.enumerated() {
 	  let isSelected = (index == selectedIndex)
-	  button.setTitleColor(isSelected ? .darkGray : .lightGray, for: .normal)
+	  button.setTitleColor(isSelected ? .mobitColors(.textPrimary) : .mobitColors(.textTertiary), for: .normal)
 	  button.titleLabel?.font = isSelected
 	  ? .systemFont(ofSize: 16, weight: .bold)
 	  : .systemFont(ofSize: 14, weight: .regular)

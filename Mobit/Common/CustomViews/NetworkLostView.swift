@@ -12,18 +12,18 @@ import Then
 class NetworkLostView: UIView {
   let imageView = UIImageView().then { imageView in
 	imageView.image = UIImage(systemName: "wifi.exclamationmark")
-	imageView.tintColor = .darkGray
+	imageView.tintColor = .mobitColors(.textSecondary)
   }
   
   let label = UILabel().then { label in
 	label.text = "네트워크가 유실되었습니다.\n네트워크 연결 후 다시 시도해 주세요."
 	label.font = UIFont(name: "esamanruOTFMedium", size: 18)
 	label.textAlignment = .center
-	label.textColor = .darkGray
+	label.textColor = .mobitColors(.textSecondary)
   }
   
   let view = UIView().then { view in
-	view.backgroundColor = .white
+	view.backgroundColor = .mobitColors(.backgroundPrimary)
   }
   
   

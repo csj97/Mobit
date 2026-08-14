@@ -7,6 +7,7 @@
 
 import Foundation
 import RxSwift
+import UIKit
 
 class UserDataManager: NSObject {
   struct TradingViewChartSettings: Codable, Equatable {
@@ -38,6 +39,23 @@ class UserDataManager: NSObject {
 	case riseGreenFallRed
   }
 
+  enum AppTheme: String, Codable, CaseIterable {
+	case system
+	case light
+	case dark
+
+	var userInterfaceStyle: UIUserInterfaceStyle {
+	  switch self {
+	  case .system:
+		return .unspecified
+	  case .light:
+		return .light
+	  case .dark:
+		return .dark
+	  }
+	}
+  }
+
   enum Keys {
 	static let isFirstLaunch = "isFirstLaunch"
 	static let userFavoriteList = "user-favorite-list"
@@ -50,6 +68,7 @@ class UserDataManager: NSObject {
 	static let tradingViewChartSettings = "tradingview-chart-settings"
 	static let marketColorTheme = "market-color-theme"
 	static let marketCellTintEnabled = "market-cell-tint-enabled"
+	static let appTheme = "app-theme"
   }
 
   static let userAvailableBalanceSubject = BehaviorSubject<Double?>(value: nil)
@@ -328,6 +347,21 @@ class UserDataManager: NSObject {
 	}
 	set {
 	  UserDefaults.standard.set(newValue, forKey: Keys.marketCellTintEnabled)
+	}
+  }
+
+  static var appTheme: AppTheme {
+	get {
+	  let defaults = UserDefaults.standard
+	  guard let rawValue = defaults.string(forKey: Keys.appTheme),
+			let theme = AppTheme(rawValue: rawValue)
+	  else {
+		return .system
+	  }
+	  return theme
+	}
+	set {
+	  UserDefaults.standard.set(newValue.rawValue, forKey: Keys.appTheme)
 	}
   }
 

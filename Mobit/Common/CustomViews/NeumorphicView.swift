@@ -22,19 +22,19 @@ class NeumorphicView: UIView {
   private let lightShadow = CALayer()
   
   private func setupNeumorphicStyle() {
-	backgroundColor = UIColor(red: 0.925, green: 0.941, blue: 0.953, alpha: 1.0) // #ecf0f3
+	backgroundColor = .mobitColors(.surfacePrimary)
 	layer.cornerRadius = 16
 	layer.masksToBounds = false
 	
 	// 아래쪽 어두운 그림자
-	layer.shadowColor = UIColor(red: 0.6, green: 0.6, blue: 0.7, alpha: 1.0).cgColor
+	layer.shadowColor = UIColor.mobitColors(.borderPrimary).cgColor
 	layer.shadowOffset = CGSize(width: 6, height: 6)
 	layer.shadowOpacity = 0.7
 	layer.shadowRadius = 6
 	
 	// 위쪽 밝은 그림자 레이어
 	lightShadow.backgroundColor = backgroundColor?.cgColor
-	lightShadow.shadowColor = UIColor.white.cgColor
+	lightShadow.shadowColor = UIColor.mobitColors(.surfaceElevated).cgColor
 	lightShadow.shadowOffset = CGSize(width: -6, height: -6)
 	lightShadow.shadowOpacity = 1.0
 	lightShadow.shadowRadius = 6

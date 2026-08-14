@@ -66,6 +66,19 @@ class TradeBidView: UIView, ViewRule {
   func setUI() {
 	self.inputTradeAmount.setAdaptivePlaceholderColor()
 	self.totalPriceTextField.setAdaptivePlaceholderColor()
+	self.backgroundColor = .mobitColors(.backgroundPrimary)
+	[
+	  self.availableTradePrice,
+	  self.currentPrice,
+	  self.inputMarketName
+	].forEach { $0?.textColor = .mobitColors(.textPrimary) }
+	[self.inputTradeAmount, self.totalPriceTextField].forEach { textField in
+	  textField?.textColor = .mobitColors(.textPrimary)
+	  textField?.backgroundColor = .mobitColors(.surfacePrimary)
+	}
+	self.inputAmountTFView.backgroundColor = .mobitColors(.surfacePrimary)
+	self.orderButton.setTitleColor(.white, for: .normal)
+	self.orderButton.backgroundColor = MarketColorPalette.riseColor
 
 	self.inputMarketName.text = self.reactor?.selectCrypto.market.components(separatedBy: "/").first
 	self.inputTradeAmount.keyboardType = .decimalPad
@@ -217,7 +230,7 @@ class TradeBidView: UIView, ViewRule {
 	orderButton?.isEnabled = isEnabled
 	orderButton?.alpha = isEnabled ? 1 : 0.45
 	orderNoticeLabel?.text = notice
-	orderNoticeLabel?.textColor = .systemRed
+	orderNoticeLabel?.textColor = isError ? MarketColorPalette.fallColor : .mobitColors(.accentPrimary)
   }
 
   func bind(reactor: TradeReactor) {

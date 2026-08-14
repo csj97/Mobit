@@ -22,7 +22,7 @@ final class FearGreedInfoViewController: UIViewController {
 
   private let closeButton = UIButton(type: .system).then {
     $0.setImage(UIImage(systemName: "xmark"), for: .normal)
-    $0.tintColor = UIColor(hex: "#868E96")
+    $0.tintColor = .mobitColors(.textTertiary)
     $0.accessibilityLabel = "닫기"
   }
 
@@ -37,7 +37,7 @@ final class FearGreedInfoViewController: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    view.backgroundColor = .white
+    view.backgroundColor = .mobitColors(.backgroundPrimary)
     setUp()
   }
 
@@ -102,7 +102,7 @@ private extension FearGreedInfoViewController {
     let label = UILabel()
     label.text = text
     label.font = UIFont(name: "SUIT-Bold", size: 20) ?? .systemFont(ofSize: 20, weight: .bold)
-    label.textColor = .black
+    label.textColor = .mobitColors(.textPrimary)
     label.numberOfLines = 0
     return label
   }
@@ -111,7 +111,7 @@ private extension FearGreedInfoViewController {
     let label = UILabel()
     label.text = text
     label.font = UIFont(name: "SUIT-Bold", size: 16) ?? .systemFont(ofSize: 16, weight: .bold)
-    label.textColor = .black
+    label.textColor = .mobitColors(.textPrimary)
     return label
   }
 
@@ -119,7 +119,7 @@ private extension FearGreedInfoViewController {
     let label = UILabel()
     label.text = text
     label.font = UIFont(name: "SUIT-Medium", size: 14) ?? .systemFont(ofSize: 14)
-    label.textColor = UIColor(hex: "#495057")
+    label.textColor = .mobitColors(.textSecondary)
     label.numberOfLines = 0
     return label
   }
@@ -128,7 +128,7 @@ private extension FearGreedInfoViewController {
     let label = UILabel()
     label.text = text
     label.font = UIFont(name: "SUIT-Medium", size: 12) ?? .systemFont(ofSize: 12)
-    label.textColor = UIColor(hex: "#ADB5BD")
+    label.textColor = .mobitColors(.textTertiary)
     return label
   }
 
@@ -148,12 +148,12 @@ private extension FearGreedInfoViewController {
     let nameLabel = UILabel()
     nameLabel.text = "\(level.title)  (\(level.range))"
     nameLabel.font = UIFont(name: "SUIT-Bold", size: 14) ?? .systemFont(ofSize: 14, weight: .bold)
-    nameLabel.textColor = .black
+    nameLabel.textColor = .mobitColors(.textPrimary)
 
     let descLabel = UILabel()
     descLabel.text = level.summary
     descLabel.font = UIFont(name: "SUIT-Medium", size: 13) ?? .systemFont(ofSize: 13)
-    descLabel.textColor = UIColor(hex: "#868E96")
+    descLabel.textColor = .mobitColors(.textSecondary)
     descLabel.numberOfLines = 0
 
     let textStack = UIStackView(arrangedSubviews: [nameLabel, descLabel])

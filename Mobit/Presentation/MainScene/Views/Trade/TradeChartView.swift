@@ -66,7 +66,7 @@ class TradeChartView: UIView, WKScriptMessageHandler {
   private func configureSettingsUI() {
 	self.settingsContainerView.layer.cornerRadius = 12
 	self.settingsContainerView.layer.borderWidth = 0.5
-	self.settingsContainerView.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.35).cgColor
+	self.settingsContainerView.layer.borderColor = UIColor.mobitColors(.borderPrimary).cgColor
 	// 인라인 안내문은 info 버튼 + 팝업으로 대체한다. 라벨은 숨기고 높이를 접어 레이아웃에서 제거한다.
 	self.persistenceGuideLabel.isHidden = true
 	self.persistenceGuideLabel.text = nil
@@ -80,7 +80,7 @@ class TradeChartView: UIView, WKScriptMessageHandler {
 	let button = UIButton(type: .system)
 	let config = UIImage.SymbolConfiguration(pointSize: 16, weight: .regular)
 	button.setImage(UIImage(systemName: "info.circle", withConfiguration: config), for: .normal)
-	button.tintColor = UIColor(hex: "#6B7280")
+	button.tintColor = .mobitColors(.textTertiary)
 	button.accessibilityLabel = "차트 설정 안내"
 	button.addTarget(self, action: #selector(didTapChartInfoButton), for: .touchUpInside)
 	return button

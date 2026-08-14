@@ -30,6 +30,13 @@ class PNLViewController: MobitBaseViewController {
   }
   
   func setUI() {
+	self.view.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.pnlTableView.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.noResultView.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.applyTheme(to: self.view)
+	self.pnlTableView.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.noResultView.backgroundColor = .mobitColors(.backgroundPrimary)
+
 	self.pnlTableView.delegate = self
 	self.pnlTableView.dataSource = self
 	
@@ -37,6 +44,26 @@ class PNLViewController: MobitBaseViewController {
 	  UINib(nibName: "PNLTableViewCell", bundle: nil),
 	  forCellReuseIdentifier: "PNLTableViewCell"
 	)
+  }
+
+  private func applyTheme(to view: UIView) {
+	if view !== self.view,
+	   view !== self.pnlTableView,
+	   view !== self.noResultView,
+	   view.backgroundColor != .clear {
+	  view.backgroundColor = .mobitColors(.surfacePrimary)
+	}
+
+	if let label = view as? UILabel {
+	  label.textColor = .mobitColors(.textPrimary)
+	}
+
+	if let button = view as? UIButton {
+	  button.tintColor = .mobitColors(.textPrimary)
+	  button.setTitleColor(.mobitColors(.textPrimary), for: .normal)
+	}
+
+	view.subviews.forEach { self.applyTheme(to: $0) }
   }
   
   func setData() {
