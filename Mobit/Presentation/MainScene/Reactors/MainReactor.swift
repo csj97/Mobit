@@ -353,25 +353,32 @@ extension MainReactor {
 		return nil
 	  }
 
-	  return CryptoCellInfo(
-		cryptoName: crypto.koreanName,
-		market: MarketFormat.displayMarket(fromAPIMarket: crypto.market),
-		marketEvent: crypto.marketEvent,
-		prevPrice: ticker.prevClosingPrice,
-		tradePrice: ticker.tradePrice,
-		changePrice: ticker.changePrice,
-		signedChangeRate: ticker.signedChangeRate,
-		change: ticker.change,
-		accTradePrice24h: ticker.accTradePrice24h,
-		accTradeVolume24h: ticker.accTradeVolume24h,
-		highest52WeekPrice: ticker.highest52WeekPrice,
-		lowest52WeekPrice: ticker.lowest52WeekPrice
-	  )
+	  return self.makeCryptoCellInfo(crypto: crypto, ticker: ticker)
 	}
 
 	// 정렬 해제 시 복귀할 초기 순서 저장 (항상 API 자연 순서)
 	self.initialMarketOrder = combined.map { $0.market }
 	return combined
+  }
+
+  private func makeCryptoCellInfo(
+	crypto: Crypto,
+	ticker: CryptoTicker
+  ) -> CryptoCellInfo {
+	CryptoCellInfo(
+	  cryptoName: crypto.koreanName,
+	  market: MarketFormat.displayMarket(fromAPIMarket: crypto.market),
+	  marketEvent: crypto.marketEvent,
+	  prevPrice: ticker.prevClosingPrice,
+	  tradePrice: ticker.tradePrice,
+	  changePrice: ticker.changePrice,
+	  signedChangeRate: ticker.signedChangeRate,
+	  change: ticker.change,
+	  accTradePrice24h: ticker.accTradePrice24h,
+	  accTradeVolume24h: ticker.accTradeVolume24h,
+	  highest52WeekPrice: ticker.highest52WeekPrice,
+	  lowest52WeekPrice: ticker.lowest52WeekPrice
+	)
   }
 }
 
@@ -431,26 +438,74 @@ extension MainReactor {
 	  }
 
 	case .currentPriceAscending:
-	  return cellInfos.sorted { ($0.tradePrice ?? 0) < ($1.tradePrice ?? 0) }
+	  return cellInfos.sorted {
+		self.isAscendingOrdered($0.tradePrice, $1.tradePrice, lhsMarket: $0.market, rhsMarket: $1.market)
+	  }
 	  
 	case .currentPriceDescending:
-	  return cellInfos.sorted { ($0.tradePrice ?? 0) > ($1.tradePrice ?? 0) }
+	  return cellInfos.sorted {
+		self.isDescendingOrdered($0.tradePrice, $1.tradePrice, lhsMarket: $0.market, rhsMarket: $1.market)
+	  }
 	  
 	case .previousDayAscending:
-	  return cellInfos.sorted { ($0.signedChangeRate ?? 0) < ($1.signedChangeRate ?? 0) }
+	  return cellInfos.sorted {
+		self.isAscendingOrdered($0.signedChangeRate, $1.signedChangeRate, lhsMarket: $0.market, rhsMarket: $1.market)
+	  }
 	  
 	case .previousDayDescending:
-	  return cellInfos.sorted { ($0.signedChangeRate ?? 0) > ($1.signedChangeRate ?? 0) }
+	  return cellInfos.sorted {
+		self.isDescendingOrdered($0.signedChangeRate, $1.signedChangeRate, lhsMarket: $0.market, rhsMarket: $1.market)
+	  }
 	  
 	case .tradeVolumeAscending:
-	  return cellInfos.sorted { ($0.accTradePrice24h ?? 0) < ($1.accTradePrice24h ?? 0) }
+	  return cellInfos.sorted {
+		self.isAscendingOrdered($0.accTradePrice24h, $1.accTradePrice24h, lhsMarket: $0.market, rhsMarket: $1.market)
+	  }
 	  
 	case .tradeVolumeDescending:
-	  return cellInfos.sorted { ($0.accTradePrice24h ?? 0) > ($1.accTradePrice24h ?? 0) }
+	  return cellInfos.sorted {
+		self.isDescendingOrdered($0.accTradePrice24h, $1.accTradePrice24h, lhsMarket: $0.market, rhsMarket: $1.market)
+	  }
 
 	default:
 	  // 보유 탭 전용 정렬은 뷰(표시 시점)에서 처리하므로 리액터에서는 원본 유지
 	  return cellInfos
+	}
+  }
+
+  private func isAscendingOrdered(
+	_ lhs: Double?,
+	_ rhs: Double?,
+	lhsMarket: String,
+	rhsMarket: String
+  ) -> Bool {
+	switch (lhs, rhs) {
+	case let (left?, right?):
+	  return left == right ? lhsMarket < rhsMarket : left < right
+	case (nil, nil):
+	  return lhsMarket < rhsMarket
+	case (nil, _?):
+	  return false
+	case (_?, nil):
+	  return true
+	}
+  }
+
+  private func isDescendingOrdered(
+	_ lhs: Double?,
+	_ rhs: Double?,
+	lhsMarket: String,
+	rhsMarket: String
+  ) -> Bool {
+	switch (lhs, rhs) {
+	case let (left?, right?):
+	  return left == right ? lhsMarket < rhsMarket : left > right
+	case (nil, nil):
+	  return lhsMarket < rhsMarket
+	case (nil, _?):
+	  return false
+	case (_?, nil):
+	  return true
 	}
   }
   

@@ -72,6 +72,7 @@ class MainRepository: MainRepositoryProtocol {
     retryAttempt: Int,
     policy: TickerBatchPolicy
   ) -> Observable<[CryptoTicker]> {
+	// repository는 target이 upbit인지 bithumb인지 몰라도 된다.
     self.provider.rx.request(
       self.exchangeProvider.makeCryptoTickerTarget(markets: markets)
     )

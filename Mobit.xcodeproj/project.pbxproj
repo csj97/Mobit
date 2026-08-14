@@ -218,6 +218,15 @@
 		FEA000000000000000000031 /* FearGreedIndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA000000000000000000030 /* FearGreedIndexView.swift */; };
 		FEA000000000000000000041 /* FearGreedInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA000000000000000000040 /* FearGreedInfoViewController.swift */; };
 		FEA000000000000000000051 /* MainHoldingTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA000000000000000000050 /* MainHoldingTableViewCell.swift */; };
+
+		D0B100022FF1000000000001 /* UpbitExchangeAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B100012FF1000000000001 /* UpbitExchangeAdapter.swift */; };
+		D0B100042FF1000000000001 /* BithumbCryptoDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B100032FF1000000000001 /* BithumbCryptoDTO.swift */; };
+		D0B100062FF1000000000001 /* BithumbTickerDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B100052FF1000000000001 /* BithumbTickerDTO.swift */; };
+		D0B100082FF1000000000001 /* BithumbCandleDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B100072FF1000000000001 /* BithumbCandleDTO.swift */; };
+		D0B1000A2FF1000000000001 /* BithumbSocketDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B100092FF1000000000001 /* BithumbSocketDTO.swift */; };
+		D0B1000C2FF1000000000001 /* BithumbNetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B1000B2FF1000000000001 /* BithumbNetworkService.swift */; };
+		D0B1000E2FF1000000000001 /* BithumbWebSocketClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B1000D2FF1000000000001 /* BithumbWebSocketClient.swift */; };
+		D0B200052FF2000000000001 /* UpbitWebSocketClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B200042FF2000000000001 /* UpbitWebSocketClient.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -456,6 +465,15 @@
 		FEA000000000000000000030 /* FearGreedIndexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FearGreedIndexView.swift; sourceTree = "<group>"; };
 		FEA000000000000000000040 /* FearGreedInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FearGreedInfoViewController.swift; sourceTree = "<group>"; };
 		FEA000000000000000000050 /* MainHoldingTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainHoldingTableViewCell.swift; sourceTree = "<group>"; };
+
+		D0B100012FF1000000000001 /* UpbitExchangeAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpbitExchangeAdapter.swift; sourceTree = "<group>"; };
+		D0B100032FF1000000000001 /* BithumbCryptoDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BithumbCryptoDTO.swift; sourceTree = "<group>"; };
+		D0B100052FF1000000000001 /* BithumbTickerDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BithumbTickerDTO.swift; sourceTree = "<group>"; };
+		D0B100072FF1000000000001 /* BithumbCandleDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BithumbCandleDTO.swift; sourceTree = "<group>"; };
+		D0B100092FF1000000000001 /* BithumbSocketDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BithumbSocketDTO.swift; sourceTree = "<group>"; };
+		D0B1000B2FF1000000000001 /* BithumbNetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BithumbNetworkService.swift; sourceTree = "<group>"; };
+		D0B1000D2FF1000000000001 /* BithumbWebSocketClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BithumbWebSocketClient.swift; sourceTree = "<group>"; };
+		D0B200042FF2000000000001 /* UpbitWebSocketClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpbitWebSocketClient.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -881,7 +899,6 @@
 				C19F65292EB1EEE200CE1A7E /* NetworkMonitor.swift */,
 				C13B29EE2EE0146100391683 /* SoketManager */,
 				99C20AB52C4F76B5009276E7 /* Main */,
-				C13B29EF2EE0148000391683 /* Trade */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -906,11 +923,7 @@
 		99C20A772C490AF9009276E7 /* DataMapping */ = {
 			isa = PBXGroup;
 			children = (
-				99C20A782C490B08009276E7 /* CryptoDTO.swift */,
 				FEA000000000000000000020 /* FearGreedIndexResponseDTO.swift */,
-				99C20AAB2C4F458C009276E7 /* CryptoSocketTickerDTO.swift */,
-				998849E32C5378CD0073A27D /* CryptoTickerDTO.swift */,
-				369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */,
 				C19ED6E62DE30CF0001ACCF9 /* CryptoQuoteResponseDTO.swift */,
 				C17DC0D12E2094DF00E35D3F /* FirebaseCMCResponseDTO.swift */,
 			);
@@ -929,7 +942,6 @@
 		99C20AB52C4F76B5009276E7 /* Main */ = {
 			isa = PBXGroup;
 			children = (
-				99C20A682C490326009276E7 /* MainNetworkService.swift */,
 				99C20A772C490AF9009276E7 /* DataMapping */,
 			);
 			path = Main;
@@ -963,24 +975,6 @@
 				31DC41E12CD9197700F0FFF2 /* SocketManager.swift */,
 			);
 			path = SoketManager;
-			sourceTree = "<group>";
-		};
-		C13B29EF2EE0148000391683 /* Trade */ = {
-			isa = PBXGroup;
-			children = (
-				C13B29F12EE0149E00391683 /* TradeNetworkService.swift */,
-				C13B29F02EE0148C00391683 /* DataMapping */,
-			);
-			path = Trade;
-			sourceTree = "<group>";
-		};
-		C13B29F02EE0148C00391683 /* DataMapping */ = {
-			isa = PBXGroup;
-			children = (
-				C13B29F32EE0173100391683 /* Candle+MinuteResponseDTO.swift */,
-				C182B6A62EF5285A0090CA34 /* Candle+DayResponseDTO.swift */,
-			);
-			path = DataMapping;
 			sourceTree = "<group>";
 		};
 		C13B29F72EE0196500391683 /* Trade */ = {
@@ -1124,11 +1118,92 @@
 			path = HTML;
 			sourceTree = "<group>";
 		};
-		D0A100092FF0000000000003 /* Exchange */ = {
+
+		D0B100102FF1000000000001 /* Upbit */ = {
+			isa = PBXGroup;
+			children = (
+				D0B100012FF1000000000001 /* UpbitExchangeAdapter.swift */,
+				D0B200012FF2000000000001 /* DataMapping */,
+				D0B200022FF2000000000001 /* Network */,
+				D0B200032FF2000000000001 /* Socket */,
+			);
+			path = Upbit;
+			sourceTree = "<group>";
+		};
+		D0B200012FF2000000000001 /* DataMapping */ = {
+			isa = PBXGroup;
+			children = (
+				99C20A782C490B08009276E7 /* CryptoDTO.swift */,
+				998849E32C5378CD0073A27D /* CryptoTickerDTO.swift */,
+				99C20AAB2C4F458C009276E7 /* CryptoSocketTickerDTO.swift */,
+				369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */,
+				C13B29F32EE0173100391683 /* Candle+MinuteResponseDTO.swift */,
+				C182B6A62EF5285A0090CA34 /* Candle+DayResponseDTO.swift */,
+			);
+			path = DataMapping;
+			sourceTree = "<group>";
+		};
+		D0B200022FF2000000000001 /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				99C20A682C490326009276E7 /* MainNetworkService.swift */,
+				C13B29F12EE0149E00391683 /* TradeNetworkService.swift */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
+		D0B200032FF2000000000001 /* Socket */ = {
+			isa = PBXGroup;
+			children = (
+				D0B200042FF2000000000001 /* UpbitWebSocketClient.swift */,
+			);
+			path = Socket;
+			sourceTree = "<group>";
+		};
+		D0B100112FF1000000000001 /* Bithumb */ = {
 			isa = PBXGroup;
 			children = (
 				D0A1000B2FF0000000000005 /* BithumbExchangeAdapter.swift */,
+				D0B100122FF1000000000001 /* DataMapping */,
+				D0B100132FF1000000000001 /* Network */,
+				D0B100142FF1000000000001 /* Socket */,
+			);
+			path = Bithumb;
+			sourceTree = "<group>";
+		};
+		D0B100122FF1000000000001 /* DataMapping */ = {
+			isa = PBXGroup;
+			children = (
+				D0B100032FF1000000000001 /* BithumbCryptoDTO.swift */,
+				D0B100052FF1000000000001 /* BithumbTickerDTO.swift */,
+				D0B100072FF1000000000001 /* BithumbCandleDTO.swift */,
+				D0B100092FF1000000000001 /* BithumbSocketDTO.swift */,
+			);
+			path = DataMapping;
+			sourceTree = "<group>";
+		};
+		D0B100132FF1000000000001 /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				D0B1000B2FF1000000000001 /* BithumbNetworkService.swift */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
+		D0B100142FF1000000000001 /* Socket */ = {
+			isa = PBXGroup;
+			children = (
+				D0B1000D2FF1000000000001 /* BithumbWebSocketClient.swift */,
+			);
+			path = Socket;
+			sourceTree = "<group>";
+		};
+		D0A100092FF0000000000003 /* Exchange */ = {
+			isa = PBXGroup;
+			children = (
 				D0A100072FF0000000000003 /* ExchangeMarketDataProvider.swift */,
+				D0B100102FF1000000000001 /* Upbit */,
+				D0B100112FF1000000000001 /* Bithumb */,
 			);
 			path = Exchange;
 			sourceTree = "<group>";
@@ -1411,6 +1486,15 @@
 				C19818DF2EDFF19C0044A398 /* LeaderBoardCoordinator.swift in Sources */,
 				C182B6A92EF528910090CA34 /* Candle+DayResponseModel.swift in Sources */,
 				D0A1000C2FF0000000000005 /* BithumbExchangeAdapter.swift in Sources */,
+
+				D0B100022FF1000000000001 /* UpbitExchangeAdapter.swift in Sources */,
+				D0B100042FF1000000000001 /* BithumbCryptoDTO.swift in Sources */,
+				D0B100062FF1000000000001 /* BithumbTickerDTO.swift in Sources */,
+				D0B100082FF1000000000001 /* BithumbCandleDTO.swift in Sources */,
+				D0B1000A2FF1000000000001 /* BithumbSocketDTO.swift in Sources */,
+				D0B1000C2FF1000000000001 /* BithumbNetworkService.swift in Sources */,
+				D0B1000E2FF1000000000001 /* BithumbWebSocketClient.swift in Sources */,
+				D0B200052FF2000000000001 /* UpbitWebSocketClient.swift in Sources */,
 				D0A100022FF0000000000001 /* ExchangeModels.swift in Sources */,
 				D0A100082FF0000000000003 /* ExchangeMarketDataProvider.swift in Sources */,
 				C1246B632ED979D400B24D3D /* ViewControllerExtension.swift in Sources */,

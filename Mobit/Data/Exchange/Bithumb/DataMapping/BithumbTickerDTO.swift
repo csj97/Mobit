@@ -1,15 +1,20 @@
 //
-//  CryptoTickerDTO.swift
+//  BithumbTickerDTO.swift
 //  Mobit
 //
-//  Created by openobject on 2024/07/26.
+//  Created by Codex on 7/9/26.
 //
 
 import Foundation
 
-typealias CryptoTickerListDTO = [CryptoTickerDTO]
+// MARK: - Bithumb REST DTO
+// 현재 Bithumb v1 REST 응답은 Upbit 스키마와 사실상 동일하지만,
+// 추후 스펙 분기에 대비해 Upbit DTO와 분리된 전용 타입으로 디코딩한다.
+// 필드가 달라지면 이 파일의 DTO만 수정하면 되고 Upbit 경로에는 영향이 없다.
 
-struct CryptoTickerDTO: Hashable, Codable {
+typealias BithumbTickerListDTO = [BithumbTickerDTO]
+
+struct BithumbTickerDTO: Decodable {
   let market: String
   let tradeDate: String?
   let tradeTime: String?
@@ -21,7 +26,7 @@ struct CryptoTickerDTO: Hashable, Codable {
   let lowPrice: Double?
   let tradePrice: Double?
   let prevClosingPrice: Double?
-  let change: String
+  let change: String?
   let changePrice: Double?
   let changeRate: Double?
   let signedChangePrice: Double?
@@ -35,8 +40,8 @@ struct CryptoTickerDTO: Hashable, Codable {
   let highest52WeekDate: String?
   let lowest52WeekPrice: Double?
   let lowest52WeekDate: String?
-  let timestamp: Int64
-  
+  let timestamp: Int64?
+
   enum CodingKeys: String, CodingKey {
     case market
     case tradeDate = "trade_date"
@@ -67,41 +72,42 @@ struct CryptoTickerDTO: Hashable, Codable {
   }
 }
 
-extension CryptoTickerDTO {
+extension BithumbTickerDTO {
   func toDomain() -> CryptoTicker {
-	return .init(
-	  market: self.market,
-	  tradeDate: self.tradeDate ?? "",
-	  tradeTime: self.tradeTime ?? "",
-	  tradeDateKst: self.tradeDateKst ?? "",
-	  tradeTimeKst: self.tradeTimeKst ?? "",
-	  tradeTimestamp: self.tradeTimestamp ?? 0,
-	  openingPrice: self.openingPrice ?? 0,
-	  highPrice: self.highPrice ?? 0,
-	  lowPrice: self.lowPrice ?? 0,
-	  tradePrice: self.tradePrice ?? 0,
-	  prevClosingPrice: self.prevClosingPrice ?? 0,
-	  change: self.change,
-	  changePrice: self.changePrice ?? 0,
-	  changeRate: self.changeRate ?? 0,
-	  signedChangePrice: self.signedChangePrice ?? 0,
-	  signedChangeRate: self.signedChangeRate ?? 0,
-	  tradeVolume: self.tradeVolume ?? 0,
-	  accTradePrice: self.accTradePrice ?? 0,
-	  accTradePrice24h: self.accTradePrice24h ?? 0,
-	  accTradeVolume: self.accTradeVolume ?? 0,
-	  accTradeVolume24h: self.accTradeVolume24h ?? 0,
-	  highest52WeekPrice: self.highest52WeekPrice ?? 0,
-	  highest52WeekDate: self.highest52WeekDate ?? "",
-	  lowest52WeekPrice: self.lowest52WeekPrice ?? 0,
-	  lowest52WeekDate: self.lowest52WeekDate ?? "",
-	  timestamp: self.timestamp
-	)
+    .init(
+      market: market,
+      tradeDate: tradeDate ?? "",
+      tradeTime: tradeTime ?? "",
+      tradeDateKst: tradeDateKst ?? "",
+      tradeTimeKst: tradeTimeKst ?? "",
+      tradeTimestamp: tradeTimestamp ?? 0,
+      openingPrice: openingPrice,
+      highPrice: highPrice,
+      lowPrice: lowPrice,
+      tradePrice: tradePrice,
+      prevClosingPrice: prevClosingPrice,
+      change: change ?? "EVEN",
+      changePrice: changePrice,
+      changeRate: changeRate,
+      signedChangePrice: signedChangePrice,
+      signedChangeRate: signedChangeRate,
+      tradeVolume: tradeVolume,
+      accTradePrice: accTradePrice,
+      accTradePrice24h: accTradePrice24h,
+      accTradeVolume: accTradeVolume,
+      accTradeVolume24h: accTradeVolume24h,
+      highest52WeekPrice: highest52WeekPrice,
+      highest52WeekDate: highest52WeekDate ?? "",
+      lowest52WeekPrice: lowest52WeekPrice,
+      lowest52WeekDate: lowest52WeekDate ?? "",
+      timestamp: timestamp ?? 0
+    )
   }
 }
 
-extension CryptoTickerListDTO {
+extension Array where Element == BithumbTickerDTO {
   func toDomain() -> [CryptoTicker] {
-    return self.map { $0.toDomain() }
+    map { $0.toDomain() }
   }
 }
+

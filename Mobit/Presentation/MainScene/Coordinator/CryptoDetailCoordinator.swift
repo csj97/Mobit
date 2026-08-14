@@ -26,11 +26,14 @@ class CryptoDetailCoordinator: BaseCoordinator {
   }
   
   func start() {
+    let exchangeProvider = ExchangeAdapterRegistry.default
     let reactor = TradeReactor(
       selectCrypto: self.selectCrypto,
 	  cmcInformation: self.cmcInformation,
       cryptoDetailUseCase: CryptoDetailUseCase(
-        cryptoDetailRepository: CryptoDetailRepository()
+        cryptoDetailRepository: CryptoDetailRepository(
+          exchangeProvider: exchangeProvider
+        )
       )
     )
     let tradeVC =  TradeViewController(reactor: reactor)

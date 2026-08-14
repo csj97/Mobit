@@ -37,7 +37,12 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
   
   func start() {
 	self.navigationController.delegate = self
-	let reactor = MainReactor(mainUseCase: MainUseCase(mainRepository: MainRepository()))
+    let exchangeProvider = ExchangeAdapterRegistry.default
+    let reactor = MainReactor(
+      mainUseCase: MainUseCase(
+        mainRepository: MainRepository(exchangeProvider: exchangeProvider)
+      )
+    )
 	let mainVC = MainViewController(reactor: reactor)
 	mainVC.coordinator = self
 	self.navigationController.viewControllers = [mainVC]

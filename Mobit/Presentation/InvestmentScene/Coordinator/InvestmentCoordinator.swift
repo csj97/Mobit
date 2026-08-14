@@ -28,7 +28,12 @@ class InvestmentCoordinator: NSObject, BaseCoordinator, UINavigationControllerDe
 
   func start() {
 	self.navigationController.delegate = self
-	let reactor = InvestReactor(mainUseCase: MainUseCase(mainRepository: MainRepository()))
+    let exchangeProvider = ExchangeAdapterRegistry.default
+    let reactor = InvestReactor(
+      mainUseCase: MainUseCase(
+        mainRepository: MainRepository(exchangeProvider: exchangeProvider)
+      )
+    )
 	let investmentVC = InvestmentViewController(reactor: reactor)
     investmentVC.coordinator = self
     self.navigationController.viewControllers = [investmentVC]
