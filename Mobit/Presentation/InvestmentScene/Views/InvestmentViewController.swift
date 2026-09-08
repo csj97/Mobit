@@ -209,7 +209,21 @@ class InvestmentViewController: MobitBaseViewController {
 	self.totalEvalProfitLoss.textColor = MarketColorPalette.color(forSignedValue: totalProfitLoss)
 	self.totalBuyPrice.text = totalBuyPriceString + " 원"
   }
-  
+
+  func applyCryptos(_ cryptos: [CryptoTransactionDataModel]) {
+	guard cryptos.count != 0 else {
+	  self.noResultView.isHidden = false
+	  self.updateTotalDatas(cryptos: [])
+
+	  return
+	}
+
+	self.noResultView.isHidden = true
+	self.cryptos = self.sortCryptos(sortType: self.selectedSortType, cryptos: cryptos)
+	self.updateTotalDatas(cryptos: cryptos)
+	self.applySnapshot(cryptoTransacDataModel: cryptos.reversed())
+  }
+
   func sortCryptos(sortType: InvestSortType, cryptos: [CryptoTransactionDataModel]) -> [CryptoTransactionDataModel] {
 	var sortedCryptos: [CryptoTransactionDataModel] = []
 	
@@ -303,26 +317,15 @@ extension InvestmentViewController: View {
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] cryptos in
 		guard let self else { return }
-		guard !self.isScrolling else { return }
-		
-		guard cryptos.count != 0 else {
-		  self.noResultView.isHidden = false
-		  self.updateTotalDatas(cryptos: [])
-		  
+
+		// 스크롤 중에는 갱신을 미뤄 두고, 잠금 해제 시 마지막 값만 반영한다.
+		guard !self.isScrolling else {
+		  self.pendingUpdate = cryptos
 		  return
 		}
-		
-		self.noResultView.isHidden = true
-		
-		if self.isScrolling {
-		  self.pendingUpdate = cryptos
-		} else {
-		  self.pendingUpdate = nil
-		  // self.cryptos = cryptos.reversed()
-		  self.cryptos = self.sortCryptos(sortType: self.selectedSortType, cryptos: cryptos)
-		  self.updateTotalDatas(cryptos: cryptos)
-		  self.applySnapshot(cryptoTransacDataModel: cryptos.reversed())
-		}
+
+		self.pendingUpdate = nil
+		self.applyCryptos(cryptos)
 	  })
 	  .disposed(by: self.disposeBag)
 	
@@ -332,8 +335,9 @@ extension InvestmentViewController: View {
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] userAvailableBalance in
 		guard let self else { return }
-		guard !self.isScrolling else { return }
 		self.userAvailableBalance = userAvailableBalance
+		// 값은 항상 보관하고, 스크롤 중에는 합계 표시 갱신만 미룬다.
+		guard !self.isScrolling else { return }
 		self.updateTotalDatas(cryptos: self.cryptos)
 	  })
 	  .disposed(by: self.disposeBag)
@@ -381,11 +385,25 @@ extension InvestmentViewController {
 	  isScrolling = true
   }
 
+  // 감속 없이 드래그가 끝나면 didEndDecelerating이 호출되지 않아 잠금이 남는다.
+  func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+	guard !decelerate else { return }
+	releaseScrollLock()
+  }
+
   func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-	if let update = pendingUpdate {
-	  self.cryptos = update
-	  pendingUpdate = nil
-	}
+	releaseScrollLock()
+  }
+
+  private func releaseScrollLock() {
 	isScrolling = false
+
+	guard let update = pendingUpdate else {
+	  // 스크롤 중 잔고만 바뀐 경우에도 합계 표시를 맞춘다.
+	  updateTotalDatas(cryptos: cryptos)
+	  return
+	}
+	pendingUpdate = nil
+	applyCryptos(update)
   }
 }

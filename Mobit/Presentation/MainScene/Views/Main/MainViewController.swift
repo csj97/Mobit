@@ -1417,9 +1417,24 @@ extension MainViewController: UITableViewDelegate {
   func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
 	isSocketUpdating = true
   }
-  
+
+  // 감속 없이 드래그가 끝나면 didEndDecelerating이 호출되지 않아 잠금이 남는다.
+  func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+	guard !decelerate else { return }
+	releaseSocketUpdatingLock()
+  }
+
   func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+	releaseSocketUpdatingLock()
+  }
+
+  /// 잠금 해제 후, 스크롤 중 건너뛴 시세를 현재 상태로 한 번 반영한다.
+  private func releaseSocketUpdatingLock() {
 	isSocketUpdating = false
+
+	let totalList = reactor.currentState.totalCryptoList
+	updateUserCryptoList(from: totalList)
+	applySnapshot(cellInfos: filterListForCurrentTab(totalList: totalList))
   }
 }
 
