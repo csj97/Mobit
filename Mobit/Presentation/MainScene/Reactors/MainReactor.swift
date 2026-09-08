@@ -218,7 +218,7 @@ extension MainReactor {
 	.catch { error in
 	  Log.error("loadCryptoList failed: \(error.localizedDescription)")
 	  return Observable.concat([
-		.just(.setErrorMessage(message: "시세 데이터를 불러오지 못했습니다. [DEBUG:\(error)]")),
+		.just(.setErrorMessage(message: "시세 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.")),
 		.just(.setLoading(isLoading: false))
 	  ])
 	}

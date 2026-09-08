@@ -548,7 +548,7 @@ private final class MockExchangeMarketDataProvider: ExchangeMarketDataProviding 
     from data: Data,
     symbol: String
   ) throws -> CryptoQuoteResponse {
-    throw ErrorType.dataMappingError
+    throw ErrorType.decodingFailed
   }
 
   func decodeMinuteCandles(from data: Data) throws -> [MinuteResponseModel] {

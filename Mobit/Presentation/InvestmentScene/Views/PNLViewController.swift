@@ -23,20 +23,27 @@ class PNLViewController: MobitBaseViewController {
 	self.setUI()
 	self.setData()
   }
+
+  override func viewWillAppear(_ animated: Bool) {
+	super.viewWillAppear(animated)
+	applyThemeColors()
+	pnlTableView.reloadData()
+  }
   
   override func viewWillDisappear(_ animated: Bool) {
 	super.viewWillDisappear(animated)
 	self.delegate?.mainCoordinatorDidRequestShowTabBar()
   }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	applyThemeColors()
+	pnlTableView.reloadData()
+  }
   
   func setUI() {
-	self.view.backgroundColor = .mobitColors(.backgroundPrimary)
-	self.pnlTableView.backgroundColor = .mobitColors(.backgroundPrimary)
-	self.noResultView.backgroundColor = .mobitColors(.backgroundPrimary)
-	self.applyTheme(to: self.view)
-	self.pnlTableView.backgroundColor = .mobitColors(.backgroundPrimary)
-	self.noResultView.backgroundColor = .mobitColors(.backgroundPrimary)
-
+	applyThemeColors()
 	self.pnlTableView.delegate = self
 	self.pnlTableView.dataSource = self
 	
@@ -46,26 +53,12 @@ class PNLViewController: MobitBaseViewController {
 	)
   }
 
-  private func applyTheme(to view: UIView) {
-	if view !== self.view,
-	   view !== self.pnlTableView,
-	   view !== self.noResultView,
-	   view.backgroundColor != .clear {
-	  view.backgroundColor = .mobitColors(.surfacePrimary)
-	}
-
-	if let label = view as? UILabel {
-	  label.textColor = .mobitColors(.textPrimary)
-	}
-
-	if let button = view as? UIButton {
-	  button.tintColor = .mobitColors(.textPrimary)
-	  button.setTitleColor(.mobitColors(.textPrimary), for: .normal)
-	}
-
-	view.subviews.forEach { self.applyTheme(to: $0) }
+  private func applyThemeColors() {
+	self.view.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.pnlTableView.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.noResultView.backgroundColor = .mobitColors(.backgroundPrimary)
   }
-  
+
   func setData() {
 	// 최신순을 위해 reversed
     let currentExchange = ExchangeSelectionStore.currentExchange

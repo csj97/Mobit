@@ -28,7 +28,7 @@
                             <constraints>
                                 <constraint firstAttribute="width" secondItem="Oae-q9-rtm" secondAttribute="height" multiplier="1:1" id="GdD-Yl-L5C"/>
                             </constraints>
-                            <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <color key="tintColor" name="text_primary"/>
                             <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                             <state key="normal" image="arrow.left" catalog="system"/>
                             <connections>
@@ -36,7 +36,7 @@
                             </connections>
                         </button>
                     </subviews>
-                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    <color key="backgroundColor" name="surface_primary"/>
                     <constraints>
                         <constraint firstItem="Oae-q9-rtm" firstAttribute="leading" secondItem="gXg-ql-WWL" secondAttribute="leading" id="Qn8-l2-qZl"/>
                         <constraint firstItem="Oae-q9-rtm" firstAttribute="top" secondItem="gXg-ql-WWL" secondAttribute="top" id="Z6N-pZ-KhK"/>
@@ -51,7 +51,7 @@
                 </view>
             </subviews>
             <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
-            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+            <color key="backgroundColor" name="background_primary"/>
             <constraints>
                 <constraint firstItem="flm-Db-v2Y" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="81n-hF-8ua"/>
                 <constraint firstItem="gXg-ql-WWL" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="J4m-5K-otN"/>
@@ -69,5 +69,14 @@
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
+        <namedColor name="background_primary">
+            <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="surface_primary">
+            <color red="0.98431372549019602" green="0.98431372549019602" blue="0.98431372549019602" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="text_primary">
+            <color red="0" green="0" blue="0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
     </resources>
 </document>

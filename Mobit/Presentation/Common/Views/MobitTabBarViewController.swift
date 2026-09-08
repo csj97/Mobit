@@ -40,6 +40,12 @@ class MobitTabBarViewController: UIViewController {
 	mobitTabBar.layer.cornerRadius = style == .floating ? 30 : 0
   }
 
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	applyTabBarShadow()
+  }
+
   private func setupUI() {
 	view.backgroundColor = .clear
 	view.addSubview(mobitTabBar)
@@ -49,22 +55,32 @@ class MobitTabBarViewController: UIViewController {
 
 	switch style {
 	case .standard:
-	  // 상단 경계에 길게 떨어지는 음영으로 위 콘텐츠와 분리감 표현
-	  mobitTabBar.layer.applyShadow(color: .mobitColors(.borderPrimary), alpha: 0.22, x: 0, y: -4, blur: 16)
+	  applyTabBarShadow()
 	  mobitTabBar.snp.makeConstraints { make in
 		make.leading.trailing.bottom.equalToSuperview()
 		// 탭 콘텐츠 65pt + 하단 safe area(홈 인디케이터)는 배경으로 채움
 		make.top.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-65)
 	  }
 	case .floating:
-	  // 카드가 떠 있는 느낌의 사방 그림자
-	  mobitTabBar.layer.applyShadow(color: .mobitColors(.borderPrimary), alpha: 0.3, x: 0, y: 0, blur: 12)
+	  applyTabBarShadow()
 	  mobitTabBar.snp.makeConstraints { make in
 		make.leading.equalToSuperview().offset(10)
 		make.trailing.equalToSuperview().offset(-10)
 		make.bottom.equalTo(view.safeAreaLayoutGuide).offset(-10)
 		make.height.equalTo(65)
 	  }
+	}
+  }
+
+  private func applyTabBarShadow() {
+	let color = UIColor.mobitColors(.borderPrimary).resolvedColor(with: traitCollection)
+	switch style {
+	case .standard:
+	  // 상단 경계에 길게 떨어지는 음영으로 위 콘텐츠와 분리감 표현
+	  mobitTabBar.layer.applyShadow(color: color, alpha: 0.22, x: 0, y: -4, blur: 16)
+	case .floating:
+	  // 카드가 떠 있는 느낌의 사방 그림자
+	  mobitTabBar.layer.applyShadow(color: color, alpha: 0.3, x: 0, y: 0, blur: 12)
 	}
   }
   

@@ -60,13 +60,11 @@ class NeumorphicSegmentedControl: UIView {
 //	layer.addSublayer(innerShadow)
 	
 	// 기본 스타일
-	backgroundColor = UIColor(red: 0.925, green: 0.941, blue: 0.953, alpha: 1.0) // #ecf0f3
 	layer.cornerRadius = 18
 	layer.masksToBounds = false
 	
-	// 그림자 1: 아래쪽 (어두운 음영)
-	layer.shadowColor = UIColor(red: 0.6, green: 0.6, blue: 0.7, alpha: 1.0).cgColor
-	layer.shadowOffset = CGSize(width: 6, height: 6)
+	// 그림자 1: 전체 방향 (어두운 음영)
+	layer.shadowOffset = .zero
 	layer.shadowOpacity = 0.7
 	layer.shadowRadius = 8
 	clipsToBounds = false
@@ -74,14 +72,13 @@ class NeumorphicSegmentedControl: UIView {
 	// 그림자 2: 위쪽 (밝은 빛)
 	let lightShadow = CALayer()
 	lightShadow.frame = bounds
-	lightShadow.backgroundColor = backgroundColor?.cgColor
-	lightShadow.shadowColor = UIColor.mobitColors(.surfaceElevated).cgColor
 	lightShadow.shadowOffset = CGSize(width: -6, height: -6)
 	lightShadow.shadowOpacity = 1.0
 	lightShadow.shadowRadius = 8
 	lightShadow.cornerRadius = 18
 	layer.insertSublayer(lightShadow, at: 0)
 	self.lightShadow = lightShadow
+	updateResolvedColors()
 	
 	stackView.axis = .horizontal
 	stackView.distribution = .fillEqually
@@ -110,7 +107,7 @@ class NeumorphicSegmentedControl: UIView {
 	for (index, title) in segments.enumerated() {
 	  let button = UIButton(type: .custom)
 	  button.setTitle(title, for: .normal)
-	  button.setTitleColor(.mobitColors(.textPrimary), for: .normal)
+	  button.setTitleColor(.mobitColors(.tradeTextPrimary), for: .normal)
 	  button.titleLabel?.font = .systemFont(ofSize: 12, weight: .bold)
 	  button.contentHorizontalAlignment = .center
 	  button.tag = index
@@ -137,12 +134,16 @@ class NeumorphicSegmentedControl: UIView {
 	} else if selectedIndex == 1 {
 	  highlightView.backgroundColor = MarketColorPalette.fallColor
 	} else {
-	  highlightView.backgroundColor = .mobitColors(.borderPrimary)
+	  highlightView.backgroundColor = UIColor { traitCollection in
+		traitCollection.userInterfaceStyle == .dark
+		  ? .mobitColors(.tradeControlSurface)
+		  : .mobitColors(.borderPrimary)
+	  }
 	}
 	
 	for (index, button) in buttons.enumerated() {
 	  let isSelected = (index == selectedIndex)
-	  button.setTitleColor(isSelected ? .white : .mobitColors(.textPrimary), for: .normal)
+	  button.setTitleColor(isSelected ? .white : .mobitColors(.tradeTextPrimary), for: .normal)
 	  button.titleLabel?.font = isSelected ? .systemFont(ofSize: 14, weight: .bold) : .systemFont(ofSize: 12, weight: .regular)
 		}
 
@@ -157,9 +158,13 @@ class NeumorphicSegmentedControl: UIView {
 		} else {
 		  self.highlightView.frame = targetFrame
 		  self.highlightView.layer.cornerRadius = targetFrame.height / 2
-		}
 	  }
-  
+  }
+
+  func refreshMarketColors() {
+	updateSelectedIndex(animated: false)
+  }
+
   override func layoutSubviews() {
 	super.layoutSubviews()
 	
@@ -170,5 +175,20 @@ class NeumorphicSegmentedControl: UIView {
 		shadowLayer.cornerRadius = self.layer.cornerRadius
 	  }
 	}
+  }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	updateResolvedColors()
+	updateSelectedIndex(animated: false)
+  }
+
+  private func updateResolvedColors() {
+	let surfaceColor = UIColor.mobitColors(.tradeSurface).resolvedColor(with: traitCollection)
+	backgroundColor = surfaceColor
+	layer.shadowColor = UIColor.mobitColors(.tradeSeparator).resolvedColor(with: traitCollection).cgColor
+	lightShadow?.backgroundColor = surfaceColor.cgColor
+	lightShadow?.shadowColor = UIColor.mobitColors(.tradeControlSurface).resolvedColor(with: traitCollection).cgColor
   }
 }

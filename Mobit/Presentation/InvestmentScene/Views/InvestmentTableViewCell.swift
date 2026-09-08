@@ -18,21 +18,36 @@ class InvestmentTableViewCell: UITableViewCell {
   @IBOutlet weak var cryptoProfitRate: UILabel!
   @IBOutlet weak var bgView: UIView!
   @IBOutlet weak var dividerView: UIView!
+  private var currentProfitRate: Double?
     
   override func awakeFromNib() {
 	super.awakeFromNib()
-	self.backgroundColor = .mobitColors(.backgroundPrimary)
-	self.contentView.backgroundColor = .mobitColors(.backgroundPrimary)
-	self.bgView.backgroundColor = .mobitColors(.surfaceElevated)
-	self.dividerView.backgroundColor = .mobitColors(.borderPrimary)
-	self.applyTheme(to: self.bgView)
+	updateThemeColors()
+  }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	updateThemeColors()
+  }
+
+  private func updateThemeColors() {
+	self.backgroundColor = .mobitColors(.investmentBackground)
+	self.contentView.backgroundColor = .mobitColors(.investmentBackground)
+	self.bgView.backgroundColor = .mobitColors(.investmentBackground)
+	self.dividerView.backgroundColor = .mobitColors(.investmentSeparator)
 	[
 	  self.cryptoName,
 	  self.cryptoAmount,
 	  self.cryptoEvalPrice,
 	  self.cryptoAveragePrice,
 	  self.cryptoBuyPrice
-	].forEach { $0?.textColor = .mobitColors(.textPrimary) }
+	].forEach { $0?.textColor = .mobitColors(.investmentTextPrimary) }
+	if let currentProfitRate {
+	  let pnlColor = MarketColorPalette.color(forSignedValue: currentProfitRate)
+	  self.cryptoProfitRate.textColor = pnlColor
+	  self.cryptoEvalLoss.textColor = pnlColor
+	}
   }
   
   override func setSelected(_ selected: Bool, animated: Bool) {
@@ -50,6 +65,7 @@ class InvestmentTableViewCell: UITableViewCell {
 	self.cryptoEvalPrice.text = "\(crypto.dynamicData.evaluationPrice.formatSignificantDigits())"
 	self.cryptoEvalLoss.text = "\(crypto.dynamicData.evaluationProfitLoss.formatSignificantDigits(digits: 0))"
 	self.cryptoProfitRate.text = "\(crypto.dynamicData.profitRate.formatSignificantDigits(digits: 2))" + " %"
+	self.currentProfitRate = crypto.dynamicData.profitRate
 	
 	let pnlColor = MarketColorPalette.color(forSignedValue: crypto.dynamicData.profitRate)
 	self.cryptoProfitRate.textColor = pnlColor
@@ -59,27 +75,4 @@ class InvestmentTableViewCell: UITableViewCell {
 
   }
 
-  private func applyTheme(to view: UIView) {
-	if view !== self.bgView && view.backgroundColor != .clear {
-	  view.backgroundColor = .mobitColors(.surfaceElevated)
-	}
-
-	if let label = view as? UILabel {
-	  label.textColor = self.isValueLabel(label)
-		? .mobitColors(.textPrimary)
-		: .mobitColors(.textSecondary)
-	}
-
-	view.subviews.forEach { self.applyTheme(to: $0) }
-  }
-
-  private func isValueLabel(_ label: UILabel) -> Bool {
-	return label === self.cryptoName
-	  || label === self.cryptoAmount
-	  || label === self.cryptoEvalPrice
-	  || label === self.cryptoEvalLoss
-	  || label === self.cryptoAveragePrice
-	  || label === self.cryptoBuyPrice
-	  || label === self.cryptoProfitRate
-  }
 }

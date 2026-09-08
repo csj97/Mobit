@@ -5,11 +5,19 @@
 	  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>TradingView Chart</title>
 		<style>
+		  /* WKWebView는 앱의 overrideUserInterfaceStyle을 상속하므로 prefers-color-scheme으로 앱 테마를 따른다 */
+		  :root { color-scheme: light dark; }
 		  html, body, .tradingview-widget-container, #tradingview_Chart {
 			width: 100%;
 			height: 100%;
 			margin: 0;
 			padding: 0;
+			background-color: #ffffff;
+		  }
+		  @media (prefers-color-scheme: dark) {
+			html, body, .tradingview-widget-container, #tradingview_Chart {
+			  background-color: #131722;
+			}
 		  }
 		</style>
   </head>
@@ -73,7 +81,9 @@
 		});
 	  }
 	  
-	  createWidget({ ...defaultSettings, symbol });
+	  // 최초 렌더도 앱 테마를 따르게 해서 라이트로 그렸다가 바뀌는 깜빡임을 막는다
+	  const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+	  createWidget({ ...defaultSettings, theme: systemTheme, symbol });
 	  
 	  function updateChart(newSymbol, interval, theme, upColor, downColor) {
 		createWidget({

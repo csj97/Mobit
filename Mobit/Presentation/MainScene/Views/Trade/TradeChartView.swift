@@ -14,7 +14,6 @@ class TradeChartView: UIView, WKScriptMessageHandler {
   @IBOutlet weak var settingsContainerView: UIView!
   @IBOutlet weak var chartSettingsTitleLabel: UILabel!
   @IBOutlet weak var intervalSegmentedControl: UISegmentedControl!
-  @IBOutlet weak var themeSegmentedControl: UISegmentedControl!
   @IBOutlet weak var persistenceGuideLabel: UILabel!
   @IBOutlet weak var webView: WKWebView!
     
@@ -64,23 +63,65 @@ class TradeChartView: UIView, WKScriptMessageHandler {
   }
   
   private func configureSettingsUI() {
-	self.settingsContainerView.layer.cornerRadius = 12
+	self.backgroundColor = .mobitColors(.tradeBackground)
+	self.webView.backgroundColor = .mobitColors(.chartBackground)
+	self.webView.scrollView.backgroundColor = .mobitColors(.chartBackground)
+	self.settingsContainerView.backgroundColor = .mobitColors(.tradeSurface)
+	self.settingsContainerView.layer.cornerRadius = 0
 	self.settingsContainerView.layer.borderWidth = 0.5
-	self.settingsContainerView.layer.borderColor = UIColor.mobitColors(.borderPrimary).cgColor
+	self.updateResolvedColors()
+	self.chartSettingsTitleLabel.textColor = .mobitColors(.tradeTextPrimary)
+	self.persistenceGuideLabel.textColor = .mobitColors(.tradeTextSecondary)
+	self.configureSegmentedControl(self.intervalSegmentedControl)
 	// 인라인 안내문은 info 버튼 + 팝업으로 대체한다. 라벨은 숨기고 높이를 접어 레이아웃에서 제거한다.
 	self.persistenceGuideLabel.isHidden = true
 	self.persistenceGuideLabel.text = nil
 	self.persistenceGuideLabel.snp.makeConstraints { $0.height.equalTo(0) }
 	self.configureChartInfoButton()
 	self.intervalSegmentedControl.selectedSegmentIndex = self.index(for: chartSettings.interval)
-	self.themeSegmentedControl.selectedSegmentIndex = self.index(for: chartSettings.theme)
+  }
+
+  /// 차트 테마는 앱 테마(라이트/다크)를 그대로 따른다
+  private func currentChartTheme() -> UserDataManager.TradingViewChartSettings.Theme {
+	self.traitCollection.userInterfaceStyle == .dark ? .dark : .light
+  }
+
+  private func configureSegmentedControl(_ segmentedControl: UISegmentedControl) {
+	segmentedControl.backgroundColor = .mobitColors(.tradeControlSurface)
+	segmentedControl.selectedSegmentTintColor = .mobitColors(.segmentSelected)
+	segmentedControl.setTitleTextAttributes(
+	  [.foregroundColor: UIColor.mobitColors(.tradeTextSecondary)],
+	  for: .normal
+	)
+	segmentedControl.setTitleTextAttributes(
+	  [.foregroundColor: UIColor.mobitColors(.tradeTextPrimary)],
+	  for: .selected
+	)
+  }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	updateResolvedColors()
+	configureSegmentedControl(intervalSegmentedControl)
+	// 앱 테마가 바뀌면 차트도 같은 테마로 다시 그린다
+	applyCurrentSettings()
+  }
+
+  private func updateResolvedColors() {
+	self.backgroundColor = .mobitColors(.tradeBackground)
+	self.settingsContainerView.backgroundColor = .mobitColors(.tradeSurface)
+	self.chartSettingsTitleLabel.textColor = .mobitColors(.tradeTextPrimary)
+	self.persistenceGuideLabel.textColor = .mobitColors(.tradeTextSecondary)
+	self.chartInfoButton.tintColor = .mobitColors(.tradeTextTertiary)
+	self.settingsContainerView.layer.borderColor = UIColor.mobitColors(.tradeSeparator).resolvedColor(with: traitCollection).cgColor
   }
 
   private lazy var chartInfoButton: UIButton = {
 	let button = UIButton(type: .system)
 	let config = UIImage.SymbolConfiguration(pointSize: 16, weight: .regular)
 	button.setImage(UIImage(systemName: "info.circle", withConfiguration: config), for: .normal)
-	button.tintColor = .mobitColors(.textTertiary)
+	button.tintColor = .mobitColors(.tradeTextTertiary)
 	button.accessibilityLabel = "차트 설정 안내"
 	button.addTarget(self, action: #selector(didTapChartInfoButton), for: .touchUpInside)
 	return button
@@ -98,7 +139,7 @@ class TradeChartView: UIView, WKScriptMessageHandler {
   @objc private func didTapChartInfoButton() {
 	let alert = UIAlertController(
 	  title: "차트 설정 안내",
-	  message: "기간·테마 설정은 앱을 종료했다가 다시 들어와도 그대로 유지돼요.\n\n차트 안에서 추가한 지표·그림은 저장되지 않아요.",
+	  message: "기간 설정은 앱을 종료했다가 다시 들어와도 그대로 유지돼요.\n차트 테마는 앱 테마를 따라가요.\n\n차트 안에서 추가한 지표·그림은 저장되지 않아요.",
 	  preferredStyle: .alert
 	)
 	alert.addAction(UIAlertAction(title: "확인", style: .default))
@@ -154,15 +195,10 @@ class TradeChartView: UIView, WKScriptMessageHandler {
 	  return 2
 	case .day1:
 	  return 3
-	}
-  }
-  
-  private func index(for theme: UserDataManager.TradingViewChartSettings.Theme) -> Int {
-	switch theme {
-	case .light:
-	  return 0
-	case .dark:
-	  return 1
+	case .week1:
+	  return 4
+	case .month1:
+	  return 5
 	}
   }
   
@@ -174,19 +210,19 @@ class TradeChartView: UIView, WKScriptMessageHandler {
 	  return .hour4
 	case 3:
 	  return .day1
+	case 4:
+	  return .week1
+	case 5:
+	  return .month1
 	default:
 	  return .hour1
 	}
   }
   
-  private func selectedTheme() -> UserDataManager.TradingViewChartSettings.Theme {
-	self.themeSegmentedControl.selectedSegmentIndex == 1 ? .dark : .light
-  }
-  
   private func applyCurrentSettings() {
 	self.chartSettings = UserDataManager.TradingViewChartSettings(
 	  interval: self.selectedInterval(),
-	  theme: self.selectedTheme(),
+	  theme: self.currentChartTheme(),
 	  showsToolbar: self.chartSettings.showsToolbar
 	)
 	UserDataManager.tradingViewChartSettings = self.chartSettings
@@ -196,7 +232,7 @@ class TradeChartView: UIView, WKScriptMessageHandler {
   private func refreshChart() {
 	guard let symbol = self.symbol else { return }
 	let tradingViewSymbol = self.tradingViewSymbol(symbol: symbol)
-	let themeValue = self.chartSettings.theme.rawValue.jsEscaped
+	let themeValue = self.currentChartTheme().rawValue.jsEscaped
 	let intervalValue = self.chartSettings.interval.rawValue.jsEscaped
 	let symbolValue = tradingViewSymbol.jsEscaped
 	// 앱의 상승/하락 색상 테마를 캔들 색에 반영
@@ -223,9 +259,6 @@ class TradeChartView: UIView, WKScriptMessageHandler {
 	self.applyCurrentSettings()
   }
   
-  @IBAction func themeValueChanged(_ sender: UISegmentedControl) {
-	self.applyCurrentSettings()
-  }
 }
 
 // MARK: - WKNavigationDelegate

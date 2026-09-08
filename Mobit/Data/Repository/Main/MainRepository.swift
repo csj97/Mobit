@@ -19,20 +19,25 @@ protocol MainRepositoryProtocol {
 class MainRepository: MainRepositoryProtocol {
   private struct TickerBatchPolicy {
     let batchSize: Int
-    let interBatchDelayMilliseconds: Int
+    let maxConcurrentRequests: Int
     let maxRetryCount: Int
 
     static let upbit = TickerBatchPolicy(
       batchSize: 100,
-      interBatchDelayMilliseconds: 180,
+      maxConcurrentRequests: 3,
       maxRetryCount: 2
     )
 
     static let bithumb = TickerBatchPolicy(
       batchSize: 150,
-      interBatchDelayMilliseconds: 180,
+      maxConcurrentRequests: 3,
       maxRetryCount: 3
     )
+  }
+
+  private struct IndexedTickerBatch {
+    let index: Int
+    let tickers: [CryptoTicker]
   }
 
   let provider: MoyaProvider<MultiTarget>
@@ -80,29 +85,16 @@ class MainRepository: MainRepositoryProtocol {
     .flatMap { [weak self] response -> Observable<[CryptoTicker]> in
       guard let self = self else { return .empty() }
 
-      switch response.statusCode {
-      case 200..<300:
-        do {
-          let cryptoTickerList = try self.exchangeProvider.decodeCryptoTickerList(
-            from: response.data
-          )
-          Log.info("✅ ticker batch success [\(batchNumber)/\(totalBatches)] status=\(response.statusCode) items=\(cryptoTickerList.count)")
-          return .just(cryptoTickerList)
-        } catch {
-          Log.error("❌ 디코딩 실패: \(error)")
-          return .error(ErrorType.dataMappingError)
-        }
-
-      case 429:
+      if response.statusCode == 429 {
         let body = String(data: response.data, encoding: .utf8) ?? "N/A"
         guard retryAttempt < policy.maxRetryCount else {
-          Log.error("❌ ticker 429 exhausted [\(batchNumber)/\(totalBatches)] retryCount=\(policy.maxRetryCount) batchCount=\(markets.count) sample=\(markets.prefix(5)) body: \(body)")
-          return .error(ErrorType.rateLimited)
+          Log.error("❌ 티커 요청 제한으로 재시도 종료 [\(batchNumber)/\(totalBatches)] retryCount=\(policy.maxRetryCount) batchCount=\(markets.count) sample=\(markets.prefix(5)) body=\(body)")
+          return .error(ErrorType.tooManyRequests)
         }
 
         let nextAttempt = retryAttempt + 1
         let delayMilliseconds = self.retryDelayMilliseconds(for: retryAttempt)
-        Log.error("⏳ ticker 429 retry [\(batchNumber)/\(totalBatches)] attempt=\(nextAttempt)/\(policy.maxRetryCount) delay=\(delayMilliseconds)ms batchCount=\(markets.count) sample=\(markets.prefix(5)) body: \(body)")
+        Log.error("⏳ 티커 요청 제한으로 재시도 예정 [\(batchNumber)/\(totalBatches)] attempt=\(nextAttempt)/\(policy.maxRetryCount) delay=\(delayMilliseconds)ms batchCount=\(markets.count) sample=\(markets.prefix(5)) body=\(body)")
 
         return Observable<Int>
           .timer(.milliseconds(delayMilliseconds), scheduler: self.tickerRequestScheduler)
@@ -115,21 +107,28 @@ class MainRepository: MainRepositoryProtocol {
               policy: policy
             )
           }
+      }
 
-      case 400..<500:
-        let body = String(data: response.data, encoding: .utf8) ?? "N/A"
-        Log.error("❌ ticker 4xx [\(batchNumber)/\(totalBatches)] status: \(response.statusCode), batchCount: \(markets.count), sample: \(markets.prefix(5)), body: \(body)")
-        return .error(ErrorType.badRequest)
+      do {
+        try NetworkResponseValidator.validate(response: response)
 
-      default:
-        let body = String(data: response.data, encoding: .utf8) ?? "N/A"
-        Log.error("❌ ticker error [\(batchNumber)/\(totalBatches)] status: \(response.statusCode), body: \(body)")
-        return .error(ErrorType.unknownError)
+        let cryptoTickerList = try self.exchangeProvider.decodeCryptoTickerList(
+          from: response.data
+        )
+        Log.info("✅ 티커 배치 요청 성공 [\(batchNumber)/\(totalBatches)] status=\(response.statusCode) itemCount=\(cryptoTickerList.count)")
+        return .just(cryptoTickerList)
+      } catch let error as ErrorType {
+        let body = NetworkResponseValidator.bodyPreview(from: response.data)
+        Log.error("❌ 티커 배치 응답 오류 [\(batchNumber)/\(totalBatches)] status=\(response.statusCode) batchCount=\(markets.count) sample=\(markets.prefix(5)) body=\(body)")
+        return .error(error)
+      } catch {
+        Log.error("❌ 디코딩 실패: \(error)")
+        return .error(ErrorType.decodingFailed)
       }
     }
     .catch { error in
       Log.error(error.localizedDescription)
-      return .error(error)
+      return .error(NetworkResponseValidator.mapRequestError(error))
     }
   }
   
@@ -141,24 +140,24 @@ class MainRepository: MainRepositoryProtocol {
         .subscribe { event in
           switch event {
           case .success(let response):
-            switch response.statusCode {
-            case 200..<300:
+            do {
+              try NetworkResponseValidator.validate(response: response)
               guard let cryptoList = try? self.exchangeProvider.decodeCryptoList(
                 from: response.data
               ) else {
-                observer.onError(ErrorType.dataMappingError)
+                observer.onError(ErrorType.decodingFailed)
                 return
               }
               observer.onNext(cryptoList)
               observer.onCompleted()
-            case 400..<500:
-              observer.onError(ErrorType.badRequest)
-            default:
-              observer.onError(ErrorType.unknownError)
+            } catch let error as ErrorType {
+              observer.onError(error)
+            } catch {
+              observer.onError(ErrorType.decodingFailed)
             }
           case .failure(let error):
 			Log.error(error.localizedDescription)
-            observer.onError(error)
+            observer.onError(NetworkResponseValidator.mapRequestError(error))
           }
         }
       return Disposables.create {
@@ -189,36 +188,40 @@ class MainRepository: MainRepositoryProtocol {
     let batchedMarkets = stride(from: 0, to: normalizedMarkets.count, by: policy.batchSize).map {
       Array(normalizedMarkets[$0..<min($0 + policy.batchSize, normalizedMarkets.count)])
     }
-    Log.info("📊 ticker batch plan exchange=\(self.exchangeProvider.exchange.rawValue) totalMarkets=\(normalizedMarkets.count) batchSize=\(policy.batchSize) totalBatches=\(batchedMarkets.count) interBatchDelay=\(policy.interBatchDelayMilliseconds)ms maxRetryCount=\(policy.maxRetryCount)")
+    Log.info("📊 티커 배치 요청 계획 exchange=\(self.exchangeProvider.exchange.rawValue) totalMarkets=\(normalizedMarkets.count) batchSize=\(policy.batchSize) totalBatches=\(batchedMarkets.count) maxConcurrentRequests=\(policy.maxConcurrentRequests) maxRetryCount=\(policy.maxRetryCount)")
     
-	// concatMap으로 순차 실행(병렬 아님)합니다.
-	// 배치 순차 호출
-    return Observable.from(Array(batchedMarkets.enumerated()))
-      .concatMap { [weak self] batchItem -> Observable<[CryptoTicker]> in
-        guard let self = self else { return .empty() }
+	// 제한 병렬로 호출해 대량 마켓에서도 로딩 지연을 줄인다.
+    let indexedBatches = Array(batchedMarkets.enumerated())
+    let batchRequests: Observable<IndexedTickerBatch> = Observable.from(indexedBatches)
+      .map { [weak self] batchItem -> Observable<IndexedTickerBatch> in
+        guard let self = self else { return Observable<IndexedTickerBatch>.empty() }
         let (batchIndex, batchMarkets) = batchItem
         let batchNumber = batchIndex + 1
         let totalBatches = batchedMarkets.count
         let batchPreview = batchMarkets.prefix(5).joined(separator: ",")
-        let batchDelay = batchIndex == 0 ? 0 : policy.interBatchDelayMilliseconds
         
-        Log.info("📡 ticker batch request [\(batchNumber)/\(totalBatches)] count=\(batchMarkets.count) delay=\(batchDelay)ms preview=\(batchPreview)")
+        Log.info("📡 티커 배치 요청 시작 [\(batchNumber)/\(totalBatches)] batchCount=\(batchMarkets.count) maxConcurrentRequests=\(policy.maxConcurrentRequests) preview=\(batchPreview)")
 
-        return Observable<Int>
-          .timer(.milliseconds(batchDelay), scheduler: self.tickerRequestScheduler)
-          .flatMap { _ in
-            self.requestTickerBatch(
-              markets: batchMarkets,
-              batchNumber: batchNumber,
-              totalBatches: totalBatches,
-              retryAttempt: 0,
-              policy: policy
-            )
-          }
+        return self.requestTickerBatch(
+          markets: batchMarkets,
+          batchNumber: batchNumber,
+          totalBatches: totalBatches,
+          retryAttempt: 0,
+          policy: policy
+        )
+        .map { IndexedTickerBatch(index: batchIndex, tickers: $0) }
       }
-      .reduce([CryptoTicker]()) { result, partial in
-		// 각 배치 결과를 하나로 합쳐 Observable<CryptoTickerList> 반환
-        result + partial
+      .merge(maxConcurrent: policy.maxConcurrentRequests)
+
+    return batchRequests
+      .reduce([IndexedTickerBatch]()) { result, partial in
+        result + [partial]
+      }
+      .map { batches in
+		// 병렬 응답 완료 순서가 달라도 기존 배치 순서를 유지한다.
+        batches
+          .sorted { $0.index < $1.index }
+          .flatMap { $0.tickers }
       }
   }
 
@@ -233,22 +236,22 @@ class MainRepository: MainRepositoryProtocol {
         .subscribe { event in
           switch event {
           case .success(let response):
-            switch response.statusCode {
-            case 200..<300:
+            do {
+              try NetworkResponseValidator.validate(response: response)
               guard let dto = try? JSONDecoder().decode(decodeTarget, from: response.data) else {
-                observer.onError(ErrorType.dataMappingError)
+                observer.onError(ErrorType.decodingFailed)
                 return
               }
               observer.onNext(dto.toDomain())
               observer.onCompleted()
-            case 400..<500:
-              observer.onError(ErrorType.badRequest)
-            default:
-              observer.onError(ErrorType.unknownError)
+            } catch let error as ErrorType {
+              observer.onError(error)
+            } catch {
+              observer.onError(ErrorType.decodingFailed)
             }
           case .failure(let error):
             Log.error(error.localizedDescription)
-            observer.onError(error)
+            observer.onError(NetworkResponseValidator.mapRequestError(error))
           }
         }
       return Disposables.create {

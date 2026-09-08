@@ -48,13 +48,14 @@ class TradeViewController: MobitBaseViewController {
   var prevClosingPrice: Double? = nil
   var disposeBag = DisposeBag()
   /// 가격 변동 -/+/보합에 따른 색상 변경
-  var tradeColor: UIColor = .mobitColors(.textPrimary)
+  var tradeColor: UIColor = .mobitColors(.tradeTextPrimary)
   var arrowImage: UIImage = UIImage()
   var arrowColor: UIColor = .clear
   
   var cryptoData: [CryptoTransactionDataModel] = []
   private var currentInvestData: CryptoTransactionDataModel? = nil
   private var miniChartHostingController: UIHostingController<MiniChartView>? = nil
+  private var miniChartCandleEntries: [CandleEntry] = []
   private let tradeBannerSlotID = "trade_bottom"
   
   init(reactor: TradeReactor) {
@@ -74,6 +75,10 @@ class TradeViewController: MobitBaseViewController {
   
   override func viewWillAppear(_ animated: Bool) {
 	super.viewWillAppear(animated)
+	self.setCrypto()
+	self.applyThemeColors()
+	self.orderView?.refreshMarketColors()
+	self.refreshMiniChartColors()
 	self.reactor.action.onNext(.connectSockets)
   }
   
@@ -106,8 +111,8 @@ class TradeViewController: MobitBaseViewController {
   
   func setUI() {
 	setFavoriteButton()
-	
-	self.miniChartContainerView.layer.borderColor = UIColor.mobitColors(.borderPrimary).cgColor
+
+	applyThemeColors()
 	self.miniChartContainerView.layer.borderWidth = 0.5
 	
 	orderView = TradeOrderView.instanceFromNib(
@@ -122,7 +127,7 @@ class TradeViewController: MobitBaseViewController {
 		  lottieName: "check_deep_blue",
 		  loopMode: .playOnce,
 		  lottieSpeed: 1.7,
-		  bgColor: UIColor.mobitColors(.backgroundPrimary).withAlphaComponent(0.3)
+		  bgColor: UIColor.mobitColors(.tradeBackground).withAlphaComponent(0.3)
 		)
 		lottieView.configure()
 		
@@ -213,6 +218,30 @@ class TradeViewController: MobitBaseViewController {
 	self.mobitSegmentedControl.onSegmentChanged?(self.mobitSegmentedControl.selectedIndex)
   }
 
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	applyThemeColors()
+  }
+
+  private func applyThemeColors() {
+	self.view.backgroundColor = .mobitColors(.tradeBackground)
+	self.cryptoMarketName.textColor = .mobitColors(.tradeTextPrimary)
+	self.segmentedContainerView.backgroundColor = .mobitColors(.tradeBackground)
+	self.bannerContainerView.backgroundColor = .mobitColors(.tradeSurface)
+	self.setFavoriteButton()
+	self.miniChartContainerView.backgroundColor = .clear
+	self.miniChartHostingController?.view.backgroundColor = .clear
+	self.miniChartContainerView.layer.borderColor = UIColor.mobitColors(.tradeSeparator).resolvedColor(with: traitCollection).cgColor
+	if self.arrowColor == .clear {
+	  self.tradeColor = .mobitColors(.tradeTextPrimary)
+	}
+	self.cryptoPrice.textColor = self.tradeColor
+	self.cryptoChangedRate.textColor = self.tradeColor
+	self.cryptoChangedPrice.textColor = self.tradeColor
+	self.cryptoUpDownArrowImageView.tintColor = self.arrowColor
+  }
+
   private func restoreSelectedWholeTab() {
 	switch self.reactor.currentState.selectedWholeTab {
 	case .trade:
@@ -277,8 +306,8 @@ class TradeViewController: MobitBaseViewController {
 	  self.tradeColor = MarketColorPalette.fallColor
 	  self.arrowImage = UIImage(systemName: "arrowtriangle.down.fill")!
 	  self.arrowColor = self.tradeColor
-	case "EVEN":
-	  self.tradeColor = .mobitColors(.textPrimary)
+		case "EVEN":
+		  self.tradeColor = .mobitColors(.tradeTextPrimary)
 	  self.arrowImage = UIImage()
 	  self.arrowColor = .clear
 	default:
@@ -309,7 +338,7 @@ class TradeViewController: MobitBaseViewController {
     let isFavorite = UserDataManager.isFavorite(pairID: pairID)
 	let starImage = isFavorite ? fillStar : emptyStar
 	
-	self.favoriteButton.tintColor = .systemYellow
+	self.favoriteButton.tintColor = isFavorite ? .systemYellow : .mobitColors(.tradeTextPrimary)
 	self.favoriteButton.setImage(starImage, for: .normal)
   }
   
@@ -402,7 +431,7 @@ class TradeViewController: MobitBaseViewController {
     let bannerView = BannerView(adSize: AdSizeBanner)
     bannerView.adUnitID = MobitConstants.bannerAdType
     bannerView.rootViewController = self
-	bannerView.backgroundColor = .mobitColors(.surfacePrimary)
+		bannerView.backgroundColor = .mobitColors(.tradeSurface)
     self.bannerContainerView.addSubview(bannerView)
 
     bannerView.snp.makeConstraints { make in
@@ -479,6 +508,7 @@ class TradeViewController: MobitBaseViewController {
       )
 	}
 	setFavoriteButton()
+	applyThemeColors()
   }
   
   @IBAction func tapOnNavigationBack(_ sender: UIButton) {
@@ -579,6 +609,7 @@ extension TradeViewController {
   /// 우상단 미니 차트뷰 생성
   func makeMiniChartView(minuteCandleList: [MinuteResponseModel]) {
 	let candleEntries = self.makeCandleEntries(from: minuteCandleList)
+	self.miniChartCandleEntries = candleEntries
 	let miniChartView = MiniChartView(candleEntries: candleEntries)
 	
 	if let existingHosting = self.miniChartHostingController {
@@ -601,6 +632,11 @@ extension TradeViewController {
 	  make.horizontalEdges.equalToSuperview()
 	}
 	hosting.didMove(toParent: self)
+  }
+
+  private func refreshMiniChartColors() {
+	guard !miniChartCandleEntries.isEmpty else { return }
+	miniChartHostingController?.rootView = MiniChartView(candleEntries: miniChartCandleEntries)
   }
   
   /// 캔들을 차트에 보여주기 위한 entry 모델로 변환

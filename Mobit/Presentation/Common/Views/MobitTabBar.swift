@@ -14,30 +14,23 @@ enum MobitTabItem: Int {
   case news
   case more
   
-  var normalImage: UIImage? {
+  var systemImageName: String {
 	switch self {
 	case .exchange:
-	  return UIImage(named: "tab_exchange")
+	  return "chart.line.uptrend.xyaxis"
 	case .wallet:
-	  return UIImage(named: "tab_wallet")
+	  return "wallet.pass"
 	case .news:
-	  return UIImage(named: "tab_news")
+	  return "newspaper"
 	case .more:
-	  return UIImage(named: "tab_more")
+	  return "square.grid.2x2"
 	}
   }
-  
-  var selectedImage: UIImage? {
-	switch self {
-	case .exchange:
-	  return UIImage(named: "tab_exchange_selected")
-	case .wallet:
-	  return UIImage(named: "tab_wallet_selected")
-	case .news:
-	  return UIImage(named: "tab_news_selected")
-	case .more:
-	  return UIImage(named: "tab_more_selected")
-	}
+
+  var image: UIImage? {
+	let configuration = UIImage.SymbolConfiguration(pointSize: 18, weight: .regular)
+	return UIImage(systemName: systemImageName, withConfiguration: configuration)?
+	  .withRenderingMode(.alwaysTemplate)
   }
 }
 
@@ -81,13 +74,15 @@ final class MobitTabBar: UIView {
 		  stackView.alignment = .fill
 		}
 		let imageView = UIImageView().then { imgView in
-		  imgView.image = item.normalImage
+		  imgView.image = item.image
 		  imgView.contentMode = .center
+		  imgView.tintColor = .mobitColors(.tabBarItem)
 		}
 		let textLabel = UILabel().then { label in
 		  label.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
 		  label.textAlignment = .center
 		  label.text = self.tabLabelsText[i]
+		  label.textColor = .mobitColors(.tabBarItem)
 		}
 		
 		itemStackView.addArrangedSubview(imageView)
@@ -124,7 +119,7 @@ final class MobitTabBar: UIView {
 	
 	stackView.snp.makeConstraints { make in
 	  make.leading.trailing.equalToSuperview()
-	  make.top.equalToSuperview().inset(10)
+	  make.top.equalToSuperview().inset(14)
 	  // 탭 아이템은 홈 인디케이터 영역을 피해 safe area 위쪽에 배치
 	  make.bottom.equalTo(self.safeAreaLayoutGuide).inset(15)
 	}
@@ -136,16 +131,26 @@ final class MobitTabBar: UIView {
 	  .enumerated()
 	  .forEach { i, item in
 		let isButtonSelected = selectedIndex == i
-		let image = isButtonSelected ? item.selectedImage : item.normalImage
-		let textColor = isButtonSelected ? UIColor.mobitColors(.accentPrimary) : .mobitColors(.textPrimary)
+		let image = item.image
+		let textColor = isButtonSelected
+		  ? MarketColorPalette.riseRedFallBlueFallColor
+		  : UIColor.mobitColors(.tabBarItem)
 		let font = isButtonSelected ? UIFont.systemFont(ofSize: 14, weight: .bold) : UIFont.systemFont(ofSize: 12, weight: .regular)
 		let selectedImage = tabImageViews[i]
 		let selectedTextLabel = tabLabels[i]
 		
 		selectedImage.image = image
+		selectedImage.tintColor = textColor
 		selectedTextLabel.font = font
 		selectedTextLabel.textColor = textColor
 	  }
+  }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	backgroundColor = .mobitColors(.surfacePrimary)
+	updateUI()
   }
 }
 

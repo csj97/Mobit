@@ -61,10 +61,42 @@ class TradeInformationView: UIView, ViewRule {
   }
   
   func configure() {
-	self.basicInfoView.layer.borderColor = UIColor.mobitColors(.borderPrimary).cgColor
+	self.backgroundColor = .mobitColors(.tradeBackground)
+	self.cryptoTagCollectionView.backgroundColor = .clear
+	self.basicInfoView.backgroundColor = .mobitColors(.tradeSurface)
 	self.basicInfoView.layer.borderWidth = 1
-	self.priceInfoView.layer.borderColor = UIColor.mobitColors(.borderPrimary).cgColor
+	self.priceInfoView.backgroundColor = .mobitColors(.tradeSurface)
 	self.priceInfoView.layer.borderWidth = 1
+	self.updateResolvedColors()
+	self.marketNameLabel.textColor = .mobitColors(.tradeTextPrimary)
+	self.symbolLabels.forEach { $0.textColor = .mobitColors(.tradeTextSecondary) }
+	[
+	  self.totalSupplyLabel,
+	  self.marketCapLabel,
+	  self.circulatingSupplyLabel,
+	  self.updatedAtStringLabel,
+	  self.accTradeVolume24HLabel,
+	  self.accTradePrice24HLabel,
+	  self.prevClosingPriceLabel,
+	  self.highest52WeekPriceLabel,
+	  self.lowest52WeekPriceLabel
+	].forEach { $0?.textColor = .mobitColors(.tradeTextPrimary) }
+  }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	configure()
+	updateResolvedColors()
+  }
+
+  private func updateResolvedColors() {
+	let borderColor = UIColor.mobitColors(.tradeSeparator).resolvedColor(with: traitCollection).cgColor
+	self.backgroundColor = .mobitColors(.tradeBackground)
+	self.basicInfoView.backgroundColor = .mobitColors(.tradeSurface)
+	self.priceInfoView.backgroundColor = .mobitColors(.tradeSurface)
+	self.basicInfoView.layer.borderColor = borderColor
+	self.priceInfoView.layer.borderColor = borderColor
   }
   
   func setUI() {

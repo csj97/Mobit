@@ -51,13 +51,20 @@ class TradeHistoryView: UIView, ViewRule {
   }
   
   func setUI() {
-	self.backgroundColor = .mobitColors(.backgroundPrimary)
-	self.historyTableView.backgroundColor = .mobitColors(.backgroundPrimary)
-	self.noHistoryView.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.backgroundColor = .clear
+	self.historyTableView.backgroundColor = .clear
+	self.noHistoryView.backgroundColor = .clear
     self.noHistoryView.isHidden = true
 	self.historyTableView.separatorStyle = .none
   }
-  
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	setUI()
+	historyTableView.reloadData()
+  }
+
   func setData() {
     self.historyTableView.delegate = self
 	self.historyTableView.dataSource = self

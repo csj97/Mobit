@@ -31,6 +31,8 @@ extension UIColor {
 	  return UIColor(named: "chart_background")!
 	case .chartGrid:
 	  return UIColor(named: "chart_grid")!
+	case .segmentSelected:
+	  return UIColor(named: "segment_selected")!
     case .askLightBlue:
       return UIColor(named: "ask_light_blue")!
     case .askActionBlue:
@@ -59,6 +61,50 @@ extension UIColor {
 	  return UIColor(named: "white_F8FAFC")!
 	case .blue_E8F9FF:
 	  return UIColor(named: "blue_E8F9FF")!
+	case .investmentBackground:
+	  return UIColor(named: "investment_background")!
+	case .investmentSurface:
+	  return UIColor(named: "investment_surface")!
+	case .investmentSeparator:
+	  return UIColor(named: "investment_separator")!
+	case .investmentTextPrimary:
+	  return UIColor(named: "investment_text_primary")!
+	case .investmentTextSecondary:
+	  return UIColor(named: "investment_text_secondary")!
+	case .investmentTextTertiary:
+	  return UIColor(named: "investment_text_tertiary")!
+	case .investmentNotice:
+	  return UIColor(named: "investment_notice")!
+	case .investmentChargeButton:
+	  return UIColor(named: "investment_charge_button")!
+	case .investmentChargeButtonText:
+	  return UIColor(named: "investment_charge_button_text")!
+	case .neumorphicButtonBackground:
+	  return UIColor(named: "neumorphic_button_background")!
+	case .neumorphicButtonText:
+	  return UIColor(named: "neumorphic_button_text")!
+	case .neumorphicButtonBorder:
+	  return UIColor(named: "neumorphic_button_border")!
+	case .neumorphicButtonDarkShadow:
+	  return UIColor(named: "neumorphic_button_dark_shadow")!
+	case .neumorphicButtonLightShadow:
+	  return UIColor(named: "neumorphic_button_light_shadow")!
+	case .tabBarItem:
+	  return UIColor(named: "tab_bar_item")!
+	case .tradeBackground:
+	  return UIColor(named: "trade_background")!
+	case .tradeSurface:
+	  return UIColor(named: "trade_surface")!
+	case .tradeControlSurface:
+	  return UIColor(named: "trade_control_surface")!
+	case .tradeSeparator:
+	  return UIColor(named: "trade_separator")!
+	case .tradeTextPrimary:
+	  return UIColor(named: "trade_text_primary")!
+	case .tradeTextSecondary:
+	  return UIColor(named: "trade_text_secondary")!
+	case .tradeTextTertiary:
+	  return UIColor(named: "trade_text_tertiary")!
     }
   }
   
@@ -73,6 +119,7 @@ extension UIColor {
 	case accentPrimary
 	case chartBackground
 	case chartGrid
+	case segmentSelected
     case askLightBlue
     case askActionBlue
     case askDeepBlue
@@ -87,6 +134,28 @@ extension UIColor {
 	case white_FBFBFB
 	case white_F8FAFC
 	case blue_E8F9FF
+	case investmentBackground
+	case investmentSurface
+	case investmentSeparator
+	case investmentTextPrimary
+	case investmentTextSecondary
+	case investmentTextTertiary
+	case investmentNotice
+	case investmentChargeButton
+	case investmentChargeButtonText
+	case neumorphicButtonBackground
+	case neumorphicButtonText
+	case neumorphicButtonBorder
+	case neumorphicButtonDarkShadow
+	case neumorphicButtonLightShadow
+	case tabBarItem
+	case tradeBackground
+	case tradeSurface
+	case tradeControlSurface
+	case tradeSeparator
+	case tradeTextPrimary
+	case tradeTextSecondary
+	case tradeTextTertiary
   }
   
   static func hexStringToUIColor (hex:String) -> UIColor {

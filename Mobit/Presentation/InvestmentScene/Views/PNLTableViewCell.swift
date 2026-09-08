@@ -17,6 +17,7 @@ class PNLTableViewCell: UITableViewCell {
   @IBOutlet weak var transactionDateLabel: UILabel!
   
   var shareCallBack: (() -> ())? = nil
+  private var currentPNL: Double?
   
   deinit {
 	print("deinit : " + String(describing: type(of: self)))
@@ -24,26 +25,33 @@ class PNLTableViewCell: UITableViewCell {
   
   override func awakeFromNib() {
 	super.awakeFromNib()
+	updateThemeColors()
+  }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	updateThemeColors()
+  }
+
+  private func updateThemeColors() {
 	self.backgroundColor = .mobitColors(.backgroundPrimary)
 	self.contentView.backgroundColor = .mobitColors(.backgroundPrimary)
 	if let containerView = self.contentView.subviews.first {
-	  containerView.backgroundColor = .mobitColors(.surfaceElevated)
+	  containerView.backgroundColor = .mobitColors(.investmentSurface)
 	}
-	[
-	  self.marketNameLabel,
-	  self.quantityLabel,
-	  self.entryPriceLabel,
-	  self.exitPriceLabel,
-	  self.transactionDateLabel
-	].forEach { $0?.textColor = .mobitColors(.textPrimary) }
+	if let currentPNL {
+	  self.pnlLabel.textColor = MarketColorPalette.color(forSignedValue: currentPNL)
+	}
   }
-  
+
   override func setSelected(_ selected: Bool, animated: Bool) {
 	super.setSelected(selected, animated: animated)
 	
   }
   
   func configure(pnlHistory: UserPNLHistoryModel) {
+	self.currentPNL = pnlHistory.pnl
 	self.marketNameLabel.text = pnlHistory.marketName
 	self.pnlLabel.text = "\(pnlHistory.pnl.formatSignificantDigits(digits: 2))".addComma() + " ₩"
 	self.quantityLabel.text = "\(pnlHistory.orderQuantity.formatSignificantDigits(digits: 2))".addComma()

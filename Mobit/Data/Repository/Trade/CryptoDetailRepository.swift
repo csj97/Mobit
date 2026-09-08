@@ -38,24 +38,25 @@ class CryptoDetailRepository: CryptoDetailRepositoryProtocol {
 		.subscribe { event in
 		  switch event {
 		  case .success(let response):
-			switch response.statusCode {
-			case 200..<300:
+			do {
+			  try NetworkResponseValidator.validate(response: response)
 			  guard let quote = try? self.exchangeProvider.decodeCryptoInformation(
                 from: response.data,
                 symbol: market
               ) else {
-				observer.onError(ErrorType.dataMappingError)
+				observer.onError(ErrorType.decodingFailed)
 				return
 			  }
 			  observer.onNext(quote)
 			  observer.onCompleted()
-			case 400..<500:
-			  observer.onError(ErrorType.badRequest)
-			default:
-			  observer.onError(ErrorType.unknownError)
+			} catch let error as ErrorType {
+			  observer.onError(error)
+			} catch {
+			  observer.onError(ErrorType.decodingFailed)
 			}
 		  case .failure(let error):
 			Log.error(error.localizedDescription)
+			observer.onError(NetworkResponseValidator.mapRequestError(error))
 		  }
 		}
 	  return Disposables.create {
@@ -79,27 +80,23 @@ class CryptoDetailRepository: CryptoDetailRepositoryProtocol {
       ).subscribe { event in
 		switch event {
 		case .success(let response):
-		  switch response.statusCode {
-		  case 200..<300:
-			do {
-			  let candles = try self.exchangeProvider.decodeMinuteCandles(from: response.data)
-			  observer.onNext(candles)
-			  observer.onCompleted()
-			} catch {
-			  // 분봉 미표시 진단: 실제 전송 URL(정규화된 to 확인용), 디코딩 에러, 응답 본문 앞부분을 남긴다.
-			  Log.error("분봉 디코딩 실패 market=\(market) unit=\(unit) to=\(to ?? "nil") url=\(response.request?.url?.absoluteString ?? "") error=\(error) body=\(String(data: response.data, encoding: .utf8)?.prefix(500) ?? "")")
-			  observer.onError(ErrorType.dataMappingError)
-			}
-		  case 400..<500:
-			// 분봉 미표시 진단: 400대 응답의 status/URL/본문을 남긴다. (to 파라미터 규격 의심)
-			Log.error("분봉 조회 badRequest status=\(response.statusCode) market=\(market) unit=\(unit) to=\(to ?? "nil") url=\(response.request?.url?.absoluteString ?? "") body=\(String(data: response.data, encoding: .utf8)?.prefix(500) ?? "")")
-			observer.onError(ErrorType.badRequest)
-		  default:
-			Log.error("분봉 조회 실패 status=\(response.statusCode) market=\(market) unit=\(unit) body=\(String(data: response.data, encoding: .utf8)?.prefix(500) ?? "")")
-			observer.onError(ErrorType.unknownError)
+		  do {
+			try NetworkResponseValidator.validate(response: response)
+			let candles = try self.exchangeProvider.decodeMinuteCandles(from: response.data)
+			observer.onNext(candles)
+			observer.onCompleted()
+		  } catch let error as ErrorType {
+			let body = NetworkResponseValidator.bodyPreview(from: response.data)
+			Log.error("분봉 조회 실패 status=\(response.statusCode) market=\(market) unit=\(unit) to=\(to ?? "nil") url=\(response.request?.url?.absoluteString ?? "") body=\(body)")
+			observer.onError(error)
+		  } catch {
+			let body = NetworkResponseValidator.bodyPreview(from: response.data)
+			Log.error("분봉 디코딩 실패 market=\(market) unit=\(unit) to=\(to ?? "nil") url=\(response.request?.url?.absoluteString ?? "") error=\(error) body=\(body)")
+			observer.onError(ErrorType.decodingFailed)
 		  }
 		case .failure(let error):
 		  Log.error("분봉 요청 전송 실패 market=\(market) unit=\(unit) to=\(to ?? "nil") error=\(error.localizedDescription)")
+		  observer.onError(NetworkResponseValidator.mapRequestError(error))
 		}
 	  }
 	  return Disposables.create {
@@ -125,23 +122,24 @@ class CryptoDetailRepository: CryptoDetailRepositoryProtocol {
       ).subscribe { event in
 		switch event {
 		case .success(let response):
-		  switch response.statusCode {
-		  case 200..<300:
+		  do {
+			try NetworkResponseValidator.validate(response: response)
 			guard let candles = try? self.exchangeProvider.decodeDayCandles(
               from: response.data
             ) else {
-			  observer.onError(ErrorType.dataMappingError)
+			  observer.onError(ErrorType.decodingFailed)
 			  return
 			}
 			observer.onNext(candles)
 			observer.onCompleted()
-		  case 400..<500:
-			observer.onError(ErrorType.badRequest)
-		  default:
-			observer.onError(ErrorType.unknownError)
+		  } catch let error as ErrorType {
+			observer.onError(error)
+		  } catch {
+			observer.onError(ErrorType.decodingFailed)
 		  }
 		case .failure(let error):
 		  Log.error(error.localizedDescription)
+		  observer.onError(NetworkResponseValidator.mapRequestError(error))
 		}
 	  }
 	  return Disposables.create {

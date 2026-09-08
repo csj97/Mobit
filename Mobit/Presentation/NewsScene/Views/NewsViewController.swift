@@ -28,6 +28,9 @@ class NewsViewController: MobitBaseViewController, WKNavigationDelegate {
   }
   
   func setUI() {
+	view.backgroundColor = .mobitColors(.backgroundPrimary)
+	webView.backgroundColor = .mobitColors(.backgroundPrimary)
+	webView.scrollView.backgroundColor = .mobitColors(.backgroundPrimary)
   }
   
   func setData() {

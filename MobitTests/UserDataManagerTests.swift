@@ -166,6 +166,8 @@ final class UserDataManagerTests: XCTestCase {
 
     XCTAssertEqual(decoded.exchange, .upbit)
     XCTAssertEqual(decoded.exchangePairID.rawValue, "upbit:KRW-BTC")
+    XCTAssertNil(decoded.transactionTimestamp)
+    XCTAssertEqual(decoded.transactionDate, "07.09 12:00")
   }
 
   private func makeTransaction(market: String) -> CryptoTransactionDataModel {

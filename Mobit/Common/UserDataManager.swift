@@ -16,6 +16,8 @@ class UserDataManager: NSObject {
 	  case hour1 = "60"
 	  case hour4 = "240"
 	  case day1 = "1D"
+	  case week1 = "1W"
+	  case month1 = "1M"
 	}
 	
 	enum Theme: String, Codable {

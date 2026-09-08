@@ -24,13 +24,13 @@
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="차트 설정" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="u4u-6t-dtv">
                                     <rect key="frame" x="20" y="14" width="60" height="18"/>
                                     <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                                    <color key="textColor" red="0.10196078431372549" green="0.11764705882352941" blue="0.14117647058823529" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    <color key="textColor" name="trade_text_primary"/>
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="여기서 선택한 차트 설정은 앱을 종료했다가 다시 들어와도 그대로 유지돼요." lineBreakMode="wordWrap" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="S3G-JQ-zHe">
                                     <rect key="frame" x="20" y="36" width="353" height="30"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                                    <color key="textColor" red="0.41568627450980394" green="0.44313725490196076" blue="0.47843137254901963" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    <color key="textColor" name="trade_text_secondary"/>
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="7P6-nB-b5r">
@@ -42,7 +42,7 @@
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="간격" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="NOg-xX-03U">
                                                     <rect key="frame" x="0.0" y="1" width="26" height="17"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                                    <color key="textColor" red="0.10196078431372549" green="0.11764705882352941" blue="0.14117647058823529" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                    <color key="textColor" name="trade_text_primary"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <segmentedControl opaque="NO" contentMode="scaleToFill" selectedSegmentIndex="1" translatesAutoresizingMaskIntoConstraints="NO" id="lXZ-QQ-p27">
@@ -52,25 +52,11 @@
                                                         <segment title="1h"/>
                                                         <segment title="4h"/>
                                                         <segment title="1D"/>
+                                                        <segment title="1W"/>
+                                                        <segment title="1M"/>
                                                     </segments>
                                                     <connections>
                                                         <action selector="intervalValueChanged:" destination="dXd-aJ-ljv" eventType="valueChanged" id="KFV-t8-T56"/>
-                                                    </connections>
-                                                </segmentedControl>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="테마" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uOF-FR-lrT">
-                                                    <rect key="frame" x="214" y="1" width="26" height="17"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                                    <color key="textColor" red="0.10196078431372549" green="0.11764705882352941" blue="0.14117647058823529" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                                    <nil key="highlightedColor"/>
-                                                </label>
-                                                <segmentedControl opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="wtu-Rh-KaY">
-                                                    <rect key="frame" x="252" y="0.0" width="101" height="20"/>
-                                                    <segments>
-                                                        <segment title="밝게"/>
-                                                        <segment title="어둡게"/>
-                                                    </segments>
-                                                    <connections>
-                                                        <action selector="themeValueChanged:" destination="dXd-aJ-ljv" eventType="valueChanged" id="SPp-CF-WEk"/>
                                                     </connections>
                                                 </segmentedControl>
                                             </subviews>
@@ -99,7 +85,7 @@
                             <subviews>
                                 <wkWebView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="cdq-g9-sAC">
                                     <rect key="frame" x="0.0" y="0.0" width="393" height="666"/>
-                                    <color key="backgroundColor" red="0.36078431370000003" green="0.38823529410000002" blue="0.4039215686" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    <color key="backgroundColor" name="chart_background"/>
                                     <wkWebViewConfiguration key="configuration">
                                         <audiovisualMediaTypes key="mediaTypesRequiringUserActionForPlayback" none="YES"/>
                                         <wkPreferences key="preferences"/>
@@ -107,7 +93,7 @@
                                 </wkWebView>
                                 <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="drx-qS-2eg">
                                     <rect key="frame" x="0.0" y="0.0" width="393" height="666"/>
-                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                    <color key="backgroundColor" name="trade_background"/>
                                 </view>
                             </subviews>
                             <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -126,7 +112,7 @@
                 </stackView>
             </subviews>
             <viewLayoutGuide key="safeArea" id="mZC-xE-jaU"/>
-            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+            <color key="backgroundColor" name="trade_background"/>
             <constraints>
                 <constraint firstItem="mZC-xE-jaU" firstAttribute="leading" secondItem="qdY-o5-AKM" secondAttribute="leading" id="Jvk-Sd-Mvw"/>
                 <constraint firstItem="mZC-xE-jaU" firstAttribute="trailing" secondItem="qdY-o5-AKM" secondAttribute="trailing" id="RTG-Iv-IWx"/>
@@ -139,7 +125,6 @@
                 <outlet property="intervalSegmentedControl" destination="lXZ-QQ-p27" id="6KQ-TB-rHB"/>
                 <outlet property="persistenceGuideLabel" destination="S3G-JQ-zHe" id="Ddg-9r-yPZ"/>
                 <outlet property="settingsContainerView" destination="SyQ-yP-M9M" id="2Tm-V3-djv"/>
-                <outlet property="themeSegmentedControl" destination="wtu-Rh-KaY" id="mLw-Gg-M8B"/>
                 <outlet property="webView" destination="cdq-g9-sAC" id="A9h-U7-P7q"/>
             </connections>
             <point key="canvasLocation" x="2433" y="-13"/>
@@ -149,5 +134,17 @@
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
+        <namedColor name="trade_background">
+            <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="trade_text_primary">
+            <color red="0" green="0" blue="0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="trade_text_secondary">
+            <color red="0.33333333333333331" green="0.33333333333333331" blue="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="chart_background">
+            <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
     </resources>
 </document>

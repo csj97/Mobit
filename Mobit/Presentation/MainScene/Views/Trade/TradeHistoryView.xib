@@ -20,7 +20,7 @@
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="내역이 없습니다." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="NzF-oq-nI2">
                             <rect key="frame" x="150.33333333333334" y="353.66666666666669" width="92.666666666666657" height="17"/>
                             <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                            <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <color key="textColor" name="trade_text_primary"/>
                             <nil key="highlightedColor"/>
                         </label>
                     </subviews>
@@ -57,4 +57,9 @@
             <point key="canvasLocation" x="1628" y="485"/>
         </view>
     </objects>
+    <resources>
+        <namedColor name="trade_text_primary">
+            <color red="0" green="0" blue="0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
 </document>

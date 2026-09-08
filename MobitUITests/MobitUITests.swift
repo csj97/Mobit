@@ -39,7 +39,7 @@ final class MobitUITests: XCTestCase {
 
         func tapSelector() {
             let selector = app.buttons.matching(
-                NSPredicate(format: "label CONTAINS[c] %@ OR label CONTAINS %@", "bit", "˅")
+                NSPredicate(format: "label CONTAINS %@ OR label CONTAINS %@", "업비트", "빗썸")
             ).firstMatch
             XCTAssertTrue(selector.waitForExistence(timeout: 10), "거래소 셀렉터 버튼을 찾지 못함")
             selector.tap()
@@ -82,6 +82,48 @@ final class MobitUITests: XCTestCase {
             : "no-alert"
         XCTContext.runActivity(named: "ALERT_AFTER_BITHUMB_TO_UPBIT(appeared=\(appeared)): \(msg)") { _ in }
         XCTAssertFalse(appeared, "빗썸→업비트 전환 후 시세 로드 실패 알럿 발생: \(msg)")
+    }
+
+    func testExchangeAuditUpbitTradeScreenEntry() throws {
+        try verifyTradeScreenEntry(exchangeName: "업비트")
+    }
+
+    func testExchangeAuditBithumbTradeScreenEntry() throws {
+        try verifyTradeScreenEntry(exchangeName: "빗썸")
+    }
+
+    private func verifyTradeScreenEntry(exchangeName: String) throws {
+        let app = XCUIApplication()
+        app.launch()
+        let selector = app.buttons.matching(
+            NSPredicate(format: "label CONTAINS %@ OR label CONTAINS %@", "업비트", "빗썸")
+        ).firstMatch
+        XCTAssertTrue(selector.waitForExistence(timeout: 20))
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "hittable == true"), object: selector
+        )], timeout: 20), .completed)
+        selector.tap()
+        let action = app.sheets.buttons.matching(NSPredicate(format: "label CONTAINS %@", exchangeName)).firstMatch
+        XCTAssertTrue(action.waitForExistence(timeout: 5))
+        action.tap()
+        let search = app.searchFields.firstMatch
+        XCTAssertTrue(search.waitForExistence(timeout: 10))
+        search.tap()
+        search.typeText("BTC")
+        let marketCell = app.tables.cells.containing(
+            NSPredicate(format: "label CONTAINS %@", "BTC/KRW")
+        ).firstMatch
+        XCTAssertTrue(marketCell.waitForExistence(timeout: 20), "BTC/KRW 시세 행이 표시되지 않음")
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "hittable == true"), object: marketCell
+        )], timeout: 20), .completed)
+        marketCell.tap()
+        XCTAssertTrue(app.buttons["차트"].waitForExistence(timeout: 10), "거래 상세 진입 실패")
+        XCTAssertTrue(app.buttons["주문"].exists)
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = "\(exchangeName) 거래 상세"
+        attachment.lifetime = .keepAlways
+        add(attachment)
     }
 
     func testLaunchPerformance() throws {

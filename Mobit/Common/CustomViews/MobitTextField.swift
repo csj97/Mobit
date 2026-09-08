@@ -30,7 +30,7 @@ class MobitTextField: UITextField {
   }
   
   private func addBottomBorder() {
-	bottomLine.backgroundColor = UIColor.mobitColors(.borderPrimary).cgColor
+	updateResolvedColors()
 	layer.addSublayer(bottomLine)
   }
   
@@ -40,6 +40,16 @@ class MobitTextField: UITextField {
 	  x: 0, y: bounds.height - 4,
 	  width: bounds.width, height: 1
 	)
+  }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	updateResolvedColors()
+  }
+
+  private func updateResolvedColors() {
+	bottomLine.backgroundColor = UIColor.mobitColors(.borderPrimary).resolvedColor(with: traitCollection).cgColor
   }
   
   private func addDoneButtonOnKeyboard() {

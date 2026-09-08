@@ -58,6 +58,11 @@ enum MarketColorPalette {
   }
   
   static var neutralColor: UIColor { .mobitColors(.textPrimary) }
+
+  static var riseBackgroundColor: UIColor { orderBookBackgroundColor(for: riseColor) }
+  static var fallBackgroundColor: UIColor { orderBookBackgroundColor(for: fallColor) }
+  static var riseBarColor: UIColor { riseColor.withAlphaComponent(0.24) }
+  static var fallBarColor: UIColor { fallColor.withAlphaComponent(0.24) }
   
   static var riseSwiftUIColor: Color { Color(uiColor: riseColor) }
   static var fallSwiftUIColor: Color { Color(uiColor: fallColor) }
@@ -78,4 +83,13 @@ enum MarketColorPalette {
 	  return nil
 	}
   }
+
+  // 라이트 모드 호가 배경은 더 연하게 표시
+  private static func orderBookBackgroundColor(for color: UIColor) -> UIColor {
+	UIColor { traitCollection in
+	  let alpha: CGFloat = traitCollection.userInterfaceStyle == .dark ? 0.08 : 0.05
+	  return color.withAlphaComponent(alpha)
+	}
+  }
+
 }

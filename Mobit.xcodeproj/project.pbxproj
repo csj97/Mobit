@@ -185,6 +185,7 @@
 		C19F65252EB1D06C00CE1A7E /* Localizable(EN).strings in Resources */ = {isa = PBXBuildFile; fileRef = C19F65232EB1D06C00CE1A7E /* Localizable(EN).strings */; };
 		C19F65282EB1D07900CE1A7E /* Localizable(KO).strings in Resources */ = {isa = PBXBuildFile; fileRef = C19F65262EB1D07900CE1A7E /* Localizable(KO).strings */; };
 		C19F652A2EB1EEE200CE1A7E /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19F65292EB1EEE200CE1A7E /* NetworkMonitor.swift */; };
+		D0C300022FFB000000000001 /* NetworkResponseValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C300012FFB000000000001 /* NetworkResponseValidator.swift */; };
 		C19F652C2EB1F2E800CE1A7E /* NetworkLostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19F652B2EB1F2E800CE1A7E /* NetworkLostView.swift */; };
 		C19F77972E41A2EA00863159 /* PNLShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19F77962E41A2EA00863159 /* PNLShareView.swift */; };
 		C19F77992E41A2F300863159 /* PNLShareView.xib in Resources */ = {isa = PBXBuildFile; fileRef = C19F77982E41A2F300863159 /* PNLShareView.xib */; };
@@ -433,6 +434,7 @@
 		C19F65242EB1D06C00CE1A7E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = "en.lproj/Localizable(EN).strings"; sourceTree = "<group>"; };
 		C19F65272EB1D07900CE1A7E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = "en.lproj/Localizable(KO).strings"; sourceTree = "<group>"; };
 		C19F65292EB1EEE200CE1A7E /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
+		D0C300012FFB000000000001 /* NetworkResponseValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkResponseValidator.swift; sourceTree = "<group>"; };
 		C19F652B2EB1F2E800CE1A7E /* NetworkLostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkLostView.swift; sourceTree = "<group>"; };
 		C19F77962E41A2EA00863159 /* PNLShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PNLShareView.swift; sourceTree = "<group>"; };
 		C19F77982E41A2F300863159 /* PNLShareView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PNLShareView.xib; sourceTree = "<group>"; };
@@ -897,6 +899,7 @@
 			isa = PBXGroup;
 			children = (
 				C19F65292EB1EEE200CE1A7E /* NetworkMonitor.swift */,
+				D0C300012FFB000000000001 /* NetworkResponseValidator.swift */,
 				C13B29EE2EE0146100391683 /* SoketManager */,
 				99C20AB52C4F76B5009276E7 /* Main */,
 			);
@@ -1507,6 +1510,7 @@
 				31E208072C4678B9000BFEBC /* MainCoordinator.swift in Sources */,
 				C154CA192D97D63D006923BD /* MarketDataServiceUtil.swift in Sources */,
 				C19F652A2EB1EEE200CE1A7E /* NetworkMonitor.swift in Sources */,
+				D0C300022FFB000000000001 /* NetworkResponseValidator.swift in Sources */,
 				C1CD3A622E28C3CD0049699B /* MobitCommunityViewController.swift in Sources */,
 				C13B29F62EE0188C00391683 /* Candle+MinuteResponseModel.swift in Sources */,
 				C16FAE6A2E38A4C6003C5AD1 /* UserPNLHistoryModel.swift in Sources */,

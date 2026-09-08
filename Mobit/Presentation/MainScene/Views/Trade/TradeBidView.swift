@@ -16,8 +16,11 @@ class TradeBidView: UIView, ViewRule {
   @IBOutlet weak var currentPrice: UILabel!
   @IBOutlet weak var totalPriceTextField: UITextField!
   @IBOutlet weak var inputAmountTFView: UIView!
+  @IBOutlet weak var contentContainerView: UIView!
   @IBOutlet weak var inputMarketName: UILabel!
   @IBOutlet weak var orderButton: UIButton!
+  @IBOutlet weak var resetButton: UIButton!
+  @IBOutlet weak var maxAmountButton: UIButton!
   @IBOutlet weak var orderNoticeLabel: UILabel!
 
   weak var reactor: TradeReactor? = nil
@@ -34,6 +37,12 @@ class TradeBidView: UIView, ViewRule {
 
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
 	self.endEditing(true)
+  }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	applyThemeColors()
   }
 
   static func instanceFromNib(
@@ -64,26 +73,83 @@ class TradeBidView: UIView, ViewRule {
   }
 
   func setUI() {
-	self.inputTradeAmount.setAdaptivePlaceholderColor()
-	self.totalPriceTextField.setAdaptivePlaceholderColor()
-	self.backgroundColor = .mobitColors(.backgroundPrimary)
-	[
-	  self.availableTradePrice,
-	  self.currentPrice,
-	  self.inputMarketName
-	].forEach { $0?.textColor = .mobitColors(.textPrimary) }
-	[self.inputTradeAmount, self.totalPriceTextField].forEach { textField in
-	  textField?.textColor = .mobitColors(.textPrimary)
-	  textField?.backgroundColor = .mobitColors(.surfacePrimary)
-	}
-	self.inputAmountTFView.backgroundColor = .mobitColors(.surfacePrimary)
-	self.orderButton.setTitleColor(.white, for: .normal)
-	self.orderButton.backgroundColor = MarketColorPalette.riseColor
+	applyThemeColors()
 
 	self.inputMarketName.text = self.reactor?.selectCrypto.market.components(separatedBy: "/").first
 	self.inputTradeAmount.keyboardType = .decimalPad
 	self.totalPriceTextField.keyboardType = .numberPad
 	self.updateOrderValidationState()
+  }
+
+  private func applyThemeColors() {
+	self.applyContainerTheme()
+	self.applyLabelColors()
+	self.applyInputFieldColors()
+	self.applyButtonColors()
+	self.updateOrderValidationState()
+  }
+
+  func refreshMarketColors() {
+	applyThemeColors()
+  }
+
+  // 주문 카드 배경과 그림자
+  private func applyContainerTheme() {
+	let isDarkMode = traitCollection.userInterfaceStyle == .dark
+	self.backgroundColor = .clear
+	self.contentContainerView.backgroundColor = isDarkMode ? .mobitColors(.tradeSurface) : .white
+	self.applyContentContainerShadow(isDarkMode: isDarkMode)
+  }
+
+  // 주요 라벨 색상
+  private func applyLabelColors() {
+	[
+	  self.availableTradePrice,
+	  self.currentPrice,
+	  self.inputMarketName
+	].forEach { $0?.textColor = .mobitColors(.tradeTextPrimary) }
+  }
+
+  // 수량과 총액 입력 영역
+  private func applyInputFieldColors() {
+	self.inputTradeAmount.setAdaptivePlaceholderColor()
+	self.totalPriceTextField.setAdaptivePlaceholderColor()
+	[self.inputTradeAmount, self.totalPriceTextField].forEach {
+	  $0?.textColor = .mobitColors(.tradeTextPrimary)
+	}
+	self.inputTradeAmount.backgroundColor = .mobitColors(.tradeControlSurface)
+	self.totalPriceTextField.backgroundColor = .clear
+	self.inputAmountTFView.backgroundColor = .mobitColors(.tradeControlSurface)
+  }
+
+  // 주문 관련 버튼
+  private func applyButtonColors() {
+	self.orderButton.setTitleColor(.white, for: .normal)
+	self.orderButton.backgroundColor = MarketColorPalette.riseColor
+	self.applyResetButtonColors()
+	self.maxAmountButton.setTitleColor(.mobitColors(.tradeTextPrimary), for: .normal)
+	self.maxAmountButton.backgroundColor = .mobitColors(.tradeControlSurface)
+  }
+
+  // 라이트 모드는 앱스토어 스타일 유지
+  private func applyResetButtonColors() {
+	let isDarkMode = traitCollection.userInterfaceStyle == .dark
+	self.resetButton.backgroundColor = isDarkMode
+	  ? .mobitColors(.tradeControlSurface)
+	  : UIColor(white: 0.333, alpha: 1)
+	self.resetButton.setTitleColor(
+	  isDarkMode ? .mobitColors(.tradeTextPrimary) : .white,
+	  for: .normal
+	)
+  }
+
+  // 다크 모드에서는 카드 그림자 제거
+  private func applyContentContainerShadow(isDarkMode: Bool) {
+	self.contentContainerView.layer.shadowColor = UIColor.black.withAlphaComponent(0.3).cgColor
+	self.contentContainerView.layer.shadowOffset = CGSize(width: 2, height: 6)
+	self.contentContainerView.layer.shadowRadius = 12
+	self.contentContainerView.layer.shadowOpacity = isDarkMode ? 0 : 0.4
+	self.contentContainerView.layer.masksToBounds = false
   }
 
   func setData() {

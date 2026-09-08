@@ -19,7 +19,7 @@ class NoticeForceUpdateViewController: UIViewController {
   override func viewDidLoad() {
 	super.viewDidLoad()
   }
-  
+
   /// 앱 업데이트 버튼 클릭 시, 앱스토어 화면으로 이동
   @IBAction func tapOnUpdateButton(_ sender: UIButton) {
 	// 모의비트 앱스토어 링크

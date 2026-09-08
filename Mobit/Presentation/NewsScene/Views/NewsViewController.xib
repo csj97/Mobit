@@ -21,7 +21,7 @@
             <subviews>
                 <wkWebView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="UhT-Nx-8TC">
                     <rect key="frame" x="0.0" y="0.0" width="393" height="818"/>
-                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    <color key="backgroundColor" name="background_primary"/>
                     <wkWebViewConfiguration key="configuration">
                         <audiovisualMediaTypes key="mediaTypesRequiringUserActionForPlayback" none="YES"/>
                         <wkPreferences key="preferences"/>
@@ -29,7 +29,7 @@
                 </wkWebView>
             </subviews>
             <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
-            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+            <color key="backgroundColor" name="background_primary"/>
             <constraints>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="UhT-Nx-8TC" secondAttribute="trailing" id="FBw-ke-GRz"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="bottom" secondItem="UhT-Nx-8TC" secondAttribute="bottom" id="qYp-ND-Ruk"/>
@@ -39,4 +39,9 @@
             <point key="canvasLocation" x="131" y="-11"/>
         </view>
     </objects>
+    <resources>
+        <namedColor name="background_primary">
+            <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
 </document>

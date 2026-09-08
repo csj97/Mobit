@@ -2,7 +2,7 @@
 //  BithumbCandleDTO.swift
 //  Mobit
 //
-//  Created by Codex on 7/9/26.
+//  Created by 조성재 on 7/9/26.
 //
 
 import Foundation
@@ -49,8 +49,7 @@ extension Array where Element == BithumbMinuteCandleDTO {
 
 struct BithumbDayCandleDTO: Decodable {
   // 식별키(market)와 차트 렌더링 필수값(시간, OHLC)만 필수로 두고,
-  // 누락돼도 폴백 가능한 보조 필드는 옵셔널로 완화한다. converted_trade_price는
-  // convertingPriceUnit 파라미터가 있을 때만 내려오므로 문서상으로도 선택 필드다.
+  // 누락돼도 폴백 가능한 보조 필드는 옵셔널로 완화한다.
   let market: String
   let candle_date_time_utc: String
   let candle_date_time_kst: String

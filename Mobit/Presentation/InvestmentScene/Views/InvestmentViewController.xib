@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="24506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24504"/>
         <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
@@ -13,6 +13,7 @@
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="InvestmentViewController" customModule="Mobit" customModuleProvider="target">
             <connections>
                 <outlet property="availableUserBalance" destination="RQI-wX-ZKS" id="ePk-wC-JXa"/>
+                <outlet property="chargeButton" destination="9ci-Re-J1f" id="ck3-pG-mPB"/>
                 <outlet property="dimView" destination="7dx-62-x7x" id="jk4-VP-arH"/>
                 <outlet property="noResultView" destination="rwH-Pi-cIy" id="wBr-za-5tr"/>
                 <outlet property="sortLabel" destination="q1Z-or-7eo" id="hfS-TN-M1Y"/>
@@ -30,12 +31,12 @@
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="OVA-w0-ApO">
-                    <rect key="frame" x="0.0" y="59" width="393" height="54"/>
+                    <rect key="frame" x="0.0" y="118" width="393" height="54"/>
                     <subviews>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="투자 내역" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ylj-d0-zZ7">
                             <rect key="frame" x="0.0" y="10" width="393" height="24"/>
                             <fontDescription key="fontDescription" type="boldSystem" pointSize="20"/>
-                            <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <color key="textColor" name="investment_text_primary"/>
                             <nil key="highlightedColor"/>
                         </label>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="j8j-qW-aVh">
@@ -43,7 +44,7 @@
                             <constraints>
                                 <constraint firstAttribute="width" secondItem="j8j-qW-aVh" secondAttribute="height" multiplier="1:1" id="gxS-gK-t4f"/>
                             </constraints>
-                            <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <color key="tintColor" name="investment_text_primary"/>
                             <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                             <state key="normal" image="list.clipboard" catalog="system"/>
                             <connections>
@@ -51,7 +52,7 @@
                             </connections>
                         </button>
                     </subviews>
-                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    <color key="backgroundColor" name="investment_background"/>
                     <constraints>
                         <constraint firstItem="j8j-qW-aVh" firstAttribute="centerY" secondItem="ylj-d0-zZ7" secondAttribute="centerY" id="6Ud-Pw-M57"/>
                         <constraint firstItem="ylj-d0-zZ7" firstAttribute="leading" secondItem="OVA-w0-ApO" secondAttribute="leading" id="GTd-c5-1wD"/>
@@ -62,7 +63,7 @@
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Ryi-yk-Mln" userLabel="투자내역 view">
-                    <rect key="frame" x="0.0" y="113" width="393" height="241"/>
+                    <rect key="frame" x="0.0" y="172" width="393" height="241"/>
                     <subviews>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="30" translatesAutoresizingMaskIntoConstraints="NO" id="kPO-6r-89s">
                             <rect key="frame" x="20" y="20" width="353" height="201"/>
@@ -73,7 +74,7 @@
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="총 보유자산" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8aC-TP-yIU">
                                             <rect key="frame" x="0.0" y="0.0" width="353" height="24"/>
                                             <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="20"/>
-                                            <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                            <color key="textColor" name="investment_text_primary"/>
                                             <nil key="highlightedColor"/>
                                         </label>
                                         <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="7PU-0A-3Nc">
@@ -82,7 +83,7 @@
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="0원" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.45000000000000001" translatesAutoresizingMaskIntoConstraints="NO" id="uR8-CE-EKy">
                                                     <rect key="frame" x="0.0" y="0.0" width="265" height="40"/>
                                                     <fontDescription key="fontDescription" type="system" weight="medium" pointSize="18"/>
-                                                    <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                    <color key="textColor" name="investment_text_secondary"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9ci-Re-J1f" customClass="NeumorphicButton" customModule="Mobit" customModuleProvider="target">
@@ -94,7 +95,7 @@
                                                     <fontDescription key="fontDescription" type="system" weight="medium" pointSize="16"/>
                                                     <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                     <state key="normal" title="충전하기">
-                                                        <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                        <color key="titleColor" name="investment_text_secondary"/>
                                                     </state>
                                                     <connections>
                                                         <action selector="tapOnChargeButton:" destination="-1" eventType="touchUpInside" id="T4y-rl-dE8"/>
@@ -113,13 +114,13 @@
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="평가손익" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="TIo-3V-3qT">
                                                     <rect key="frame" x="0.0" y="0.0" width="52" height="18"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                    <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                    <color key="textColor" name="investment_text_secondary"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" text="0원" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="nY4-PA-kiv">
                                                     <rect key="frame" x="72" y="0.0" width="281" height="18"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                    <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                    <color key="textColor" name="investment_text_primary"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                             </subviews>
@@ -130,13 +131,13 @@
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="수익률" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="CUo-fx-GXx">
                                                     <rect key="frame" x="0.0" y="0.0" width="39" height="18"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                    <color key="textColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                    <color key="textColor" name="investment_text_secondary"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" text="0원" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="f6d-js-1Gl">
                                                     <rect key="frame" x="59" y="0.0" width="294" height="18"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                    <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                    <color key="textColor" name="investment_text_primary"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                             </subviews>
@@ -147,13 +148,13 @@
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="총 매수금액" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aw1-uU-I04">
                                                     <rect key="frame" x="0.0" y="0.0" width="69" height="18"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                    <color key="textColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                    <color key="textColor" name="investment_text_secondary"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" text="0원" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="v1d-Ge-tnE">
                                                     <rect key="frame" x="89" y="0.0" width="264" height="18"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                    <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                    <color key="textColor" name="investment_text_primary"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                             </subviews>
@@ -164,13 +165,13 @@
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="주문가능금액" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="0oL-iM-fgZ">
                                                     <rect key="frame" x="0.0" y="0.0" width="78" height="18"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                    <color key="textColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                    <color key="textColor" name="investment_text_secondary"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" text="0원" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="RQI-wX-ZKS">
                                                     <rect key="frame" x="98" y="0.0" width="255" height="18"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                    <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                    <color key="textColor" name="investment_text_primary"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                             </subviews>
@@ -180,7 +181,7 @@
                             </subviews>
                         </stackView>
                     </subviews>
-                    <color key="backgroundColor" name="white_F8FAFC"/>
+                    <color key="backgroundColor" name="investment_surface"/>
                     <constraints>
                         <constraint firstItem="kPO-6r-89s" firstAttribute="top" secondItem="Ryi-yk-Mln" secondAttribute="top" constant="20" id="Iaf-cg-3SR"/>
                         <constraint firstAttribute="bottom" secondItem="kPO-6r-89s" secondAttribute="bottom" constant="20" id="gcf-Xj-kvn"/>
@@ -189,35 +190,35 @@
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="xs5-6g-hcy" userLabel="Divider View">
-                    <rect key="frame" x="0.0" y="354" width="393" height="1"/>
+                    <rect key="frame" x="0.0" y="413" width="393" height="1"/>
                     <color key="backgroundColor" name="line_light_gray"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="1" id="ADB-bA-5C8"/>
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Pza-eC-tn8" userLabel="Sort Button View">
-                    <rect key="frame" x="0.0" y="355" width="393" height="36.333333333333314"/>
+                    <rect key="frame" x="0.0" y="414" width="393" height="56.333333333333314"/>
                     <subviews>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="이름순" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="q1Z-or-7eo">
                             <rect key="frame" x="316.33333333333331" y="15.999999999999998" width="41.666666666666686" height="20.333333333333329"/>
                             <fontDescription key="fontDescription" type="system" weight="medium" pointSize="16"/>
-                            <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <color key="textColor" name="investment_text_secondary"/>
                             <nil key="highlightedColor"/>
                         </label>
                         <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Vaw-tC-8Mk">
                             <rect key="frame" x="362" y="22.333333333333329" width="15" height="8.6666666666666714"/>
-                            <color key="tintColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <color key="tintColor" name="investment_text_tertiary"/>
                             <imageReference key="image" image="chevron.down" catalog="system" symbolScale="small"/>
                         </imageView>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="m99-mJ-Z5f">
-                            <rect key="frame" x="300.33333333333331" y="0.0" width="92.666666666666686" height="36.333333333333336"/>
+                            <rect key="frame" x="300.33333333333331" y="0.0" width="92.666666666666686" height="56.333333333333336"/>
                             <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                             <connections>
                                 <action selector="tapOnSortButton:" destination="-1" eventType="touchUpInside" id="O1A-3i-Cbb"/>
                             </connections>
                         </button>
                     </subviews>
-                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    <color key="backgroundColor" name="investment_surface"/>
                     <constraints>
                         <constraint firstItem="m99-mJ-Z5f" firstAttribute="top" secondItem="Pza-eC-tn8" secondAttribute="top" id="6bf-rC-6dS"/>
                         <constraint firstItem="m99-mJ-Z5f" firstAttribute="leading" secondItem="q1Z-or-7eo" secondAttribute="leading" constant="-16" id="CLO-06-hgv"/>
@@ -225,21 +226,21 @@
                         <constraint firstItem="Vaw-tC-8Mk" firstAttribute="bottom" secondItem="q1Z-or-7eo" secondAttribute="bottom" id="MAD-FK-vij"/>
                         <constraint firstItem="q1Z-or-7eo" firstAttribute="top" secondItem="Pza-eC-tn8" secondAttribute="top" constant="16" id="Osd-Vn-Rn9"/>
                         <constraint firstItem="Vaw-tC-8Mk" firstAttribute="leading" secondItem="q1Z-or-7eo" secondAttribute="trailing" constant="4" id="Ypv-s0-2Jf"/>
-                        <constraint firstAttribute="bottom" secondItem="q1Z-or-7eo" secondAttribute="bottom" id="cXh-Sl-rPI"/>
+                        <constraint firstAttribute="bottom" secondItem="q1Z-or-7eo" secondAttribute="bottom" constant="20" id="cXh-Sl-rPI"/>
                         <constraint firstAttribute="bottom" secondItem="m99-mJ-Z5f" secondAttribute="bottom" id="eB0-k3-uuz"/>
                         <constraint firstItem="Vaw-tC-8Mk" firstAttribute="top" secondItem="q1Z-or-7eo" secondAttribute="top" id="eZL-26-fIm"/>
                         <constraint firstAttribute="trailing" secondItem="m99-mJ-Z5f" secondAttribute="trailing" id="ohh-AP-zlI"/>
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="EYj-UQ-OML" userLabel="리스트뷰">
-                    <rect key="frame" x="0.0" y="391.33333333333326" width="393" height="460.66666666666674"/>
+                    <rect key="frame" x="0.0" y="470.33333333333326" width="393" height="381.66666666666674"/>
                     <subviews>
                         <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="none" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="vcj-0Q-9QG">
-                            <rect key="frame" x="0.0" y="0.0" width="393" height="460.66666666666669"/>
+                            <rect key="frame" x="0.0" y="0.0" width="393" height="381.66666666666669"/>
                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         </tableView>
                     </subviews>
-                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    <color key="backgroundColor" name="investment_background"/>
                     <constraints>
                         <constraint firstAttribute="bottom" secondItem="vcj-0Q-9QG" secondAttribute="bottom" id="02F-C5-8Tg"/>
                         <constraint firstItem="vcj-0Q-9QG" firstAttribute="leading" secondItem="EYj-UQ-OML" secondAttribute="leading" id="ZP3-h4-Ze9"/>
@@ -248,16 +249,16 @@
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rwH-Pi-cIy" userLabel="NO RESULT VIEW">
-                    <rect key="frame" x="0.0" y="391.33333333333326" width="393" height="460.66666666666674"/>
+                    <rect key="frame" x="0.0" y="470.33333333333326" width="393" height="381.66666666666674"/>
                     <subviews>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="보유중인 코인이 없습니다." textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="rR5-bF-kay">
-                            <rect key="frame" x="124" y="120" width="145" height="17"/>
+                            <rect key="frame" x="124" y="120.00000000000006" width="145" height="17"/>
                             <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                            <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <color key="textColor" name="investment_text_secondary"/>
                             <nil key="highlightedColor"/>
                         </label>
                     </subviews>
-                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    <color key="backgroundColor" name="investment_background"/>
                     <constraints>
                         <constraint firstItem="rR5-bF-kay" firstAttribute="top" secondItem="rwH-Pi-cIy" secondAttribute="top" constant="120" id="0Kq-XH-gIh"/>
                         <constraint firstItem="rR5-bF-kay" firstAttribute="centerX" secondItem="rwH-Pi-cIy" secondAttribute="centerX" id="cUA-SC-8CE"/>
@@ -269,7 +270,7 @@
                 </view>
             </subviews>
             <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
-            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+            <color key="backgroundColor" name="investment_background"/>
             <constraints>
                 <constraint firstItem="Ryi-yk-Mln" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="12U-bh-m8e"/>
                 <constraint firstAttribute="trailing" secondItem="OVA-w0-ApO" secondAttribute="trailing" id="1wK-mu-cib"/>
@@ -303,11 +304,23 @@
     <resources>
         <image name="chevron.down" catalog="system" width="128" height="70"/>
         <image name="list.clipboard" catalog="system" width="98" height="128"/>
+        <namedColor name="investment_background">
+            <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="investment_surface">
+            <color red="0.97254901960784312" green="0.98039215686274506" blue="0.9882352941176471" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="investment_text_primary">
+            <color red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="investment_text_secondary">
+            <color red="0.33333333333333331" green="0.33333333333333331" blue="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="investment_text_tertiary">
+            <color red="0.50196078431372548" green="0.50196078431372548" blue="0.50196078431372548" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
         <namedColor name="line_light_gray">
             <color red="0.79607843137254897" green="0.81176470588235294" blue="0.83137254901960789" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-        </namedColor>
-        <namedColor name="white_F8FAFC">
-            <color red="0.97254901960784312" green="0.98039215686274506" blue="0.9882352941176471" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
     </resources>
 </document>

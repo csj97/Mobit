@@ -2,7 +2,7 @@
 //  TradeOrderService.swift
 //  Mobit
 //
-//  Created by Codex on 6/30/26.
+//  Created by 조성재 on 6/30/26.
 //
 
 import Foundation
@@ -39,7 +39,7 @@ enum TradeOrderService {
       fromDisplayMarket: marketName,
       exchange: exchange
     )
-    let executedDate = formattedDate(executedAt)
+    let executedTimestamp = TradeTimestampFormatter.timestamp(from: executedAt)
     let existingStaticData = UserDataManager.userCryptoList?
       .first(where: { $0.staticData.exchangePairID == targetPairID })?
       .staticData
@@ -47,7 +47,8 @@ enum TradeOrderService {
     let validTransaction = ValidTransactionInfo.Transaction(
       orderType: .bid,
       quantity: quantity,
-      buyPrice: currentPrice
+      buyPrice: currentPrice,
+      timestamp: executedTimestamp
     )
 
     MarketDataServiceUtil.shared.addValidTransactionData(
@@ -62,7 +63,7 @@ enum TradeOrderService {
       exchange: exchange,
       marketName: marketName,
       orderType: .bid,
-      executedDate: executedDate,
+      executedTimestamp: executedTimestamp,
       executedPrice: currentPrice,
       executedQuantity: quantity,
       executedAmount: executedAmount
@@ -175,12 +176,12 @@ enum TradeOrderService {
       quantity: executedQuantity
     )
 
-    let executedDate = formattedDate(executedAt)
+    let executedTimestamp = TradeTimestampFormatter.timestamp(from: executedAt)
     let transaction = TransactionInfo(
       exchange: exchange,
       marketName: marketName,
       orderType: .ask,
-      executedDate: executedDate,
+      executedTimestamp: executedTimestamp,
       executedPrice: currentPrice,
       executedQuantity: executedQuantity,
       executedAmount: executedAmount
@@ -194,7 +195,8 @@ enum TradeOrderService {
     let validTransaction = ValidTransactionInfo.Transaction(
       orderType: .ask,
       quantity: executedQuantity,
-      buyPrice: currentPrice
+      buyPrice: currentPrice,
+      timestamp: executedTimestamp
     )
 
     MarketDataServiceUtil.shared.addValidTransactionData(
@@ -236,7 +238,7 @@ enum TradeOrderService {
       marketName: staticData.marketName,
       entryPrice: staticData.averageBuyPrice,
       exitPrice: currentPrice,
-      transactionDate: executedDate,
+      transactionTimestamp: executedTimestamp,
       orderQuantity: executedQuantity,
       pnl: pnl
     )
@@ -257,10 +259,4 @@ enum TradeOrderService {
     )
   }
 
-  private static func formattedDate(_ date: Date) -> String {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "MM.dd HH:mm"
-    formatter.locale = Locale(identifier: "ko_KR")
-    return formatter.string(from: date)
-  }
 }

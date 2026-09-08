@@ -20,6 +20,7 @@ class MobitAlertViewController: UIViewController {
   @IBOutlet weak var cancelButton: UIButton!
   @IBOutlet weak var confirmButton: UIButton!
   @IBOutlet weak var dividerView: UIView!
+  @IBOutlet weak var buttonDividerView: UIView!
   @IBOutlet weak var dimView: UIView!
   
   var callBack: ((Bool) -> ())? = nil
@@ -56,8 +57,21 @@ class MobitAlertViewController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+	applyThemeColors()
+    self.configure(alertType: alertType, title: titleString, content: content, callBack: callBack)
+  }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	applyThemeColors()
+  }
+
+  private func applyThemeColors() {
     self.view.backgroundColor = .clear
-	self.dimView.backgroundColor = UIColor.black.withAlphaComponent(0.35)
+	self.dimView.alpha = 1
+	let dimAlpha: CGFloat = traitCollection.userInterfaceStyle == .dark ? 0.22 : 0.42
+	self.dimView.backgroundColor = UIColor.black.withAlphaComponent(dimAlpha)
 	self.labelStackView.superview?.backgroundColor = .mobitColors(.surfaceElevated)
 	self.labelStackView.backgroundColor = .clear
 	self.labelStackView.arrangedSubviews
@@ -79,8 +93,6 @@ class MobitAlertViewController: UIViewController {
     self.confirmButton.setTitleColor(.mobitColors(.accentPrimary), for: .normal)
 	self.cancelButton.configuration?.baseForegroundColor = MarketColorPalette.fallColor
 	self.confirmButton.configuration?.baseForegroundColor = .mobitColors(.accentPrimary)
-
-    self.configure(alertType: alertType, title: titleString, content: content, callBack: callBack)
   }
   
   func configure(
@@ -96,6 +108,7 @@ class MobitAlertViewController: UIViewController {
 	
 	if alertType == .onlyConfirm {
 	  self.cancelButton.isHidden = true
+	  self.buttonDividerView.isHidden = true
 	}
 	
 	if title == "" {

@@ -23,13 +23,13 @@ class OrderBookCell: UITableViewCell {
   let rootFlexContainer = UIView()
   
   let spaceView: UIView = UIView().then {
-    $0.backgroundColor = .mobitColors(.backgroundPrimary)
+    $0.backgroundColor = .mobitColors(.tradeBackground)
   }
   
   let obPrice: UILabel = UILabel().then {
     $0.text = "0"
     $0.textAlignment = .right
-	$0.textColor = .mobitColors(.textPrimary)
+	$0.textColor = .mobitColors(.tradeTextPrimary)
     $0.font = UIFont.systemFont(ofSize: 12)
     $0.adjustsFontSizeToFitWidth = true
     $0.minimumScaleFactor = 0.3
@@ -38,7 +38,7 @@ class OrderBookCell: UITableViewCell {
   let obChangeRate: UILabel = UILabel().then {
     $0.text = "0.0%"
     $0.textAlignment = .right
-	$0.textColor = .mobitColors(.textPrimary)
+	$0.textColor = .mobitColors(.tradeTextPrimary)
     $0.font = UIFont.systemFont(ofSize: 12)
     $0.adjustsFontSizeToFitWidth = true
     $0.minimumScaleFactor = 0.5
@@ -47,7 +47,7 @@ class OrderBookCell: UITableViewCell {
   let obSizeLabel: UILabel = UILabel().then {
     $0.text = "0.0"
     $0.textAlignment = .left
-	$0.textColor = .mobitColors(.textPrimary)
+	$0.textColor = .mobitColors(.tradeTextPrimary)
     $0.font = UIFont.systemFont(ofSize: 10)
     $0.adjustsFontSizeToFitWidth = true
     $0.minimumScaleFactor = 0.5
@@ -55,7 +55,7 @@ class OrderBookCell: UITableViewCell {
   
   // 잔량 수에 따른 막대 바
   let obBarView: UIView = UIView().then {
-    $0.backgroundColor = .blue.withAlphaComponent(0.5)
+    $0.backgroundColor = .clear
   }
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -85,8 +85,8 @@ class OrderBookCell: UITableViewCell {
   }
   
   func setupViews() {
-    self.backgroundColor = .mobitColors(.backgroundPrimary)
-	self.contentView.backgroundColor = .mobitColors(.backgroundPrimary)
+    self.backgroundColor = .mobitColors(.tradeBackground)
+	self.contentView.backgroundColor = .mobitColors(.tradeBackground)
     self.isHighlighted = false
     self.addSubview(rootFlexContainer)
     
@@ -151,17 +151,20 @@ class OrderBookCell: UITableViewCell {
 	self.obSizeLabel.text = String(obSize.formatSignificantDigits(digits: 10))
     switch obType {
     case .ask:
-      self.backgroundColor = .mobitColors(.askLightBlue)
-      self.obBarView.backgroundColor = .mobitColors(.askDeepBlue)
+	  self.backgroundColor = MarketColorPalette.riseBackgroundColor
+	  self.contentView.backgroundColor = MarketColorPalette.riseBackgroundColor
+	  self.obBarView.backgroundColor = MarketColorPalette.riseBarColor
 	  self.updateObBar(maxSize: askMaxSize, currentSize: obSize)
     case .bid:
-      self.backgroundColor = .mobitColors(.bidLightRed)
-      self.obBarView.backgroundColor = .mobitColors(.bidDeepRed)
+	  self.backgroundColor = MarketColorPalette.fallBackgroundColor
+	  self.contentView.backgroundColor = MarketColorPalette.fallBackgroundColor
+	  self.obBarView.backgroundColor = MarketColorPalette.fallBarColor
 	  self.updateObBar(maxSize: bidMaxSize, currentSize: obSize)
     }
     
     guard let changeRate = changeRate else { return }
     self.obChangeRate.text = "\(changeRate)%"
+	self.obChangeRate.textColor = MarketColorPalette.color(forSignedValue: changeRate)
   }
   
   func formatOrderPrice(_ obPrice: Double?, precision: Int = 8) -> String {

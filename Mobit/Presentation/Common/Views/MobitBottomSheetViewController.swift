@@ -12,9 +12,9 @@ import SnapKit
 class MobitBottomSheetViewController: MobitBaseViewController {
   
     @IBOutlet weak var dimView: UIView!
-    @IBOutlet weak var titleLabel: UILabel!
   @IBOutlet weak var sheetView: UIView!
   @IBOutlet weak var stackView: UIStackView!
+  @IBOutlet weak var confirmButton: UIButton!
   @IBOutlet weak var sheetViewTopConstraint: NSLayoutConstraint!
   var titleString: String
   var contentList: [String]
@@ -22,6 +22,7 @@ class MobitBottomSheetViewController: MobitBaseViewController {
   var sortType: InvestSortType = .name
   var delegate: MobitBottomSheetDelegate?
   var callBack: ((Int) -> ())? = nil
+  private var isDismissing = false
   
   init(
 	titleString: String,
@@ -42,11 +43,11 @@ class MobitBottomSheetViewController: MobitBaseViewController {
   
   override func viewDidLoad() {
 	super.viewDidLoad()
-	self.view.backgroundColor = .clear
-	self.dimView.backgroundColor = UIColor.black.withAlphaComponent(0.35)
-	self.sheetView.backgroundColor = .mobitColors(.surfaceElevated)
-	self.stackView.backgroundColor = .mobitColors(.surfaceElevated)
-	self.titleLabel.textColor = .mobitColors(.textPrimary)
+	applyThemeColors()
+	self.dimView.alpha = 0
+	self.dimView.addGestureRecognizer(
+	  UITapGestureRecognizer(target: self, action: #selector(didTapDimView))
+	)
 	
 	self.sheetView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
 	self.sheetView.layer.cornerRadius = 20
@@ -63,8 +64,6 @@ class MobitBottomSheetViewController: MobitBaseViewController {
 	self.sheetView.layer.shadowRadius = 4
 	self.sheetView.layer.shadowOffset = CGSize(width: 0, height: -4)
 	
-	self.titleLabel.text = self.titleString
-	
 	for (index, title) in self.contentList.enumerated() {
 	  let cell = self.makeCell(sortType: title, index: index)
 	  self.stackView.addArrangedSubview(cell)
@@ -72,19 +71,57 @@ class MobitBottomSheetViewController: MobitBaseViewController {
 	
 	self.stackView.layoutIfNeeded()
   }
+
+  override func viewWillAppear(_ animated: Bool) {
+	super.viewWillAppear(animated)
+	self.view.layoutIfNeeded()
+	self.sheetView.transform = CGAffineTransform(translationX: 0, y: self.sheetView.bounds.height)
+  }
+
+  override func viewDidAppear(_ animated: Bool) {
+	super.viewDidAppear(animated)
+	UIView.animate(
+	  withDuration: UIAccessibility.isReduceMotionEnabled ? 0 : 0.3,
+	  delay: 0,
+	  options: [.curveEaseOut, .beginFromCurrentState]
+	) {
+	  self.dimView.alpha = 1
+	  self.sheetView.transform = .identity
+	}
+  }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	applyThemeColors()
+  }
+
+  private func applyThemeColors() {
+	self.view.backgroundColor = .clear
+	self.dimView.backgroundColor = UIColor.black.withAlphaComponent(0.35)
+	self.sheetView.backgroundColor = .mobitColors(.surfaceElevated)
+	self.stackView.backgroundColor = .mobitColors(.surfaceElevated)
+	self.confirmButton.backgroundColor = MarketColorPalette.riseRedFallBlueFallColor
+	self.stackView.arrangedSubviews.forEach { subview in
+	  subview.backgroundColor = .mobitColors(.surfaceElevated)
+	  subview.subviews.compactMap { $0 as? UILabel }.forEach {
+		$0.textColor = .mobitColors(.textPrimary)
+	  }
+	}
+  }
     
   private func makeCell(sortType: String, index: Int) -> UIView {
-	
-	let onImage: UIImage = UIImage(named: "button_check_on")!
-	let offImage: UIImage = UIImage(named: "button_check_off")!
+	let isSelected = self.sortType.rawValue == sortType
 	let view: UIView = UIView()
 	let label: UILabel = UILabel().then { label in
 	  label.text = sortType
 	  label.textColor = .mobitColors(.textPrimary)
-	  label.font = .systemFont(ofSize: 14, weight: .medium)
+	  label.font = .systemFont(ofSize: 14, weight: .regular)
+	  label.numberOfLines = 0
 	}
 	let imageView: UIImageView = UIImageView().then { imageView in
-	  imageView.image = self.sortType.rawValue == sortType ? onImage : offImage
+	  imageView.image = self.radioImage(isSelected: isSelected)
+	  imageView.tintColor = self.radioColor(isSelected: isSelected)
 	  imageView.contentMode = .scaleAspectFit
 	}
 	let button: UIButton = UIButton()
@@ -102,17 +139,22 @@ class MobitBottomSheetViewController: MobitBaseViewController {
 	
 	label.snp.makeConstraints { make in
 	  make.leading.equalToSuperview()
-	  make.top.bottom.equalToSuperview()
+	  make.top.bottom.equalToSuperview().inset(10)
 	  make.trailing.greaterThanOrEqualTo(imageView.snp.leading).offset(10)
 	}
 	
 	imageView.snp.makeConstraints { make in
-	  make.top.bottom.equalToSuperview()
-	  make.trailing.equalToSuperview()
+	  make.centerY.equalToSuperview()
+	  make.trailing.equalToSuperview().inset(2)
+	  make.size.equalTo(20)
 	}
 	
 	button.snp.makeConstraints { make in
 	  make.top.bottom.leading.trailing.equalToSuperview()
+	}
+
+	view.snp.makeConstraints { make in
+	  make.height.greaterThanOrEqualTo(48)
 	}
 	
 	return view
@@ -121,21 +163,50 @@ class MobitBottomSheetViewController: MobitBaseViewController {
   private func updateCellImages() {
 	for (index, subview) in self.stackView.arrangedSubviews.enumerated() {
 	  guard let imageView = subview.subviews.compactMap({ $0 as? UIImageView }).first else { continue }
-	  imageView.image = index == selectedIndex
-		  ? UIImage(named: "button_check_on")
-		  : UIImage(named: "button_check_off")
+	  let isSelected = index == selectedIndex
+	  imageView.image = self.radioImage(isSelected: isSelected)
+	  imageView.tintColor = self.radioColor(isSelected: isSelected)
 	}
+  }
+
+  private func radioImage(isSelected: Bool) -> UIImage? {
+	let symbolName = isSelected ? "largecircle.fill.circle" : "circle"
+	let configuration = UIImage.SymbolConfiguration(pointSize: 20, weight: .regular)
+	return UIImage(systemName: symbolName, withConfiguration: configuration)
+  }
+
+  private func radioColor(isSelected: Bool) -> UIColor {
+	isSelected ? MarketColorPalette.riseRedFallBlueFallColor : .mobitColors(.borderPrimary)
   }
     
   @objc func buttonTapped(_ sender: UIButton) {
 	self.selectedIndex = sender.tag
 	self.updateCellImages()
   }
+
+  @objc private func didTapDimView() {
+	self.dismissBottomSheet()
+  }
+
+  private func dismissBottomSheet(completion: (() -> Void)? = nil) {
+	guard !self.isDismissing else { return }
+	self.isDismissing = true
+	UIView.animate(
+	  withDuration: UIAccessibility.isReduceMotionEnabled ? 0 : 0.25,
+	  delay: 0,
+	  options: [.curveEaseIn, .beginFromCurrentState]
+	) {
+	  self.dimView.alpha = 0
+	  self.sheetView.transform = CGAffineTransform(translationX: 0, y: self.sheetView.bounds.height)
+	} completion: { _ in
+	  self.dismiss(animated: false, completion: completion)
+	}
+  }
   
   /// 확인 버튼 클릭
   @IBAction func tapOnConfirmButton(_ sender: UIButton) {
 	self.callBack?(self.selectedIndex)
-	self.dismiss(animated: true)
+	self.dismissBottomSheet()
   }
     
 }
@@ -159,6 +230,6 @@ extension MobitBottomSheetDelegate where Self: UIViewController {
 	
 	mobitBottomSheetVC.modalPresentationStyle = .overFullScreen
 	
-	self.present(mobitBottomSheetVC, animated: true, completion: nil)
+	self.present(mobitBottomSheetVC, animated: false, completion: nil)
   }
 }

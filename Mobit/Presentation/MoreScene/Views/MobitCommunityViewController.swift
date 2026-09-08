@@ -26,7 +26,7 @@ class MobitCommunityViewController: UIViewController, UIScrollViewDelegate, Mobi
 	self.configureWebView()
 	self.loadLocalHTML()
   }
-  
+
   override func viewWillDisappear(_ animated: Bool) {
 	super.viewWillDisappear(animated)
 	self.delegate?.mainCoordinatorDidRequestShowTabBar()
@@ -47,6 +47,8 @@ class MobitCommunityViewController: UIViewController, UIScrollViewDelegate, Mobi
 	mobitWebView.uiDelegate = self
 	mobitWebView.scrollView.delegate = self
 	mobitWebView.scrollView.isScrollEnabled = true
+	mobitWebView.backgroundColor = .mobitColors(.backgroundPrimary)
+	mobitWebView.scrollView.backgroundColor = .mobitColors(.backgroundPrimary)
 	
 	self.baseView.addSubview(mobitWebView)
   }
@@ -162,4 +164,3 @@ extension MobitCommunityViewController: WKUIDelegate {
 	return nil
   }
 }
-

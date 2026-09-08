@@ -23,11 +23,11 @@
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="TAGS" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="azW-ty-C2o">
                                 <rect key="frame" x="10" y="10" width="183" height="25"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <nil key="textColor"/>
+                                <color key="textColor" name="trade_text_secondary"/>
                                 <nil key="highlightedColor"/>
                             </label>
                         </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <color key="backgroundColor" name="trade_control_surface"/>
                         <constraints>
                             <constraint firstItem="azW-ty-C2o" firstAttribute="top" secondItem="jgJ-AB-nTR" secondAttribute="top" constant="10" id="2Mx-82-f2O"/>
                             <constraint firstItem="azW-ty-C2o" firstAttribute="leading" secondItem="jgJ-AB-nTR" secondAttribute="leading" constant="10" id="SgT-v2-tiL"/>
@@ -51,4 +51,12 @@
             <point key="canvasLocation" x="208.3969465648855" y="11.267605633802818"/>
         </collectionViewCell>
     </objects>
+    <resources>
+        <namedColor name="trade_control_surface">
+            <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="trade_text_secondary">
+            <color red="0.33333333333333331" green="0.33333333333333331" blue="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
 </document>

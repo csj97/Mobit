@@ -23,15 +23,18 @@ final class TradeOrderServiceTests: XCTestCase {
   }
 
   func testExecuteBidCreatesFirstHolding() throws {
+    let executedAt = makeDate(year: 2026, month: 7, day: 31, hour: 13, minute: 49)
     let result = TradeOrderService.executeBid(
       marketName: "BTC/KRW",
       cryptoName: "비트코인",
       currentPrice: 1_000,
-      quantity: 2
+      quantity: 2,
+      executedAt: executedAt
     )
 
     let execution = try result.get()
     let crypto = try XCTUnwrap(UserDataManager.userCryptoList?.first)
+    let transaction = try XCTUnwrap(UserDataManager.userTransactionList?.first)
 
     XCTAssertEqual(execution.executedAmount, 2_000)
     XCTAssertEqual(UserDataManager.userInformation?.userAvailableBalance, 8_000)
@@ -40,6 +43,8 @@ final class TradeOrderServiceTests: XCTestCase {
     XCTAssertEqual(crypto.staticData.buyAmount, 2_000)
     XCTAssertEqual(UserDataManager.userTransactionList?.count, 1)
     XCTAssertEqual(UserDataManager.userValidTransactionList?.count, 1)
+    XCTAssertEqual(transaction.executedTimestamp, TradeTimestampFormatter.timestamp(from: executedAt))
+    XCTAssertEqual(transaction.executedDate, "2026.07.31 13:49")
   }
 
   func testExecuteBidRejectsBelowMinimumAmountWithoutMutatingState() {
@@ -105,15 +110,18 @@ final class TradeOrderServiceTests: XCTestCase {
       quantity: 3
     )
 
+    let executedAt = makeDate(year: 2026, month: 8, day: 1, hour: 9, minute: 5)
     let result = TradeOrderService.executeAsk(
       marketName: "BTC/KRW",
       currentPrice: 1_500,
-      quantity: 1
+      quantity: 1,
+      executedAt: executedAt
     )
 
     let execution = try result.get()
     let crypto = try XCTUnwrap(UserDataManager.userCryptoList?.first)
     let pnl = try XCTUnwrap(UserDataManager.userPNLHistory?.first)
+    let sellTransaction = try XCTUnwrap(UserDataManager.userTransactionList?.last)
 
     XCTAssertEqual(execution.executedAmount, 1_500)
     XCTAssertEqual(UserDataManager.userInformation?.userAvailableBalance, 8_500)
@@ -121,6 +129,10 @@ final class TradeOrderServiceTests: XCTestCase {
     XCTAssertEqual(crypto.staticData.buyAmount, 2_000)
     XCTAssertEqual(pnl.pnl, 500)
     XCTAssertEqual(UserDataManager.userTransactionList?.count, 2)
+    XCTAssertEqual(sellTransaction.executedTimestamp, TradeTimestampFormatter.timestamp(from: executedAt))
+    XCTAssertEqual(sellTransaction.executedDate, "2026.08.01 09:05")
+    XCTAssertEqual(pnl.transactionTimestamp, TradeTimestampFormatter.timestamp(from: executedAt))
+    XCTAssertEqual(pnl.transactionDate, "2026.08.01 09:05")
   }
 
   func testExecuteAskRejectsMissingHoldingWithoutMutatingState() {
@@ -261,6 +273,75 @@ final class TradeOrderServiceTests: XCTestCase {
     XCTAssertEqual(UserDataManager.userInformation(for: .upbit)?.userAvailableBalance, 0)
   }
 
+  func testExchangeAuditKeepsHoldingsHistoryAndBalancesSeparate() throws {
+    for exchange in [Exchange.upbit, .bithumb] {
+      UserDataManager.updateUserInformation(MobitUserInformation(userAvailableBalance: 10_000), for: exchange)
+      _ = try TradeOrderService.executeBid(
+        marketName: "ETH/KRW", cryptoName: "이더리움", currentPrice: 1_000,
+        quantity: 2, exchange: exchange
+      ).get()
+      _ = try TradeOrderService.executeAsk(
+        marketName: "ETH/KRW", currentPrice: 1_500, quantity: 1, exchange: exchange
+      ).get()
+    }
+    for exchange in [Exchange.upbit, .bithumb] {
+      let holding = try XCTUnwrap(UserDataManager.userCryptoList?.first { $0.staticData.exchange == exchange })
+      XCTAssertEqual(holding.staticData.holdingQuantity, 1)
+      XCTAssertEqual(holding.staticData.buyAmount, 1_000)
+      XCTAssertEqual(holding.dynamicData.evaluationPrice, 1_500)
+      XCTAssertEqual(UserDataManager.userInformation(for: exchange)?.userAvailableBalance, 9_500)
+      XCTAssertEqual(UserDataManager.userTransactionList?.filter { $0.exchange == exchange }.count, 2)
+      XCTAssertEqual(UserDataManager.userPNLHistory?.first { $0.exchange == exchange }?.pnl, 500)
+    }
+  }
+
+  func testExchangeAuditCostBasisRemainsConsistentAfterPartialSaleAndRebuy() throws {
+    for exchange in [Exchange.upbit, .bithumb] {
+      ExchangeSelectionStore.currentExchange = exchange
+      UserDataManager.resetInvestmentData(availableBalance: 10_000)
+      for price in [1_000.0, 2_000.0] {
+        _ = try TradeOrderService.executeBid(
+          marketName: "ETH/KRW", cryptoName: "이더리움", currentPrice: price,
+          quantity: 1, exchange: exchange
+        ).get()
+      }
+      _ = try TradeOrderService.executeAsk(
+        marketName: "ETH/KRW", currentPrice: 2_000, quantity: 1, exchange: exchange
+      ).get()
+      _ = try TradeOrderService.executeBid(
+        marketName: "ETH/KRW", cryptoName: "이더리움", currentPrice: 2_000,
+        quantity: 1, exchange: exchange
+      ).get()
+      let holding = try XCTUnwrap(UserDataManager.userCryptoList?.first)
+      XCTExpectFailure("\(exchange.rawValue): FIFO 잔여 매수내역과 유지된 평균단가가 재매수 시 혼합됨") {
+        XCTAssertEqual(
+          holding.staticData.buyAmount,
+          holding.staticData.averageBuyPrice * holding.staticData.holdingQuantity,
+          accuracy: 0.000001
+        )
+      }
+    }
+  }
+
+  func testExchangeAuditRejectsOrderWhenStoredHoldingsCannotBeDecoded() throws {
+    for exchange in [Exchange.upbit, .bithumb] {
+      ExchangeSelectionStore.currentExchange = exchange
+      UserDataManager.resetInvestmentData(availableBalance: 10_000)
+      let corruptedData = Data("invalid-json".utf8)
+      UserDefaults.standard.set(corruptedData, forKey: UserDataManager.Keys.userCryptoList)
+      let result = TradeOrderService.executeBid(
+        marketName: "ETH/KRW", cryptoName: "이더리움", currentPrice: 1_000,
+        quantity: 1, exchange: exchange
+      )
+      XCTExpectFailure("\(exchange.rawValue): 보유 데이터 디코딩 실패에도 잔고 차감과 성공 반환이 진행됨") {
+        if case .success = result { XCTFail("손상된 보유 데이터에서 주문이 성공함") }
+        XCTAssertEqual(UserDataManager.userInformation(for: exchange)?.userAvailableBalance, 10_000)
+        XCTAssertEqual(UserDataManager.userTransactionList?.count, 0)
+      }
+      XCTAssertEqual(UserDefaults.standard.data(forKey: UserDataManager.Keys.userCryptoList), corruptedData)
+    }
+  }
+
   private func clearUserDefaults() {
     [
       UserDataManager.Keys.isFirstLaunch,
@@ -274,6 +355,24 @@ final class TradeOrderServiceTests: XCTestCase {
     ].forEach {
       UserDefaults.standard.removeObject(forKey: $0)
     }
+  }
+
+  private func makeDate(
+    year: Int,
+    month: Int,
+    day: Int,
+    hour: Int,
+    minute: Int
+  ) -> Date {
+    var components = DateComponents()
+    components.calendar = Calendar(identifier: .gregorian)
+    components.timeZone = TimeZone(identifier: "Asia/Seoul")
+    components.year = year
+    components.month = month
+    components.day = day
+    components.hour = hour
+    components.minute = minute
+    return components.date!
   }
 }
 

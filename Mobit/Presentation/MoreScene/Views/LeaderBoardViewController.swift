@@ -29,6 +29,8 @@ class LeaderBoardViewController: MobitBaseViewController, WKNavigationDelegate {
   }
   
   func setUI() {
+	// scrollView 배경은 XIB로 지정할 수 없어 코드에서 맞춘다
+	webView.scrollView.backgroundColor = .mobitColors(.backgroundPrimary)
   }
   
   func setData() {
@@ -71,4 +73,3 @@ class LeaderBoardViewController: MobitBaseViewController, WKNavigationDelegate {
 	}
   }
 }
-

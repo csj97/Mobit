@@ -32,12 +32,12 @@ MOBIT에 대한 관심과 이용에 진심으로 감사드립니다.
 
 감사합니다.</string>
                     <fontDescription key="fontDescription" type="system" weight="medium" pointSize="16"/>
-                    <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    <color key="textColor" name="text_secondary"/>
                     <nil key="highlightedColor"/>
                 </label>
                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="m8G-fJ-LYp">
                     <rect key="frame" x="20" y="716" width="353" height="52"/>
-                    <color key="backgroundColor" red="0.55686277149999996" green="0.52941179279999995" blue="0.91764706370000004" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                    <color key="backgroundColor" name="notice_update_button"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="52" id="sBQ-FS-u9t"/>
                     </constraints>
@@ -54,7 +54,7 @@ MOBIT에 대한 관심과 이용에 진심으로 감사드립니다.
                 </button>
             </subviews>
             <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
-            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+            <color key="backgroundColor" name="background_primary"/>
             <constraints>
                 <constraint firstItem="ieu-Hv-hll" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="40" id="1NQ-El-k9D"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="m8G-fJ-LYp" secondAttribute="trailing" constant="20" id="IbB-mq-Wbw"/>
@@ -67,8 +67,14 @@ MOBIT에 대한 관심과 이용에 진심으로 감사드립니다.
         </view>
     </objects>
     <resources>
-        <systemColor name="systemBackgroundColor">
-            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-        </systemColor>
+        <namedColor name="background_primary">
+            <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="notice_update_button">
+            <color red="0.55686277149999996" green="0.52941179279999995" blue="0.91764706370000004" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+        </namedColor>
+        <namedColor name="text_secondary">
+            <color red="0.33333333333333331" green="0.33333333333333331" blue="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
     </resources>
 </document>

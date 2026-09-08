@@ -36,28 +36,24 @@ class MoreViewController: MobitBaseViewController {
 	self.navigationController?.navigationBar.isHidden = true
 	self.view.backgroundColor = .mobitColors(.backgroundPrimary)
 	self.naviBar.backgroundColor = .mobitColors(.surfacePrimary)
-	self.naviBar.layer.applyShadow(color: .mobitColors(.borderPrimary), alpha: 0.3, x: 0, y: 10, blur: 20)
-	self.applyTheme(to: self.view)
+	self.updateResolvedColors()
 	self.expandSettingsRowTouchArea()
   }
 
-  private func applyTheme(to view: UIView) {
-	if view !== self.view && view !== self.naviBar && view.backgroundColor != .clear {
-	  view.backgroundColor = .mobitColors(.surfacePrimary)
-	}
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	updateResolvedColors()
+  }
 
-	if let label = view as? UILabel {
-	  label.textColor = label === self.versionLabel
-		? .mobitColors(.textTertiary)
-		: .mobitColors(.textPrimary)
-	}
-
-	if let button = view as? UIButton {
-	  button.tintColor = .mobitColors(.textPrimary)
-	  button.setTitleColor(.mobitColors(.textPrimary), for: .normal)
-	}
-
-	view.subviews.forEach { self.applyTheme(to: $0) }
+  private func updateResolvedColors() {
+	self.naviBar.layer.applyShadow(
+	  color: UIColor.mobitColors(.borderPrimary).resolvedColor(with: traitCollection),
+	  alpha: 0.3,
+	  x: 0,
+	  y: 10,
+	  blur: 20
+	)
   }
 
   /// "설정" 행 전체를 터치 영역으로 만든다 (행 위에 투명 버튼을 덮음)
@@ -252,16 +248,9 @@ private final class AppSettingsViewController: UIViewController {
 	self.appThemeTitleLabel.numberOfLines = 0
 
 	self.appThemeSegmentedControl.selectedSegmentIndex = self.segmentIndex(for: self.pendingAppTheme)
-	self.appThemeSegmentedControl.selectedSegmentTintColor = .mobitColors(.accentPrimary)
+	self.appThemeSegmentedControl.selectedSegmentTintColor = .mobitColors(.segmentSelected)
 	self.appThemeSegmentedControl.backgroundColor = .mobitColors(.surfacePrimary)
-	self.appThemeSegmentedControl.setTitleTextAttributes(
-	  [.foregroundColor: UIColor.mobitColors(.textSecondary)],
-	  for: .normal
-	)
-	self.appThemeSegmentedControl.setTitleTextAttributes(
-	  [.foregroundColor: UIColor.white],
-	  for: .selected
-	)
+	self.updateSegmentedControlColors()
 
 	// 캔들 색상 섹션 헤더
 	self.descriptionLabel.text = "캔들 색상"
@@ -338,7 +327,7 @@ private final class AppSettingsViewController: UIViewController {
 	self.appThemeSegmentedControl.snp.makeConstraints { make in
 	  make.top.equalTo(self.appThemeTitleLabel.snp.bottom).offset(10)
 	  make.leading.trailing.equalToSuperview().inset(20)
-	  make.height.equalTo(34)
+	  make.height.equalTo(44)
 	}
 
 	self.descriptionLabel.snp.makeConstraints { make in
@@ -547,6 +536,25 @@ private final class AppSettingsViewController: UIViewController {
 	  .flatMap { $0.windows }
 	  .forEach { $0.overrideUserInterfaceStyle = theme.userInterfaceStyle }
   }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	updateSegmentedControlColors()
+  }
+
+  private func updateSegmentedControlColors() {
+	self.appThemeSegmentedControl.selectedSegmentTintColor = .mobitColors(.segmentSelected)
+	self.appThemeSegmentedControl.backgroundColor = .mobitColors(.surfacePrimary)
+	self.appThemeSegmentedControl.setTitleTextAttributes(
+	  [.foregroundColor: UIColor.mobitColors(.textSecondary)],
+	  for: .normal
+	)
+	self.appThemeSegmentedControl.setTitleTextAttributes(
+	  [.foregroundColor: UIColor.mobitColors(.textPrimary)],
+	  for: .selected
+	)
+  }
 }
 
 private final class MarketColorThemeOptionView: UIControl {
@@ -665,17 +673,23 @@ private final class MarketColorThemeOptionView: UIControl {
   private func updateSelectionStyle() {
 	if self.isSelectedTheme {
 	  self.cardView.layer.borderWidth = 1.5
-	  self.cardView.layer.borderColor = UIColor.mobitColors(.accentPrimary).cgColor
+	  self.cardView.layer.borderColor = UIColor.mobitColors(.accentPrimary).resolvedColor(with: traitCollection).cgColor
 	  self.cardView.backgroundColor = UIColor.mobitColors(.blue_E8F9FF)
-	  self.radioOuterView.layer.borderColor = UIColor.mobitColors(.accentPrimary).cgColor
+	  self.radioOuterView.layer.borderColor = UIColor.mobitColors(.accentPrimary).resolvedColor(with: traitCollection).cgColor
 	  self.radioInnerView.backgroundColor = .mobitColors(.accentPrimary)
 	} else {
 	  self.cardView.layer.borderWidth = 0
 	  self.cardView.layer.borderColor = UIColor.clear.cgColor
 	  self.cardView.backgroundColor = .mobitColors(.surfacePrimary)
-	  self.radioOuterView.layer.borderColor = UIColor.mobitColors(.borderPrimary).cgColor
+	  self.radioOuterView.layer.borderColor = UIColor.mobitColors(.borderPrimary).resolvedColor(with: traitCollection).cgColor
 	  self.radioInnerView.backgroundColor = .clear
 	}
+  }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	updateSelectionStyle()
   }
   
   override var intrinsicContentSize: CGSize {

@@ -17,6 +17,8 @@ class TradeAverageCalcView: UIView {
   @IBOutlet weak var newBuyPriceTextField: UITextField!
   @IBOutlet weak var newBuyQuantitySymbolLabel: UILabel!
   @IBOutlet weak var newBuyAveragePriceCurrencyLabel: UILabel!
+  @IBOutlet weak var calcButton: UIButton!
+  @IBOutlet weak var closeButton: UIButton!
     
   
   private var holdingQuantity: Double?
@@ -59,39 +61,91 @@ class TradeAverageCalcView: UIView {
 	
 	return selfView
   }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	applyThemeColors()
+	updateHoldingSummaryText()
+  }
   
   func configure() {
 	
   }
   
   func setUI() {
-	self.newBuyQuantityTextField.setAdaptivePlaceholderColor()
-	self.newBuyPriceTextField.setAdaptivePlaceholderColor()
-	self.backgroundColor = .mobitColors(.backgroundPrimary)
-	self.calcResultView.backgroundColor = .mobitColors(.surfacePrimary)
-	[
+	applyThemeColors()
+
+	self.calcResultView.isHidden = true
+	self.newBuyQuantitySymbolLabel.isHidden = true
+	self.newBuyAveragePriceCurrencyLabel.isHidden = true
+
+	updateHoldingSummaryText()
+  }
+
+  private func applyThemeColors() {
+	self.backgroundColor = .mobitColors(.tradeBackground)
+	self.tintColor = .mobitColors(.tradeTextSecondary)
+	self.calcResultView.backgroundColor = .mobitColors(.tradeSurface)
+
+	let primaryLabels = [
 	  self.averageResultLabel,
 	  self.holdingQuantityLabel,
 	  self.holdingAverageLabel,
 	  self.newBuyQuantitySymbolLabel,
 	  self.newBuyAveragePriceCurrencyLabel
-	].forEach { $0?.textColor = .mobitColors(.textPrimary) }
-	[self.newBuyQuantityTextField, self.newBuyPriceTextField].forEach { textField in
-	  textField?.textColor = .mobitColors(.textPrimary)
-	  textField?.backgroundColor = .mobitColors(.surfacePrimary)
+	]
+	primaryLabels.forEach {
+	  $0?.backgroundColor = .clear
+	  $0?.textColor = .mobitColors(.tradeTextPrimary)
 	}
-	
-	self.calcResultView.isHidden = true
-	self.newBuyQuantitySymbolLabel.isHidden = true
-	self.newBuyAveragePriceCurrencyLabel.isHidden = true
-	
+
+	let inputFields = [
+	  self.newBuyQuantityTextField,
+	  self.newBuyPriceTextField
+	]
+	inputFields.forEach {
+	  $0?.backgroundColor = .clear
+	  $0?.textColor = .mobitColors(.tradeTextPrimary)
+	  $0?.tintColor = .mobitColors(.accentPrimary)
+	  $0?.setAdaptivePlaceholderColor()
+	}
+
+	self.calcButton.setTitleColor(.white, for: .normal)
+	self.closeButton.tintColor = .mobitColors(.tradeTextSecondary)
+  }
+
+  private func updateHoldingSummaryText() {
 	guard let holdingQuantity = self.holdingQuantity?.formatSignificantDigits(digits: 2),
 		  let holdingAverage = self.holdingAverage,
 		  let cryptoSymbol = self.cryptoSymbol else { return }
-	
+
 	self.newBuyQuantityTextField.placeholder = "0 \(cryptoSymbol)"
-	self.holdingQuantityLabel.attributedText = "\(holdingQuantity) \(cryptoSymbol)".highlightTexts(fontSize: 16, texts: [cryptoSymbol])
-	self.holdingAverageLabel.attributedText = "\(holdingAverage) KRW".highlightTexts(fontSize: 16, texts: ["KRW"])
+	self.newBuyQuantityTextField.setAdaptivePlaceholderColor()
+	self.holdingQuantityLabel.attributedText = makeHighlightedText("\(holdingQuantity) \(cryptoSymbol)", highlights: [cryptoSymbol])
+	self.holdingAverageLabel.attributedText = makeHighlightedText("\(holdingAverage) KRW", highlights: ["KRW"])
+  }
+
+  private func makeHighlightedText(_ text: String, highlights: [String]) -> NSMutableAttributedString {
+	let attributed = NSMutableAttributedString(
+	  string: text,
+	  attributes: [
+		.foregroundColor: UIColor.mobitColors(.tradeTextSecondary)
+	  ]
+	)
+	let source = text as NSString
+	for highlight in highlights {
+	  let range = source.range(of: highlight)
+	  guard range.location != NSNotFound else { continue }
+	  attributed.addAttributes(
+		[
+		  .foregroundColor: UIColor.mobitColors(.tradeTextPrimary),
+		  .font: UIFont.systemFont(ofSize: 16, weight: .semibold)
+		],
+		range: range
+	  )
+	}
+	return attributed
   }
   
   func setData() {

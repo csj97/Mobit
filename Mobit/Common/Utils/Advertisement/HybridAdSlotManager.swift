@@ -2,7 +2,7 @@
 //  HybridAdSlotManager.swift
 //  Mobit
 //
-//  Created by Codex on 4/9/26.
+//  Created by 조성재 on 4/9/26.
 //
 
 import Foundation

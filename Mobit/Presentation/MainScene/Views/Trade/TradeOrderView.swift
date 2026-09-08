@@ -23,6 +23,7 @@ class TradeOrderView: UIView, ViewRule {
   @IBOutlet weak var cryptoEvalLoss: UILabel!
   @IBOutlet weak var cryptoProfitRate: UILabel!
   @IBOutlet weak var investLiveView: UIView!
+  @IBOutlet weak var averagePriceCalculatorButton: UIButton!
     
   var disposeBag = DisposeBag()
   var dataSource: UITableViewDiffableDataSource<TableViewSection, OrderUnit>?
@@ -72,18 +73,54 @@ class TradeOrderView: UIView, ViewRule {
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
 	self.endEditing(true)
   }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	applyThemeColors()
+	orderbookTableView.reloadData()
+  }
   
   func setUI() {
-	
 	guard let reactor = self.reactor else { return }
-	self.backgroundColor = .mobitColors(.backgroundPrimary)
-	self.segmentedContainerView.backgroundColor = .mobitColors(.backgroundPrimary)
-	self.investLiveView.backgroundColor = .mobitColors(.surfacePrimary)
+	self.applyThemeColors()
+	buildOrderSubViews(reactor: reactor)
+  }
+
+  private func applyThemeColors() {
+	self.backgroundColor = .mobitColors(.tradeBackground)
+	self.segmentedContainerView.backgroundColor = .clear
+	self.segmentedContainerStackView.backgroundColor = .clear
+	self.investLiveView.backgroundColor = .clear
+	self.applyCalculatorButtonColor()
 	[
 	  self.cryptoAveragePrice,
 	  self.cryptoHoldingQuantity,
 	  self.cryptoEvalPrice
-	].forEach { $0?.textColor = .mobitColors(.textPrimary) }
+	].forEach { $0?.textColor = .mobitColors(.tradeTextPrimary) }
+	self.orderbookTableView.backgroundColor = .clear
+	if let cryptoInvestData {
+	  setInvestLiveData(data: cryptoInvestData)
+	}
+  }
+
+  // 계산기 아이콘 색상
+  private func applyCalculatorButtonColor() {
+	let image = UIImage(named: "calculator")?.withRenderingMode(.alwaysTemplate)
+	self.averagePriceCalculatorButton.setImage(image, for: .normal)
+	self.averagePriceCalculatorButton.tintColor = .mobitColors(.tradeTextSecondary)
+  }
+
+  func refreshMarketColors() {
+	applyThemeColors()
+	segmentedControl.refreshMarketColors()
+	bidView?.refreshMarketColors()
+	askView?.refreshMarketColors()
+	orderbookTableView.reloadData()
+	historyView?.updateHistory()
+  }
+
+  private func buildOrderSubViews(reactor: TradeReactor) {
 	historyView = TradeHistoryView.instanceFromNib(reactor: reactor) { }
 	bidView = TradeBidView.instanceFromNib(
 	  reactor: reactor,
@@ -167,6 +204,7 @@ class TradeOrderView: UIView, ViewRule {
 	self.segmentedControl.selectedIndex = 0
 	self.segmentedControl.onSegmentChanged?(0)
   }
+
   
   func setData() {
     guard let reactor = self.reactor else { return }
