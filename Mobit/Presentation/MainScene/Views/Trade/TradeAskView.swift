@@ -23,6 +23,7 @@ class TradeAskView: UIView, ViewRule {
   @IBOutlet weak var resetButton: UIButton!
   @IBOutlet weak var maxAmountButton: UIButton!
   @IBOutlet weak var orderNoticeLabel: UILabel!
+  @IBOutlet var settlementCurrencyLabels: [UILabel]!
 
   weak var reactor: TradeReactor? = nil
   var callBack: ((OrderResult) -> ())? = nil
@@ -40,6 +41,12 @@ class TradeAskView: UIView, ViewRule {
   var askCryptoIndex: Int? = nil
   private var currentInvestData: CryptoTransactionDataModel? = nil
   private let defaultOrderNotice = "*시장가 주문은 현재 시장 유동성에 따라\n체결 가격이 달라질 수 있습니다."
+  private var isOrderSubmissionLocked = false
+
+  /// BTC 마켓은 매도 대금을 원화가 아닌 BTC로 받는다.
+  private var settlementCurrency: SettlementCurrency {
+    self.reactor?.settlementCurrency ?? .krw
+  }
 
   deinit {
 	print("deinit : \(String(describing: type(of: self)))")
@@ -88,7 +95,9 @@ class TradeAskView: UIView, ViewRule {
 	let marketName = self.reactor?.selectCrypto.market.components(separatedBy: "/").first
 	self.marketNameLabels.forEach({ $0.text = marketName })
 	self.inputTradeAmount.keyboardType = .decimalPad
-	self.totalPriceTextField.keyboardType = .numberPad
+	// BTC 마켓은 총액도 소수라 정수 키패드로는 입력할 수 없다.
+	self.totalPriceTextField.keyboardType = self.settlementCurrency == .krw ? .numberPad : .decimalPad
+	self.settlementCurrencyLabels?.forEach { $0.text = self.settlementCurrency.rawValue }
 
 	self.updateOrderValidationState()
   }
@@ -197,14 +206,22 @@ class TradeAskView: UIView, ViewRule {
 	  return
 	}
 
-	let krwAvailablePrice = currentPrice * crypto.staticData.holdingQuantity
+	let availableSettlementAmount = PortfolioCalculator.executedAmount(
+	  price: currentPrice,
+	  quantity: crypto.staticData.holdingQuantity,
+	  currency: self.settlementCurrency
+	)
 	self.availableCryptoCount = crypto.staticData.holdingQuantity
 	self.availableCrypto.text = String(self.availableCryptoCount.formatSignificantDigits())
-	self.availableTradePrice.text = "≈ " + floor(krwAvailablePrice).formatSignificantDigits()
+	self.availableTradePrice.text = "≈ " + availableSettlementAmount.formatSignificantDigits()
 
 	if self.inputAmount > 0 {
-	  let totalPriceFromInputAmount = currentPrice * self.inputAmount
-	  self.totalPriceTextField.text = floor(totalPriceFromInputAmount).formatSignificantDigits()
+	  let totalPriceFromInputAmount = PortfolioCalculator.executedAmount(
+		price: currentPrice,
+		quantity: self.inputAmount,
+		currency: self.settlementCurrency
+	  )
+	  self.totalPriceTextField.text = totalPriceFromInputAmount.formatSignificantDigits()
 	} else {
 	  self.totalPriceTextField.text = "0"
 	}
@@ -220,7 +237,7 @@ class TradeAskView: UIView, ViewRule {
     guard let targetPairID = self.reactor.map({
       ExchangeMarketCodeConverter.pairID(
         fromDisplayMarket: $0.selectCrypto.market,
-        exchange: ExchangeSelectionStore.currentExchange
+        exchange: $0.exchange
       )
     }) else { return }
 	guard let availableCrypto = UserDataManager.userCryptoList?
@@ -229,10 +246,14 @@ class TradeAskView: UIView, ViewRule {
 		  let currentPrice = self.cryptoInfo?.tradePrice
 	else { return }
 
-	let krwAvailablePrice = currentPrice * availableCrypto.staticData.holdingQuantity
+	let availableSettlementAmount = PortfolioCalculator.executedAmount(
+	  price: currentPrice,
+	  quantity: availableCrypto.staticData.holdingQuantity,
+	  currency: self.settlementCurrency
+	)
 	self.inputTradeAmount.text = String(availableCrypto.staticData.holdingQuantity.formatSignificantDigits())
 	self.inputAmount = availableCrypto.staticData.holdingQuantity
-	self.totalPriceTextField.text = floor(krwAvailablePrice).formatSignificantDigits()
+	self.totalPriceTextField.text = availableSettlementAmount.formatSignificantDigits()
 	self.updateOrderValidationState()
   }
 
@@ -242,6 +263,13 @@ class TradeAskView: UIView, ViewRule {
   }
 
   @IBAction func tapOnAskButton(_ sender: UIButton) {
+	guard !isOrderSubmissionLocked else { return }
+	isOrderSubmissionLocked = true
+	updateOrderValidationState()
+	DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+	  self?.isOrderSubmissionLocked = false
+	  self?.updateOrderValidationState()
+	}
 	self.endEditing(true)
 
 	let vibrator = UIImpactFeedbackGenerator(style: .medium)
@@ -251,7 +279,7 @@ class TradeAskView: UIView, ViewRule {
           let targetPairID = self.reactor.map({
             ExchangeMarketCodeConverter.pairID(
               fromDisplayMarket: $0.selectCrypto.market,
-              exchange: ExchangeSelectionStore.currentExchange
+              exchange: $0.exchange
             )
           }),
 		  let crypto = UserDataManager.userCryptoList?.compactMap({ $0 }).first(
@@ -265,7 +293,8 @@ class TradeAskView: UIView, ViewRule {
 	let validation = TradeOrderValidator.validateAsk(
 	  price: currentPrice,
 	  quantity: inputAmount,
-	  holdingQuantity: crypto.staticData.holdingQuantity
+	  holdingQuantity: crypto.staticData.holdingQuantity,
+	  currency: self.settlementCurrency
 	)
 
 	guard case .success = validation else {
@@ -277,9 +306,10 @@ class TradeAskView: UIView, ViewRule {
 
 	let result = TradeOrderService.executeAsk(
 	  marketName: crypto.staticData.marketName,
-	  currentPrice: currentPrice,
+      currentPrice: currentPrice,
 	  quantity: inputAmount,
-      exchange: crypto.staticData.exchange
+      exchange: crypto.staticData.exchange,
+      btcKRWPrice: AppDataManager.shared.btcKRWPrice(for: crypto.staticData.exchange)
 	)
 
 	switch result {
@@ -313,15 +343,31 @@ class TradeAskView: UIView, ViewRule {
   }
 
   private func updateOrderValidationState() {
+	guard !isOrderSubmissionLocked else {
+	  applyOrderButtonState(isEnabled: false, notice: defaultOrderNotice, isError: false)
+	  return
+	}
 	guard inputAmount > 0 else {
 	  applyOrderButtonState(isEnabled: false, notice: defaultOrderNotice, isError: false)
+	  return
+	}
+
+	// BTC 마켓은 매도 대금으로 받는 BTC의 원화 취득원가를 계산해야 하므로 시세가 필요하다.
+	if settlementCurrency == .btc,
+       reactor.map({ AppDataManager.shared.btcKRWPrice(for: $0.exchange) }) == nil {
+	  applyOrderButtonState(
+		isEnabled: false,
+		notice: TradeOrderValidator.ValidationError.missingSettlementRate.message,
+		isError: true
+	  )
 	  return
 	}
 
 	let validation = TradeOrderValidator.validateAsk(
 	  price: cryptoInfo?.tradePrice?.formatDigits(digits: 8),
 	  quantity: inputAmount,
-	  holdingQuantity: currentInvestData?.staticData.holdingQuantity ?? 0
+	  holdingQuantity: currentInvestData?.staticData.holdingQuantity ?? 0,
+	  currency: self.settlementCurrency
 	)
 
 	switch validation {
@@ -356,12 +402,21 @@ class TradeAskView: UIView, ViewRule {
 		guard let self = self else { return }
         let targetPairID = ExchangeMarketCodeConverter.pairID(
           fromDisplayMarket: reactor.selectCrypto.market,
-          exchange: ExchangeSelectionStore.currentExchange
+          exchange: reactor.exchange
         )
 		self.currentInvestData = cryptos.first(where: {
 		  $0.staticData.exchangePairID == targetPairID
 		})
 		self.updateCryptoData()
+	  })
+	  .disposed(by: self.disposeBag)
+
+	// BTC/KRW 시세가 뒤늦게 도착하면 잠겨 있던 주문 버튼을 풀어야 한다.
+	reactor.state.map { $0.settlementRatePrice }
+	  .distinctUntilChanged()
+	  .observe(on: MainScheduler.instance)
+	  .subscribe(onNext: { [weak self] _ in
+		self?.updateOrderValidationState()
 	  })
 	  .disposed(by: self.disposeBag)
   }
@@ -396,7 +451,11 @@ extension TradeAskView: UITextFieldDelegate {
 
 	case .amount:
 	  let inputAmount = textField.text?.digitsOnlyDouble ?? 0
-	  let totalPrice = floor(currentPrice * inputAmount)
+	  let totalPrice = PortfolioCalculator.executedAmount(
+		price: currentPrice,
+		quantity: inputAmount,
+		currency: self.settlementCurrency
+	  )
 	  self.totalPriceTextField.text = totalPrice.formatSignificantDigits()
 	  self.inputAmount = inputAmount
 	  self.totalPrice = totalPrice

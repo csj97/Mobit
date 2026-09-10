@@ -86,7 +86,7 @@ class TradeHistoryView: UIView, ViewRule {
     guard let selectMarket = self.reactor?.selectCrypto.market else { return }
     let targetPairID = ExchangeMarketCodeConverter.pairID(
       fromDisplayMarket: selectMarket,
-      exchange: ExchangeSelectionStore.currentExchange
+      exchange: self.reactor?.exchange ?? ExchangeSelectionStore.currentExchange
     )
 	guard let transaction = UserDataManager.userTransactionList?.filter({
 			$0.exchangePairID == targetPairID

@@ -18,6 +18,7 @@ class TradeChartView: UIView, WKScriptMessageHandler {
   @IBOutlet weak var webView: WKWebView!
     
   var symbol: String? = nil
+  var exchange: Exchange = .upbit
   var html: String? = nil
   var javascriptBridgeInterfaceName = "MobitTradingViewChart"
   private var chartSettings = UserDataManager.tradingViewChartSettings
@@ -27,7 +28,8 @@ class TradeChartView: UIView, WKScriptMessageHandler {
   }
   
   static func instanceFromNib(
-    symbol: String
+    symbol: String,
+    exchange: Exchange
   ) -> TradeChartView {
     
     let selfView = UINib(
@@ -42,6 +44,7 @@ class TradeChartView: UIView, WKScriptMessageHandler {
     }
     
     selfView.symbol = symbol
+    selfView.exchange = exchange
     selfView.configure()
     
     return selfView
@@ -181,7 +184,7 @@ class TradeChartView: UIView, WKScriptMessageHandler {
   private func tradingViewSymbol(symbol: String?) -> String {
 	MarketFormat.tradingViewSymbol(
 	  fromDisplayMarket: symbol,
-	  exchange: ExchangeSelectionStore.currentExchange
+	  exchange: self.exchange
 	)
   }
   

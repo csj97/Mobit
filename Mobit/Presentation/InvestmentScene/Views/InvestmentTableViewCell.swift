@@ -57,22 +57,31 @@ class InvestmentTableViewCell: UITableViewCell {
   }
   
   func configure(crypto: CryptoTransactionDataModel, isLast: Bool) {
-	self.cryptoName.text = "\(crypto.staticData.marketName)"
-	self.cryptoAmount.text = "\(crypto.staticData.holdingQuantity.formatSignificantDigits())"
-	self.cryptoAveragePrice.text = "\(crypto.staticData.averageBuyPrice.formatSignificantDigits(digits: 4))"
-	self.cryptoBuyPrice.text = "\(crypto.staticData.buyAmount.formatSignificantDigits())"
-	
-	self.cryptoEvalPrice.text = "\(crypto.dynamicData.evaluationPrice.formatSignificantDigits())"
-	self.cryptoEvalLoss.text = "\(crypto.dynamicData.evaluationProfitLoss.formatSignificantDigits(digits: 0))"
-	self.cryptoProfitRate.text = "\(crypto.dynamicData.profitRate.formatSignificantDigits(digits: 2))" + " %"
-	self.currentProfitRate = crypto.dynamicData.profitRate
-	
-	let pnlColor = MarketColorPalette.color(forSignedValue: crypto.dynamicData.profitRate)
-	self.cryptoProfitRate.textColor = pnlColor
-	self.cryptoEvalLoss.textColor = pnlColor
-	
-	self.dividerView.isHidden = isLast
-
+    let valuation = PortfolioCalculator.valuation(
+      of: crypto, btcKRWPrice: AppDataManager.shared.btcKRWPrice(for: crypto.staticData.exchange)
+    )
+    let currency = crypto.settlementCurrency
+    self.cryptoName.text = crypto.staticData.marketName
+    self.cryptoAmount.text = crypto.staticData.holdingQuantity.formatSignificantDigits()
+    if currency == .btc {
+      self.cryptoAveragePrice.text = crypto.staticData.averageBuyPrice.formatSignificantDigits(digits: 8)
+    } else {
+      self.cryptoAveragePrice.text = valuation.averagePriceKRW.map {
+        $0.formatSignificantDigits(digits: 4)
+      } ?? "-"
+    }
+    self.cryptoBuyPrice.text = Self.krwText(valuation.costBasisKRW)
+    self.cryptoEvalPrice.text = Self.krwText(valuation.evaluationKRW)
+    self.cryptoEvalLoss.text = Self.krwText(valuation.profitLossKRW)
+    self.cryptoProfitRate.text = valuation.profitRate.map { $0.formatSignificantDigits(digits: 2) + " %" } ?? "-"
+    self.currentProfitRate = valuation.profitLossKRW
+    let color = MarketColorPalette.color(forSignedValue: valuation.profitLossKRW ?? 0)
+    self.cryptoProfitRate.textColor = color
+    self.cryptoEvalLoss.textColor = color
+    self.dividerView.isHidden = isLast
   }
 
+  private static func krwText(_ amount: Double?) -> String {
+    amount.map { $0.formatSignificantDigits(digits: 0) } ?? "-"
+  }
 }

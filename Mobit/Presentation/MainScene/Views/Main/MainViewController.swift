@@ -341,7 +341,7 @@ class MainViewController: MobitBaseViewController {
 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    self.requestMainNativeAdIfNeeded()
+    // self.requestMainNativeAdIfNeeded()
   }
   
   override func viewDidLayoutSubviews() {
@@ -451,24 +451,51 @@ class MainViewController: MobitBaseViewController {
 	let currentExchange = ExchangeSelectionStore.currentExchange
 	let cryptos = (cryptos ?? []).filter { $0.staticData.exchange == currentExchange }
 	let availableBalance = UserDataManager.userInformation?.userAvailableBalance ?? 0
+	// BTC 마켓 보유분은 BTC 단위로 기록되므로 합산 전에 원화로 환산한다.
+	let btcKRWPrice = AppDataManager.shared.btcKRWPrice()
 	let totalBalance = PortfolioCalculator.totalAssetValue(
 	  availableBalance: availableBalance,
-	  cryptos: cryptos
+	  cryptos: cryptos,
+	  btcKRWPrice: btcKRWPrice
 	)
-	let totalBuyAmount = PortfolioCalculator.totalBuyAmount(cryptos: cryptos)
-	let totalProfitLoss = PortfolioCalculator.totalEvaluationProfitLoss(cryptos: cryptos)
-	let totalEvaluationPrice = PortfolioCalculator.totalEvaluationPrice(cryptos: cryptos)
-	let totalProfitRate = PortfolioCalculator.totalProfitRate(
-	  totalProfitLoss: totalProfitLoss,
-	  totalAssetValue: totalBalance
+	let totalBuyAmount = PortfolioCalculator.totalBuyAmount(
+	  cryptos: cryptos,
+	  btcKRWPrice: btcKRWPrice
 	)
+	let totalProfitLoss = PortfolioCalculator.totalEvaluationProfitLoss(
+	  cryptos: cryptos,
+	  btcKRWPrice: btcKRWPrice
+	)
+	let totalEvaluationPrice = PortfolioCalculator.totalEvaluationPrice(
+	  cryptos: cryptos,
+	  btcKRWPrice: btcKRWPrice
+	)
+	let totalProfitRate: Double? = {
+	  guard let totalProfitLoss, let totalBalance else { return nil }
+	  return PortfolioCalculator.totalProfitRate(
+		totalProfitLoss: totalProfitLoss,
+		totalAssetValue: totalBalance
+	  )
+	}()
 
-	self.totalBalanceLabel.attributedText = self.attributedKRWAmount(self.formattedKRW(totalBuyAmount))
-	self.profitLossValueLabel.attributedText = self.attributedKRWAmount(self.formattedSignedKRW(totalProfitLoss, includeUnit: false))
-	self.evaluationPriceValueLabel.attributedText = self.attributedKRWAmount(self.formattedKRW(totalEvaluationPrice))
-	self.profitRateValueLabel.text = self.formattedSignedPercent(totalProfitRate)
-	self.profitLossValueLabel.textColor = self.portfolioValueColor(totalProfitLoss)
-	self.profitRateValueLabel.textColor = self.portfolioValueColor(totalProfitRate)
+	self.totalBalanceLabel.attributedText = self.attributedPortfolioKRW(totalBuyAmount)
+	self.profitLossValueLabel.attributedText = self.attributedPortfolioKRW(
+	  totalProfitLoss,
+	  formatter: { self.formattedSignedKRW($0, includeUnit: false) }
+	)
+	self.evaluationPriceValueLabel.attributedText = self.attributedPortfolioKRW(totalEvaluationPrice)
+	self.profitRateValueLabel.text = totalProfitRate.map { self.formattedSignedPercent($0) } ?? "-"
+	self.profitLossValueLabel.textColor = self.portfolioValueColor(totalProfitLoss ?? 0)
+	self.profitRateValueLabel.textColor = self.portfolioValueColor(totalProfitRate ?? 0)
+  }
+
+  /// BTC/KRW 시세를 아직 받지 못하면 0원 대신 '-'로 표시해 자산이 사라진 것처럼 보이지 않게 한다.
+  private func attributedPortfolioKRW(
+	_ value: Double?,
+	formatter: ((Double) -> String)? = nil
+  ) -> NSAttributedString {
+	guard let value else { return NSAttributedString(string: "-") }
+	return self.attributedKRWAmount(formatter?(value) ?? self.formattedKRW(value))
   }
 
   private func formattedKRW(_ value: Double) -> String {
@@ -1147,6 +1174,15 @@ extension MainViewController: View {
 	  })
 	  .disposed(by: self.disposeBag)
 
+    AppDataManager.shared.btcKRWPriceUpdates
+      .observe(on: MainScheduler.instance)
+      .filter { $0 == ExchangeSelectionStore.currentExchange }
+      .subscribe(onNext: { [weak self] _ in
+        self?.updatePortfolioSummary()
+        if self?.selectedTab == .hold { self?.refreshDisplayedList() }
+      })
+      .disposed(by: self.disposeBag)
+
 	UserDataManager.userAvailableBalanceObservable
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] _ in
@@ -1184,15 +1220,17 @@ extension MainViewController: View {
 		let avg = holding.staticData.averageBuyPrice
 		enriched.holdingQuantity = qty
 		enriched.averageBuyPrice = avg
-		if let price = cell.tradePrice {
-		  enriched.evaluationPrice = price * qty
-		  enriched.evaluationProfitLoss = (price - avg) * qty
-		  enriched.profitRate = avg > 0 ? ((price - avg) / avg) * 100 : 0
-		} else {
-		  enriched.evaluationPrice = holding.dynamicData.evaluationPrice
-		  enriched.evaluationProfitLoss = holding.dynamicData.evaluationProfitLoss
-		  enriched.profitRate = holding.dynamicData.profitRate
-		}
+        var pricedHolding = holding
+        if let price = cell.tradePrice {
+          pricedHolding.dynamicData.evaluationPrice = price * qty
+        }
+        let valuation = PortfolioCalculator.valuation(
+          of: pricedHolding, btcKRWPrice: AppDataManager.shared.btcKRWPrice(for: currentExchange)
+        )
+        enriched.averageBuyPriceKRW = valuation.averagePriceKRW
+        enriched.evaluationPrice = valuation.evaluationKRW
+        enriched.evaluationProfitLoss = valuation.profitLossKRW
+        enriched.profitRate = valuation.profitRate
 		return enriched
 	  }
 
@@ -1225,12 +1263,12 @@ extension MainViewController: View {
   /// 보유 탭 표시 시점 정렬 (마켓 정렬과 분리)
   private func sortHoldList(_ list: [CryptoCellInfo], by sortType: CryptoSortType) -> [CryptoCellInfo] {
 	switch sortType {
-	case .evaluationPriceAscending:  return list.sorted { ($0.evaluationPrice ?? 0) < ($1.evaluationPrice ?? 0) }
-	case .evaluationPriceDescending: return list.sorted { ($0.evaluationPrice ?? 0) > ($1.evaluationPrice ?? 0) }
-	case .averageBuyPriceAscending:  return list.sorted { ($0.averageBuyPrice ?? 0) < ($1.averageBuyPrice ?? 0) }
-	case .averageBuyPriceDescending: return list.sorted { ($0.averageBuyPrice ?? 0) > ($1.averageBuyPrice ?? 0) }
-	case .profitRateAscending:       return list.sorted { ($0.profitRate ?? 0) < ($1.profitRate ?? 0) }
-	case .profitRateDescending:      return list.sorted { ($0.profitRate ?? 0) > ($1.profitRate ?? 0) }
+	case .evaluationPriceAscending:  return list.sorted { PortfolioCalculator.orderedBefore($0.evaluationPrice, $1.evaluationPrice, ascending: true) }
+	case .evaluationPriceDescending: return list.sorted { PortfolioCalculator.orderedBefore($0.evaluationPrice, $1.evaluationPrice, ascending: false) }
+	case .averageBuyPriceAscending:  return list.sorted { PortfolioCalculator.orderedBefore($0.averageBuyPriceKRW, $1.averageBuyPriceKRW, ascending: true) }
+	case .averageBuyPriceDescending: return list.sorted { PortfolioCalculator.orderedBefore($0.averageBuyPriceKRW, $1.averageBuyPriceKRW, ascending: false) }
+	case .profitRateAscending:       return list.sorted { PortfolioCalculator.orderedBefore($0.profitRate, $1.profitRate, ascending: true) }
+	case .profitRateDescending:      return list.sorted { PortfolioCalculator.orderedBefore($0.profitRate, $1.profitRate, ascending: false) }
 	default:
 	  // 초기 순서: 보유 목록 순서 기준 (마켓 정렬 영향 없음)
 	  let order = Dictionary(

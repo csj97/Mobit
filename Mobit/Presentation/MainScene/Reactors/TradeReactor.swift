@@ -27,12 +27,18 @@ class TradeReactor: Reactor {
   private let orderBookSocketService: OrderBookSocketServiceProtocol
   
   let selectCrypto: CryptoCellInfo
-  let initialState: TradeState = TradeState()
+  let initialState: TradeState
   var cmcInformation: FirebaseCMCResponse?
   var cmcList: [FirebaseCMCResponse]?
   private(set) var isTickerConnected = false
   private(set) var isOrderBookConnected = false
-  
+
+  /// 선택 종목의 결제 통화. BTC 마켓이면 결제용 BTC/KRW 시세를 함께 구독한다.
+  let settlementCurrency: SettlementCurrency
+  private let selectedMarketCode: String
+  private let settlementRateMarketCode: String?
+  let exchange: Exchange
+
   init(
     selectCrypto: CryptoCellInfo,
 	cmcInformation: FirebaseCMCResponse?,
@@ -40,12 +46,29 @@ class TradeReactor: Reactor {
     tickerSocketService: TickerSocketServiceProtocol = TickerSocketService(),
     orderBookSocketService: OrderBookSocketServiceProtocol = OrderBookSocketService()
   ) {
+    let exchange = ExchangeSelectionStore.currentExchange
+    self.exchange = exchange
     self.selectCrypto = selectCrypto
 	self.cmcInformation = cmcInformation
     self.cryptoDetailUseCase = cryptoDetailUseCase
     self.tickerSocketService = tickerSocketService
     self.orderBookSocketService = orderBookSocketService
-	
+
+    let currency = ExchangeMarketCodeConverter.settlementCurrency(
+      fromDisplayMarket: selectCrypto.market,
+      exchange: exchange
+    ) ?? .krw
+    self.settlementCurrency = currency
+    self.selectedMarketCode = MarketFormat.apiMarket(fromDisplayMarket: selectCrypto.market)
+    self.settlementRateMarketCode = currency.holdingDisplayMarket.map {
+      MarketFormat.apiMarket(fromDisplayMarket: $0)
+    }
+    self.initialState = TradeState(
+      settlementRatePrice: currency == .btc
+        ? AppDataManager.shared.btcKRWPrice(for: exchange)
+        : nil
+    )
+
 	UserDataManager.userCryptoListObservable
       .observe(on: MainScheduler.asyncInstance)
 	  .map { TradeMutation.setUserCrypto($0) }
@@ -56,6 +79,19 @@ class TradeReactor: Reactor {
       .observe(on: MainScheduler.asyncInstance)
       .map { [weak self] ticker -> TradeMutation? in
         guard let self = self else { return nil }
+
+        // 결제용 BTC/KRW를 함께 구독하므로 종목을 구분하지 않으면 선택 종목 시세가 덮인다.
+        if let settlementRateMarketCode = self.settlementRateMarketCode,
+           ticker.code == settlementRateMarketCode {
+          // 투자내역·손익 화면도 같은 시세로 환산해야 하므로 공용 저장소에 함께 반영한다.
+          AppDataManager.shared.updateBTCKRWPrice(
+            ticker.tradePrice,
+            for: self.exchange
+          )
+          return .setSettlementRate(price: ticker.tradePrice)
+        }
+
+        guard ticker.code == self.selectedMarketCode else { return nil }
 
         var updatedCryptoCellInfo = self.selectCrypto
         updatedCryptoCellInfo.tradePrice = ticker.tradePrice
@@ -107,8 +143,9 @@ extension TradeReactor {
 	case setCandleListDays(dayResponseModelList: [DayResponseModel])
 	case setSelectedWholeTab(tab: SelectedWholeTab)
 	case setUserCrypto([CryptoTransactionDataModel]?)
+	case setSettlementRate(price: Double?)
   }
-  
+
   struct TradeState {
     var cryptoCellInfo: CryptoCellInfo? = nil
     var obTicker: Orderbook?
@@ -117,6 +154,8 @@ extension TradeReactor {
 	var candleDayResponse: [DayResponseModel]? = nil
 	var selectedWholeTab: SelectedWholeTab = .trade
 	var cryptoTransactionDatas: [CryptoTransactionDataModel] = []
+	/// BTC 마켓 결제·평가에 쓰는 BTC/KRW 현재가. 원화 마켓에서는 채우지 않는다.
+	var settlementRatePrice: Double? = nil
   }
 }
 
@@ -173,6 +212,8 @@ extension TradeReactor {
 	  newState.selectedWholeTab = tab
 	case .setUserCrypto(let cryptoTransactionDatas):
 	  newState.cryptoTransactionDatas = cryptoTransactionDatas ?? []
+	case .setSettlementRate(let price):
+	  newState.settlementRatePrice = price
     }
     
     return newState
@@ -184,7 +225,7 @@ extension TradeReactor {
     let market = self.transformMarketForm(market: crypto.market)
 
     tickerSocketService.connect()
-    tickerSocketService.subscribe(markets: [market])
+    tickerSocketService.subscribe(markets: self.tickerMarketsToSubscribe)
 
     orderBookSocketService.connect()
     orderBookSocketService.subscribe(market: market)
@@ -192,7 +233,9 @@ extension TradeReactor {
     isTickerConnected = tickerSocketService.isConnected
     isOrderBookConnected = orderBookSocketService.isConnected
 
-    return .empty()
+    return .just(
+      .setSettlementRate(price: AppDataManager.shared.btcKRWPrice(for: self.exchange))
+    )
   }
 
   private func disconnectSockets(userInitiated: Bool) -> Observable<TradeMutation> {
@@ -221,15 +264,23 @@ extension TradeReactor {
     }
 
     let market = self.transformMarketForm(market: self.selectCrypto.market)
-    tickerSocketService.subscribe(markets: [market])
+    tickerSocketService.subscribe(markets: self.tickerMarketsToSubscribe)
     orderBookSocketService.subscribe(market: market)
 
     isTickerConnected = tickerSocketService.isConnected
     isOrderBookConnected = orderBookSocketService.isConnected
 
-    return .empty()
+    return .just(
+      .setSettlementRate(price: AppDataManager.shared.btcKRWPrice(for: self.exchange))
+    )
   }
-  
+
+  /// BTC 마켓은 결제 자산 평가를 위해 BTC/KRW 시세도 함께 받아야 한다.
+  private var tickerMarketsToSubscribe: [String] {
+    guard let settlementRateMarketCode else { return [self.selectedMarketCode] }
+    return [self.selectedMarketCode, settlementRateMarketCode]
+  }
+
   private func getCryptoInformation(market: String) -> Observable<TradeMutation> {
 	return self.cryptoDetailUseCase.getCryptoInformation(market: market)
 	  .map { cryptoQuoteResponse in

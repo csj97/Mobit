@@ -22,6 +22,7 @@ class TradeBidView: UIView, ViewRule {
   @IBOutlet weak var resetButton: UIButton!
   @IBOutlet weak var maxAmountButton: UIButton!
   @IBOutlet weak var orderNoticeLabel: UILabel!
+  @IBOutlet var settlementCurrencyLabels: [UILabel]!
 
   weak var reactor: TradeReactor? = nil
   var callBack: ((OrderResult) -> ())? = nil
@@ -30,6 +31,16 @@ class TradeBidView: UIView, ViewRule {
   // 매수 수량
   var inputAmount: Double = 0.0
   private let defaultOrderNotice = "*시장가 주문은 현재 시장 유동성에 따라\n체결 가격이 달라질 수 있습니다."
+  private var isOrderSubmissionLocked = false
+
+  /// BTC 마켓은 원화 잔고가 아니라 보유 BTC로 결제한다.
+  private var settlementCurrency: SettlementCurrency {
+    self.reactor?.settlementCurrency ?? .krw
+  }
+
+  private var availableSettlementBalance: Double {
+    TradeOrderService.availableSettlementBalance(currency: self.settlementCurrency) ?? 0
+  }
 
   deinit {
 	print("deinit : \(String(describing: type(of: self)))")
@@ -77,8 +88,14 @@ class TradeBidView: UIView, ViewRule {
 
 	self.inputMarketName.text = self.reactor?.selectCrypto.market.components(separatedBy: "/").first
 	self.inputTradeAmount.keyboardType = .decimalPad
-	self.totalPriceTextField.keyboardType = .numberPad
+	// BTC 마켓은 총액도 소수라 정수 키패드로는 입력할 수 없다.
+	self.totalPriceTextField.keyboardType = self.settlementCurrency == .krw ? .numberPad : .decimalPad
+	self.applySettlementCurrencyText()
 	self.updateOrderValidationState()
+  }
+
+  private func applySettlementCurrencyText() {
+	self.settlementCurrencyLabels?.forEach { $0.text = self.settlementCurrency.rawValue }
   }
 
   private func applyThemeColors() {
@@ -158,10 +175,7 @@ class TradeBidView: UIView, ViewRule {
 	self.inputTradeAmount.accessibilityIdentifier = "amount"
 	self.totalPriceTextField.accessibilityIdentifier = "totalPrice"
 
-	guard let userBalance = UserDataManager.userInformation?.userAvailableBalance
-	else { return }
-
-	self.availableTradePrice.text = userBalance.formatSignificantDigits()
+	self.availableTradePrice.text = self.availableSettlementBalance.formatSignificantDigits()
   }
 
   @IBAction func tapOnMaxAmount(_ sender: UIButton) {
@@ -169,15 +183,18 @@ class TradeBidView: UIView, ViewRule {
 	self.endEditing(true)
 
 	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
-		  let userBalance = UserDataManager.userInformation?.userAvailableBalance
+		  currentPrice > 0
 	else { return }
 
-	inputAmount = (userBalance / currentPrice)
+	inputAmount = (self.availableSettlementBalance / currentPrice)
 
-	let calcUtil = CalculationUtil(currentPrice: currentPrice, newHoldingQuantity: inputAmount)
-	let totalPrice = calcUtil.calcBuyAmount().formatSignificantDigits()
+	let totalPrice = PortfolioCalculator.executedAmount(
+	  price: currentPrice,
+	  quantity: inputAmount,
+	  currency: self.settlementCurrency
+	)
 	self.inputTradeAmount.text = inputAmount.formatSignificantDigits()
-	self.totalPriceTextField.text = String(totalPrice)
+	self.totalPriceTextField.text = totalPrice.formatSignificantDigits()
 	self.updateOrderValidationState()
   }
 
@@ -187,6 +204,13 @@ class TradeBidView: UIView, ViewRule {
   }
 
   @IBAction func tapOnBidButton(_ sender: UIButton) {
+	guard !isOrderSubmissionLocked else { return }
+	isOrderSubmissionLocked = true
+	updateOrderValidationState()
+	DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+	  self?.isOrderSubmissionLocked = false
+	  self?.updateOrderValidationState()
+	}
 	self.endEditing(true)
 
 	let vibrator = UIImpactFeedbackGenerator(style: .medium)
@@ -202,7 +226,8 @@ class TradeBidView: UIView, ViewRule {
 	let validation = TradeOrderValidator.validateBid(
 	  price: currentPrice,
 	  quantity: inputAmount,
-	  availableBalance: UserDataManager.userInformation?.userAvailableBalance
+	  availableBalance: self.availableSettlementBalance,
+	  currency: self.settlementCurrency
 	)
 
 	switch validation {
@@ -210,9 +235,12 @@ class TradeBidView: UIView, ViewRule {
 	  let result = TradeOrderService.executeBid(
 		marketName: marketName,
 		cryptoName: self.cryptoInfo?.cryptoName,
-		currentPrice: currentPrice,
+        currentPrice: currentPrice,
 		quantity: inputAmount,
-        exchange: ExchangeSelectionStore.currentExchange
+        exchange: self.reactor?.exchange ?? ExchangeSelectionStore.currentExchange,
+        btcKRWPrice: self.reactor.flatMap {
+          AppDataManager.shared.btcKRWPrice(for: $0.exchange)
+        }
 	  )
 
 	  switch result {
@@ -238,8 +266,7 @@ class TradeBidView: UIView, ViewRule {
 	  return
 	}
 
-	let userBalance = UserDataManager.userInformation?.userAvailableBalance
-	self.availableTradePrice.text = userBalance?.formatSignificantDigits()
+	self.availableTradePrice.text = self.availableSettlementBalance.formatSignificantDigits()
 	self.updateOrderValidationState()
   }
 
@@ -273,15 +300,31 @@ class TradeBidView: UIView, ViewRule {
   }
 
   private func updateOrderValidationState() {
+	guard !isOrderSubmissionLocked else {
+	  applyOrderButtonState(isEnabled: false, notice: defaultOrderNotice, isError: false)
+	  return
+	}
 	guard inputAmount > 0 else {
 	  applyOrderButtonState(isEnabled: false, notice: defaultOrderNotice, isError: false)
+	  return
+	}
+
+	// BTC 마켓은 결제용 BTC/KRW 시세가 도착하기 전에는 체결할 수 없다.
+	if settlementCurrency == .btc,
+       reactor.map({ AppDataManager.shared.btcKRWPrice(for: $0.exchange) }) == nil {
+	  applyOrderButtonState(
+		isEnabled: false,
+		notice: TradeOrderValidator.ValidationError.missingSettlementRate.message,
+		isError: true
+	  )
 	  return
 	}
 
 	let validation = TradeOrderValidator.validateBid(
 	  price: cryptoInfo?.tradePrice?.formatDigits(digits: 8),
 	  quantity: inputAmount,
-	  availableBalance: UserDataManager.userInformation?.userAvailableBalance
+	  availableBalance: self.availableSettlementBalance,
+	  currency: self.settlementCurrency
 	)
 
 	switch validation {
@@ -327,6 +370,15 @@ class TradeBidView: UIView, ViewRule {
 		self.updateOrderValidationState()
 	  })
 	  .disposed(by: self.disposeBag)
+
+	// BTC/KRW 시세가 뒤늦게 도착하면 잠겨 있던 주문 버튼을 풀어야 한다.
+	reactor.state.map { $0.settlementRatePrice }
+	  .distinctUntilChanged()
+	  .observe(on: MainScheduler.instance)
+	  .subscribe(onNext: { [weak self] _ in
+		self?.updateOrderValidationState()
+	  })
+	  .disposed(by: self.disposeBag)
   }
 }
 
@@ -361,7 +413,11 @@ extension TradeBidView: UITextFieldDelegate {
 	  let inputAmount = textField.text?.digitsOnlyDouble ?? 0
 	  self.inputAmount = inputAmount
 
-	  let totalPrice = floor(currentPrice * inputAmount)
+	  let totalPrice = PortfolioCalculator.executedAmount(
+		price: currentPrice,
+		quantity: inputAmount,
+		currency: self.settlementCurrency
+	  )
 	  self.totalPriceTextField.text = totalPrice.formatSignificantDigits()
 	}
 

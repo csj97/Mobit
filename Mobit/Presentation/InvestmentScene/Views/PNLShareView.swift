@@ -15,6 +15,7 @@ struct PNLShareUnit {
   let entryPrice: Double
   let exitPrice: Double
   let transactionDate: String
+  var currency: String = "KRW"
 }
 
 enum PNLShareButtonType {
@@ -64,9 +65,11 @@ class PNLShareView: UIView {
   }
   
   func configure(pnlShareUnit: PNLShareUnit) {
+    let digits = pnlShareUnit.currency == "KRW" ? 2 : 8
+    let unit = pnlShareUnit.currency == "KRW" ? " ₩" : " " + pnlShareUnit.currency
 	self.marketName.text = pnlShareUnit.marketName
-	self.entryPriceLabel.text = "\(pnlShareUnit.entryPrice.formatSignificantDigits(digits: 2))".addComma()
-	self.exitPriceLabel.text = "\(pnlShareUnit.exitPrice.formatSignificantDigits(digits: 2))".addComma()
+	self.entryPriceLabel.text = "\(pnlShareUnit.entryPrice.formatSignificantDigits(digits: digits))".addComma()
+	self.exitPriceLabel.text = "\(pnlShareUnit.exitPrice.formatSignificantDigits(digits: digits))".addComma()
 	self.quantityLabel.text = "\(pnlShareUnit.quantity.formatSignificantDigits(digits: 2))".addComma()
 	self.transactionDateLabel.text = pnlShareUnit.transactionDate
 	
@@ -81,7 +84,7 @@ class PNLShareView: UIView {
 	  self.pnlLabel.textColor = .mobitColors(.textPrimary)
 	  pnlSign = ""
 	}
-	self.pnlLabel.text = pnlSign + "\(pnlShareUnit.pnl.formatSignificantDigits(digits: 2))".addComma() + " ₩"
+	self.pnlLabel.text = pnlSign + "\(pnlShareUnit.pnl.formatSignificantDigits(digits: digits))".addComma() + unit
 	
 	var roiSign = ""
 	if pnlShareUnit.roi > 0 {

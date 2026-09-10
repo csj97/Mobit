@@ -25,7 +25,8 @@ struct CryptoCellInfo: Hashable {
 
   // 보유(hold) 탭에서만 채워지는 보유 정보 (다른 탭에서는 nil)
   var holdingQuantity: Double?    // 보유 수량
-  var averageBuyPrice: Double?    // 평균 매수가
+  var averageBuyPrice: Double?    // 마켓 결제 통화 기준 평균 매수가
+  var averageBuyPriceKRW: Double? = nil // 혼합 마켓 원화 정렬용 평균 매수가
   var evaluationPrice: Double?    // 평가금액 (현재가 × 보유량)
   var profitRate: Double?         // 수익률 (%)
   var evaluationProfitLoss: Double? // 평가손익

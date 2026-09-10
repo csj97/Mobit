@@ -50,6 +50,18 @@ enum ExchangeMarketCodeConverter {
     }
   }
 
+  /// 마켓의 결제 통화. 지원하지 않는 통화면 nil을 돌려 호출 측이 주문을 거절하도록 한다.
+  static func settlementCurrency(
+    fromDisplayMarket displayMarket: String,
+    exchange: Exchange = defaultExchange
+  ) -> SettlementCurrency? {
+    let components = self.displayComponents(from: displayMarket)
+      ?? self.normalizedComponents(fromAnyMarketCode: displayMarket)
+    guard let quote = components?.quote else { return nil }
+
+    return SettlementCurrency(rawValue: quote.uppercased())
+  }
+
   static func displayMarket(
     fromRawMarketCode rawMarketCode: String,
     exchange: Exchange = defaultExchange
@@ -150,6 +162,16 @@ extension CryptoCellInfo {
   }
 }
 
+extension CryptoTransactionDataModel {
+  /// 보유 종목의 평단·매수금액·평가금액이 어느 통화로 기록됐는지 나타낸다.
+  var settlementCurrency: SettlementCurrency {
+    ExchangeMarketCodeConverter.settlementCurrency(
+      fromDisplayMarket: self.staticData.marketName,
+      exchange: self.staticData.exchange
+    ) ?? .krw
+  }
+}
+
 extension CryptoTransactionDataModel.CryptoTransactionStaticData {
   var exchangePairID: ExchangePairID {
     ExchangeMarketCodeConverter.pairID(
@@ -192,5 +214,23 @@ extension UserPNLHistoryModel {
       fromDisplayMarket: self.marketName,
       exchange: self.exchange
     )
+  }
+
+  /// 실현손익과 진입·청산 가격이 기록된 통화. BTC 마켓 손익은 BTC 단위다.
+  var settlementCurrency: SettlementCurrency {
+    ExchangeMarketCodeConverter.settlementCurrency(
+      fromDisplayMarket: self.marketName,
+      exchange: self.exchange
+    ) ?? .krw
+  }
+}
+
+extension TransactionInfo {
+  /// 체결가·체결금액이 기록된 통화.
+  var settlementCurrency: SettlementCurrency {
+    ExchangeMarketCodeConverter.settlementCurrency(
+      fromDisplayMarket: self.marketName,
+      exchange: self.exchange
+    ) ?? .krw
   }
 }

@@ -16,10 +16,13 @@ struct UserPNLHistoryModel: Codable {
   let transactionTimestamp: Int64?
   let orderQuantity: Double
   let pnl: Double
+  var realizedProfitLossKRW: Decimal? = nil
+  var costBasisKRW: Decimal? = nil
+  var settlementRateKRW: Decimal? = nil
   private let legacyTransactionDate: String?
 
   enum CodingKeys: String, CodingKey {
-    case exchange, marketName, entryPrice, exitPrice, transactionTimestamp, transactionDate, orderQuantity, pnl
+    case exchange, marketName, entryPrice, exitPrice, transactionTimestamp, transactionDate, orderQuantity, pnl, realizedProfitLossKRW, settlementRateKRW, costBasisKRW
   }
 
   var transactionDate: String {
@@ -77,6 +80,9 @@ struct UserPNLHistoryModel: Codable {
     self.legacyTransactionDate = try container.decodeIfPresent(String.self, forKey: .transactionDate)
     self.orderQuantity = try container.decode(Double.self, forKey: .orderQuantity)
     self.pnl = try container.decode(Double.self, forKey: .pnl)
+    self.costBasisKRW = try container.decodeIfPresent(Decimal.self, forKey: .costBasisKRW)
+    self.realizedProfitLossKRW = try container.decodeIfPresent(Decimal.self, forKey: .realizedProfitLossKRW)
+    self.settlementRateKRW = try container.decodeIfPresent(Decimal.self, forKey: .settlementRateKRW)
   }
 
   func encode(to encoder: Encoder) throws {
@@ -89,5 +95,8 @@ struct UserPNLHistoryModel: Codable {
     try container.encodeIfPresent(legacyTransactionDate, forKey: .transactionDate)
     try container.encode(orderQuantity, forKey: .orderQuantity)
     try container.encode(pnl, forKey: .pnl)
+    try container.encodeIfPresent(costBasisKRW, forKey: .costBasisKRW)
+    try container.encodeIfPresent(realizedProfitLossKRW, forKey: .realizedProfitLossKRW)
+    try container.encodeIfPresent(settlementRateKRW, forKey: .settlementRateKRW)
   }
 }

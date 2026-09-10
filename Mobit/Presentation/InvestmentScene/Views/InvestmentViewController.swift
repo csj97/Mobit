@@ -44,7 +44,7 @@ class InvestmentViewController: MobitBaseViewController {
   private var selectedSortType: InvestSortType = .name {
 	didSet {
 	  self.cryptos = self.sortCryptos(sortType: self.selectedSortType, cryptos: cryptos)
-	  self.transactionTableview.reloadData()
+	  self.applySnapshot(cryptoTransacDataModel: self.cryptos)
 	  self.sortLabel.text = self.selectedSortType.rawValue
 	}
   }
@@ -150,7 +150,7 @@ class InvestmentViewController: MobitBaseViewController {
 		) as? InvestmentTableViewCell else { return UITableViewCell() }
 		
 		let isLast = (indexPath.row == self.cryptos.count - 1)
-		let crypto = self.cryptos[indexPath.row]
+		let crypto = cryptoTransacDataModel
 		cell.configure(crypto: crypto, isLast: isLast)
 		cell.selectionStyle = .none
 		
@@ -173,46 +173,70 @@ class InvestmentViewController: MobitBaseViewController {
 		snapshot.appendItems([])
 	  }
 	  
+      let previous = self.dataSource?.snapshot()
+      snapshot.reconfigureItems(snapshot.itemIdentifiers.filter { previous?.indexOfItem($0) != nil })
 	  self.dataSource?.apply(snapshot, animatingDifferences: false)
 	}
   }
   
   func updateTotalDatas(cryptos: [CryptoTransactionDataModel]) {
 	guard let availableUserBalance = UserDataManager.userInformation?.userAvailableBalance else { return }
+
+	// BTC 마켓 보유분은 BTC 단위로 기록되므로 합산 전에 원화로 환산한다.
+	let btcKRWPrice = AppDataManager.shared.btcKRWPrice()
 	// 총 보유자산
 	let totalUserBalance = PortfolioCalculator.totalAssetValue(
 	  availableBalance: availableUserBalance,
-	  cryptos: cryptos
+	  cryptos: cryptos,
+	  btcKRWPrice: btcKRWPrice
 	)
 	// 평가손익
-	let totalProfitLoss = PortfolioCalculator.totalEvaluationProfitLoss(cryptos: cryptos)
-	// 수익률
-	let totalProfitRate = PortfolioCalculator.totalProfitRate(
-	  totalProfitLoss: totalProfitLoss,
-	  totalAssetValue: totalUserBalance
+	let totalProfitLoss = PortfolioCalculator.totalEvaluationProfitLoss(
+	  cryptos: cryptos,
+	  btcKRWPrice: btcKRWPrice
 	)
-	
+	// 수익률
+	let totalProfitRate: Double
+	if let totalProfitLoss, let totalUserBalance {
+	  totalProfitRate = PortfolioCalculator.totalProfitRate(
+		totalProfitLoss: totalProfitLoss,
+		totalAssetValue: totalUserBalance
+	  )
+	} else {
+	  totalProfitRate = 0
+	}
+
 	// 총 매수
-	let totalBuyPrice = PortfolioCalculator.totalBuyAmount(cryptos: cryptos)
-	
+	let totalBuyPrice = PortfolioCalculator.totalBuyAmount(
+	  cryptos: cryptos,
+	  btcKRWPrice: btcKRWPrice
+	)
+
 	let availableUserBalanceString: String = availableUserBalance == 0 ? "0" : availableUserBalance.formatSignificantDigits()
-	let totalUserBalanceString: String = totalUserBalance == 0 ? "0" : totalUserBalance.formatSignificantDigits(digits: 0)
 	let totalProfitRateString: String = totalProfitRate == 0 ? "0" : totalProfitRate.formatSignificantDigits(digits: 4)
-	let totalEvalProfitLossString: String = totalProfitRate == 0 ? "0" : totalProfitLoss.formatSignificantDigits(digits: 0)
-	let totalBuyPriceString: String = totalBuyPrice == 0 ? "0" : totalBuyPrice.formatSignificantDigits(digits: 0)
-	
+
 	self.availableUserBalance.text = availableUserBalanceString + " 원"
-	self.totalUserBalance.text = totalUserBalanceString + " 원"
-	self.totalProfitRate.text = totalProfitRateString + " %"
+	self.totalUserBalance.text = Self.krwText(totalUserBalance)
+	self.totalProfitRate.text = (totalUserBalance == nil || totalProfitLoss == nil) ? Self.unavailableText : totalProfitRateString + " %"
 	self.totalProfitRate.textColor = MarketColorPalette.color(forSignedValue: totalProfitRate)
-	self.totalEvalProfitLoss.text = totalEvalProfitLossString + " 원"
-	self.totalEvalProfitLoss.textColor = MarketColorPalette.color(forSignedValue: totalProfitLoss)
-	self.totalBuyPrice.text = totalBuyPriceString + " 원"
+	self.totalEvalProfitLoss.text = Self.krwText(totalProfitLoss)
+	self.totalEvalProfitLoss.textColor = MarketColorPalette.color(forSignedValue: totalProfitLoss ?? 0)
+	self.totalBuyPrice.text = Self.krwText(totalBuyPrice)
+  }
+
+  /// BTC/KRW 시세를 아직 받지 못한 상태를 0원으로 보여주면 자산이 사라진 것처럼 읽힌다.
+  static let unavailableText = "-"
+
+  private static func krwText(_ value: Double?) -> String {
+	guard let value else { return unavailableText }
+	return (value == 0 ? "0" : value.formatSignificantDigits(digits: 0)) + " 원"
   }
 
   func applyCryptos(_ cryptos: [CryptoTransactionDataModel]) {
 	guard cryptos.count != 0 else {
 	  self.noResultView.isHidden = false
+      self.cryptos = []
+      self.applySnapshot(cryptoTransacDataModel: [])
 	  self.updateTotalDatas(cryptos: [])
 
 	  return
@@ -221,37 +245,31 @@ class InvestmentViewController: MobitBaseViewController {
 	self.noResultView.isHidden = true
 	self.cryptos = self.sortCryptos(sortType: self.selectedSortType, cryptos: cryptos)
 	self.updateTotalDatas(cryptos: cryptos)
-	self.applySnapshot(cryptoTransacDataModel: cryptos.reversed())
+	self.applySnapshot(cryptoTransacDataModel: self.cryptos)
   }
 
   func sortCryptos(sortType: InvestSortType, cryptos: [CryptoTransactionDataModel]) -> [CryptoTransactionDataModel] {
-	var sortedCryptos: [CryptoTransactionDataModel] = []
-	
-	switch sortType {
-	case .name:
-	  sortedCryptos = cryptos
-		.sorted { $0.staticData.marketName.lowercased() < $1.staticData.marketName.lowercased() }
-	case .pnlHighToLow:
-	  sortedCryptos = cryptos
-		.sorted { $0.dynamicData.profitRate > $1.dynamicData.profitRate }
-	case .pnlLowToHigh:
-	  sortedCryptos = cryptos
-		.sorted { $0.dynamicData.profitRate < $1.dynamicData.profitRate }
-	case .evalProfitLossHighToLow:
-	  sortedCryptos = cryptos
-		.sorted { $0.dynamicData.evaluationProfitLoss > $1.dynamicData.evaluationProfitLoss }
-	case .evalProfitLossLowToHigh:
-	  sortedCryptos = cryptos
-		.sorted { $0.dynamicData.evaluationProfitLoss < $1.dynamicData.evaluationProfitLoss }
-	case .evalPriceHighToLow:
-	  sortedCryptos = cryptos
-		.sorted { $0.dynamicData.evaluationPrice > $1.dynamicData.evaluationPrice }
-	case .evalPriceLowToHigh:
-	  sortedCryptos = cryptos
-		.sorted { $0.dynamicData.evaluationPrice < $1.dynamicData.evaluationPrice }
-	}
-	
-	return sortedCryptos
+    if sortType == .name {
+      return cryptos.sorted { $0.staticData.marketName.lowercased() < $1.staticData.marketName.lowercased() }
+    }
+    let ascending = [.pnlLowToHigh, .evalProfitLossLowToHigh, .evalPriceLowToHigh].contains(sortType)
+    let valued = cryptos.enumerated().map { index, crypto in
+      (index, crypto, PortfolioCalculator.valuation(
+        of: crypto, btcKRWPrice: AppDataManager.shared.btcKRWPrice(for: crypto.staticData.exchange)
+      ))
+    }
+    func value(_ valuation: PortfolioCalculator.Valuation) -> Double? {
+      switch sortType {
+      case .pnlHighToLow, .pnlLowToHigh: return valuation.profitRate
+      case .evalProfitLossHighToLow, .evalProfitLossLowToHigh: return valuation.profitLossKRW
+      default: return valuation.evaluationKRW
+      }
+    }
+    return valued.sorted {
+      let left = value($0.2), right = value($1.2)
+      if left == right { return $0.0 < $1.0 }
+      return PortfolioCalculator.orderedBefore(left, right, ascending: ascending)
+    }.map { $0.1 }
   }
   
   // MARK: - Button Actions
@@ -310,6 +328,16 @@ class InvestmentViewController: MobitBaseViewController {
 // MARK: Reactor - View
 extension InvestmentViewController: View {
   func bind(reactor: InvestReactor) {
+    AppDataManager.shared.btcKRWPriceUpdates
+      .observe(on: MainScheduler.instance)
+      .filter { $0 == ExchangeSelectionStore.currentExchange }
+      .subscribe(onNext: { [weak self] _ in
+        guard let self else { return }
+        if self.isScrolling { self.pendingUpdate = self.pendingUpdate ?? self.cryptos }
+        else { self.applyCryptos(self.cryptos) }
+      })
+      .disposed(by: self.disposeBag)
+
 	reactor.state.map { $0.cryptos }
 	  .compactMap { $0 }
 	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)

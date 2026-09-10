@@ -108,7 +108,10 @@ struct BithumbExchangeAdapter: ExchangeMarketDataProviding {
       return nil
     }
 
-    return try decoder.decode(BithumbTickerSocketDTO.self, from: data).toDomain()
+    if let current = try? decoder.decode(BithumbTickerSocketDTO.self, from: data) {
+      return current.toDomain()
+    }
+    return try decoder.decode(BithumbLegacyTickerSocketEnvelope.self, from: data).toDomain()
   }
 
   func decodeOrderBookWebSocketMessage(
@@ -119,7 +122,9 @@ struct BithumbExchangeAdapter: ExchangeMarketDataProviding {
       return nil
     }
 
-    return try decoder.decode(BithumbOrderbookSocketDTO.self, from: data).toDomain()
+    if let current = try? decoder.decode(BithumbOrderbookSocketDTO.self, from: data) {
+      return current.toDomain()
+    }
+    return try decoder.decode(BithumbLegacyOrderbookSocketEnvelope.self, from: data).toDomain()
   }
 }
-

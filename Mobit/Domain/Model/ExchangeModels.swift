@@ -14,6 +14,36 @@ enum Exchange: String, Codable, CaseIterable {
   case okx
 }
 
+/// 마켓의 결제 통화. BTC 마켓은 원화가 아니라 보유 중인 BTC로 결제하므로 계산 기준을 분리해야 한다.
+enum SettlementCurrency: String, Codable, CaseIterable {
+  case krw = "KRW"
+  case btc = "BTC"
+
+  /// BTC 최소 주문금액은 업비트 BTC 마켓 정책(0.00005 BTC)을 따른다.
+  var minimumOrderAmount: Double {
+    switch self {
+    case .krw: return 500
+    case .btc: return 0.00005
+    }
+  }
+
+  /// 체결금액 절삭 자릿수. 원화는 정수, BTC는 호가 단위(0.00000001)에 맞춘다.
+  var amountFractionDigits: Int {
+    switch self {
+    case .krw: return 0
+    case .btc: return 8
+    }
+  }
+
+  /// 결제 자산을 보유 종목으로 들고 있는 마켓. 원화는 잔고로 관리하므로 nil이다.
+  var holdingDisplayMarket: String? {
+    switch self {
+    case .krw: return nil
+    case .btc: return "BTC/KRW"
+    }
+  }
+}
+
 struct ExchangePairID: RawRepresentable, Hashable, Codable, ExpressibleByStringLiteral {
   let rawValue: String
 

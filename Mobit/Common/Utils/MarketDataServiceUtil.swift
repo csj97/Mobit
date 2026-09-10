@@ -25,15 +25,20 @@ class MarketDataServiceUtil {
 	data: CryptoTransactionDataModel.CryptoTransactionStaticData,
 	currentPrice: Double
   ) {
-	fetchAll(
-	  for: data.marketName,
-      exchange: data.exchange,
-	  cryptoName: data.cryptoName,
-	  currentPrice: currentPrice,
-	  holdingQuantity: data.holdingQuantity,
-	  averageBuyPrice: data.averageBuyPrice,
-	  buyAmount: data.buyAmount
-	)
+    guard var holdings = UserDataManager.userCryptoList,
+          let index = holdings.firstIndex(where: { $0.staticData.exchangePairID == data.exchangePairID })
+    else { return }
+    holdings[index].staticData = data
+    holdings[index].dynamicData.profitRate = PortfolioCalculator.profitRate(
+      currentPrice: currentPrice, averageBuyPrice: data.averageBuyPrice
+    )
+    holdings[index].dynamicData.evaluationProfitLoss = PortfolioCalculator.evaluationProfitLoss(
+      currentPrice: currentPrice, holdingQuantity: data.holdingQuantity, averageBuyPrice: data.averageBuyPrice
+    )
+    holdings[index].dynamicData.evaluationPrice = PortfolioCalculator.evaluationPrice(
+      currentPrice: currentPrice, holdingQuantity: data.holdingQuantity
+    )
+    UserDataManager.userCryptoList = holdings
   }
   
   /// 기존 매매내역이 없을 때, 추가
@@ -197,12 +202,12 @@ class MarketDataServiceUtil {
 		  if tx.orderType == .bid {
 			if tx.quantity > remainingSellQuantity {
 			  // 일부만 차감
-			  tx.quantity -= remainingSellQuantity
+			  tx.quantity = PortfolioCalculator.double(PortfolioCalculator.decimal(tx.quantity) - PortfolioCalculator.decimal(remainingSellQuantity))
 			  updatedTransactions.append(tx)
 			  remainingSellQuantity = 0
 			} else {
 			  // 전량 차감 (해당 매수 내역 제거됨)
-			  remainingSellQuantity -= tx.quantity
+			  remainingSellQuantity = PortfolioCalculator.double(PortfolioCalculator.decimal(remainingSellQuantity) - PortfolioCalculator.decimal(tx.quantity))
 			  // append 생략
 			}
 		  } else {

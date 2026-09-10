@@ -153,7 +153,10 @@ class TradeViewController: MobitBaseViewController {
 		break
 	  }
 	}
-	chartView = TradeChartView.instanceFromNib(symbol: self.reactor.selectCrypto.market)
+	chartView = TradeChartView.instanceFromNib(
+	  symbol: self.reactor.selectCrypto.market,
+	  exchange: self.reactor.exchange
+	)
 	informationView = TradeInformationView.instanceFromNib(
 	  reactor: self.reactor
 	)
@@ -329,7 +332,7 @@ class TradeViewController: MobitBaseViewController {
   func setFavoriteButton() {
 	let emptyStar = UIImage(systemName: "star")
 	let fillStar = UIImage(systemName: "star.fill")?.withRenderingMode(.alwaysTemplate)
-    let exchange = ExchangeSelectionStore.currentExchange
+    let exchange = self.reactor.exchange
     let pairID = ExchangeMarketCodeConverter.pairID(
       fromDisplayMarket: self.reactor.selectCrypto.market,
       exchange: exchange
@@ -364,7 +367,7 @@ class TradeViewController: MobitBaseViewController {
 	guard let currentPrice = currentPrice else { return }
     let targetPairID = ExchangeMarketCodeConverter.pairID(
       fromDisplayMarket: marketName,
-      exchange: ExchangeSelectionStore.currentExchange
+      exchange: self.reactor.exchange
     )
 	guard var investData = self.currentInvestData,
 		  investData.staticData.exchangePairID == targetPairID else {
@@ -489,7 +492,7 @@ class TradeViewController: MobitBaseViewController {
   
   // MARK: - Button Actions
   @IBAction func tapOnFavoriteButton(_ sender: UIButton) {
-    let exchange = ExchangeSelectionStore.currentExchange
+    let exchange = self.reactor.exchange
     let pairID = ExchangeMarketCodeConverter.pairID(
       fromDisplayMarket: self.reactor.selectCrypto.market,
       exchange: exchange
@@ -575,7 +578,7 @@ extension TradeViewController {
 		guard let self = self else { return }
         let targetPairID = ExchangeMarketCodeConverter.pairID(
           fromDisplayMarket: reactor.selectCrypto.market,
-          exchange: ExchangeSelectionStore.currentExchange
+          exchange: reactor.exchange
         )
 		self.currentInvestData = cryptos.first(where: {
 		  $0.staticData.exchangePairID == targetPairID

@@ -342,6 +342,9 @@
                 <outlet property="orderNoticeLabel" destination="nom-M2-gyc" id="V74-26-u3J"/>
                 <outlet property="resetButton" destination="W30-eR-iCU" id="2J7-QS-kjN"/>
                 <outlet property="totalPriceTextField" destination="6QB-hI-x8D" id="gyN-n2-FH8"/>
+                <outletCollection property="settlementCurrencyLabels" destination="0zZ-FE-a04" collectionClass="NSMutableArray" id="Bd1-cu-QY7"/>
+                <outletCollection property="settlementCurrencyLabels" destination="Xk3-90-uMQ" collectionClass="NSMutableArray" id="Nf4-ez-Rt2"/>
+                <outletCollection property="settlementCurrencyLabels" destination="spt-0D-ZAP" collectionClass="NSMutableArray" id="Qv8-hm-Ws5"/>
             </connections>
             <point key="canvasLocation" x="1614.5038167938931" y="-250"/>
         </view>

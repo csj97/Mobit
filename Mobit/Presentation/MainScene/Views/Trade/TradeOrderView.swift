@@ -255,16 +255,23 @@ class TradeOrderView: UIView, ViewRule {
   func setInvestLiveData(data: CryptoTransactionDataModel) {
 	self.cryptoInvestData = data
 	
-	self.cryptoAveragePrice.text = "\(data.staticData.averageBuyPrice.formatSignificantDigits(digits: 4))"
-	self.cryptoHoldingQuantity.text = "\(data.staticData.holdingQuantity.formatSignificantDigits(digits: 2))"
-	self.cryptoEvalPrice.text = "\(data.dynamicData.evaluationPrice.formatSignificantDigits())" + " KRW"
-	self.cryptoEvalLoss.text = "\(data.dynamicData.evaluationProfitLoss.formatSignificantDigits(digits: 0))" + " KRW"
-	self.cryptoProfitRate.text = "\(data.dynamicData.profitRate.formatSignificantDigits(digits: 2))" + " %"
-	
-	// 상승/하락 색상 테마(MarketColorPalette) 반영
-	let textColor = MarketColorPalette.color(forSignedValue: data.dynamicData.evaluationProfitLoss)
-	self.cryptoEvalLoss.textColor = textColor
-	self.cryptoProfitRate.textColor = textColor
+    let valuation = PortfolioCalculator.valuation(
+      of: data, btcKRWPrice: AppDataManager.shared.btcKRWPrice(for: data.staticData.exchange)
+    )
+    if data.settlementCurrency == .btc {
+      self.cryptoAveragePrice.text = data.staticData.averageBuyPrice.formatSignificantDigits(digits: 8)
+    } else {
+      self.cryptoAveragePrice.text = valuation.averagePriceKRW.map {
+        $0.formatSignificantDigits(digits: 4) + " KRW"
+      } ?? "-"
+    }
+    self.cryptoHoldingQuantity.text = data.staticData.holdingQuantity.formatSignificantDigits(digits: 8)
+    self.cryptoEvalPrice.text = valuation.evaluationKRW.map { $0.formatSignificantDigits() + " KRW" } ?? "-"
+    self.cryptoEvalLoss.text = valuation.profitLossKRW.map { $0.formatSignificantDigits(digits: 0) + " KRW" } ?? "-"
+    self.cryptoProfitRate.text = valuation.profitRate.map { $0.formatSignificantDigits(digits: 2) + " %" } ?? "-"
+    let textColor = MarketColorPalette.color(forSignedValue: valuation.profitLossKRW ?? 0)
+    self.cryptoEvalLoss.textColor = textColor
+    self.cryptoProfitRate.textColor = textColor
   }
   
   /// TableViewDiffableDataSource Snapshot Update
@@ -320,6 +327,15 @@ class TradeOrderView: UIView, ViewRule {
 extension TradeOrderView {
   
   func bind(reactor: TradeReactor) {
+    AppDataManager.shared.btcKRWPriceUpdates
+      .observe(on: MainScheduler.instance)
+      .subscribe(onNext: { [weak self] exchange in
+        guard let self, let holding = self.cryptoInvestData,
+              holding.staticData.exchange == exchange else { return }
+        self.setInvestLiveData(data: holding)
+      })
+      .disposed(by: self.disposeBag)
+
 	reactor.state.map { $0.obTicker }
 	  .throttle(.milliseconds(150), scheduler: MainScheduler.instance)
 	  .observe(on: MainScheduler.asyncInstance)
@@ -347,7 +363,7 @@ extension TradeOrderView {
 		guard let self else { return }
         let targetPairID = ExchangeMarketCodeConverter.pairID(
           fromDisplayMarket: reactor.selectCrypto.market,
-          exchange: ExchangeSelectionStore.currentExchange
+          exchange: reactor.exchange
         )
 		
 		// 거래 내역에선 업데이트 안하기 때문

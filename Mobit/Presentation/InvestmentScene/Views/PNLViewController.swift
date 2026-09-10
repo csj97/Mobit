@@ -101,15 +101,28 @@ extension PNLViewController: UITableViewDelegate, UITableViewDataSource {
 	cell.shareCallBack = { [weak self] in
 	  guard let self = self else { return }
 	  
-	  let roi = ((pnlHistory.exitPrice - pnlHistory.entryPrice) / pnlHistory.entryPrice) * 100
+      var entryPrice = pnlHistory.entryPrice
+      var exitPrice = pnlHistory.exitPrice
+      var pnl = pnlHistory.pnl
+      var currency = pnlHistory.settlementCurrency.rawValue
+      if let cost = pnlHistory.costBasisKRW, let realized = pnlHistory.realizedProfitLossKRW,
+         pnlHistory.orderQuantity > 0 {
+        let quantity = PortfolioCalculator.decimal(pnlHistory.orderQuantity)
+        entryPrice = PortfolioCalculator.double(cost / quantity)
+        exitPrice = PortfolioCalculator.double((cost + realized) / quantity)
+        pnl = PortfolioCalculator.double(realized)
+        currency = "KRW"
+      }
+      let roi = entryPrice > 0 ? ((exitPrice - entryPrice) / entryPrice) * 100 : 0
 	  let pnlShareUnit = PNLShareUnit(
 		marketName: pnlHistory.marketName,
 		roi: roi,
-		pnl: pnlHistory.pnl,
+		pnl: pnl,
 		quantity: pnlHistory.orderQuantity,
-		entryPrice: pnlHistory.entryPrice,
-		exitPrice: pnlHistory.exitPrice,
-		transactionDate: pnlHistory.transactionDate
+		entryPrice: entryPrice,
+		exitPrice: exitPrice,
+		transactionDate: pnlHistory.transactionDate,
+        currency: currency
 	  )
 	  
 	  let shareView = PNLShareView.instanceFromNib(

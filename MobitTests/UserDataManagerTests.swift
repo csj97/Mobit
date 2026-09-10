@@ -61,6 +61,70 @@ final class UserDataManagerTests: XCTestCase {
     XCTAssertEqual(UserDataManager.userPNLHistory?.count, 0)
   }
 
+  func testAtomicInvestmentUpdateRollsBackEveryListAndBalanceOnFailure() {
+    UserDataManager.resetInvestmentData(availableBalance: 10_000)
+
+    XCTAssertThrowsError(try UserDataManager.performAtomicInvestmentUpdate {
+      UserDataManager.userCryptoList = [makeTransaction(market: "BTC/KRW")]
+      UserDataManager.userTransactionList = [
+        TransactionInfo(
+          marketName: "BTC/KRW",
+          orderType: .bid,
+          executedDate: "01.01 09:00",
+          executedPrice: 100,
+          executedQuantity: 1,
+          executedAmount: 100
+        )
+      ]
+      UserDataManager.updateUserInformation(
+        MobitUserInformation(userAvailableBalance: 9_900),
+        for: .upbit
+      )
+      throw UserDataManager.InvestmentStateError.invalidStoredData
+    })
+
+    XCTAssertEqual(UserDataManager.userCryptoList, [])
+    XCTAssertEqual(UserDataManager.userTransactionList, [])
+    XCTAssertEqual(UserDataManager.userInformation(for: .upbit)?.userAvailableBalance, 10_000)
+  }
+
+  func testPendingInvestmentSnapshotRecoversEveryStoredComponent() throws {
+    let holding = makeTransaction(market: "BTC/KRW")
+    let transaction = TransactionInfo(
+      marketName: "BTC/KRW",
+      orderType: .bid,
+      executedDate: "01.01 09:00",
+      executedPrice: 100,
+      executedQuantity: 1,
+      executedAmount: 100
+    )
+    let pending = TestPendingInvestmentState(
+      cryptoList: [holding],
+      transactionList: [transaction],
+      validTransactionList: [
+        ValidTransactionInfo(
+          marketName: "BTC/KRW",
+          transaction: [.init(orderType: .bid, quantity: 1, buyPrice: 100)]
+        )
+      ],
+      pnlHistory: [],
+      informationByExchange: [
+        Exchange.upbit.rawValue: MobitUserInformation(userAvailableBalance: 9_900)
+      ]
+    )
+    UserDefaults.standard.set(
+      try JSONEncoder().encode(pending),
+      forKey: UserDataManager.Keys.pendingInvestmentState
+    )
+
+    XCTAssertEqual(UserDataManager.userCryptoList?.first?.staticData.marketName, holding.staticData.marketName)
+    XCTAssertEqual(UserDataManager.userCryptoList?.first?.staticData.holdingQuantity, 1)
+    XCTAssertEqual(UserDataManager.userTransactionList, [transaction])
+    XCTAssertEqual(UserDataManager.userValidTransactionList?.count, 1)
+    XCTAssertEqual(UserDataManager.userInformation(for: .upbit)?.userAvailableBalance, 9_900)
+    XCTAssertNil(UserDefaults.standard.data(forKey: UserDataManager.Keys.pendingInvestmentState))
+  }
+
   func testLegacyCryptoMigrationPreservesValues() {
     let legacy = LegacyModel(
       staticData: LegacyStatic(
@@ -197,9 +261,18 @@ final class UserDataManagerTests: XCTestCase {
       UserDataManager.Keys.userCryptoList,
       UserDataManager.Keys.userPNLHistory,
       UserDataManager.Keys.userInformation,
-      UserDataManager.Keys.userInformationByExchange
+      UserDataManager.Keys.userInformationByExchange,
+      UserDataManager.Keys.pendingInvestmentState
     ].forEach {
       UserDefaults.standard.removeObject(forKey: $0)
     }
   }
+}
+
+private struct TestPendingInvestmentState: Encodable {
+  let cryptoList: [CryptoTransactionDataModel]
+  let transactionList: [TransactionInfo]
+  let validTransactionList: [ValidTransactionInfo]
+  let pnlHistory: [UserPNLHistoryModel]
+  let informationByExchange: [String: MobitUserInformation]
 }

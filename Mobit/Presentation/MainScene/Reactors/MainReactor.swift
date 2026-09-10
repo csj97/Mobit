@@ -17,6 +17,7 @@ enum SelectedTab: Int {
 }
 
 class MainReactor: Reactor {
+  private let exchange = ExchangeSelectionStore.currentExchange
   private let mainUseCase: MainUseCase
   private let disposeBag = DisposeBag()
   private let tickerSocketService: TickerSocketServiceProtocol
@@ -251,12 +252,26 @@ extension MainReactor {
 		guard let self = self else {
 		  return MainMutation.setTotalCryptoList(cryptoList: sortedCellInfos)
 		}
+		self.cacheBTCKRWPrice(from: sortedCellInfos)
 		self.sendSocketMessageForCurrentTab(
 		  self.currentState.selectedTab,
 		  totalList: sortedCellInfos
 		)
 		return MainMutation.setTotalCryptoList(cryptoList: sortedCellInfos)
 	  }
+  }
+
+  /// BTC 마켓 보유분을 원화로 환산하려면 다른 화면에서도 BTC/KRW 시세가 필요하다.
+  private func cacheBTCKRWPrice(from cellInfos: [CryptoCellInfo]) {
+	guard self.exchange == ExchangeSelectionStore.currentExchange,
+          let btcHoldingMarket = SettlementCurrency.btc.holdingDisplayMarket,
+		  let tradePrice = cellInfos.first(where: { $0.market == btcHoldingMarket })?.tradePrice
+	else { return }
+
+	AppDataManager.shared.updateBTCKRWPrice(
+	  tradePrice,
+	  for: self.exchange
+	)
   }
   
   /// 4️⃣ 단일 암호화폐 업데이트 (소켓 티커 수신 시)
@@ -270,6 +285,13 @@ extension MainReactor {
 	  return updatedList
 	}
 	
+	if updatedList[index].market == SettlementCurrency.btc.holdingDisplayMarket {
+	  AppDataManager.shared.updateBTCKRWPrice(
+		ticker.tradePrice,
+		for: self.exchange
+	  )
+	}
+
 	// 해당 코인 정보만 업데이트
 	var updatedCrypto = updatedList[index]
 	updatedCrypto.prevPrice = ticker.prevClosingPrice
@@ -299,14 +321,20 @@ extension MainReactor {
   ) {
 	let totalList = totalList ?? self.currentState.totalCryptoList
 
-	let marketsToSubscribe = MarketFormat.apiMarketsForSubscription(
+	var marketsToSubscribe = MarketFormat.apiMarketsForSubscription(
 	  tab: tab,
 	  totalList: totalList,
 	  userCryptos: UserDataManager.userCryptoList,
 	  favorites: UserDataManager.userFavoritePairs
 	)
 	
-	// 소켓에 해당 마켓만 구독 요청
+    let hasBTCHolding = UserDataManager.userCryptoList?.contains {
+      $0.staticData.exchange == self.exchange && $0.settlementCurrency == .btc
+    } ?? false
+    if hasBTCHolding {
+      let rateMarket = ExchangeMarketCodeConverter.rawMarketCode(fromDisplayMarket: "BTC/KRW", exchange: self.exchange)
+      if !marketsToSubscribe.contains(rateMarket) { marketsToSubscribe.append(rateMarket) }
+    }
 	tickerSocketService.subscribe(markets: marketsToSubscribe)
   }
   
@@ -330,7 +358,31 @@ extension MainReactor {
     }
     sendSocketMessageForCurrentTab(currentState.selectedTab)
     isSocketConnected = tickerSocketService.isConnected
-    return .empty()
+    return refreshBTCKRWPriceIfNeeded()
+  }
+
+  /// 포그라운드 복귀 시 소켓 첫 이벤트만 기다리지 않고 만료된 BTC/KRW를 REST로 한 번 보정한다.
+  private func refreshBTCKRWPriceIfNeeded() -> Observable<MainMutation> {
+    guard self.exchange == ExchangeSelectionStore.currentExchange,
+          AppDataManager.shared.btcKRWPrice(for: self.exchange) == nil,
+          let holdingMarket = SettlementCurrency.btc.holdingDisplayMarket else { return .empty() }
+
+    let market = ExchangeMarketCodeConverter.rawMarketCode(
+      fromDisplayMarket: holdingMarket,
+      exchange: self.exchange
+    )
+    return self.mainUseCase.loadCryptoTicker(markets: [market])
+      .do(onNext: { [weak self] tickers in
+        guard let self,
+              self.exchange == ExchangeSelectionStore.currentExchange,
+              let price = tickers.first(where: { $0.market == market })?.tradePrice else { return }
+        AppDataManager.shared.updateBTCKRWPrice(price, for: self.exchange)
+      })
+      .flatMap { _ in Observable<MainMutation>.empty() }
+      .catch { error in
+        Log.error("BTC/KRW refresh failed: \(error.localizedDescription)")
+        return .empty()
+      }
   }
 }
 

@@ -7,6 +7,12 @@
 
 import Foundation
 
+private func normalizedBithumbMarket(_ symbol: String) -> String {
+  let components = symbol.split(separator: "_").map(String.init)
+  guard components.count == 2 else { return symbol.replacingOccurrences(of: "_", with: "-") }
+  return "\(components[1])-\(components[0])"
+}
+
 struct BithumbWebSocketStatusMessage: Decodable {
   struct ErrorPayload: Decodable {
     let name: String?
@@ -203,3 +209,103 @@ extension BithumbOrderbookSocketDTO.OrderbookUnitDTO {
   }
 }
 
+struct BithumbLegacyTickerSocketEnvelope: Decodable {
+  let type: String
+  let content: Content
+
+  struct Content: Decodable {
+    let symbol: String
+    let date: String?
+    let time: String?
+    let openPrice: String
+    let closePrice: String
+    let lowPrice: String
+    let highPrice: String
+    let value: String?
+    let volume: String?
+    let sellVolume: String?
+    let buyVolume: String?
+    let prevClosePrice: String
+    let chgRate: String
+    let chgAmt: String
+  }
+
+  func toDomain() -> CryptoSocketTicker {
+    let changeAmount = Double(content.chgAmt) ?? 0
+    let signedRate = (Double(content.chgRate) ?? 0) / 100
+    let change = changeAmount > 0 ? "RISE" : (changeAmount < 0 ? "FALL" : "EVEN")
+    return .init(
+      type: type,
+      code: normalizedBithumbMarket(content.symbol),
+      openingPrice: Double(content.openPrice) ?? 0,
+      highPrice: Double(content.highPrice) ?? 0,
+      lowPrice: Double(content.lowPrice) ?? 0,
+      tradePrice: Double(content.closePrice) ?? 0,
+      prevClosingPrice: Double(content.prevClosePrice) ?? 0,
+      change: change,
+      changePrice: abs(changeAmount),
+      signedChangePrice: changeAmount,
+      changeRate: abs(signedRate),
+      signedChangeRate: signedRate,
+      tradeVolume: 0,
+      accTradeVolume: Double(content.volume ?? "") ?? 0,
+      accTradeVolume24H: Double(content.volume ?? "") ?? 0,
+      accTradePrice: Double(content.value ?? "") ?? 0,
+      accTradePrice24H: Double(content.value ?? "") ?? 0,
+      tradeDate: content.date ?? "",
+      tradeTime: content.time ?? "",
+      tradeTimestamp: 0,
+      askBid: "",
+      accAskVolume: Double(content.sellVolume ?? "") ?? 0,
+      accBidVolume: Double(content.buyVolume ?? "") ?? 0,
+      highest52WeekPrice: 0,
+      highest52WeekDate: "",
+      lowest52WeekPrice: 0,
+      lowest52WeekDate: "",
+      marketState: "ACTIVE",
+      delistingDate: nil,
+      marketWarning: nil,
+      timestamp: 0,
+      streamType: "REALTIME"
+    )
+  }
+}
+
+struct BithumbLegacyOrderbookSocketEnvelope: Decodable {
+  let type: String
+  let content: Content
+
+  struct Content: Decodable {
+    let symbol: String
+    let datetime: String
+    let asks: [[String]]
+    let bids: [[String]]
+  }
+
+  func toDomain() -> Orderbook {
+    let count = min(content.asks.count, content.bids.count)
+    let units = (0..<count).compactMap { index -> Orderbook.OrderbookUnit? in
+      let ask = content.asks[index]
+      let bid = content.bids[index]
+      guard ask.count >= 2, bid.count >= 2,
+            let askPrice = Double(ask[0]), let askSize = Double(ask[1]),
+            let bidPrice = Double(bid[0]), let bidSize = Double(bid[1]) else { return nil }
+      return .init(
+        askPrice: askPrice,
+        bidPrice: bidPrice,
+        askSize: askSize,
+        bidSize: bidSize
+      )
+    }
+    return .init(
+      type: type,
+      code: normalizedBithumbMarket(content.symbol),
+      timestamp: Int(content.datetime) ?? 0,
+      totalAskSize: units.reduce(0) { $0 + $1.askSize },
+      totalBidSize: units.reduce(0) { $0 + $1.bidSize },
+      orderbookUnits: units,
+      streamType: "SNAPSHOT",
+      level: 0
+    )
+  }
+}

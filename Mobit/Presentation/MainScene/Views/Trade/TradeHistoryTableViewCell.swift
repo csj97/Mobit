@@ -60,9 +60,23 @@ class TradeHistoryTableViewCell: UITableViewCell {
 	}
 	self.tradeDate.text = transactionInfo.executedDate
 	self.marketName.text = marketName
-	self.tradeCryptoPrice.text = String(transactionInfo.executedPrice.formatSignificantDigits())
+	// 체결 기록은 주문 당시 통화 그대로 보여준다. 원화 마켓은 기존 표기를 유지한다.
+	let currency = transactionInfo.settlementCurrency
+	let unit = currency == .krw ? "" : " " + currency.rawValue
+
+	self.tradeCryptoPrice.text = transactionInfo.executedPrice.formatSignificantDigits() + unit
 	self.tradeAmount.text = String(transactionInfo.executedQuantity.formatSignificantDigits())
-	self.tradeTotalPrice.text = String(transactionInfo.executedAmount.formatSignificantDigits())
+	let executedAmount = transactionInfo.executedAmount.formatSignificantDigits() + unit
+	if let exchangeProfit = transactionInfo.settlementProfitLossKRW {
+	  let profit = PortfolioCalculator.double(exchangeProfit)
+	  let sign = profit > 0 ? "+" : ""
+	  self.tradeTotalPrice.numberOfLines = 2
+	  let profitText = sign + profit.formatSignificantDigits(digits: 0)
+	  self.tradeTotalPrice.text = "\(executedAmount)\nBTC 교환손익 \(profitText)원"
+	} else {
+	  self.tradeTotalPrice.numberOfLines = 1
+	  self.tradeTotalPrice.text = executedAmount
+	}
   }
 
   

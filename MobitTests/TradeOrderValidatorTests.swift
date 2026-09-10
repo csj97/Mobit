@@ -36,7 +36,7 @@ final class TradeOrderValidatorTests: XCTestCase {
       availableBalance: 2_000
     )
 
-    XCTAssertEqual(result.failure, .belowMinimumOrderAmount(minimum: 500))
+    XCTAssertEqual(result.failure, .belowMinimumOrderAmount(minimum: 500, currency: .krw))
   }
 
   func testBidValidationRejectsInsufficientBalance() {
@@ -46,7 +46,7 @@ final class TradeOrderValidatorTests: XCTestCase {
       availableBalance: 1_999
     )
 
-    XCTAssertEqual(result.failure, .insufficientBalance)
+    XCTAssertEqual(result.failure, .insufficientBalance(currency: .krw))
   }
 
   func testAskValidationSucceedsWithEnoughHolding() {

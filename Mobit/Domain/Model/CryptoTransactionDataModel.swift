@@ -76,9 +76,10 @@ struct CryptoTransactionDataModel: Codable, Equatable, Hashable {
 	var holdingQuantity: Double     // 보유 수량
 	var averageBuyPrice: Double     // 매수 평균가
 	var buyAmount: Double           // 매수 총액
+    var costBasisKRW: Decimal? = nil
 	
 	enum CodingKeys: String, CodingKey {
-		case exchange, marketName, cryptoName, holdingQuantity, averageBuyPrice, buyAmount
+		case exchange, marketName, cryptoName, holdingQuantity, averageBuyPrice, buyAmount, costBasisKRW
 	}
 
 	init(
@@ -88,7 +89,8 @@ struct CryptoTransactionDataModel: Codable, Equatable, Hashable {
 	  cryptoName: String?,
 	  holdingQuantity: Double,
 	  averageBuyPrice: Double,
-	  buyAmount: Double
+	  buyAmount: Double,
+    costBasisKRW: Decimal? = nil
 	) {
 	  self.exchange = exchange
 	  self.identifier = identifier
@@ -97,6 +99,7 @@ struct CryptoTransactionDataModel: Codable, Equatable, Hashable {
 	  self.holdingQuantity = holdingQuantity
 	  self.averageBuyPrice = averageBuyPrice
 	  self.buyAmount = buyAmount
+      self.costBasisKRW = costBasisKRW
 	}
 
 	init(from decoder: Decoder) throws {
@@ -107,6 +110,7 @@ struct CryptoTransactionDataModel: Codable, Equatable, Hashable {
 	  self.holdingQuantity = try container.decode(Double.self, forKey: .holdingQuantity)
 	  self.averageBuyPrice = try container.decode(Double.self, forKey: .averageBuyPrice)
 	  self.buyAmount = try container.decode(Double.self, forKey: .buyAmount)
+      self.costBasisKRW = try container.decodeIfPresent(Decimal.self, forKey: .costBasisKRW)
 	}
   }
 
@@ -159,10 +163,15 @@ struct TransactionInfo: Codable, Equatable {
   let executedPrice: Double   // 체결 가격
   let executedQuantity: Double // 체결 수량
   let executedAmount: Double  // 체결 금액 (가격 * 수량)
+  var settlementRateKRW: Decimal? = nil
+  var settlementProfitLossKRW: Decimal? = nil
+  var executedAmountKRW: Decimal? {
+    settlementRateKRW.map { PortfolioCalculator.decimal(executedAmount) * $0 }
+  }
   private let legacyExecutedDate: String?
 
   enum CodingKeys: String, CodingKey {
-    case exchange, marketName, orderType, executedTimestamp, executedDate, executedPrice, executedQuantity, executedAmount
+    case exchange, marketName, orderType, executedTimestamp, executedDate, executedPrice, executedQuantity, executedAmount, settlementRateKRW, settlementProfitLossKRW
   }
 
   var executedDate: String {
@@ -220,6 +229,8 @@ struct TransactionInfo: Codable, Equatable {
     self.executedPrice = try container.decode(Double.self, forKey: .executedPrice)
     self.executedQuantity = try container.decode(Double.self, forKey: .executedQuantity)
     self.executedAmount = try container.decode(Double.self, forKey: .executedAmount)
+    self.settlementRateKRW = try container.decodeIfPresent(Decimal.self, forKey: .settlementRateKRW)
+    self.settlementProfitLossKRW = try container.decodeIfPresent(Decimal.self, forKey: .settlementProfitLossKRW)
   }
 
   func encode(to encoder: Encoder) throws {
@@ -232,6 +243,8 @@ struct TransactionInfo: Codable, Equatable {
     try container.encode(executedPrice, forKey: .executedPrice)
     try container.encode(executedQuantity, forKey: .executedQuantity)
     try container.encode(executedAmount, forKey: .executedAmount)
+    try container.encodeIfPresent(settlementRateKRW, forKey: .settlementRateKRW)
+    try container.encodeIfPresent(settlementProfitLossKRW, forKey: .settlementProfitLossKRW)
   }
 }
 
@@ -306,6 +319,6 @@ extension ValidTransactionInfo {
   }
   
   var isFullySoldOut: Bool {
-	abs(totalHoldingQuantity) < PortfolioCalculator.quantityTolerance
+	totalHoldingQuantity <= 0
   }
 }
