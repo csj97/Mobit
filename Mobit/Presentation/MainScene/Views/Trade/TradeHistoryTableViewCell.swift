@@ -16,6 +16,7 @@ class TradeHistoryTableViewCell: UITableViewCell {
   @IBOutlet weak var tradeAmount: UILabel!      // 체결수량
   @IBOutlet weak var tradeTotalPrice: UILabel!  // 체결금액
   private var currentOrderType: OrderType?
+  private var currentRecordType: TransactionRecordType = .userOrder
   
   override func awakeFromNib() {
     super.awakeFromNib()
@@ -38,11 +39,20 @@ class TradeHistoryTableViewCell: UITableViewCell {
 	  self.tradeAmount,
 	  self.tradeTotalPrice
 	].forEach { $0?.textColor = .mobitColors(.tradeTextPrimary) }
-	if let currentOrderType {
-	  self.orderTypeLabel.textColor = currentOrderType == .ask
-		? MarketColorPalette.fallColor
-		: MarketColorPalette.riseColor
+	self.applyOrderTypeStyle()
+  }
+
+  private func applyOrderTypeStyle() {
+	if currentRecordType == .legacyBTCSettlement {
+	  self.orderTypeLabel.text = "시스템 정산"
+	  self.orderTypeLabel.textColor = .mobitColors(.tradeTextSecondary)
+	  return
 	}
+	guard let currentOrderType else { return }
+	self.orderTypeLabel.text = currentOrderType == .ask ? "매도" : "매수"
+	self.orderTypeLabel.textColor = currentOrderType == .ask
+	  ? MarketColorPalette.fallColor
+	  : MarketColorPalette.riseColor
   }
 
   
@@ -51,22 +61,18 @@ class TradeHistoryTableViewCell: UITableViewCell {
 	transactionInfo: TransactionInfo
   ) {
 	self.currentOrderType = transactionInfo.orderType
-	if transactionInfo.orderType == .ask {
-	  self.orderTypeLabel.text = "매도"
-	  self.orderTypeLabel.textColor = MarketColorPalette.fallColor
-	} else {
-	  self.orderTypeLabel.text = "매수"
-	  self.orderTypeLabel.textColor = MarketColorPalette.riseColor
-	}
+	self.currentRecordType = transactionInfo.recordType
+	self.applyOrderTypeStyle()
 	self.tradeDate.text = transactionInfo.executedDate
 	self.marketName.text = marketName
 	// 체결 기록은 주문 당시 통화 그대로 보여준다. 원화 마켓은 기존 표기를 유지한다.
 	let currency = transactionInfo.settlementCurrency
-	let unit = currency == .krw ? "" : " " + currency.rawValue
+	let priceUnit = currency == .krw ? "" : " " + currency.rawValue
+	let amountUnit = transactionInfo.recordType == .legacyBTCSettlement ? " KRW" : priceUnit
 
-	self.tradeCryptoPrice.text = transactionInfo.executedPrice.formatSignificantDigits() + unit
+	self.tradeCryptoPrice.text = transactionInfo.executedPrice.formatSignificantDigits() + priceUnit
 	self.tradeAmount.text = String(transactionInfo.executedQuantity.formatSignificantDigits())
-	let executedAmount = transactionInfo.executedAmount.formatSignificantDigits() + unit
+	let executedAmount = transactionInfo.executedAmount.formatSignificantDigits() + amountUnit
 	if let exchangeProfit = transactionInfo.settlementProfitLossKRW {
 	  let profit = PortfolioCalculator.double(exchangeProfit)
 	  let sign = profit > 0 ? "+" : ""

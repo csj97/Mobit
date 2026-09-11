@@ -70,6 +70,7 @@ class MainViewController: MobitBaseViewController {
   private var isLoadingMainNativeAd = false
   private var mainNativeAd: NativeAd?
   private var mainAdLoader: AdLoader?
+  private var hasCheckedLegacyBTCSettlement = false
   
   var selectedTab: SelectedTab = .krw {
 	didSet { self.reactor.action.onNext(.setSelectedTab(tab: selectedTab)) }
@@ -342,6 +343,9 @@ class MainViewController: MobitBaseViewController {
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     // self.requestMainNativeAdIfNeeded()
+    if !reactor.currentState.totalCryptoList.isEmpty {
+      presentLegacyBTCSettlementAlertIfNeeded()
+    }
   }
   
   override func viewDidLayoutSubviews() {
@@ -452,7 +456,7 @@ class MainViewController: MobitBaseViewController {
 	let cryptos = (cryptos ?? []).filter { $0.staticData.exchange == currentExchange }
 	let availableBalance = UserDataManager.userInformation?.userAvailableBalance ?? 0
 	// BTC 마켓 보유분은 BTC 단위로 기록되므로 합산 전에 원화로 환산한다.
-	let btcKRWPrice = AppDataManager.shared.btcKRWPrice()
+	let btcKRWPrice = AppDataManager.shared.lastBTCKRWPrice()
 	let totalBalance = PortfolioCalculator.totalAssetValue(
 	  availableBalance: availableBalance,
 	  cryptos: cryptos,
@@ -524,7 +528,7 @@ class MainViewController: MobitBaseViewController {
   private func formattedSignedPercent(_ value: Double) -> String {
 	guard value != 0 else { return "0 %" }
 	let prefix = value > 0 ? "+" : "-"
-	let formattedValue = abs(value).formatSignificantDigits(digits: 2)
+	let formattedValue = abs(value).formatSignificantDigits(digits: 3)
 	return "\(prefix)\(formattedValue) %"
   }
 
@@ -1096,6 +1100,38 @@ extension MainViewController {
     popup.modalTransitionStyle = .crossDissolve
     self.present(popup, animated: true)
   }
+
+  private func presentLegacyBTCSettlementAlertIfNeeded() {
+    guard !hasCheckedLegacyBTCSettlement,
+          view.window != nil,
+          presentedViewController == nil else { return }
+    guard let legacyHoldings = UserDataManager.legacyBTCMarketHoldings() else { return }
+    guard !legacyHoldings.isEmpty else {
+      hasCheckedLegacyBTCSettlement = true
+      return
+    }
+
+    hasCheckedLegacyBTCSettlement = true
+
+	let message = """
+	이전 버전에서 BTC 마켓 코인을 매수한 일부 사용자의 보유 수량이 잘못 계산되었습니다.
+
+	현재는 BTC 시세를 반영하도록 수정되었습니다.
+
+	확인을 누르면 기존 보유 코인을 현재 평가금액만큼 원화 잔고로 돌려드립니다.
+
+	이용에 불편을 드려 죄송합니다.
+	"""
+
+    show(
+      alertType: .onlyConfirm,
+      title: "BTC 마켓 보유 내역 안내",
+      content: message
+    ) { [weak self] confirmed in
+      guard confirmed else { return }
+      self?.reactor.action.onNext(.settleLegacyBTCMarketHoldings)
+    }
+  }
 }
 
 // MARK: - Reactor Binding
@@ -1120,6 +1156,10 @@ extension MainViewController: View {
 		
 		// 테이블뷰 업데이트
 		self.applySnapshot(cellInfos: filteredList)
+
+        if !totalList.isEmpty {
+          self.presentLegacyBTCSettlementAlertIfNeeded()
+        }
 	  })
 	  .disposed(by: self.disposeBag)
 	
@@ -1174,6 +1214,34 @@ extension MainViewController: View {
 	  })
 	  .disposed(by: self.disposeBag)
 
+    reactor.state
+      .map { $0.legacyBTCSettlementState }
+      .distinctUntilChanged()
+      .observe(on: MainScheduler.instance)
+      .subscribe(onNext: { [weak self] state in
+        guard let self else { return }
+        switch state {
+        case .idle:
+          break
+        case .loading:
+          self.showLoadingIndicator()
+        case .completed:
+          self.hideLoadingIndicator()
+          self.reactor.action.onNext(.loadUserCryptos)
+          self.updatePortfolioSummary()
+          if self.selectedTab == .hold { self.refreshDisplayedList() }
+        case .failed(let message):
+          self.hideLoadingIndicator()
+          self.show(
+            alertType: .onlyConfirm,
+            title: "안내",
+            content: message,
+            callBack: nil
+          )
+        }
+      })
+      .disposed(by: self.disposeBag)
+
     AppDataManager.shared.btcKRWPriceUpdates
       .observe(on: MainScheduler.instance)
       .filter { $0 == ExchangeSelectionStore.currentExchange }
@@ -1225,7 +1293,7 @@ extension MainViewController: View {
           pricedHolding.dynamicData.evaluationPrice = price * qty
         }
         let valuation = PortfolioCalculator.valuation(
-          of: pricedHolding, btcKRWPrice: AppDataManager.shared.btcKRWPrice(for: currentExchange)
+          of: pricedHolding, btcKRWPrice: AppDataManager.shared.lastBTCKRWPrice(for: currentExchange)
         )
         enriched.averageBuyPriceKRW = valuation.averagePriceKRW
         enriched.evaluationPrice = valuation.evaluationKRW

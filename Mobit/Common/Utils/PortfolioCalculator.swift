@@ -156,6 +156,13 @@ enum PortfolioCalculator {
     let rate = quote == "KRW" ? 1 : quoteKRWPrices[quote]
     let cost = costBasisKRW(of: data)
     let evaluation: Decimal? = {
+      // 구버전 BTC 마켓은 BTC 가격을 원화처럼 계산했으므로 정산 전까지 기존 표시 금액을 유지한다.
+      if quote == SettlementCurrency.btc.rawValue,
+         data.costBasisKRW == nil,
+         crypto.dynamicData.evaluationPrice.isFinite,
+         crypto.dynamicData.evaluationPrice >= 0 {
+        return decimal(crypto.dynamicData.evaluationPrice)
+      }
       guard let rate, rate.isFinite, rate > 0,
             crypto.dynamicData.evaluationPrice.isFinite,
             crypto.dynamicData.evaluationPrice >= 0 else { return nil }

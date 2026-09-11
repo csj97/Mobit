@@ -58,7 +58,7 @@ class InvestmentTableViewCell: UITableViewCell {
   
   func configure(crypto: CryptoTransactionDataModel, isLast: Bool) {
     let valuation = PortfolioCalculator.valuation(
-      of: crypto, btcKRWPrice: AppDataManager.shared.btcKRWPrice(for: crypto.staticData.exchange)
+      of: crypto, btcKRWPrice: AppDataManager.shared.lastBTCKRWPrice(for: crypto.staticData.exchange)
     )
     let currency = crypto.settlementCurrency
     self.cryptoName.text = crypto.staticData.marketName

@@ -64,6 +64,7 @@ final class BithumbWebSocketClient: WebSocketDelegate, WebSocketClientProtocol {
 
     Log.info("Disconnecting bithumb \(socketType.rawValue) socket...")
     isConnecting = false
+    isConnected = false
     socket.disconnect()
   }
 

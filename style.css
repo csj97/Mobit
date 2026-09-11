@@ -1,4 +1,5 @@
 :root {
+  color-scheme: light dark;
   --bg: #ffffff;
   --text: #17181c;
   --muted: #6b7280;
@@ -8,6 +9,20 @@
   --surface-strong: #eef0f3;
   --accent: #1f2430;
   --accent-hover: #12151d;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121419;
+    --text: #eaeff4;
+    --muted: #bdc3cb;
+    --faint: #848a93;
+    --border: #343942;
+    --surface: #1a1d23;
+    --surface-strong: #23272d;
+    --accent: #3ba3ff;
+    --accent-hover: #66b7ff;
+  }
 }
 
 * {
@@ -256,7 +271,7 @@ body {
 
 .reply-content {
   font-size: 14.5px;
-  color: #2c2f36;
+  color: var(--text);
   white-space: pre-wrap;
   word-break: break-word;
 }

@@ -309,7 +309,7 @@ class TradeAskView: UIView, ViewRule {
       currentPrice: currentPrice,
 	  quantity: inputAmount,
       exchange: crypto.staticData.exchange,
-      btcKRWPrice: AppDataManager.shared.btcKRWPrice(for: crypto.staticData.exchange)
+      btcKRWPrice: AppDataManager.shared.freshBTCKRWPrice(for: crypto.staticData.exchange)
 	)
 
 	switch result {
@@ -322,7 +322,11 @@ class TradeAskView: UIView, ViewRule {
 	  self.updateCryptoData()
 	  self.callBack?(.updateHistory)
 	case .failure(let error):
-	  self.callBack?(.alert(title: "알림", message: error.message))
+	  if error == .missingSettlementRate {
+		self.callBack?(.settlementRateUnavailable)
+	  } else {
+		self.callBack?(.alert(title: "알림", message: error.message))
+	  }
 	}
   }
 
@@ -352,17 +356,6 @@ class TradeAskView: UIView, ViewRule {
 	  return
 	}
 
-	// BTC 마켓은 매도 대금으로 받는 BTC의 원화 취득원가를 계산해야 하므로 시세가 필요하다.
-	if settlementCurrency == .btc,
-       reactor.map({ AppDataManager.shared.btcKRWPrice(for: $0.exchange) }) == nil {
-	  applyOrderButtonState(
-		isEnabled: false,
-		notice: TradeOrderValidator.ValidationError.missingSettlementRate.message,
-		isError: true
-	  )
-	  return
-	}
-
 	let validation = TradeOrderValidator.validateAsk(
 	  price: cryptoInfo?.tradePrice?.formatDigits(digits: 8),
 	  quantity: inputAmount,
@@ -372,7 +365,16 @@ class TradeAskView: UIView, ViewRule {
 
 	switch validation {
 	case .success:
-	  applyOrderButtonState(isEnabled: true, notice: defaultOrderNotice, isError: false)
+	  if settlementCurrency == .btc,
+         reactor.map({ AppDataManager.shared.freshBTCKRWPrice(for: $0.exchange) }) == nil {
+		applyOrderButtonState(
+		  isEnabled: true,
+		  notice: TradeOrderValidator.ValidationError.missingSettlementRate.message,
+		  isError: true
+		)
+	  } else {
+		applyOrderButtonState(isEnabled: true, notice: defaultOrderNotice, isError: false)
+	  }
 	case .failure(let error):
 	  applyOrderButtonState(isEnabled: false, notice: error.message, isError: true)
 	}
@@ -431,6 +433,10 @@ extension TradeAskView: UITextFieldDelegate {
   func inputType(for textField: UITextField) -> InputType? {
 	guard let id = textField.accessibilityIdentifier else { return nil }
 	return InputType(rawValue: id)
+  }
+
+  func textFieldDidBeginEditing(_ textField: UITextField) {
+	textField.text = textField.text?.replacingOccurrences(of: ",", with: "")
   }
 
   /// 텍스트 필드에 텍스트가 변경될 때, 호출

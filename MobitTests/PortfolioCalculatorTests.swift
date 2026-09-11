@@ -123,11 +123,12 @@ final class PortfolioCalculatorTests: XCTestCase {
         evaluationPrice: 0.035,
         evaluationProfitLoss: 0,
         buyAmount: 0.0315,
-        marketName: "ETH/BTC"
+        marketName: "ETH/BTC",
+        costBasisKRW: 3_150_000
       )
     ]
 
-    // 환산 시세가 없으면 0원으로 뭉개지 말고 '환산 불가'를 알려야 한다.
+    // 평가금액은 환산 불가지만 저장된 원화 원가는 BTC/KRW 시세 없이도 유지된다.
     XCTAssertNil(
       PortfolioCalculator.totalAssetValue(
         availableBalance: 0,
@@ -135,8 +136,9 @@ final class PortfolioCalculatorTests: XCTestCase {
         btcKRWPrice: nil
       )
     )
-    XCTAssertNil(
-      PortfolioCalculator.totalBuyAmount(cryptos: cryptos, btcKRWPrice: nil)
+    XCTAssertEqual(
+      PortfolioCalculator.totalBuyAmount(cryptos: cryptos, btcKRWPrice: nil),
+      4_150_000
     )
   }
 
@@ -168,14 +170,14 @@ final class PortfolioCalculatorTests: XCTestCase {
     XCTAssertNil(missingRate.profitLossKRW)
   }
 
-  func testLegacyBTCCostIsUnknownButCurrentValueRemainsAvailable() throws {
+  func testLegacyBTCHoldingKeepsLegacyKRWDisplayValueUntilSettlement() throws {
     let crypto = makeCrypto(evaluationPrice: 0.05, evaluationProfitLoss: 0,
                             buyAmount: 0.05, marketName: "ETH/BTC")
     let decoded = try JSONDecoder().decode(CryptoTransactionDataModel.self, from: JSONEncoder().encode(crypto))
     let value = PortfolioCalculator.valuation(of: decoded, btcKRWPrice: 120_000_000)
     XCTAssertNil(value.costBasisKRW)
     XCTAssertNil(value.profitLossKRW)
-    XCTAssertEqual(value.evaluationKRW, 6_000_000)
+    XCTAssertEqual(value.evaluationKRW, 0.05)
     XCTAssertNil(PortfolioCalculator.totalBuyAmount(cryptos: [decoded], btcKRWPrice: 120_000_000))
   }
 
@@ -219,13 +221,18 @@ final class PortfolioCalculatorTests: XCTestCase {
       XCTAssertEqual(cell.cryptoEvalLoss.text, "1,000,000")
       XCTAssertEqual(cell.cryptoProfitRate.text, "20 %")
       XCTAssertEqual(cell.cryptoAveragePrice.text, "0.05")
-      crypto.staticData.costBasisKRW = nil
-      cell.configure(crypto: crypto, isLast: false)
-      XCTAssertEqual(cell.cryptoBuyPrice.text, "-")
-      XCTAssertEqual(cell.cryptoEvalPrice.text, "6,000,000")
-      XCTAssertEqual(cell.cryptoProfitRate.text, "-")
-      crypto.staticData.costBasisKRW = 5_000_000
     }
+
+    let legacyCrypto = makeCrypto(
+      evaluationPrice: 6_000_000,
+      evaluationProfitLoss: 0,
+      buyAmount: 4_000_000,
+      marketName: "ETH/BTC"
+    )
+    cell.configure(crypto: legacyCrypto, isLast: false)
+    XCTAssertEqual(cell.cryptoBuyPrice.text, "-")
+    XCTAssertEqual(cell.cryptoEvalPrice.text, "6,000,000")
+    XCTAssertEqual(cell.cryptoProfitRate.text, "-")
   }
 
   func testTradeHoldingViewDisplaysBTCMarketAveragePriceInBTC() throws {
@@ -247,12 +254,95 @@ final class PortfolioCalculatorTests: XCTestCase {
     XCTAssertEqual(view.cryptoAveragePrice.text, "0.05")
   }
 
+  func testTradeHistoryCellDisplaysLegacySettlementInKRW() throws {
+    let cell = try XCTUnwrap(
+      UINib(nibName: "TradeHistoryTableViewCell", bundle: Bundle.main)
+        .instantiate(withOwner: nil).first as? TradeHistoryTableViewCell
+    )
+    let transaction = TransactionInfo(
+      marketName: "ETH/BTC",
+      orderType: .ask,
+      executedDate: "07.09 12:00",
+      executedPrice: 0.00003,
+      executedQuantity: 20_000_000_000,
+      executedAmount: 600_000,
+      recordType: .legacyBTCSettlement
+    )
+
+    cell.configure(marketName: "ETH/BTC", transactionInfo: transaction)
+
+    XCTAssertEqual(cell.orderTypeLabel.text, "시스템 정산")
+    XCTAssertEqual(cell.tradeCryptoPrice.text, "0.00003 BTC")
+    XCTAssertEqual(cell.tradeTotalPrice.text, "600,000 KRW")
+  }
+
+  func testPNLCellDisplaysBTCMarketAndRealizedProfitInKRW() throws {
+    let cell = try XCTUnwrap(
+      UINib(nibName: "PNLTableViewCell", bundle: Bundle.main)
+        .instantiate(withOwner: nil).first as? PNLTableViewCell
+    )
+    var history = UserPNLHistoryModel(
+      exchange: .bithumb,
+      marketName: "ETH/BTC",
+      entryPrice: 0.04,
+      exitPrice: 0.05,
+      transactionTimestamp: 1_700_000_000_000,
+      orderQuantity: 1,
+      pnl: 0.01
+    )
+    history.realizedProfitLossKRW = 1_500_000
+
+    cell.configure(pnlHistory: history)
+
+    XCTAssertEqual(cell.marketNameLabel.text, "ETH/BTC")
+    XCTAssertEqual(cell.pnlLabel.text, "1,500,000 원")
+  }
+
+  func testPNLCellDoesNotDisplayNativeBTCProfitWhenKRWProfitIsMissing() throws {
+    let cell = try XCTUnwrap(
+      UINib(nibName: "PNLTableViewCell", bundle: Bundle.main)
+        .instantiate(withOwner: nil).first as? PNLTableViewCell
+    )
+    let history = UserPNLHistoryModel(
+      marketName: "ETH/BTC",
+      entryPrice: 0.04,
+      exitPrice: 0.05,
+      transactionTimestamp: 1_700_000_000_000,
+      orderQuantity: 1,
+      pnl: 0.01
+    )
+
+    cell.configure(pnlHistory: history)
+
+    XCTAssertEqual(cell.pnlLabel.text, "-")
+  }
+
+  func testTradeInputsRemoveGroupingSeparatorsBeforeEditing() {
+    let bidTextField = UITextField()
+    bidTextField.text = "1,500,000"
+    TradeBidView().textFieldDidBeginEditing(bidTextField)
+
+    let askTextField = UITextField()
+    askTextField.text = "1,500,000"
+    TradeAskView().textFieldDidBeginEditing(askTextField)
+
+    XCTAssertEqual(bidTextField.text, "1500000")
+    XCTAssertEqual(askTextField.text, "1500000")
+  }
+
   func testBTCKRWPriceExpiresAfterLiveQuoteWindow() {
     let receivedAt = Date(timeIntervalSince1970: 1_000)
     AppDataManager.shared.updateBTCKRWPrice(
       120_000_000,
       for: .upbit,
       updatedAt: receivedAt
+    )
+
+    XCTAssertFalse(
+      AppDataManager.shared.needsBTCKRWPriceRefresh(
+        for: .upbit,
+        at: receivedAt.addingTimeInterval(AppDataManager.btcKRWPriceRefreshAge)
+      )
     )
 
     XCTAssertEqual(
@@ -262,10 +352,26 @@ final class PortfolioCalculatorTests: XCTestCase {
       ),
       120_000_000
     )
+    XCTAssertTrue(
+      AppDataManager.shared.needsBTCKRWPriceRefresh(
+        for: .upbit,
+        at: receivedAt.addingTimeInterval(AppDataManager.btcKRWPriceRefreshAge + 0.001)
+      )
+    )
     XCTAssertNil(
       AppDataManager.shared.btcKRWPrice(
         for: .upbit,
         at: receivedAt.addingTimeInterval(AppDataManager.btcKRWPriceMaxAge + 0.001)
+      )
+    )
+    XCTAssertEqual(
+      AppDataManager.shared.lastBTCKRWPrice(for: .upbit),
+      120_000_000
+    )
+    XCTAssertNil(
+      AppDataManager.shared.freshBTCKRWPrice(
+        for: .upbit,
+        at: receivedAt.addingTimeInterval(AppDataManager.btcKRWPriceRefreshAge + 0.001)
       )
     )
     AppDataManager.shared.invalidateBTCKRWPrice(for: .upbit)

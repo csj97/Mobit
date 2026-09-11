@@ -155,10 +155,16 @@ struct CryptoTransactionDataModel: Codable, Equatable, Hashable {
   }
 }
 
+enum TransactionRecordType: String, Codable {
+  case userOrder
+  case legacyBTCSettlement
+}
+
 struct TransactionInfo: Codable, Equatable {
   var exchange: Exchange = .upbit
   let marketName: String          // 코인 마켓 이름 (예: "BTC-USDT")
   let orderType: OrderType		// 주문 타입 (매도, 매수)
+  let recordType: TransactionRecordType
   let executedTimestamp: Int64? // 체결 시각 timestamp(ms)
   let executedPrice: Double   // 체결 가격
   let executedQuantity: Double // 체결 수량
@@ -171,7 +177,7 @@ struct TransactionInfo: Codable, Equatable {
   private let legacyExecutedDate: String?
 
   enum CodingKeys: String, CodingKey {
-    case exchange, marketName, orderType, executedTimestamp, executedDate, executedPrice, executedQuantity, executedAmount, settlementRateKRW, settlementProfitLossKRW
+    case exchange, marketName, orderType, recordType, executedTimestamp, executedDate, executedPrice, executedQuantity, executedAmount, settlementRateKRW, settlementProfitLossKRW
   }
 
   var executedDate: String {
@@ -188,11 +194,13 @@ struct TransactionInfo: Codable, Equatable {
     executedTimestamp: Int64,
     executedPrice: Double,
     executedQuantity: Double,
-    executedAmount: Double
+    executedAmount: Double,
+    recordType: TransactionRecordType = .userOrder
   ) {
     self.exchange = exchange
     self.marketName = marketName
     self.orderType = orderType
+    self.recordType = recordType
     self.executedTimestamp = executedTimestamp
     self.executedPrice = executedPrice
     self.executedQuantity = executedQuantity
@@ -207,11 +215,13 @@ struct TransactionInfo: Codable, Equatable {
     executedDate: String,
     executedPrice: Double,
     executedQuantity: Double,
-    executedAmount: Double
+    executedAmount: Double,
+    recordType: TransactionRecordType = .userOrder
   ) {
     self.exchange = exchange
     self.marketName = marketName
     self.orderType = orderType
+    self.recordType = recordType
     self.executedTimestamp = nil
     self.executedPrice = executedPrice
     self.executedQuantity = executedQuantity
@@ -224,6 +234,7 @@ struct TransactionInfo: Codable, Equatable {
     self.exchange = try container.decodeIfPresent(Exchange.self, forKey: .exchange) ?? .upbit
     self.marketName = try container.decode(String.self, forKey: .marketName)
     self.orderType = try container.decode(OrderType.self, forKey: .orderType)
+    self.recordType = try container.decodeIfPresent(TransactionRecordType.self, forKey: .recordType) ?? .userOrder
     self.executedTimestamp = try container.decodeIfPresent(Int64.self, forKey: .executedTimestamp)
     self.legacyExecutedDate = try container.decodeIfPresent(String.self, forKey: .executedDate)
     self.executedPrice = try container.decode(Double.self, forKey: .executedPrice)
@@ -238,6 +249,7 @@ struct TransactionInfo: Codable, Equatable {
     try container.encode(exchange, forKey: .exchange)
     try container.encode(marketName, forKey: .marketName)
     try container.encode(orderType, forKey: .orderType)
+    try container.encode(recordType, forKey: .recordType)
     try container.encodeIfPresent(executedTimestamp, forKey: .executedTimestamp)
     try container.encodeIfPresent(legacyExecutedDate, forKey: .executedDate)
     try container.encode(executedPrice, forKey: .executedPrice)

@@ -10,6 +10,7 @@ import RxSwift
 import Starscream
 
 final class UpbitWebSocketClient: WebSocketDelegate, WebSocketClientProtocol {
+  private static let reconnectDelay: TimeInterval = 1
   private let socket: WebSocket
   private let socketType: SocketType
   private let connectedSubject = PublishSubject<Void>()
@@ -18,6 +19,7 @@ final class UpbitWebSocketClient: WebSocketDelegate, WebSocketClientProtocol {
   private(set) var isConnected = false
   private var isConnecting = false
   private var isUserInitiatedDisconnect = false
+  private var reconnectWorkItem: DispatchWorkItem?
   
   init(socketType: SocketType) {
 	self.socketType = socketType
@@ -40,6 +42,8 @@ final class UpbitWebSocketClient: WebSocketDelegate, WebSocketClientProtocol {
   
   func connect() {
 	guard !isConnected, !isConnecting else { return }
+	reconnectWorkItem?.cancel()
+	reconnectWorkItem = nil
 	isUserInitiatedDisconnect = false
 	isConnecting = true
 	socket.connect()
@@ -47,10 +51,15 @@ final class UpbitWebSocketClient: WebSocketDelegate, WebSocketClientProtocol {
   
   func disconnect(userInitiated: Bool = false) {
 	isUserInitiatedDisconnect = userInitiated
+	if userInitiated {
+	  reconnectWorkItem?.cancel()
+	  reconnectWorkItem = nil
+	}
 	guard isConnected || isConnecting else { return }
 	
 	Log.info("Disconnecting \(socketType.rawValue) socket...")
     isConnecting = false
+	isConnected = false
 	socket.disconnect()
   }
   
@@ -85,6 +94,8 @@ final class UpbitWebSocketClient: WebSocketDelegate, WebSocketClientProtocol {
   ) {
 	switch event {
 	case .connected:
+      reconnectWorkItem?.cancel()
+      reconnectWorkItem = nil
       isConnecting = false
 	  isConnected = true
 	  logConnectionEvent("connected")
@@ -94,6 +105,7 @@ final class UpbitWebSocketClient: WebSocketDelegate, WebSocketClientProtocol {
       isConnecting = false
 	  isConnected = false
 	  logConnectionEvent("disconnected: \(reason) with code: \(code)")
+	  scheduleReconnectIfNeeded()
 	  
 	case .text(let text):
 	  Log.info("Received \(socketType.rawValue) text: \(text)")
@@ -105,24 +117,49 @@ final class UpbitWebSocketClient: WebSocketDelegate, WebSocketClientProtocol {
       isConnecting = false
 	  isConnected = false
 	  Log.info("\(socketType.rawValue) socket error: \(String(describing: error))")
+	  scheduleReconnectIfNeeded()
 	  
 	case .cancelled:
       isConnecting = false
 	  isConnected = false
 	  logConnectionEvent("cancelled")
+	  scheduleReconnectIfNeeded()
 	  
 	case .ping, .pong:
 	  break
 	  
 	case .viabilityChanged(let isViable):
 	  Log.info("\(socketType.rawValue) viability changed: \(isViable)")
+	  if !isViable { scheduleReconnectIfNeeded() }
 	  
 	case .reconnectSuggested(let shouldReconnect):
 	  Log.info("\(socketType.rawValue) reconnect suggested: \(shouldReconnect)")
+	  if shouldReconnect { scheduleReconnectIfNeeded() }
 	  
 	case .peerClosed:
+	  isConnecting = false
+	  isConnected = false
 	  Log.info("\(socketType.rawValue) peer closed connection")
+	  scheduleReconnectIfNeeded()
 	}
+  }
+
+  private func scheduleReconnectIfNeeded() {
+	guard !isUserInitiatedDisconnect,
+		  !isConnected,
+		  !isConnecting,
+		  reconnectWorkItem == nil else { return }
+
+	let workItem = DispatchWorkItem { [weak self] in
+	  guard let self else { return }
+	  self.reconnectWorkItem = nil
+	  self.reconnectIfNeeded()
+	}
+	reconnectWorkItem = workItem
+	DispatchQueue.main.asyncAfter(
+	  deadline: .now() + Self.reconnectDelay,
+	  execute: workItem
+	)
   }
   
   private func logConnectionEvent(_ message: String) {

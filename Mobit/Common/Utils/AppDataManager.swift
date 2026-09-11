@@ -11,7 +11,8 @@ import RxSwift
 
 final class AppDataManager {
   static let shared = AppDataManager()
-  static let btcKRWPriceMaxAge: TimeInterval = 15
+  static let btcKRWPriceRefreshAge: TimeInterval = 15
+  static let btcKRWPriceMaxAge: TimeInterval = 60
 
   private struct TimedPrice {
     let price: Double
@@ -43,7 +44,7 @@ final class AppDataManager {
     let changed = self.btcKRWPriceQueue.sync(flags: .barrier) {
       let previous = self.btcKRWPrices[exchange]
       let wasStale = previous.map {
-        updatedAt.timeIntervalSince($0.updatedAt) > Self.btcKRWPriceMaxAge
+        updatedAt.timeIntervalSince($0.updatedAt) > Self.btcKRWPriceRefreshAge
       } ?? true
       let changed = previous?.price != price || wasStale
       self.btcKRWPrices[exchange] = TimedPrice(price: price, updatedAt: updatedAt)
@@ -54,7 +55,19 @@ final class AppDataManager {
     }
   }
 
-  /// 아직 시세를 받지 못했으면 nil이다. 0으로 환산하면 자산이 사라진 것처럼 보이므로 호출 측에서 구분해야 한다.
+  /// 15초 동안 새 시세가 없으면 캐시를 바로 버리지 않고 REST 검증 대상으로 표시한다.
+  func needsBTCKRWPriceRefresh(
+	for exchange: Exchange = ExchangeSelectionStore.currentExchange,
+    at date: Date = Date()
+  ) -> Bool {
+    self.btcKRWPriceQueue.sync {
+      guard let quote = self.btcKRWPrices[exchange] else { return true }
+      let age = date.timeIntervalSince(quote.updatedAt)
+      return age < 0 || age > Self.btcKRWPriceRefreshAge
+    }
+  }
+
+  /// 검증 요청 중에는 최근 값을 유지하되 장시간 갱신되지 않은 값은 nil로 처리한다.
   func btcKRWPrice(
 	for exchange: Exchange = ExchangeSelectionStore.currentExchange,
     at date: Date = Date(),
@@ -66,6 +79,27 @@ final class AppDataManager {
       guard age >= 0, age <= maxAge else { return nil }
       return quote.price
     }
+  }
+
+  /// 평가 화면은 통신 실패 중에도 마지막 정상 가격을 유지한다.
+  func lastBTCKRWPrice(
+    for exchange: Exchange = ExchangeSelectionStore.currentExchange
+  ) -> Double? {
+    self.btcKRWPriceQueue.sync {
+      self.btcKRWPrices[exchange]?.price
+    }
+  }
+
+  /// 주문에는 15초 이내에 소켓 또는 REST로 확인한 가격만 사용한다.
+  func freshBTCKRWPrice(
+    for exchange: Exchange = ExchangeSelectionStore.currentExchange,
+    at date: Date = Date()
+  ) -> Double? {
+    self.btcKRWPrice(
+      for: exchange,
+      at: date,
+      maxAge: Self.btcKRWPriceRefreshAge
+    )
   }
 
   func invalidateBTCKRWPrice(for exchange: Exchange) {

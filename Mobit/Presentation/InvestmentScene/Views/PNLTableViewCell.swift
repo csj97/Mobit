@@ -51,29 +51,24 @@ class PNLTableViewCell: UITableViewCell {
   }
   
   func configure(pnlHistory: UserPNLHistoryModel) {
-	let displayedPNL = pnlHistory.realizedProfitLossKRW.map(PortfolioCalculator.double) ?? pnlHistory.pnl
-	self.currentPNL = displayedPNL
-	// 신규 기록은 확정 원화 손익을 사용하고 환율 없는 과거 기록은 원래 통화를 유지한다.
 	let currency = pnlHistory.settlementCurrency
 	let priceDigits = currency == .krw ? 2 : 8
-	let unit = pnlHistory.realizedProfitLossKRW != nil || currency == .krw ? " ₩" : " " + currency.rawValue
+	let realizedKRW = pnlHistory.realizedProfitLossKRW.map(PortfolioCalculator.double)
+	  ?? (currency == .krw ? pnlHistory.pnl : nil)
+	self.currentPNL = realizedKRW
 
-	self.marketNameLabel.text = "\(pnlHistory.marketName.marketSymbol) · \(currency.rawValue)"
-	let krwPNLText = "\(displayedPNL.formatSignificantDigits(digits: pnlHistory.realizedProfitLossKRW != nil ? 2 : priceDigits))".addComma() + unit
-	if currency == .btc, pnlHistory.realizedProfitLossKRW != nil {
-	  let nativePNL = pnlHistory.pnl.formatSignificantDigits(digits: 8)
-	  self.pnlLabel.text = "\(krwPNLText) · \(nativePNL) BTC"
-	  self.pnlLabel.adjustsFontSizeToFitWidth = true
-	  self.pnlLabel.minimumScaleFactor = 0.6
-	} else {
-	  self.pnlLabel.text = krwPNLText
-	}
+	self.marketNameLabel.text = pnlHistory.exchangePairID.displayMarket
+	self.pnlLabel.text = realizedKRW.map {
+	  $0.formatSignificantDigits(digits: 2).addComma() + " 원"
+	} ?? "-"
+	self.pnlLabel.adjustsFontSizeToFitWidth = false
 	self.quantityLabel.text = "\(pnlHistory.orderQuantity.formatSignificantDigits(digits: 2))".addComma()
 	self.entryPriceLabel.text = "\(pnlHistory.entryPrice.formatSignificantDigits(digits: priceDigits))".addComma() + (currency == .krw ? "" : " " + currency.rawValue)
 	self.exitPriceLabel.text = "\(pnlHistory.exitPrice.formatSignificantDigits(digits: priceDigits))".addComma() + (currency == .krw ? "" : " " + currency.rawValue)
 	self.transactionDateLabel.text = "\(pnlHistory.transactionDate)"
 	
-	self.pnlLabel.textColor = MarketColorPalette.color(forSignedValue: displayedPNL)
+	self.pnlLabel.textColor = realizedKRW.map { MarketColorPalette.color(forSignedValue: $0) }
+	  ?? .mobitColors(.textSecondary)
 	
 	self.layer.cornerRadius = 8
   }

@@ -75,7 +75,7 @@ class InvestmentViewController: MobitBaseViewController {
 	setData()
 	setTableView()
   }
-  
+
   override func viewDidLayoutSubviews() {
 	super.viewDidLayoutSubviews()
   }
@@ -129,7 +129,7 @@ class InvestmentViewController: MobitBaseViewController {
 	self.bind(reactor: self.reactor)
 	self.reactor.action.onNext(.loadTransactions)
   }
-  
+
   func setTableView() {
 	let nib = UINib(nibName: "InvestmentTableViewCell", bundle: nil)
 	self.transactionTableview.register(nib, forCellReuseIdentifier: "InvestmentTableViewCell")
@@ -183,7 +183,7 @@ class InvestmentViewController: MobitBaseViewController {
 	guard let availableUserBalance = UserDataManager.userInformation?.userAvailableBalance else { return }
 
 	// BTC 마켓 보유분은 BTC 단위로 기록되므로 합산 전에 원화로 환산한다.
-	let btcKRWPrice = AppDataManager.shared.btcKRWPrice()
+	let btcKRWPrice = AppDataManager.shared.lastBTCKRWPrice()
 	// 총 보유자산
 	let totalUserBalance = PortfolioCalculator.totalAssetValue(
 	  availableBalance: availableUserBalance,
@@ -255,7 +255,7 @@ class InvestmentViewController: MobitBaseViewController {
     let ascending = [.pnlLowToHigh, .evalProfitLossLowToHigh, .evalPriceLowToHigh].contains(sortType)
     let valued = cryptos.enumerated().map { index, crypto in
       (index, crypto, PortfolioCalculator.valuation(
-        of: crypto, btcKRWPrice: AppDataManager.shared.btcKRWPrice(for: crypto.staticData.exchange)
+        of: crypto, btcKRWPrice: AppDataManager.shared.lastBTCKRWPrice(for: crypto.staticData.exchange)
       ))
     }
     func value(_ valuation: PortfolioCalculator.Valuation) -> Double? {

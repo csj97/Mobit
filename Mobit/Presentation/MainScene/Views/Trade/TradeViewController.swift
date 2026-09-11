@@ -122,6 +122,8 @@ class TradeViewController: MobitBaseViewController {
 	  switch orderResult {
 	  case .alert(let title, let message):
 		self.showDefaultAlert(title: title, message: message)
+	  case .settlementRateUnavailable:
+		self.showSettlementRateRetryAlert()
 	  case .successLottie:
 		let lottieView = MobitLottieView(
 		  lottieName: "check_deep_blue",
@@ -526,6 +528,18 @@ class TradeViewController: MobitBaseViewController {
 	alert.addAction(okAction)
 	self.present(alert, animated: true, completion: nil)
   }
+
+  private func showSettlementRateRetryAlert() {
+	guard self.presentedViewController == nil else { return }
+	self.show(
+	  alertType: .onlyConfirm,
+	  title: "안내",
+	  content: "BTC 마켓 거래의 원화 원가와 실현손익을 계산하려면 최신 BTC/KRW 시세가 필요합니다.\n시세를 다시 조회한 후 주문할 수 있습니다. 확인을 누르면 다시 조회합니다."
+	) { [weak self] confirmed in
+	  guard confirmed else { return }
+	  self?.reactor.action.onNext(.refreshSettlementRate)
+	}
+  }
   
   func showCalculatorView(cryptoInvestData: CryptoTransactionDataModel) {
 	let holdingQty = cryptoInvestData.staticData.holdingQuantity.formatSignificantDigits(digits: 2)
@@ -585,7 +599,7 @@ extension TradeViewController {
 		})
 	  })
 	  .disposed(by: self.disposeBag)
-	
+
 //	reactor.state.map { $0.candleDayResponse }
 //	  .observe(on: MainScheduler.instance)
 //	  .subscribe(onNext: { [weak self] dayCandleList in

@@ -239,7 +239,7 @@ class TradeBidView: UIView, ViewRule {
 		quantity: inputAmount,
         exchange: self.reactor?.exchange ?? ExchangeSelectionStore.currentExchange,
         btcKRWPrice: self.reactor.flatMap {
-          AppDataManager.shared.btcKRWPrice(for: $0.exchange)
+          AppDataManager.shared.freshBTCKRWPrice(for: $0.exchange)
         }
 	  )
 
@@ -250,7 +250,11 @@ class TradeBidView: UIView, ViewRule {
 		self.initTextFieldValue()
 		self.callBack?(.updateHistory)
 	  case .failure(let error):
-		callBack?(.alert(title: "알림", message: error.message))
+		if error == .missingSettlementRate {
+		  callBack?(.settlementRateUnavailable)
+		} else {
+		  callBack?(.alert(title: "알림", message: error.message))
+		}
 	  }
 	case .failure(let error):
 	  callBack?(.alert(title: "알림", message: error.message))
@@ -309,17 +313,6 @@ class TradeBidView: UIView, ViewRule {
 	  return
 	}
 
-	// BTC 마켓은 결제용 BTC/KRW 시세가 도착하기 전에는 체결할 수 없다.
-	if settlementCurrency == .btc,
-       reactor.map({ AppDataManager.shared.btcKRWPrice(for: $0.exchange) }) == nil {
-	  applyOrderButtonState(
-		isEnabled: false,
-		notice: TradeOrderValidator.ValidationError.missingSettlementRate.message,
-		isError: true
-	  )
-	  return
-	}
-
 	let validation = TradeOrderValidator.validateBid(
 	  price: cryptoInfo?.tradePrice?.formatDigits(digits: 8),
 	  quantity: inputAmount,
@@ -329,7 +322,16 @@ class TradeBidView: UIView, ViewRule {
 
 	switch validation {
 	case .success:
-	  applyOrderButtonState(isEnabled: true, notice: defaultOrderNotice, isError: false)
+	  if settlementCurrency == .btc,
+         reactor.map({ AppDataManager.shared.freshBTCKRWPrice(for: $0.exchange) }) == nil {
+		applyOrderButtonState(
+		  isEnabled: true,
+		  notice: TradeOrderValidator.ValidationError.missingSettlementRate.message,
+		  isError: true
+		)
+	  } else {
+		applyOrderButtonState(isEnabled: true, notice: defaultOrderNotice, isError: false)
+	  }
 	case .failure(let error):
 	  applyOrderButtonState(isEnabled: false, notice: error.message, isError: true)
 	}
@@ -391,6 +393,10 @@ extension TradeBidView: UITextFieldDelegate {
   func inputType(for textField: UITextField) -> InputType? {
 	guard let id = textField.accessibilityIdentifier else { return nil }
 	return InputType(rawValue: id)
+  }
+
+  func textFieldDidBeginEditing(_ textField: UITextField) {
+	textField.text = textField.text?.replacingOccurrences(of: ",", with: "")
   }
 
   /// 텍스트 필드에 텍스트가 변경될 때, 호출

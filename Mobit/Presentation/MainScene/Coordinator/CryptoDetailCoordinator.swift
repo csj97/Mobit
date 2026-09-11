@@ -34,6 +34,9 @@ class CryptoDetailCoordinator: BaseCoordinator {
         cryptoDetailRepository: CryptoDetailRepository(
           exchangeProvider: exchangeProvider
         )
+      ),
+      mainUseCase: MainUseCase(
+        mainRepository: MainRepository(exchangeProvider: exchangeProvider)
       )
     )
     let tradeVC =  TradeViewController(reactor: reactor)

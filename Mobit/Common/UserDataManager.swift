@@ -86,6 +86,14 @@ class UserDataManager: NSObject {
     case invalidStoredData
   }
 
+  struct LegacyBTCSettlementResult: Equatable {
+    let restoredKRWByExchange: [Exchange: Double]
+
+    var totalRestoredKRW: Double {
+      restoredKRWByExchange.values.reduce(0, +)
+    }
+  }
+
   private static let investmentStateLock = NSRecursiveLock()
   private static var stagedInvestmentState: InvestmentState?
 
@@ -132,6 +140,83 @@ class UserDataManager: NSObject {
         stagedInvestmentState = nil
         throw error
       }
+    }
+  }
+
+  /// 구버전에서 BTC 가격을 원화처럼 계산한 보유분만 반환한다.
+  static func legacyBTCMarketHoldings() -> [CryptoTransactionDataModel]? {
+    guard let holdings = userCryptoList else { return nil }
+    return holdings.filter {
+      $0.settlementCurrency == .btc && $0.staticData.costBasisKRW == nil
+    }
+  }
+
+  /// 구버전 화면의 현재 평가금액으로 원화 정산하고 정상 보유분은 유지한다.
+  static func settleLegacyBTCMarketHoldings() throws -> LegacyBTCSettlementResult {
+    try performAtomicInvestmentUpdate {
+      guard let holdings = userCryptoList,
+            let transactions = userTransactionList,
+            let validTransactions = userValidTransactionList else {
+        throw InvestmentStateError.invalidStoredData
+      }
+
+      let legacyHoldings = holdings.filter {
+        $0.settlementCurrency == .btc && $0.staticData.costBasisKRW == nil
+      }
+      guard !legacyHoldings.isEmpty else {
+        return LegacyBTCSettlementResult(restoredKRWByExchange: [:])
+      }
+
+      var restoredKRWByExchange: [Exchange: Double] = [:]
+      var settlementTransactions: [TransactionInfo] = []
+      let settlementTimestamp = TradeTimestampFormatter.timestamp(from: Date())
+      for holding in legacyHoldings {
+        let displayedEvaluation = holding.dynamicData.evaluationPrice
+        guard displayedEvaluation.isFinite, displayedEvaluation >= 0 else {
+          throw InvestmentStateError.invalidStoredData
+        }
+
+        let restoredKRW = displayedEvaluation.formatDigits(digits: 0)
+        restoredKRWByExchange[holding.staticData.exchange, default: 0] += restoredKRW
+
+        let quantity = holding.staticData.holdingQuantity
+        let settlementPrice = quantity > 0 ? displayedEvaluation / quantity : 0
+        settlementTransactions.append(TransactionInfo(
+          exchange: holding.staticData.exchange,
+          marketName: holding.staticData.marketName,
+          orderType: .ask,
+          executedTimestamp: settlementTimestamp,
+          executedPrice: settlementPrice,
+          executedQuantity: quantity,
+          executedAmount: restoredKRW,
+          recordType: .legacyBTCSettlement
+        ))
+      }
+
+      let legacyPairIDs = Set(legacyHoldings.map { $0.staticData.exchangePairID })
+      userCryptoList = holdings.filter {
+        !($0.settlementCurrency == .btc && $0.staticData.costBasisKRW == nil)
+      }
+      userValidTransactionList = validTransactions.filter {
+        !legacyPairIDs.contains($0.exchangePairID)
+      }
+      userTransactionList = transactions + settlementTransactions
+
+      for (exchange, restoredKRW) in restoredKRWByExchange {
+        let previousBalance = userInformation(for: exchange)?.userAvailableBalance ?? 0
+        let updatedBalance = previousBalance + restoredKRW
+        guard updatedBalance.isFinite else {
+          throw InvestmentStateError.invalidStoredData
+        }
+        updateUserInformation(
+          MobitUserInformation(userAvailableBalance: updatedBalance),
+          for: exchange
+        )
+      }
+
+      return LegacyBTCSettlementResult(
+        restoredKRWByExchange: restoredKRWByExchange
+      )
     }
   }
 
@@ -485,12 +570,12 @@ class UserDataManager: NSObject {
 	}
   }
 
-  // 시세 리스트 셀 배경 색상 틴트 표시 여부 (기본 ON)
+  // 시세 리스트 셀 배경 색상 틴트 표시 여부 (기본 OFF)
   static var marketCellTintEnabled: Bool {
 	get {
 	  let defaults = UserDefaults.standard
 	  if defaults.object(forKey: Keys.marketCellTintEnabled) == nil {
-		return true
+		return false
 	  }
 	  return defaults.bool(forKey: Keys.marketCellTintEnabled)
 	}

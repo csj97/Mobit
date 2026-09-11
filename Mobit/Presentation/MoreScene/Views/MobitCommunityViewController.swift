@@ -24,7 +24,14 @@ class MobitCommunityViewController: UIViewController, UIScrollViewDelegate, Mobi
 	super.viewDidLoad()
 	
 	self.configureWebView()
+	self.applyThemeColors()
 	self.loadLocalHTML()
+  }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+	super.traitCollectionDidChange(previousTraitCollection)
+	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+	self.applyThemeColors()
   }
 
   override func viewWillDisappear(_ animated: Bool) {
@@ -51,6 +58,13 @@ class MobitCommunityViewController: UIViewController, UIScrollViewDelegate, Mobi
 	mobitWebView.scrollView.backgroundColor = .mobitColors(.backgroundPrimary)
 	
 	self.baseView.addSubview(mobitWebView)
+  }
+
+  private func applyThemeColors() {
+	self.view.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.baseView.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.mobitWebView.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.mobitWebView.scrollView.backgroundColor = .mobitColors(.backgroundPrimary)
   }
   
   private func loadLocalHTML() {

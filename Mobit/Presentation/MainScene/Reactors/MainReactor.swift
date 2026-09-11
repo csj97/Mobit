@@ -21,6 +21,10 @@ class MainReactor: Reactor {
   private let mainUseCase: MainUseCase
   private let disposeBag = DisposeBag()
   private let tickerSocketService: TickerSocketServiceProtocol
+  private var isBTCKRWRefreshInFlight = false
+  private var nextBTCKRWRefreshAllowedAt = Date.distantPast
+  private var isSocketMonitoringEnabled = false
+  private var isLegacySettlementInFlight = false
   
   // ReactorKit 외부에서 mutation을 주입하려면 이게 필요
   private let mutationSubject = PublishSubject<MainMutation>()
@@ -51,12 +55,18 @@ class MainReactor: Reactor {
     self.tickerSocketService.stream
       .observe(on: MainScheduler.asyncInstance)
       .map { [weak self] ticker -> MainMutation? in
-        guard let self = self else { return nil }
+        guard let self = self,
+              self.exchange == ExchangeSelectionStore.currentExchange else { return nil }
         let updatedList = self.updateSingleCrypto(ticker: ticker)
         return .setTotalCryptoList(cryptoList: updatedList)
       }
       .compactMap { $0 }
       .bind(to: mutationSubject)
+      .disposed(by: disposeBag)
+
+    Observable<Int>.interval(.seconds(5), scheduler: MainScheduler.asyncInstance)
+      .map { _ in MainAction.validateBTCKRWPrice }
+      .bind(to: self.action)
       .disposed(by: disposeBag)
   }
 }
@@ -76,6 +86,15 @@ extension MainReactor {
 	case setSelectedTab(tab: SelectedTab)
 	case loadUserCryptos
 	case loadFearGreedIndex
+    case validateBTCKRWPrice
+    case settleLegacyBTCMarketHoldings
+  }
+
+  enum LegacyBTCSettlementState: Equatable {
+    case idle
+    case loading
+    case completed
+    case failed(message: String)
   }
   
   // MARK: Mutation
@@ -89,6 +108,7 @@ extension MainReactor {
     case setLoading(isLoading: Bool)
     case setErrorMessage(message: String?)
 	case setFearGreedIndex(FearGreedIndex?)
+    case setLegacyBTCSettlementState(LegacyBTCSettlementState)
   }
   
   // MARK: State
@@ -106,6 +126,7 @@ extension MainReactor {
     var isLoading: Bool = false
     var errorMessage: String?
 	var fearGreedIndex: FearGreedIndex?
+    var legacyBTCSettlementState: LegacyBTCSettlementState = .idle
   }
 }
 
@@ -155,6 +176,12 @@ extension MainReactor {
 		  Log.error("loadFearGreedIndex failed: \(error.localizedDescription)")
 		  return .just(.setFearGreedIndex(nil))
 		}
+
+    case .validateBTCKRWPrice:
+      return self.validateBTCKRWPrice()
+
+    case .settleLegacyBTCMarketHoldings:
+      return self.settleLegacyBTCMarketHoldings()
 	}
   }
   
@@ -182,8 +209,42 @@ extension MainReactor {
       newState.errorMessage = message
 	case .setFearGreedIndex(let index):
 	  newState.fearGreedIndex = index
+    case .setLegacyBTCSettlementState(let settlementState):
+      newState.legacyBTCSettlementState = settlementState
 	}
 	return newState
+  }
+}
+
+extension MainReactor {
+  private func settleLegacyBTCMarketHoldings() -> Observable<MainMutation> {
+    guard !isLegacySettlementInFlight else { return .empty() }
+    guard let holdings = UserDataManager.legacyBTCMarketHoldings() else {
+      return .just(.setLegacyBTCSettlementState(
+        .failed(message: "저장된 투자내역을 읽을 수 없습니다. 잠시 후 다시 시도해 주세요.")
+      ))
+    }
+    guard !holdings.isEmpty else { return .empty() }
+
+    isLegacySettlementInFlight = true
+    let settlement = Observable.deferred {
+      Observable.just(try UserDataManager.settleLegacyBTCMarketHoldings())
+    }
+      .map { _ in MainMutation.setLegacyBTCSettlementState(.completed) }
+      .catch { error in
+        Log.error("Legacy BTC settlement failed: \(error.localizedDescription)")
+        return .just(.setLegacyBTCSettlementState(
+          .failed(message: "저장된 평가금액을 확인하지 못해 기존 보유분을 정산하지 못했습니다.")
+        ))
+      }
+
+    return Observable.concat([
+      .just(.setLegacyBTCSettlementState(.loading)),
+      settlement
+    ])
+    .do(onDispose: { [weak self] in
+      self?.isLegacySettlementInFlight = false
+    })
   }
 }
 
@@ -204,6 +265,7 @@ extension MainReactor {
 		guard let self = self else { return .empty() }
 		
 		self.tickerSocketService.connect()
+		self.isSocketMonitoringEnabled = true
 		
 		let initialMarkets = self.initialTickerMarkets(from: cryptoList)
 		
@@ -277,6 +339,7 @@ extension MainReactor {
   /// 4️⃣ 단일 암호화폐 업데이트 (소켓 티커 수신 시)
   private func updateSingleCrypto(ticker: CryptoSocketTicker) -> [CryptoCellInfo] {
 	var updatedList = self.currentState.totalCryptoList
+	guard self.exchange == ExchangeSelectionStore.currentExchange else { return updatedList }
 	
 	// 해당 마켓의 *인덱스* 찾기
 	guard let index = updatedList.firstIndex(where: {
@@ -340,49 +403,83 @@ extension MainReactor {
   
   /// 소켓 연결 해제
   private func disconnectSocket() -> Observable<MainMutation> {
+	isSocketMonitoringEnabled = false
 	tickerSocketService.disconnect(userInitiated: true)
     isSocketConnected = tickerSocketService.isConnected
 	return .empty()
   }
 
   private func pauseSocket() -> Observable<MainMutation> {
-    tickerSocketService.disconnect(userInitiated: false)
+    isSocketMonitoringEnabled = false
+    tickerSocketService.disconnect(userInitiated: true)
     isSocketConnected = tickerSocketService.isConnected
     return .empty()
   }
 
   private func resumeSocket() -> Observable<MainMutation> {
+    isSocketMonitoringEnabled = true
     tickerSocketService.reconnectIfNeeded()
     if !tickerSocketService.isConnected {
       tickerSocketService.connect()
     }
     sendSocketMessageForCurrentTab(currentState.selectedTab)
     isSocketConnected = tickerSocketService.isConnected
-    return refreshBTCKRWPriceIfNeeded()
+    return validateBTCKRWPrice()
   }
 
-  /// 포그라운드 복귀 시 소켓 첫 이벤트만 기다리지 않고 만료된 BTC/KRW를 REST로 한 번 보정한다.
-  private func refreshBTCKRWPriceIfNeeded() -> Observable<MainMutation> {
+  /// 소켓이 끊겼거나 15초간 BTC/KRW 갱신이 없으면 연결을 복구하고 REST로 시세를 검증한다.
+  private func validateBTCKRWPrice() -> Observable<MainMutation> {
+    guard isSocketMonitoringEnabled else { return .empty() }
+    let needsRate = self.currentState.totalCryptoList.contains {
+      ExchangeMarketCodeConverter.settlementCurrency(
+        fromDisplayMarket: $0.market,
+        exchange: self.exchange
+      ) == .btc
+    } || (UserDataManager.userCryptoList?.contains {
+      $0.staticData.exchange == self.exchange && $0.settlementCurrency == .btc
+    } ?? false)
+
+    guard needsRate else { return .empty() }
+
+    if !tickerSocketService.isConnected {
+      tickerSocketService.reconnectIfNeeded()
+      if !tickerSocketService.isConnected { tickerSocketService.connect() }
+      sendSocketMessageForCurrentTab(currentState.selectedTab)
+    }
+
     guard self.exchange == ExchangeSelectionStore.currentExchange,
-          AppDataManager.shared.btcKRWPrice(for: self.exchange) == nil,
+          AppDataManager.shared.needsBTCKRWPriceRefresh(for: self.exchange),
+          !self.isBTCKRWRefreshInFlight,
+          Date() >= self.nextBTCKRWRefreshAllowedAt,
           let holdingMarket = SettlementCurrency.btc.holdingDisplayMarket else { return .empty() }
 
+    self.isBTCKRWRefreshInFlight = true
+    self.nextBTCKRWRefreshAllowedAt = Date().addingTimeInterval(15)
     let market = ExchangeMarketCodeConverter.rawMarketCode(
       fromDisplayMarket: holdingMarket,
       exchange: self.exchange
     )
     return self.mainUseCase.loadCryptoTicker(markets: [market])
+      .timeout(.seconds(10), scheduler: MainScheduler.asyncInstance)
       .do(onNext: { [weak self] tickers in
-        guard let self,
-              self.exchange == ExchangeSelectionStore.currentExchange,
-              let price = tickers.first(where: { $0.market == market })?.tradePrice else { return }
+        guard let self else { return }
+        guard self.exchange == ExchangeSelectionStore.currentExchange else { return }
+        guard let price = tickers.first(where: { $0.market == market })?.tradePrice,
+              price.isFinite,
+              price > 0 else {
+          return
+        }
         AppDataManager.shared.updateBTCKRWPrice(price, for: self.exchange)
+        self.nextBTCKRWRefreshAllowedAt = .distantPast
       })
       .flatMap { _ in Observable<MainMutation>.empty() }
       .catch { error in
         Log.error("BTC/KRW refresh failed: \(error.localizedDescription)")
         return .empty()
       }
+      .do(onDispose: { [weak self] in
+        self?.isBTCKRWRefreshInFlight = false
+      })
   }
 }
 

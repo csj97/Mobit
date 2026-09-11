@@ -256,7 +256,7 @@ class TradeOrderView: UIView, ViewRule {
 	self.cryptoInvestData = data
 	
     let valuation = PortfolioCalculator.valuation(
-      of: data, btcKRWPrice: AppDataManager.shared.btcKRWPrice(for: data.staticData.exchange)
+      of: data, btcKRWPrice: AppDataManager.shared.lastBTCKRWPrice(for: data.staticData.exchange)
     )
     if data.settlementCurrency == .btc {
       self.cryptoAveragePrice.text = data.staticData.averageBuyPrice.formatSignificantDigits(digits: 8)

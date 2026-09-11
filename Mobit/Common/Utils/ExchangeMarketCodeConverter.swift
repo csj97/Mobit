@@ -10,6 +10,7 @@ import Foundation
 enum ExchangeMarketCodeConverter {
   static let defaultExchange: Exchange = .upbit
 
+  /// 화면용 마켓과 거래소를 저장·비교에 사용하는 고유 ID로 바꾼다.
   static func pairID(
     fromDisplayMarket displayMarket: String,
     exchange: Exchange = defaultExchange
@@ -23,6 +24,7 @@ enum ExchangeMarketCodeConverter {
     )
   }
 
+  /// API 마켓 코드와 거래소를 저장·비교에 사용하는 고유 ID로 묶는다.
   static func pairID(
     fromRawMarketCode rawMarketCode: String,
     exchange: Exchange
@@ -30,6 +32,7 @@ enum ExchangeMarketCodeConverter {
     ExchangePairID(exchange: exchange, rawMarketCode: rawMarketCode)
   }
 
+  /// `ETH/BTC` 같은 화면용 마켓을 거래소 API 요청 코드로 바꾼다.
   static func rawMarketCode(
     fromDisplayMarket displayMarket: String,
     exchange: Exchange = defaultExchange
@@ -50,7 +53,7 @@ enum ExchangeMarketCodeConverter {
     }
   }
 
-  /// 마켓의 결제 통화. 지원하지 않는 통화면 nil을 돌려 호출 측이 주문을 거절하도록 한다.
+  /// 마켓의 결제 통화를 찾고 지원하지 않으면 nil을 반환한다.
   static func settlementCurrency(
     fromDisplayMarket displayMarket: String,
     exchange: Exchange = defaultExchange
@@ -62,6 +65,7 @@ enum ExchangeMarketCodeConverter {
     return SettlementCurrency(rawValue: quote.uppercased())
   }
 
+  /// 거래소 API 마켓 코드를 `ETH/BTC` 형식으로 바꾼다.
   static func displayMarket(
     fromRawMarketCode rawMarketCode: String,
     exchange: Exchange = defaultExchange
@@ -76,6 +80,7 @@ enum ExchangeMarketCodeConverter {
     return "\(components.base)/\(components.quote)"
   }
 
+  /// 화면용 `기준자산/결제자산` 문자열을 두 자산으로 나눈다.
   private static func displayComponents(
     from displayMarket: String
   ) -> (base: String, quote: String)? {
@@ -84,8 +89,7 @@ enum ExchangeMarketCodeConverter {
     return (base: components[0], quote: components[1])
   }
 
-  // 거래소 전환 중에는 display market뿐 아니라 이전 거래소 raw code가 다시 들어올 수 있다.
-  // 입력 포맷을 가리지 않고 base/quote를 먼저 정규화해 두어야 역방향 전환에서도 잘못된 raw code가 남지 않는다.
+  /// 화면용 또는 거래소 코드 입력을 동일한 기준·결제 자산으로 정규화한다.
   private static func normalizedComponents(
     fromAnyMarketCode marketCode: String
   ) -> (base: String, quote: String)? {
@@ -104,6 +108,7 @@ enum ExchangeMarketCodeConverter {
     return nil
   }
 
+  /// 거래소별 API 코드에서 기준 자산과 결제 자산을 분리한다.
   private static func rawComponents(
     from rawMarketCode: String,
     exchange: Exchange

@@ -22,9 +22,13 @@ class TradeReactor: Reactor {
   private let mutationSubject = PublishSubject<TradeMutation>()
   private var firebaseDB = Database.database().reference()
   private let cryptoDetailUseCase: CryptoDetailUseCase
+  private let mainUseCase: MainUseCaseProtocol
   private let disposeBag = DisposeBag()
   private let tickerSocketService: TickerSocketServiceProtocol
   private let orderBookSocketService: OrderBookSocketServiceProtocol
+  private var isSettlementRateRefreshInFlight = false
+  private var nextSettlementRateRefreshAllowedAt = Date.distantPast
+  private var isSocketMonitoringEnabled = false
   
   let selectCrypto: CryptoCellInfo
   let initialState: TradeState
@@ -43,6 +47,7 @@ class TradeReactor: Reactor {
     selectCrypto: CryptoCellInfo,
 	cmcInformation: FirebaseCMCResponse?,
     cryptoDetailUseCase: CryptoDetailUseCase,
+    mainUseCase: MainUseCaseProtocol,
     tickerSocketService: TickerSocketServiceProtocol = TickerSocketService(),
     orderBookSocketService: OrderBookSocketServiceProtocol = OrderBookSocketService()
   ) {
@@ -51,6 +56,7 @@ class TradeReactor: Reactor {
     self.selectCrypto = selectCrypto
 	self.cmcInformation = cmcInformation
     self.cryptoDetailUseCase = cryptoDetailUseCase
+    self.mainUseCase = mainUseCase
     self.tickerSocketService = tickerSocketService
     self.orderBookSocketService = orderBookSocketService
 
@@ -65,7 +71,7 @@ class TradeReactor: Reactor {
     }
     self.initialState = TradeState(
       settlementRatePrice: currency == .btc
-        ? AppDataManager.shared.btcKRWPrice(for: exchange)
+        ? AppDataManager.shared.freshBTCKRWPrice(for: exchange)
         : nil
     )
 
@@ -78,7 +84,8 @@ class TradeReactor: Reactor {
     self.tickerSocketService.stream
       .observe(on: MainScheduler.asyncInstance)
       .map { [weak self] ticker -> TradeMutation? in
-        guard let self = self else { return nil }
+        guard let self = self,
+              self.exchange == ExchangeSelectionStore.currentExchange else { return nil }
 
         // 결제용 BTC/KRW를 함께 구독하므로 종목을 구분하지 않으면 선택 종목 시세가 덮인다.
         if let settlementRateMarketCode = self.settlementRateMarketCode,
@@ -107,8 +114,17 @@ class TradeReactor: Reactor {
 
     self.orderBookSocketService.stream
       .observe(on: MainScheduler.asyncInstance)
-      .map { TradeMutation.setOrderBookInfo(obTicker: $0) }
+      .compactMap { [weak self] orderBook -> TradeMutation? in
+        guard let self,
+              self.exchange == ExchangeSelectionStore.currentExchange else { return nil }
+        return .setOrderBookInfo(obTicker: orderBook)
+      }
       .bind(to: mutationSubject)
+      .disposed(by: disposeBag)
+
+    Observable<Int>.interval(.seconds(5), scheduler: MainScheduler.asyncInstance)
+      .map { _ in TradeAction.validateSocketState }
+      .bind(to: self.action)
       .disposed(by: disposeBag)
   }
 
@@ -132,7 +148,9 @@ extension TradeReactor {
 	case getCandleListMinutes(market: String, unit: Int32 = 60, to: String?, count: Int?)
 	case getCandleListDays(market: String, to: String?, count: Int?, convertingPriceUnit: String?)
 	case setSelectedWholeTab(selectedWholeTab: SelectedWholeTab)
-	case loadTransactions
+    case loadTransactions
+    case validateSocketState
+    case refreshSettlementRate
   }
   
   enum TradeMutation {
@@ -189,6 +207,12 @@ extension TradeReactor {
 	  
 	case .loadTransactions:
 	  return .just(.setUserCrypto(UserDataManager.userCryptoList))
+
+    case .validateSocketState:
+      return self.validateSocketState()
+
+    case .refreshSettlementRate:
+      return self.refreshSettlementRate(force: true)
     }
   }
   
@@ -222,6 +246,7 @@ extension TradeReactor {
 
 extension TradeReactor {
   private func connectSockets(crypto: CryptoCellInfo) -> Observable<TradeMutation> {
+    isSocketMonitoringEnabled = true
     let market = self.transformMarketForm(market: crypto.market)
 
     tickerSocketService.connect()
@@ -233,12 +258,14 @@ extension TradeReactor {
     isTickerConnected = tickerSocketService.isConnected
     isOrderBookConnected = orderBookSocketService.isConnected
 
-    return .just(
-      .setSettlementRate(price: AppDataManager.shared.btcKRWPrice(for: self.exchange))
-    )
+    return Observable.concat([
+      .just(.setSettlementRate(price: AppDataManager.shared.freshBTCKRWPrice(for: self.exchange))),
+      refreshSettlementRate()
+    ])
   }
 
   private func disconnectSockets(userInitiated: Bool) -> Observable<TradeMutation> {
+    isSocketMonitoringEnabled = false
     tickerSocketService.disconnect(userInitiated: userInitiated)
     orderBookSocketService.disconnect(userInitiated: userInitiated)
 
@@ -249,10 +276,11 @@ extension TradeReactor {
   }
 
   private func pauseSocket() -> Observable<TradeMutation> {
-    return disconnectSockets(userInitiated: false)
+    return disconnectSockets(userInitiated: true)
   }
 
   private func resumeSocket() -> Observable<TradeMutation> {
+    isSocketMonitoringEnabled = true
     tickerSocketService.reconnectIfNeeded()
     if !tickerSocketService.isConnected {
       tickerSocketService.connect()
@@ -270,9 +298,63 @@ extension TradeReactor {
     isTickerConnected = tickerSocketService.isConnected
     isOrderBookConnected = orderBookSocketService.isConnected
 
-    return .just(
-      .setSettlementRate(price: AppDataManager.shared.btcKRWPrice(for: self.exchange))
-    )
+    return Observable.concat([
+      .just(.setSettlementRate(price: AppDataManager.shared.freshBTCKRWPrice(for: self.exchange))),
+      refreshSettlementRate()
+    ])
+  }
+
+  /// 연결이 끊기면 재구독하고, BTC/KRW가 15초간 갱신되지 않으면 REST로 검증한다.
+  private func validateSocketState() -> Observable<TradeMutation> {
+    guard isSocketMonitoringEnabled else { return .empty() }
+
+    if !tickerSocketService.isConnected {
+      tickerSocketService.reconnectIfNeeded()
+      if !tickerSocketService.isConnected { tickerSocketService.connect() }
+      tickerSocketService.subscribe(markets: tickerMarketsToSubscribe)
+    }
+
+    if !orderBookSocketService.isConnected {
+      orderBookSocketService.reconnectIfNeeded()
+      if !orderBookSocketService.isConnected { orderBookSocketService.connect() }
+      orderBookSocketService.subscribe(market: transformMarketForm(market: selectCrypto.market))
+    }
+
+    return refreshSettlementRate()
+  }
+
+  /// 주문에는 성공한 REST 시세만 갱신하고, 실패 시 마지막 표시값과 주문용 시세를 분리한다.
+  private func refreshSettlementRate(force: Bool = false) -> Observable<TradeMutation> {
+    guard settlementCurrency == .btc,
+          let market = settlementRateMarketCode,
+          force || AppDataManager.shared.needsBTCKRWPriceRefresh(for: exchange),
+          !isSettlementRateRefreshInFlight,
+          force || Date() >= nextSettlementRateRefreshAllowedAt else { return .empty() }
+
+    isSettlementRateRefreshInFlight = true
+    nextSettlementRateRefreshAllowedAt = Date().addingTimeInterval(15)
+    return mainUseCase.loadCryptoTicker(markets: [market])
+      .timeout(.seconds(10), scheduler: MainScheduler.asyncInstance)
+      .flatMap { [weak self] tickers -> Observable<TradeMutation> in
+        guard let self else { return .empty() }
+        guard self.exchange == ExchangeSelectionStore.currentExchange else { return .empty() }
+        guard let price = tickers.first(where: { $0.market == market })?.tradePrice,
+              price.isFinite,
+              price > 0 else {
+          return .just(.setSettlementRate(price: nil))
+        }
+
+        AppDataManager.shared.updateBTCKRWPrice(price, for: self.exchange)
+        self.nextSettlementRateRefreshAllowedAt = .distantPast
+        return .just(.setSettlementRate(price: price))
+      }
+      .catch { error in
+        Log.error("BTC/KRW refresh failed: \(error.localizedDescription)")
+        return .just(.setSettlementRate(price: nil))
+      }
+      .do(onDispose: { [weak self] in
+        self?.isSettlementRateRefreshInFlight = false
+      })
   }
 
   /// BTC 마켓은 결제 자산 평가를 위해 BTC/KRW 시세도 함께 받아야 한다.
