@@ -737,10 +737,13 @@ class MainViewController: MobitBaseViewController {
 			: .systemGray6
 		}
 		$0.textColor = .mobitColors(.textPrimary)
-		$0.font = UIFont(name: "SUIT-SemiBold", size: 13)
+		$0.font = .systemFont(ofSize: 13)
 		$0.attributedPlaceholder = NSAttributedString(
 		  string: "코인명/심볼 검색",
-		  attributes: [NSAttributedString.Key.foregroundColor: UIColor.mobitColors(.textTertiary)]
+		  attributes: [
+			.font: UIFont.systemFont(ofSize: 13),
+			.foregroundColor: UIColor.mobitColors(.textTertiary)
+		  ]
 		)
 	  }
 	}
@@ -1490,6 +1493,15 @@ extension MainViewController: UITableViewDelegate {
 	guard indexPath.row < displayedList.count else { return }
 	
 	let selectedCrypto = displayedList[indexPath.row]
+	guard !selectedCrypto.isUpcomingListing else {
+	  self.show(
+		alertType: .onlyConfirm,
+		title: "안내",
+		content: "신규 상장 예정 코인입니다.",
+		callBack: nil
+	  )
+	  return
+	}
 	let symbol = selectedCrypto.market.replacingOccurrences(
 	  of: "/(KRW|BTC)",
 	  with: "",

@@ -41,6 +41,7 @@ class InvestmentViewController: MobitBaseViewController {
   var cryptos: [CryptoTransactionDataModel] = []
   var userAvailableBalance: Double = 0
   var pendingUpdate: [CryptoTransactionDataModel]?
+  private var supportedMarketPairIDs: Set<ExchangePairID>?
   private var selectedSortType: InvestSortType = .name {
 	didSet {
 	  self.cryptos = self.sortCryptos(sortType: self.selectedSortType, cryptos: cryptos)
@@ -66,7 +67,7 @@ class InvestmentViewController: MobitBaseViewController {
 	self.navigationController?.navigationBar.isHidden = true
 	applyThemeColors()
 	updateTotalDatas(cryptos: cryptos)
-	transactionTableview.reloadData()
+	self.reactor.action.onNext(.loadTransactions)
   }
   
   override func viewDidLoad() {
@@ -127,7 +128,6 @@ class InvestmentViewController: MobitBaseViewController {
 
   func setData() {
 	self.bind(reactor: self.reactor)
-	self.reactor.action.onNext(.loadTransactions)
   }
 
   func setTableView() {
@@ -139,6 +139,8 @@ class InvestmentViewController: MobitBaseViewController {
 	)
 	
 	self.transactionTableview.bounces = false
+	self.transactionTableview.rowHeight = UITableView.automaticDimension
+	self.transactionTableview.estimatedRowHeight = UITableView.automaticDimension
 	
 	self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoTransactionDataModel>(
 	  tableView: self.transactionTableview,
@@ -151,7 +153,11 @@ class InvestmentViewController: MobitBaseViewController {
 		
 		let isLast = (indexPath.row == self.cryptos.count - 1)
 		let crypto = cryptoTransacDataModel
-		cell.configure(crypto: crypto, isLast: isLast)
+		cell.configure(
+		  crypto: crypto,
+		  isLast: isLast,
+		  isTradingUnsupported: self.isTradingUnsupported(crypto)
+		)
 		cell.selectionStyle = .none
 		
 		return cell
@@ -230,6 +236,47 @@ class InvestmentViewController: MobitBaseViewController {
   private static func krwText(_ value: Double?) -> String {
 	guard let value else { return unavailableText }
 	return (value == 0 ? "0" : value.formatSignificantDigits(digits: 0)) + " 원"
+  }
+
+  private func isTradingUnsupported(_ crypto: CryptoTransactionDataModel) -> Bool {
+	guard let supportedMarketPairIDs else { return false }
+	return !supportedMarketPairIDs.contains(crypto.staticData.exchangePairID)
+  }
+
+  private func showDelistingSettlementAlert(for crypto: CryptoTransactionDataModel) {
+	self.show(
+	  alertType: .canCancel,
+	  title: "거래지원 종료",
+	  content: "거래 지원이 종료된 코인입니다.\n확인을 누르면 마지막으로 저장된 평가손익을 기준으로 전량 매도되며, 실현손익과 보유자산에 반영됩니다."
+	) { [weak self] isConfirmed in
+	  guard let self, isConfirmed else { return }
+	  self.settleDelistedHolding(crypto)
+	}
+  }
+
+  private func settleDelistedHolding(_ crypto: CryptoTransactionDataModel) {
+	let result = TradeOrderService.executeDelistingSettlement(
+	  marketName: crypto.staticData.marketName,
+	  exchange: crypto.staticData.exchange,
+	  btcKRWPrice: AppDataManager.shared.lastBTCKRWPrice(for: crypto.staticData.exchange)
+	)
+
+	switch result {
+	case .success:
+	  self.show(
+		alertType: .onlyConfirm,
+		title: "정산 완료",
+		content: "전량 매도가 완료되었으며 실현손익과 보유자산에 반영되었습니다.",
+		callBack: nil
+	  )
+	case .failure(let error):
+	  self.show(
+		alertType: .onlyConfirm,
+		title: "정산 실패",
+		content: error.message,
+		callBack: nil
+	  )
+	}
   }
 
   func applyCryptos(_ cryptos: [CryptoTransactionDataModel]) {
@@ -339,7 +386,6 @@ extension InvestmentViewController: View {
       .disposed(by: self.disposeBag)
 
 	reactor.state.map { $0.cryptos }
-	  .compactMap { $0 }
 	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
@@ -354,6 +400,20 @@ extension InvestmentViewController: View {
 
 		self.pendingUpdate = nil
 		self.applyCryptos(cryptos)
+	  })
+	  .disposed(by: self.disposeBag)
+
+	reactor.state.map { $0.supportedMarketPairIDs }
+	  .distinctUntilChanged()
+	  .observe(on: MainScheduler.instance)
+	  .subscribe(onNext: { [weak self] supportedMarketPairIDs in
+		guard let self else { return }
+		self.supportedMarketPairIDs = supportedMarketPairIDs
+		guard !self.isScrolling else {
+		  self.pendingUpdate = self.cryptos
+		  return
+		}
+		self.applyCryptos(self.cryptos)
 	  })
 	  .disposed(by: self.disposeBag)
 	
@@ -397,6 +457,12 @@ extension InvestmentViewController: View {
 
 extension InvestmentViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+	guard indexPath.row < self.cryptos.count else { return }
+	let selectedCrypto = self.cryptos[indexPath.row]
+	guard !self.isTradingUnsupported(selectedCrypto) else {
+	  self.showDelistingSettlementAlert(for: selectedCrypto)
+	  return
+	}
 	let selectedCryptoMarketName = self.cryptos[indexPath.row].staticData.marketName
 
 	guard let selectedCryptoName = self.cryptos[indexPath.row].staticData.cryptoName else { return }

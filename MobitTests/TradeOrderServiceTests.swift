@@ -183,6 +183,56 @@ final class TradeOrderServiceTests: XCTestCase {
     XCTAssertEqual(UserDataManager.userPNLHistory?.count, 0)
   }
 
+  func testDelistingSettlementUsesStoredProfitLossAndCreditsBalance() throws {
+    _ = try TradeOrderService.executeBid(
+      marketName: "GEOD/KRW",
+      cryptoName: "지오드넷",
+      currentPrice: 500,
+      quantity: 10
+    ).get()
+
+    var holdings = try XCTUnwrap(UserDataManager.userCryptoList)
+    holdings[0].dynamicData.evaluationProfitLoss = -4_660
+    holdings[0].dynamicData.evaluationPrice = 340
+    UserDataManager.userCryptoList = holdings
+
+    let result = TradeOrderService.executeDelistingSettlement(
+      marketName: "GEOD/KRW",
+      executedAt: makeDate(year: 2026, month: 9, day: 17, hour: 11, minute: 30)
+    )
+
+    let execution = try result.get()
+    let transaction = try XCTUnwrap(UserDataManager.userTransactionList?.last)
+    let pnl = try XCTUnwrap(UserDataManager.userPNLHistory?.last)
+    XCTAssertEqual(execution.executedAmount, 340)
+    XCTAssertEqual(UserDataManager.userInformation?.userAvailableBalance, 5_340)
+    XCTAssertTrue(UserDataManager.userCryptoList?.isEmpty == true)
+    XCTAssertEqual(transaction.executedPrice, 34)
+    XCTAssertEqual(transaction.recordType, .delistingSettlement)
+    XCTAssertEqual(pnl.realizedProfitLossKRW, -4_660)
+  }
+
+  func testZeroValueDelistingSettlementStillRemovesHolding() throws {
+    _ = try TradeOrderService.executeBid(
+      marketName: "GEOD/KRW",
+      cryptoName: "지오드넷",
+      currentPrice: 500,
+      quantity: 1
+    ).get()
+
+    var holdings = try XCTUnwrap(UserDataManager.userCryptoList)
+    holdings[0].dynamicData.evaluationProfitLoss = -500
+    holdings[0].dynamicData.evaluationPrice = 0
+    UserDataManager.userCryptoList = holdings
+
+    let result = TradeOrderService.executeDelistingSettlement(marketName: "GEOD/KRW")
+
+    XCTAssertNoThrow(try result.get())
+    XCTAssertEqual(UserDataManager.userInformation?.userAvailableBalance, 9_500)
+    XCTAssertTrue(UserDataManager.userCryptoList?.isEmpty == true)
+    XCTAssertEqual(UserDataManager.userPNLHistory?.last?.realizedProfitLossKRW, -500)
+  }
+
   func testExecuteAskRejectsQuantityAboveHoldingWithoutMutatingSellState() {
     _ = TradeOrderService.executeBid(
       marketName: "BTC/KRW",

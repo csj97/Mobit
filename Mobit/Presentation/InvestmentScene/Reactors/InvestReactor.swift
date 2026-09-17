@@ -46,12 +46,14 @@ extension InvestReactor {
   enum InvestMutation {
 	case setUserCrypto([CryptoTransactionDataModel]?)
 	case setUserAvailableBalance(Double)
+	case setSupportedMarketPairIDs(Set<ExchangePairID>)
 	case setDetailCrypto(CryptoCellInfo?)
   }
 
   struct InvestReactorState {
 	var cryptos: [CryptoTransactionDataModel] = []
 	var userAvailableBalance: Double = UserDataManager.userInformation?.userAvailableBalance ?? 0
+	var supportedMarketPairIDs: Set<ExchangePairID>?
 	var detailCrypto: CryptoCellInfo?
   }
 }
@@ -68,7 +70,26 @@ extension InvestReactor {
   func mutate(action: InvestAction) -> Observable<InvestMutation> {
 	switch action {
 	case .loadTransactions:
-	  return .just(.setUserCrypto(UserDataManager.userCryptoList))
+	  let currentExchange = ExchangeSelectionStore.currentExchange
+	  let supportedMarkets = self.mainUseCase.loadCryptoList()
+		.map { cryptoList in
+		  InvestMutation.setSupportedMarketPairIDs(
+			MarketFormat.exchangePairIDs(
+			  fromAPIMarkets: cryptoList.map(\.market),
+			  exchange: currentExchange
+			)
+		  )
+		}
+		.catch { error in
+		  // 목록 조회 실패를 상장폐지로 오판하지 않고 마지막 확인 상태를 유지한다.
+		  Log.warning("Failed to refresh supported markets: \(error.localizedDescription)")
+		  return .empty()
+		}
+
+	  return Observable.concat([
+		.just(.setUserCrypto(UserDataManager.userCryptoList)),
+		supportedMarkets
+	  ])
 
 	case let .prepareDetailCrypto(marketName, cryptoName):
 	  // 보유코인 상세 진입: 티커를 조회해 정보 탭에 필요한 필드까지 채운다.
@@ -101,6 +122,8 @@ extension InvestReactor {
 	  newState.cryptos = (cryptos ?? []).filter { $0.staticData.exchange == currentExchange }
 	case .setUserAvailableBalance(let userAvailableBalance):
 	  newState.userAvailableBalance = userAvailableBalance
+	case .setSupportedMarketPairIDs(let pairIDs):
+	  newState.supportedMarketPairIDs = pairIDs
 	case .setDetailCrypto(let detailCrypto):
 	  newState.detailCrypto = detailCrypto
 	}

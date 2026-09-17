@@ -158,6 +158,7 @@ struct CryptoTransactionDataModel: Codable, Equatable, Hashable {
 enum TransactionRecordType: String, Codable {
   case userOrder
   case legacyBTCSettlement
+  case delistingSettlement
 }
 
 struct TransactionInfo: Codable, Equatable {

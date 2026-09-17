@@ -46,14 +46,15 @@ class MainCryptoTableViewCell: UITableViewCell {
 	self.priceBox.layer.borderWidth = 0.3
 	self.priceBox.layer.borderColor = UIColor.clear.cgColor
 	self.priceBox.layer.masksToBounds = true
-	
-	guard let marketEvent = crypto.marketEvent,
-		  let tradePrice = crypto.tradePrice,
-		  let signedChangeRate = crypto.signedChangeRate,
-		  let accTradeVolume = crypto.accTradePrice24h,
-		  let change = crypto.change  else { return }
-	
-	if marketEvent.warning == true {
+
+	self.cryptoName.attributedText = nil
+	self.cryptoName.textColor = .mobitColors(.textPrimary)
+	self.cryptoName.text = crypto.cryptoName
+	self.cryptoSymbol.text = crypto.market
+	self.cryptoSymbol.textColor = .mobitColors(.textTertiary)
+	self.cryptoAccTradePrice.textColor = .mobitColors(.textPrimary)
+
+	if crypto.marketEvent?.warning == true {
 	  let fullText = "[유]\(crypto.cryptoName)"
 	  let attributedString = NSMutableAttributedString(string: fullText)
 	  attributedString.addAttribute(
@@ -61,20 +62,27 @@ class MainCryptoTableViewCell: UITableViewCell {
 		value: UIColor.mobitColors(.textPrimary),
 		range: NSRange(location: 0, length: attributedString.length)
 	  )
-	  // [유]에만 경고 색상 적용
-	  attributedString.addAttribute(.foregroundColor,
-									value: UIColor.red,
-									range: NSRange(location: 0, length: 3))
-	  
+	  attributedString.addAttribute(
+		.foregroundColor,
+		value: UIColor.red,
+		range: NSRange(location: 0, length: 3)
+	  )
 	  self.cryptoName.attributedText = attributedString
-	} else {
-	  self.cryptoName.attributedText = nil
-	  self.cryptoName.textColor = .mobitColors(.textPrimary)
-	  self.cryptoName.text = crypto.cryptoName
 	}
-	self.cryptoSymbol.text = crypto.market
-	self.cryptoSymbol.textColor = .mobitColors(.textTertiary)
-	self.cryptoAccTradePrice.textColor = .mobitColors(.textPrimary)
+
+	guard !crypto.isUpcomingListing,
+		  let tradePrice = crypto.tradePrice,
+		  let signedChangeRate = crypto.signedChangeRate,
+		  let accTradeVolume = crypto.accTradePrice24h,
+		  let change = crypto.change else {
+	  self.cryptoPrice.text = "-"
+	  self.cryptoChangeRate.text = "-"
+	  self.cryptoAccTradePrice.text = "-"
+	  self.cryptoPrice.textColor = .mobitColors(.textPrimary)
+	  self.cryptoChangeRate.textColor = .mobitColors(.textPrimary)
+	  self.contentView.backgroundColor = .clear
+	  return
+	}
 	
 	let numberFormatter = NumberFormatter()
 	numberFormatter.numberStyle = .decimal
@@ -108,9 +116,9 @@ class MainCryptoTableViewCell: UITableViewCell {
 	if UserDataManager.marketCellTintEnabled == false {
 	  self.contentView.backgroundColor = .clear
 	} else if signedChangeRate > 0 {
-	  self.contentView.backgroundColor = MarketColorPalette.riseColor.withAlphaComponent(0.08)
+	  self.contentView.backgroundColor = MarketColorPalette.riseColor.withAlphaComponent(0.04)
 	} else if signedChangeRate < 0 {
-	  self.contentView.backgroundColor = MarketColorPalette.fallColor.withAlphaComponent(0.08)
+	  self.contentView.backgroundColor = MarketColorPalette.fallColor.withAlphaComponent(0.04)
 	} else {
 	  self.contentView.backgroundColor = UIColor.mobitColors(.surfacePrimary)
 	}

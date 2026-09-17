@@ -224,7 +224,57 @@ enum TradeOrderService {
           quantity: quantity,
           exchange: exchange,
           executedAt: executedAt,
-          btcKRWPrice: btcKRWPrice
+          btcKRWPrice: btcKRWPrice,
+          isDelistingSettlement: false
+        ).get()
+      })
+    } catch let error as TradeOrderValidator.ValidationError {
+      return .failure(error)
+    } catch {
+      return .failure(.invalidStoredData)
+    }
+  }
+
+  /// 거래지원 종료 종목을 마지막으로 저장된 평가손익 기준 가격으로 전량 정산한다.
+  static func executeDelistingSettlement(
+    marketName: String,
+    exchange: Exchange = ExchangeSelectionStore.currentExchange,
+    executedAt: Date = Date(),
+    btcKRWPrice: Double? = nil
+  ) -> Result<Execution, TradeOrderValidator.ValidationError> {
+    do {
+      return .success(try UserDataManager.performAtomicInvestmentUpdate {
+        let pairID = ExchangeMarketCodeConverter.pairID(
+          fromDisplayMarket: marketName,
+          exchange: exchange
+        )
+        guard let holding = UserDataManager.userCryptoList?.first(where: {
+          $0.staticData.exchangePairID == pairID
+        }) else {
+          throw TradeOrderValidator.ValidationError.insufficientHolding
+        }
+
+        let quantity = holding.staticData.holdingQuantity
+        let storedProfitLoss = holding.dynamicData.evaluationProfitLoss
+        guard quantity.isFinite, quantity > 0,
+              storedProfitLoss.isFinite,
+              holding.staticData.averageBuyPrice.isFinite else {
+          throw TradeOrderValidator.ValidationError.missingPrice
+        }
+
+        let settlementPrice = holding.staticData.averageBuyPrice + storedProfitLoss / quantity
+        guard settlementPrice.isFinite, settlementPrice >= 0 else {
+          throw TradeOrderValidator.ValidationError.missingPrice
+        }
+
+        return try executeAskInTransaction(
+          marketName: marketName,
+          currentPrice: settlementPrice,
+          quantity: quantity,
+          exchange: exchange,
+          executedAt: executedAt,
+          btcKRWPrice: btcKRWPrice,
+          isDelistingSettlement: true
         ).get()
       })
     } catch let error as TradeOrderValidator.ValidationError {
@@ -240,7 +290,8 @@ enum TradeOrderService {
     quantity: Double,
     exchange: Exchange,
     executedAt: Date,
-    btcKRWPrice: Double?
+    btcKRWPrice: Double?,
+    isDelistingSettlement: Bool
   ) -> Result<Execution, TradeOrderValidator.ValidationError> {
     guard let currency = ExchangeMarketCodeConverter.settlementCurrency(
       fromDisplayMarket: marketName,
@@ -269,18 +320,25 @@ enum TradeOrderService {
       return .failure(.insufficientHolding)
     }
 
-    let validation = TradeOrderValidator.validateAsk(
-      price: currentPrice,
-      quantity: quantity,
-      holdingQuantity: crypto.staticData.holdingQuantity,
-      currency: currency
-    )
+    if isDelistingSettlement {
+      // 거래가 끝난 종목은 최소 주문금액 미만이나 0원 가치라도 보유내역을 정리할 수 있어야 한다.
+      guard currentPrice.isFinite, currentPrice >= 0 else { return .failure(.missingPrice) }
+      guard quantity.isFinite, quantity > 0 else { return .failure(.invalidQuantity) }
+      guard quantity <= crypto.staticData.holdingQuantity else { return .failure(.insufficientHolding) }
+    } else {
+      let validation = TradeOrderValidator.validateAsk(
+        price: currentPrice,
+        quantity: quantity,
+        holdingQuantity: crypto.staticData.holdingQuantity,
+        currency: currency
+      )
 
-    guard case .success = validation else {
-      if case .failure(let error) = validation {
-        return .failure(error)
+      guard case .success = validation else {
+        if case .failure(let error) = validation {
+          return .failure(error)
+        }
+        return .failure(.invalidQuantity)
       }
-      return .failure(.invalidQuantity)
     }
 
     // 입력 수량은 화면 표시용으로 소수점 8자리까지만 넘어오므로, 남는 양이 허용 오차 이내면 보유 수량 전체를 체결시킨다.
@@ -311,7 +369,8 @@ enum TradeOrderService {
       executedTimestamp: executedTimestamp,
       executedPrice: currentPrice,
       executedQuantity: executedQuantity,
-      executedAmount: executedAmount
+      executedAmount: executedAmount,
+      recordType: isDelistingSettlement ? .delistingSettlement : .userOrder
     )
 
     transaction.settlementRateKRW = rate

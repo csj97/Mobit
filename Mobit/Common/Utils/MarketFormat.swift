@@ -8,6 +8,13 @@
 import Foundation
 
 enum MarketFormat {
+  static func exchangePairIDs(
+    fromAPIMarkets markets: [String],
+    exchange: Exchange = ExchangeSelectionStore.currentExchange
+  ) -> Set<ExchangePairID> {
+    Set(markets.map { ExchangePairID(exchange: exchange, rawMarketCode: $0) })
+  }
+
   static func displayMarket(
     fromAPIMarket market: String,
     exchange: Exchange = ExchangeSelectionStore.currentExchange

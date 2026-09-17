@@ -86,6 +86,32 @@ final class MarketFormatTests: XCTestCase {
     )
   }
 
+  func testExchangePairIDsBuildsSupportedMarketSetForExchange() {
+    let pairIDs = MarketFormat.exchangePairIDs(
+      fromAPIMarkets: ["KRW-BTC", "BTC-ETH"],
+      exchange: .upbit
+    )
+
+    XCTAssertEqual(
+      pairIDs,
+      [
+        ExchangePairID(exchange: .upbit, rawMarketCode: "KRW-BTC"),
+        ExchangePairID(exchange: .upbit, rawMarketCode: "BTC-ETH")
+      ]
+    )
+    XCTAssertFalse(
+      pairIDs.contains(ExchangePairID(exchange: .bithumb, rawMarketCode: "KRW-BTC"))
+    )
+  }
+
+  func testUpcomingListingRequiresPositiveFiniteTradePrice() {
+    XCTAssertTrue(makeCell(market: "NEW/KRW", tradePrice: nil).isUpcomingListing)
+    XCTAssertTrue(makeCell(market: "NEW/KRW", tradePrice: 0).isUpcomingListing)
+    XCTAssertTrue(makeCell(market: "NEW/KRW", tradePrice: .nan).isUpcomingListing)
+    XCTAssertTrue(makeCell(market: "NEW/KRW", tradePrice: .infinity).isUpcomingListing)
+    XCTAssertFalse(makeCell(market: "BTC/KRW", tradePrice: 100).isUpcomingListing)
+  }
+
   func testHoldTabSubscribesOnlyHeldMarkets() {
     let totalList = [
       makeCell(market: "BTC/KRW"),
@@ -161,13 +187,13 @@ final class MarketFormatTests: XCTestCase {
     XCTAssertEqual(markets, ["KRW-ETH"])
   }
 
-  private func makeCell(market: String) -> CryptoCellInfo {
+  private func makeCell(market: String, tradePrice: Double? = nil) -> CryptoCellInfo {
     CryptoCellInfo(
       cryptoName: market,
       market: market,
       marketEvent: nil,
       prevPrice: nil,
-      tradePrice: nil,
+      tradePrice: tradePrice,
       changePrice: nil,
       signedChangeRate: nil,
       change: nil,

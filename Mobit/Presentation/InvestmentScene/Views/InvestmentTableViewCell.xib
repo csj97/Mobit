@@ -217,6 +217,7 @@
                 <outlet property="cryptoName" destination="7Xe-NN-YW5" id="Yrt-69-hBF"/>
                 <outlet property="cryptoProfitRate" destination="rpI-bh-ysa" id="ekj-T6-B1S"/>
                 <outlet property="dividerView" destination="juc-Zd-ArT" id="ass-43-gmB"/>
+                <outlet property="metricsStackView" destination="PhI-Cj-ece" id="mTr-1C-x9Q"/>
             </connections>
             <point key="canvasLocation" x="-70.229007633587784" y="70.774647887323951"/>
         </tableViewCell>

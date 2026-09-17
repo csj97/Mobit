@@ -103,6 +103,41 @@ class UserDataManager: NSObject {
     return try work()
   }
 
+  /// 구버전에서 Optional 배열의 nil이 JSON null로 저장된 경우 빈 배열로 복구한다.
+  private static func storedArray<Element: Codable>(
+    forKey key: String,
+    as type: [Element].Type
+  ) -> [Element]? {
+    let defaults = UserDefaults.standard
+    guard let data = defaults.data(forKey: key) else { return [] }
+
+    if (try? JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed)) is NSNull {
+      if let emptyData = try? JSONEncoder().encode([Element]()) {
+        defaults.set(emptyData, forKey: key)
+      }
+      return []
+    }
+
+    do {
+      return try JSONDecoder().decode(type, from: data)
+    } catch {
+      return nil
+    }
+  }
+
+  private static func storeArray<Element: Encodable>(
+    _ value: [Element]?,
+    forKey key: String
+  ) {
+    let defaults = UserDefaults.standard
+    guard let value else {
+      defaults.removeObject(forKey: key)
+      return
+    }
+    guard let encodedData = try? JSONEncoder().encode(value) else { return }
+    defaults.set(encodedData, forKey: key)
+  }
+
   /// 주문 중 변경분을 메모리에 모은 뒤 한 번에 저장한다. 실패하면 staged state를 버려 부분 체결을 막는다.
   static func performAtomicInvestmentUpdate<T>(_ update: () throws -> T) throws -> T {
     try synchronized {
@@ -322,11 +357,10 @@ class UserDataManager: NSObject {
 	  synchronized {
         if let stagedInvestmentState { return stagedInvestmentState.transactionList }
         recoverPendingInvestmentStateIfNeeded()
-	    let defaults = UserDefaults.standard
-	    if let data = defaults.data(forKey: Keys.userTransactionList) {
-		  return try? JSONDecoder().decode([TransactionInfo].self, from: data)
-	    }
-	    return []
+        return storedArray(
+          forKey: Keys.userTransactionList,
+          as: [TransactionInfo].self
+        )
       }
 	}
 	set {
@@ -336,10 +370,7 @@ class UserDataManager: NSObject {
           stagedInvestmentState?.transactionList = newValue
           return
         }
-	    let defaults = UserDefaults.standard
-	    if let encodedData = try? JSONEncoder().encode(newValue) {
-		  defaults.set(encodedData, forKey: Keys.userTransactionList)
-	    }
+        storeArray(newValue, forKey: Keys.userTransactionList)
       }
 	}
   }
@@ -350,11 +381,10 @@ class UserDataManager: NSObject {
 	  synchronized {
         if let stagedInvestmentState { return stagedInvestmentState.validTransactionList }
         recoverPendingInvestmentStateIfNeeded()
-	    let defaults = UserDefaults.standard
-	    if let data = defaults.data(forKey: Keys.userValidTransactionList) {
-		  return try? JSONDecoder().decode([ValidTransactionInfo].self, from: data)
-	    }
-	    return []
+        return storedArray(
+          forKey: Keys.userValidTransactionList,
+          as: [ValidTransactionInfo].self
+        )
       }
 	}
 	set {
@@ -364,10 +394,7 @@ class UserDataManager: NSObject {
           stagedInvestmentState?.validTransactionList = newValue
           return
         }
-	    let defaults = UserDefaults.standard
-	    if let encodedData = try? JSONEncoder().encode(newValue) {
-		  defaults.set(encodedData, forKey: Keys.userValidTransactionList)
-	    }
+        storeArray(newValue, forKey: Keys.userValidTransactionList)
       }
 	}
   }
@@ -429,11 +456,10 @@ class UserDataManager: NSObject {
 	  synchronized {
         if let stagedInvestmentState { return stagedInvestmentState.pnlHistory }
         recoverPendingInvestmentStateIfNeeded()
-	    let defaults = UserDefaults.standard
-	    if let data = defaults.data(forKey: Keys.userPNLHistory) {
-		  return try? JSONDecoder().decode([UserPNLHistoryModel].self, from: data)
-	    }
-	    return []
+        return storedArray(
+          forKey: Keys.userPNLHistory,
+          as: [UserPNLHistoryModel].self
+        )
       }
 	}
 	set {
@@ -443,10 +469,7 @@ class UserDataManager: NSObject {
           stagedInvestmentState?.pnlHistory = newValue
           return
         }
-	    let defaults = UserDefaults.standard
-	    if let encodedData = try? JSONEncoder().encode(newValue) {
-		  defaults.set(encodedData, forKey: Keys.userPNLHistory)
-	    }
+        storeArray(newValue, forKey: Keys.userPNLHistory)
       }
 	  // userCryptoListSubject.onNext(newValue)
 	}

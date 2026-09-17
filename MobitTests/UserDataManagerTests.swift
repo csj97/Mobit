@@ -165,6 +165,60 @@ final class UserDataManagerTests: XCTestCase {
     XCTAssertEqual(transactionList.filter { $0.recordType == .userOrder }.count, 2)
   }
 
+  func testLegacyBTCSettlementRepairsNullTransactionAndPNLLists() throws {
+    UserDataManager.resetInvestmentData(availableBalance: 10_000)
+    let legacy = makeTransaction(
+      market: "ETH/BTC",
+      quantity: 2_500_000_000,
+      buyAmount: 87_500,
+      evaluationPrice: 100_000
+    )
+    UserDataManager.userCryptoList = [legacy]
+    UserDataManager.userValidTransactionList = [
+      ValidTransactionInfo(
+        marketName: legacy.staticData.marketName,
+        transaction: [
+          .init(
+            orderType: .bid,
+            quantity: legacy.staticData.holdingQuantity,
+            buyPrice: legacy.staticData.averageBuyPrice
+          )
+        ]
+      )
+    ]
+    let storedNull = Data("null".utf8)
+    UserDefaults.standard.set(
+      storedNull,
+      forKey: UserDataManager.Keys.userTransactionList
+    )
+    UserDefaults.standard.set(
+      storedNull,
+      forKey: UserDataManager.Keys.userPNLHistory
+    )
+
+    let result = try UserDataManager.settleLegacyBTCMarketHoldings()
+
+    XCTAssertEqual(result.restoredKRWByExchange[.upbit], 100_000)
+    XCTAssertEqual(UserDataManager.userInformation(for: .upbit)?.userAvailableBalance, 110_000)
+    XCTAssertEqual(UserDataManager.userCryptoList, [])
+    XCTAssertEqual(UserDataManager.userPNLHistory?.count, 0)
+    XCTAssertEqual(UserDataManager.userTransactionList?.count, 1)
+    XCTAssertEqual(UserDataManager.userTransactionList?.first?.recordType, .legacyBTCSettlement)
+  }
+
+  func testNilInvestmentListDoesNotPersistJSONNull() {
+    UserDataManager.userTransactionList = nil
+    UserDataManager.userValidTransactionList = nil
+    UserDataManager.userPNLHistory = nil
+
+    XCTAssertNil(UserDefaults.standard.data(forKey: UserDataManager.Keys.userTransactionList))
+    XCTAssertNil(UserDefaults.standard.data(forKey: UserDataManager.Keys.userValidTransactionList))
+    XCTAssertNil(UserDefaults.standard.data(forKey: UserDataManager.Keys.userPNLHistory))
+    XCTAssertEqual(UserDataManager.userTransactionList, [])
+    XCTAssertEqual(UserDataManager.userValidTransactionList, [])
+    XCTAssertEqual(UserDataManager.userPNLHistory?.count, 0)
+  }
+
   func testLegacyBTCSettlementRollsBackWhenDisplayedEvaluationIsInvalid() {
     UserDataManager.resetInvestmentData(availableBalance: 10_000)
     let legacy = makeTransaction(

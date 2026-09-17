@@ -30,4 +30,10 @@ struct CryptoCellInfo: Hashable {
   var evaluationPrice: Double?    // 평가금액 (현재가 × 보유량)
   var profitRate: Double?         // 수익률 (%)
   var evaluationProfitLoss: Double? // 평가손익
+
+  /// 마켓은 공개됐지만 유효한 현재가가 없어 아직 거래를 시작하지 않은 종목인지 여부.
+  var isUpcomingListing: Bool {
+    guard let tradePrice else { return true }
+    return !tradePrice.isFinite || tradePrice <= 0
+  }
 }

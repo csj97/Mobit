@@ -235,6 +235,49 @@ final class PortfolioCalculatorTests: XCTestCase {
     XCTAssertEqual(cell.cryptoProfitRate.text, "-")
   }
 
+  func testUnsupportedInvestmentCellShowsOpaqueStatusDesign() throws {
+    let cell = try XCTUnwrap(UINib(nibName: "InvestmentTableViewCell", bundle: Bundle.main)
+      .instantiate(withOwner: nil).first as? InvestmentTableViewCell)
+    let crypto = makeCrypto(
+      evaluationPrice: 5_340,
+      evaluationProfitLoss: 340,
+      buyAmount: 5_000,
+      marketName: "GEOD/KRW",
+      costBasisKRW: 5_000
+    )
+
+    cell.frame = CGRect(x: 0, y: 0, width: 390, height: 1)
+    cell.configure(crypto: crypto, isLast: true, isTradingUnsupported: false)
+    let normalHeight = cell.contentView.systemLayoutSizeFitting(
+      CGSize(width: 390, height: UIView.layoutFittingCompressedSize.height),
+      withHorizontalFittingPriority: .required,
+      verticalFittingPriority: .fittingSizeLevel
+    ).height
+
+    cell.configure(crypto: crypto, isLast: true, isTradingUnsupported: true)
+    let unsupportedHeight = cell.contentView.systemLayoutSizeFitting(
+      CGSize(width: 390, height: UIView.layoutFittingCompressedSize.height),
+      withHorizontalFittingPriority: .required,
+      verticalFittingPriority: .fittingSizeLevel
+    ).height
+
+    let badge = try XCTUnwrap(
+      cell.bgView.subviews.first { $0.accessibilityLabel == "거래지원 종료" }
+    )
+    let notice = try XCTUnwrap(
+      cell.bgView.subviews.first { $0.accessibilityLabel == "거래소에서 지원하지 않는 코인입니다." }
+    )
+    XCTAssertFalse(badge.isHidden)
+    XCTAssertFalse(notice.isHidden)
+    XCTAssertGreaterThan(unsupportedHeight, normalHeight)
+
+    for style in [UIUserInterfaceStyle.light, .dark] {
+      let traits = UITraitCollection(userInterfaceStyle: style)
+      XCTAssertEqual(badge.backgroundColor?.resolvedColor(with: traits).cgColor.alpha, 1)
+      XCTAssertEqual(notice.backgroundColor?.resolvedColor(with: traits).cgColor.alpha, 1)
+    }
+  }
+
   func testTradeHoldingViewDisplaysBTCMarketAveragePriceInBTC() throws {
     let view = try XCTUnwrap(
       UINib(nibName: "TradeOrderView", bundle: Bundle.main)
