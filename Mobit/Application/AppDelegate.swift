@@ -25,7 +25,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 	MobileAds.shared.requestConfiguration.testDeviceIdentifiers = [
 	  "B9169A22-1CEE-40F7-8128-976F17201053",
 	  "7271EAFB-AA2B-4C34-81C5-26499236950A",
-	  "14D61EB7-AB38-44EF-943A-E35E1DCC4A0A"
+	  "14D61EB7-AB38-44EF-943A-E35E1DCC4A0A",
+	  "EE77D6AF-5683-4761-A1A7-20521EFC96C9"
 	]
 	#endif
 	

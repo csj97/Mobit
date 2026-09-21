@@ -136,8 +136,8 @@ extension MobitCommunityViewController: WKNavigationDelegate {
   func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
 	Log.info("🌐 HTML 로딩 완료")
 	
-	// let uuid = UIDevice.current.identifierForVendor?.uuidString ?? "unknown"
-	let uuid = ASIdentifierManager.shared().advertisingIdentifier
+	let uuid = UIDevice.current.identifierForVendor?.uuidString ?? "unknown"
+//	let uuid = ASIdentifierManager.shared().advertisingIdentifier
 	let jsCode = "window.setDeviceUUID('\(uuid)');"
 	webView.evaluateJavaScript(jsCode, completionHandler: nil)
 	
