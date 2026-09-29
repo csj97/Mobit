@@ -679,6 +679,7 @@ final class TradeOrderServiceTests: XCTestCase {
 
   private func clearUserDefaults() {
     [
+      UserDataManager.Keys.pendingInvestmentState,
       UserDataManager.Keys.isFirstLaunch,
       UserDataManager.Keys.userFavoriteList,
       UserDataManager.Keys.userTransactionList,

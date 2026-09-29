@@ -325,6 +325,7 @@ class InvestmentViewController: MobitBaseViewController {
   @IBAction func tapOnChargeButton(_ sender: NeumorphicButton) {
 	MobitAnalyticsUtil.sendClickEvent(event: .investment_charge)
 	
+    let account = TradingAccountID.spot(for: ExchangeSelectionStore.currentExchange)
 	self.show(
 	  alertType: .canCancel,
 	  title: "안내",
@@ -332,10 +333,7 @@ class InvestmentViewController: MobitBaseViewController {
 	) { isOk in
 	  if isOk {
 		MobitAnalyticsUtil.sendClickEvent(event: .ad_click_confirm)
-		RewardedAdManager.shared.showAd(from: self) {
-		  self.show(alertType: .onlyConfirm, content: "충전이 완료 되었습니다.", callBack: nil)
-		  UserDataManager.userInformation?.userAvailableBalance += 10_000_000
-		}
+        RewardedAdManager.shared.showAd(from: self, account: account)
 	  } else {
 		MobitAnalyticsUtil.sendClickEvent(event: .ad_click_cancel)
 	  }

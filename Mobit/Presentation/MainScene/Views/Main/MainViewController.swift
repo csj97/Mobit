@@ -342,7 +342,7 @@ class MainViewController: MobitBaseViewController {
 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    // self.requestMainNativeAdIfNeeded()
+    self.requestMainNativeAdIfNeeded()
     if !reactor.currentState.totalCryptoList.isEmpty {
       presentLegacyBTCSettlementAlertIfNeeded()
     }

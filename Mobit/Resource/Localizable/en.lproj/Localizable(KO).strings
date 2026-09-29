@@ -49,3 +49,11 @@
 "common_more" = "더보기" ;
 "common_confirm" = "확인" ;
 "common_cancel" = "취소" ;
+
+"ad_reward_unavailable" = "현재 지원하지 않는 계좌입니다.";
+"ad_reward_recovered" = "이전에 획득한 광고 보상을 지급했습니다. 계좌 잔고를 확인해 주세요.";
+"ad_reward_load_failed" = "광고를 불러오는 데 실패했습니다. 다시 시도해 주세요.";
+"ad_reward_pending" = "보상 저장을 완료하지 못했습니다. 충전하기를 다시 누르면 광고를 새로 보기 전에 미완료 보상을 재시도합니다. 앱을 삭제하지 마세요.";
+"ad_reward_reset_pending" = "광고 또는 보상 저장이 진행 중이거나 저장 기록을 확인할 수 없어 초기화하지 않았습니다. 충전하기에서 미완료 보상을 먼저 확인해 주세요.";
+"ad_reward_reset_complete" = "투자내역을 초기화했습니다.";
+"ad_reward_complete" = "광고를 시작한 거래소 계좌에 충전이 완료되었습니다.";

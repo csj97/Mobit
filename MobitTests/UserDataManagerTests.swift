@@ -12,10 +12,12 @@ final class UserDataManagerTests: XCTestCase {
   override func setUp() {
     super.setUp()
     clearUserDefaults()
+    ExchangeSelectionStore.currentExchange = .upbit
   }
 
   override func tearDown() {
     clearUserDefaults()
+    ExchangeSelectionStore.currentExchange = .upbit
     super.tearDown()
   }
 
@@ -30,6 +32,106 @@ final class UserDataManagerTests: XCTestCase {
     XCTAssertTrue(didSeed)
     XCTAssertFalse(didSeedAgain)
     XCTAssertEqual(UserDataManager.userInformation?.userAvailableBalance, 1_000_000)
+  }
+
+  func testInitialGrantAlwaysBelongsToUpbitEvenWhenBithumbSelected() {
+    ExchangeSelectionStore.currentExchange = .bithumb
+    XCTAssertTrue(UserDataManager.seedInitialUserInformationIfNeeded())
+    XCTAssertEqual(UserDataManager.userInformation(for: .upbit)?.userAvailableBalance, 1_000_000)
+    XCTAssertEqual(UserDataManager.userInformation(for: .bithumb)?.userAvailableBalance, 0)
+    XCTAssertEqual(UserDataManager.userInformation?.userAvailableBalance, 0)
+  }
+
+  func testExistingBalanceIsPreservedWhenFirstLaunchFlagIsMissing() {
+    UserDataManager.updateUserInformation(MobitUserInformation(userAvailableBalance: 123), for: .bithumb)
+    XCTAssertFalse(UserDataManager.seedInitialUserInformationIfNeeded())
+    XCTAssertFalse(UserDataManager.isFirstLaunch)
+    XCTAssertEqual(UserDataManager.userInformation(for: .bithumb)?.userAvailableBalance, 123)
+    XCTAssertEqual(UserDataManager.userInformation(for: .upbit)?.userAvailableBalance, 0)
+  }
+
+  func testCorruptBalanceDoesNotFallBackToLegacyOrAllowMutation() throws {
+    let defaults = UserDefaults.standard
+    defaults.set(try JSONEncoder().encode(MobitUserInformation(userAvailableBalance: 500)), forKey: UserDataManager.Keys.userInformation)
+    let corrupt = Data("broken".utf8)
+    defaults.set(corrupt, forKey: UserDataManager.Keys.userInformationByExchange)
+    XCTAssertNil(UserDataManager.userInformation)
+    XCTAssertFalse(UserDataManager.seedInitialUserInformationIfNeeded())
+    XCTAssertThrowsError(try UserDataManager.performAtomicInvestmentUpdate {
+      UserDataManager.updateUserInformation(MobitUserInformation(userAvailableBalance: 1000), for: .upbit)
+    })
+    XCTAssertEqual(defaults.data(forKey: UserDataManager.Keys.userInformationByExchange), corrupt)
+    XCTAssertTrue(UserDataManager.isFirstLaunch)
+  }
+
+  func testInvalidInitialBalanceDoesNotConsumeGrant() {
+    for value in [Double.nan, Double.infinity, -1, 0] {
+      XCTAssertFalse(UserDataManager.seedInitialUserInformationIfNeeded(initialBalance: value))
+      XCTAssertTrue(UserDataManager.isFirstLaunch)
+    }
+    XCTAssertTrue(UserDataManager.seedInitialUserInformationIfNeeded())
+  }
+
+  func testConcurrentInitialGrantOnlySeedsOnce() {
+    DispatchQueue.concurrentPerform(iterations: 30) { _ in
+      UserDataManager.seedInitialUserInformationIfNeeded()
+    }
+    XCTAssertEqual(UserDataManager.userInformation(for: .upbit)?.userAvailableBalance, 1_000_000)
+    XCTAssertFalse(UserDataManager.seedInitialUserInformationIfNeeded())
+  }
+
+  func testAtomicBalanceMutationKeepsConcurrentIncrementsAcrossExchanges() {
+    UserDataManager.resetInvestmentData()
+    DispatchQueue.concurrentPerform(iterations: 100) { index in
+      do {
+        try UserDataManager.updateUserInformation(for: index.isMultiple(of: 2) ? .upbit : .bithumb) {
+          $0.userAvailableBalance += 1
+        }
+      } catch {
+        XCTFail("Concurrent balance mutation failed: \(error)")
+      }
+    }
+    XCTAssertEqual(UserDataManager.userInformation(for: .upbit)?.userAvailableBalance, 50)
+    XCTAssertEqual(UserDataManager.userInformation(for: .bithumb)?.userAvailableBalance, 50)
+  }
+
+  func testInvalidBalanceMutationRollsBackWithoutLosingOriginal() {
+    UserDataManager.resetInvestmentData(availableBalance: 100)
+    for value in [Double.nan, Double.infinity, -1] {
+      XCTAssertThrowsError(try UserDataManager.updateUserInformation(for: .upbit) { $0.userAvailableBalance = value })
+      XCTAssertEqual(UserDataManager.userInformation(for: .upbit)?.userAvailableBalance, 100)
+    }
+  }
+
+  func testWrongStoredValueTypePreventsSeedingAndAtomicUpdate() {
+    UserDefaults.standard.set("wrong type", forKey: UserDataManager.Keys.userTransactionList)
+    XCTAssertFalse(UserDataManager.seedInitialUserInformationIfNeeded())
+    XCTAssertThrowsError(try UserDataManager.performAtomicInvestmentUpdate {})
+    XCTAssertEqual(UserDefaults.standard.string(forKey: UserDataManager.Keys.userTransactionList), "wrong type")
+  }
+
+  func testInvalidPendingSnapshotBlocksReadsAndPreservesPreviousBytes() throws {
+    UserDataManager.resetInvestmentData(availableBalance: 500)
+    let balanceBytes = UserDefaults.standard.data(forKey: UserDataManager.Keys.userInformationByExchange)
+    let pending = TestPendingInvestmentState(
+      cryptoList: [], transactionList: [], validTransactionList: [], pnlHistory: [],
+      informationByExchange: ["upbit": MobitUserInformation(userAvailableBalance: -1)]
+    )
+    let pendingBytes = try JSONEncoder().encode(pending)
+    UserDefaults.standard.set(pendingBytes, forKey: UserDataManager.Keys.pendingInvestmentState)
+    XCTAssertNil(UserDataManager.userInformation)
+    XCTAssertNil(UserDataManager.userCryptoList)
+    XCTAssertNil(UserDataManager.userTransactionList)
+    XCTAssertThrowsError(try UserDataManager.performAtomicInvestmentUpdate {})
+    XCTAssertEqual(UserDefaults.standard.data(forKey: UserDataManager.Keys.userInformationByExchange), balanceBytes)
+    XCTAssertEqual(UserDefaults.standard.data(forKey: UserDataManager.Keys.pendingInvestmentState), pendingBytes)
+  }
+
+  func testResetDoesNotRestoreInitialGrantEligibility() {
+    XCTAssertTrue(UserDataManager.seedInitialUserInformationIfNeeded())
+    UserDataManager.resetInvestmentData()
+    XCTAssertFalse(UserDataManager.seedInitialUserInformationIfNeeded())
+    XCTAssertEqual(UserDataManager.userInformation(for: .upbit)?.userAvailableBalance, 0)
   }
 
   func testMarketCellTintDefaultsToOffAndKeepsSavedPreference() {

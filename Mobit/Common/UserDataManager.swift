@@ -80,6 +80,14 @@ class UserDataManager: NSObject {
     var validTransactionList: [ValidTransactionInfo]
     var pnlHistory: [UserPNLHistoryModel]
     var informationByExchange: [String: MobitUserInformation]
+    var initialGrantCompleted: Bool?
+    var adRewardClaims: [AdRewardClaim]?
+  }
+
+  private struct SpotCashState: Codable {
+    let schemaVersion: Int
+    let informationByExchange: [String: MobitUserInformation]
+    let adRewardClaims: [AdRewardClaim]
   }
 
   enum InvestmentStateError: Error {
@@ -109,7 +117,8 @@ class UserDataManager: NSObject {
     as type: [Element].Type
   ) -> [Element]? {
     let defaults = UserDefaults.standard
-    guard let data = defaults.data(forKey: key) else { return [] }
+    guard defaults.object(forKey: key) != nil else { return [] }
+    guard let data = defaults.data(forKey: key) else { return nil }
 
     if (try? JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed)) is NSNull {
       if let emptyData = try? JSONEncoder().encode([Element]()) {
@@ -141,16 +150,20 @@ class UserDataManager: NSObject {
   /// 주문 중 변경분을 메모리에 모은 뒤 한 번에 저장한다. 실패하면 staged state를 버려 부분 체결을 막는다.
   static func performAtomicInvestmentUpdate<T>(_ update: () throws -> T) throws -> T {
     try synchronized {
-      if let pendingData = UserDefaults.standard.data(forKey: Keys.pendingInvestmentState),
-         (try? JSONDecoder().decode(InvestmentState.self, from: pendingData)) == nil {
-        throw InvestmentStateError.invalidStoredData
+      if let pending = UserDefaults.standard.object(forKey: Keys.pendingInvestmentState) {
+        guard let pendingData = pending as? Data,
+              let state = try? JSONDecoder().decode(InvestmentState.self, from: pendingData) else {
+          throw InvestmentStateError.invalidStoredData
+        }
+        try persistInvestmentState(state)
       }
-      recoverPendingInvestmentStateIfNeeded()
       guard stagedInvestmentState == nil,
             let cryptoList = userCryptoList,
             let transactionList = userTransactionList,
             let validTransactionList = userValidTransactionList,
-            let pnlHistory = userPNLHistory else {
+            let pnlHistory = userPNLHistory,
+            let informationByExchange = userInformationStore,
+            let claims = storedAdRewardClaims() else {
         throw InvestmentStateError.invalidStoredData
       }
 
@@ -159,7 +172,9 @@ class UserDataManager: NSObject {
         transactionList: transactionList,
         validTransactionList: validTransactionList,
         pnlHistory: pnlHistory,
-        informationByExchange: userInformationStore
+        informationByExchange: informationByExchange,
+        initialGrantCompleted: !isFirstLaunch,
+        adRewardClaims: claims
       )
 
       do {
@@ -169,7 +184,7 @@ class UserDataManager: NSObject {
         }
         try persistInvestmentState(committedState)
         stagedInvestmentState = nil
-        publishInvestmentState(committedState)
+        publishInvestmentState()
         return result
       } catch {
         stagedInvestmentState = nil
@@ -256,21 +271,38 @@ class UserDataManager: NSObject {
   }
 
   /// 이전 실행이 개별 키 저장 도중 종료됐으면 단일 pending snapshot으로 마지막 주문을 복구한다.
-  private static func recoverPendingInvestmentStateIfNeeded() {
+  private static func recoverPendingInvestmentStateIfNeeded() -> Bool {
     let defaults = UserDefaults.standard
-    guard let data = defaults.data(forKey: Keys.pendingInvestmentState),
-          let state = try? JSONDecoder().decode(InvestmentState.self, from: data) else { return }
-    try? persistInvestmentState(state)
+    guard let pending = defaults.object(forKey: Keys.pendingInvestmentState) else { return true }
+    guard let data = pending as? Data,
+          let state = try? JSONDecoder().decode(InvestmentState.self, from: data) else { return false }
+    do {
+      try persistInvestmentState(state)
+      return true
+    } catch {
+      return false
+    }
   }
 
   private static func persistInvestmentState(_ state: InvestmentState) throws {
+    guard state.informationByExchange.values.allSatisfy({
+      $0.userAvailableBalance.isFinite && $0.userAvailableBalance >= 0
+    }) else { throw InvestmentStateError.invalidStoredData }
+    if state.adRewardClaims == nil, let current = storedSpotCashState(), !current.adRewardClaims.isEmpty {
+      throw InvestmentStateError.invalidStoredData
+    }
+    let claims = state.adRewardClaims ?? []
+    try AdRewardClaim.validateCollection(claims)
+    guard claims.allSatisfy({ $0.account.product == .spot }) else { throw AdRewardError.invalidClaim }
     let encoder = JSONEncoder()
     let pendingData = try encoder.encode(state)
     let cryptoData = try encoder.encode(state.cryptoList)
     let transactionData = try encoder.encode(state.transactionList)
     let validTransactionData = try encoder.encode(state.validTransactionList)
     let pnlData = try encoder.encode(state.pnlHistory)
-    let informationData = try encoder.encode(state.informationByExchange)
+    let informationData = try encoder.encode(SpotCashState(
+      schemaVersion: 1, informationByExchange: state.informationByExchange, adRewardClaims: claims
+    ))
     let defaults = UserDefaults.standard
 
     defaults.set(pendingData, forKey: Keys.pendingInvestmentState)
@@ -279,15 +311,75 @@ class UserDataManager: NSObject {
     defaults.set(validTransactionData, forKey: Keys.userValidTransactionList)
     defaults.set(pnlData, forKey: Keys.userPNLHistory)
     defaults.set(informationData, forKey: Keys.userInformationByExchange)
+    if state.initialGrantCompleted == true { defaults.set(false, forKey: Keys.isFirstLaunch) }
     defaults.removeObject(forKey: Keys.pendingInvestmentState)
   }
 
-  private static func publishInvestmentState(_ state: InvestmentState) {
-    let currentBalance = state.informationByExchange[ExchangeSelectionStore.currentExchange.rawValue]?
-      .userAvailableBalance ?? 0
+  private static func storedAdRewardClaims() -> [AdRewardClaim]? {
+    if let stagedInvestmentState { return stagedInvestmentState.adRewardClaims ?? [] }
+    return storedSpotCashState()?.adRewardClaims
+  }
+
+  private static func storedSpotCashState() -> SpotCashState? {
+    let defaults = UserDefaults.standard
+    let balances: [String: MobitUserInformation]
+    let claims: [AdRewardClaim]
+    if defaults.object(forKey: Keys.userInformationByExchange) != nil {
+      guard let data = defaults.data(forKey: Keys.userInformationByExchange),
+            let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+      if object["schemaVersion"] != nil {
+        guard let state = try? JSONDecoder().decode(SpotCashState.self, from: data),
+              state.schemaVersion == 1 else { return nil }
+        balances = state.informationByExchange
+        claims = state.adRewardClaims
+      } else {
+        guard let legacy = try? JSONDecoder().decode([String: MobitUserInformation].self, from: data) else { return nil }
+        balances = legacy
+        claims = []
+      }
+    } else if defaults.object(forKey: Keys.userInformation) != nil {
+      guard let data = defaults.data(forKey: Keys.userInformation),
+            let legacy = try? JSONDecoder().decode(MobitUserInformation.self, from: data) else { return nil }
+      balances = UserDataMigration.migrateUserInformationStore(from: legacy)
+      claims = []
+    } else {
+      balances = [:]
+      claims = []
+    }
+    guard balances.values.allSatisfy({ $0.userAvailableBalance.isFinite && $0.userAvailableBalance >= 0 }),
+          claims.allSatisfy({ $0.account.product == .spot }),
+          (try? AdRewardClaim.validateCollection(claims)) != nil else { return nil }
+    return SpotCashState(schemaVersion: 1, informationByExchange: balances, adRewardClaims: claims)
+  }
+
+  static func applyAdvertisementReward(_ claim: AdRewardClaim) throws {
+    try claim.validate()
+    guard claim.account.product == .spot, claim.account.currency == .krw else { throw AdRewardError.invalidClaim }
+    try performAtomicInvestmentUpdate {
+      let claims = stagedInvestmentState?.adRewardClaims ?? []
+      if let existing = claims.first(where: { $0.id == claim.id }) {
+        guard existing == claim else { throw AdRewardError.conflictingClaim }
+        return
+      }
+      guard var information = userInformation(for: claim.account.exchange) else {
+        throw InvestmentStateError.invalidStoredData
+      }
+      let amount = NSDecimalNumber(decimal: claim.amount).doubleValue
+      let balance = information.userAvailableBalance + amount
+      guard balance.isFinite, balance > information.userAvailableBalance else {
+        throw InvestmentStateError.invalidStoredData
+      }
+      information.userAvailableBalance = balance
+      updateUserInformation(information, for: claim.account.exchange)
+      stagedInvestmentState?.adRewardClaims = claims + [claim]
+    }
+  }
+
+  private static func publishInvestmentState() {
     DispatchQueue.main.async {
-      userCryptoListSubject.onNext(state.cryptoList)
-      userAvailableBalanceSubject.onNext(currentBalance)
+      // 큐 대기 중 주문이나 거래소 선택이 바뀌면 최신 확정 상태를 발행한다.
+      userCryptoListSubject.onNext(userCryptoList)
+      publishCurrentExchangeBalance()
     }
   }
 
@@ -356,7 +448,7 @@ class UserDataManager: NSObject {
 	get {
 	  synchronized {
         if let stagedInvestmentState { return stagedInvestmentState.transactionList }
-        recoverPendingInvestmentStateIfNeeded()
+        guard recoverPendingInvestmentStateIfNeeded() else { return nil }
         return storedArray(
           forKey: Keys.userTransactionList,
           as: [TransactionInfo].self
@@ -380,7 +472,7 @@ class UserDataManager: NSObject {
 	get {
 	  synchronized {
         if let stagedInvestmentState { return stagedInvestmentState.validTransactionList }
-        recoverPendingInvestmentStateIfNeeded()
+        guard recoverPendingInvestmentStateIfNeeded() else { return nil }
         return storedArray(
           forKey: Keys.userValidTransactionList,
           as: [ValidTransactionInfo].self
@@ -404,9 +496,10 @@ class UserDataManager: NSObject {
 	get {
 	  synchronized {
         if let stagedInvestmentState { return stagedInvestmentState.cryptoList }
-        recoverPendingInvestmentStateIfNeeded()
+        guard recoverPendingInvestmentStateIfNeeded() else { return nil }
 	    let defaults = UserDefaults.standard
-	  guard let data = defaults.data(forKey: Keys.userCryptoList) else { return [] }
+	  guard defaults.object(forKey: Keys.userCryptoList) != nil else { return [] }
+      guard let data = defaults.data(forKey: Keys.userCryptoList) else { return nil }
 	  
 	  do {
 		let decodedData = try JSONDecoder().decode([CryptoTransactionDataModel].self, from: data)
@@ -439,11 +532,10 @@ class UserDataManager: NSObject {
           return
         }
 	    let defaults = UserDefaults.standard
-	    if let encodedData = try? JSONEncoder().encode(newValue) {
-		  defaults.set(encodedData, forKey: Keys.userCryptoList)
-	    }
+        guard let encodedData = try? JSONEncoder().encode(newValue) else { return }
+        defaults.set(encodedData, forKey: Keys.userCryptoList)
         DispatchQueue.main.async {
-          userCryptoListSubject.onNext(newValue)
+          userCryptoListSubject.onNext(userCryptoList)
         }
       }
 	}
@@ -455,7 +547,7 @@ class UserDataManager: NSObject {
 	get {
 	  synchronized {
         if let stagedInvestmentState { return stagedInvestmentState.pnlHistory }
-        recoverPendingInvestmentStateIfNeeded()
+        guard recoverPendingInvestmentStateIfNeeded() else { return nil }
         return storedArray(
           forKey: Keys.userPNLHistory,
           as: [UserPNLHistoryModel].self
@@ -476,90 +568,81 @@ class UserDataManager: NSObject {
   }
   
   /// 거래소별 보유 현금 저장소. 레거시 단일 잔고는 최초 접근 시 Upbit 잔고로 승격한다.
-  private static var userInformationStore: [String: MobitUserInformation] {
+  private static var userInformationStore: [String: MobitUserInformation]? {
     get {
       synchronized {
-      if let stagedInvestmentState { return stagedInvestmentState.informationByExchange }
-      recoverPendingInvestmentStateIfNeeded()
-      let defaults = UserDefaults.standard
-      if let data = defaults.data(forKey: Keys.userInformationByExchange),
-         let decoded = try? JSONDecoder().decode([String: MobitUserInformation].self, from: data) {
-        return decoded
-      }
-      // 레거시 단일 거래소 잔고를 Upbit 잔고로 이관. 신규 거래소는 0원으로 시작한다.
-      if let legacyData = defaults.data(forKey: Keys.userInformation),
-         let legacy = try? JSONDecoder().decode(MobitUserInformation.self, from: legacyData) {
-        let migrated = UserDataMigration.migrateUserInformationStore(from: legacy)
-        if let encoded = try? JSONEncoder().encode(migrated) {
-          defaults.set(encoded, forKey: Keys.userInformationByExchange)
-        }
-        return migrated
-      }
-      return [:]
+        if let stagedInvestmentState { return stagedInvestmentState.informationByExchange }
+        guard recoverPendingInvestmentStateIfNeeded() else { return nil }
+        return storedSpotCashState()?.informationByExchange
       }
     }
     set {
       synchronized {
+        guard let newValue else { return }
         if stagedInvestmentState != nil {
           stagedInvestmentState?.informationByExchange = newValue
           return
         }
-        let defaults = UserDefaults.standard
-        guard let encoded = try? JSONEncoder().encode(newValue) else { return }
-        defaults.set(encoded, forKey: Keys.userInformationByExchange)
+        guard newValue.values.allSatisfy({ $0.userAvailableBalance.isFinite && $0.userAvailableBalance >= 0 }),
+              let current = storedSpotCashState(),
+              let encoded = try? JSONEncoder().encode(SpotCashState(
+                schemaVersion: 1, informationByExchange: newValue, adRewardClaims: current.adRewardClaims
+              )) else { return }
+        UserDefaults.standard.set(encoded, forKey: Keys.userInformationByExchange)
       }
     }
   }
 
-  /// 현재 선택 거래소의 보유 현금 정보. 신규 거래소는 0원으로 시작한다.
   static var userInformation: MobitUserInformation? {
-    get {
-      let store = userInformationStore
-      // 최초 실행(시드) 이전에는 nil, 이후에는 거래소별 잔고(없으면 0원)를 반환한다.
-      guard !store.isEmpty else { return nil }
-      return store[ExchangeSelectionStore.currentExchange.rawValue]
-        ?? MobitUserInformation(userAvailableBalance: 0)
-    }
+    get { userInformation(for: ExchangeSelectionStore.currentExchange) }
     set {
       guard let newValue else { return }
-      var store = userInformationStore
-      store[ExchangeSelectionStore.currentExchange.rawValue] = newValue
-      userInformationStore = store
-      guard synchronized({ stagedInvestmentState == nil }) else { return }
-      DispatchQueue.main.async {
-        self.userAvailableBalanceSubject.onNext(newValue.userAvailableBalance)
-      }
+      updateUserInformation(newValue, for: ExchangeSelectionStore.currentExchange)
     }
   }
 
-  /// 지정한 거래소의 보유 현금 정보. 주문 처리처럼 대상 거래소가 명시된 흐름에서 사용한다.
   static func userInformation(for exchange: Exchange) -> MobitUserInformation? {
-    let store = userInformationStore
-    guard !store.isEmpty else { return nil }
-    return store[exchange.rawValue] ?? MobitUserInformation(userAvailableBalance: 0)
-  }
-
-  /// 지정한 거래소의 보유 현금 갱신. 선택 거래소가 바뀐 뒤 주문이 끝나도 잔고가 섞이지 않도록 분리한다.
-  static func updateUserInformation(
-    _ information: MobitUserInformation,
-    for exchange: Exchange
-  ) {
-    var store = userInformationStore
-    store[exchange.rawValue] = information
-    userInformationStore = store
-
-    guard exchange == ExchangeSelectionStore.currentExchange,
-          synchronized({ stagedInvestmentState == nil }) else { return }
-    DispatchQueue.main.async {
-      self.userAvailableBalanceSubject.onNext(information.userAvailableBalance)
+    synchronized {
+      guard let store = userInformationStore, !store.isEmpty else { return nil }
+      return store[exchange.rawValue] ?? MobitUserInformation(userAvailableBalance: 0)
     }
   }
 
-  /// 거래소 전환 시 현재 거래소 잔고를 구독자에게 다시 브로드캐스트한다.
-  static func publishCurrentExchangeBalance() {
-    userAvailableBalanceSubject.onNext(userInformation?.userAvailableBalance)
+  static func updateUserInformation(_ information: MobitUserInformation, for exchange: Exchange) {
+    synchronized {
+      guard var store = userInformationStore else { return }
+      store[exchange.rawValue] = information
+      userInformationStore = store
+      guard stagedInvestmentState == nil else { return }
+      DispatchQueue.main.async { publishCurrentExchangeBalance() }
+    }
   }
-  
+
+  /// 잔고를 읽고 변경하는 전체 구간을 주문과 같은 잠금에 포함한다.
+  static func updateUserInformation(
+    for exchange: Exchange,
+    transform: (inout MobitUserInformation) throws -> Void
+  ) throws {
+    try performAtomicInvestmentUpdate {
+      guard var information = userInformation(for: exchange) else {
+        throw InvestmentStateError.invalidStoredData
+      }
+      try transform(&information)
+      guard information.userAvailableBalance.isFinite, information.userAvailableBalance >= 0 else {
+        throw InvestmentStateError.invalidStoredData
+      }
+      updateUserInformation(information, for: exchange)
+    }
+  }
+
+  static func publishCurrentExchangeBalance() {
+    if Thread.isMainThread {
+      userAvailableBalanceSubject.onNext(userInformation?.userAvailableBalance)
+    } else {
+      DispatchQueue.main.async { publishCurrentExchangeBalance() }
+    }
+  }
+
   static var tradingViewChartSettings: TradingViewChartSettings {
 	get {
 	  let defaults = UserDefaults.standard
@@ -623,18 +706,35 @@ class UserDataManager: NSObject {
   }
 
   @discardableResult
-  static func seedInitialUserInformationIfNeeded(
-	initialBalance: Double = 1_000_000
-  ) -> Bool {
-	guard isFirstLaunch else { return false }
-	isFirstLaunch = false
-	userInformation = MobitUserInformation(userAvailableBalance: initialBalance)
-	return true
+  static func seedInitialUserInformationIfNeeded(initialBalance: Double = TradingFundingPolicy.initialKRWBalance) -> Bool {
+    synchronized {
+      guard isFirstLaunch, initialBalance.isFinite, initialBalance > 0 else { return false }
+      let defaults = UserDefaults.standard
+      let hasExistingInvestment = [
+        Keys.userInformation, Keys.userInformationByExchange, Keys.userCryptoList,
+        Keys.userTransactionList, Keys.userValidTransactionList, Keys.userPNLHistory,
+        Keys.pendingInvestmentState
+      ].contains { defaults.object(forKey: $0) != nil }
+      do {
+        return try performAtomicInvestmentUpdate {
+          if !hasExistingInvestment {
+            updateUserInformation(MobitUserInformation(userAvailableBalance: initialBalance), for: .upbit)
+          }
+          stagedInvestmentState?.initialGrantCompleted = true
+          return !hasExistingInvestment
+        }
+      } catch {
+        // 손상 기록을 신규 설치로 간주해 초기 자금으로 덮어쓰지 않는다.
+        return false
+      }
+    }
   }
 
-  static func resetInvestmentData(availableBalance: Double = 0) {
+  @discardableResult
+  static func resetInvestmentData(availableBalance: Double = 0) -> Bool {
 	synchronized {
-	  UserDefaults.standard.removeObject(forKey: Keys.pendingInvestmentState)
+      guard availableBalance.isFinite, availableBalance >= 0, stagedInvestmentState == nil,
+            recoverPendingInvestmentStateIfNeeded(), let claims = storedAdRewardClaims() else { return false }
 	  // 초기화도 주문과 같은 잠금·스냅샷 경로를 사용해 동시 체결과 섞이지 않게 한다.
 	  var store: [String: MobitUserInformation] = [:]
 	  for exchange in Exchange.allCases {
@@ -648,11 +748,14 @@ class UserDataManager: NSObject {
 		transactionList: [],
 		validTransactionList: [],
 		pnlHistory: [],
-		informationByExchange: store
+		informationByExchange: store,
+        initialGrantCompleted: true,
+        adRewardClaims: claims
 	  )
-	  guard (try? persistInvestmentState(state)) != nil else { return }
+	  guard (try? persistInvestmentState(state)) != nil else { return false }
 	  stagedInvestmentState = nil
-	  publishInvestmentState(state)
+	  publishInvestmentState()
+      return true
 	}
   }
 

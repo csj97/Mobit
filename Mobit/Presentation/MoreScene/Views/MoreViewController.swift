@@ -78,6 +78,7 @@ class MoreViewController: MobitBaseViewController {
 	
 	MobitAnalyticsUtil.sendClickEvent(event: .more_charge)
 	
+    let account = TradingAccountID.spot(for: ExchangeSelectionStore.currentExchange)
 	self.show(
 	  alertType: .canCancel,
 	  title: "안내",
@@ -85,10 +86,7 @@ class MoreViewController: MobitBaseViewController {
 	) { isOk in
 	  if isOk {
 		MobitAnalyticsUtil.sendClickEvent(event: .ad_click_confirm)
-		RewardedAdManager.shared.showAd(from: self) {
-		  self.show(alertType: .onlyConfirm, content: "충전이 완료 되었습니다.", callBack: nil)
-		  UserDataManager.userInformation?.userAvailableBalance += 10_000_000
-		}
+        RewardedAdManager.shared.showAd(from: self, account: account)
 	  } else {
 		MobitAnalyticsUtil.sendClickEvent(event: .ad_click_cancel)
 	  }
@@ -135,9 +133,7 @@ class MoreViewController: MobitBaseViewController {
 	  content: noticeContent
 	) { isPositive in
 	  if isPositive {
-		UserDataManager.resetInvestmentData()
-		
-		self.show(alertType: .onlyConfirm, content: "초기화 되었습니다.", callBack: nil)
+        RewardedAdManager.shared.resetSpotInvestment(from: self)
 	  }
 	}
   }

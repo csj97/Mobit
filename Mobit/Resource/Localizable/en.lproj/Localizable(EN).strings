@@ -49,3 +49,11 @@
 "common_more" = "More" ;
 "common_confirm" = "Confirm" ;
 "common_cancel" = "Cancel" ;
+
+"ad_reward_unavailable" = "This account is not supported yet.";
+"ad_reward_recovered" = "Your pending ad rewards have been credited. Please check your account balance.";
+"ad_reward_load_failed" = "The ad could not be loaded. Please try again.";
+"ad_reward_pending" = "Your reward could not be saved. Tap Recharge to retry before watching another ad. Do not delete the app.";
+"ad_reward_reset_pending" = "Your data was not reset because an ad or reward is pending, or stored data could not be verified. Check pending rewards using Recharge first.";
+"ad_reward_reset_complete" = "Your investment history has been reset.";
+"ad_reward_complete" = "Your reward has been credited to the exchange account selected when the ad started.";

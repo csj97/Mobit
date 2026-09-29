@@ -1,90 +1,127 @@
-//
-//  RewardedAdManager.swift
-//  Mobit
-//
-//  Created by 조성재 on 7/21/25.
-//
-
 import GoogleMobileAds
 import UIKit
 
-final class RewardedAdManager: NSObject {	// NSObject 상속 이유 : Obj-C 호환, NSObject 기본 제공 기능 사용
+@MainActor
+final class RewardedAdManager: NSObject {
   static let shared = RewardedAdManager()
-  
-  private var rewardedAd: RewardedAd?
-  private var rewardCompletion: (() -> Void)?	// 광고 종료 시점
-  private var presentingVC: MobitBaseViewController?		// 광고를 띄우기 위한 VC
 
-  /// 클래스의 생성자를 외부에서 호출 못하도록 방어 (싱글톤이므로 내부에서만 초기화 가능하게)
+  private final class Presentation {
+    let session: RewardedAdSession
+    weak var viewController: MobitBaseViewController?
+
+    init(session: RewardedAdSession, viewController: MobitBaseViewController) {
+      self.session = session
+      self.viewController = viewController
+    }
+  }
+
+  private var rewardedAd: RewardedAd?
+  private var presentation: Presentation?
   private override init() {}
 
-  /// 광고 보여주는 메소드
-  func showAd(from viewController: MobitBaseViewController, onSuccess: @escaping () -> Void) {
-	self.rewardCompletion = onSuccess
-	self.presentingVC = viewController
+  func showAd(from viewController: MobitBaseViewController, account: TradingAccountID) {
+    guard presentation == nil else { return }
+    guard account.availability == .available else {
+      showMessage("ad_reward_unavailable", in: viewController)
+      return
+    }
+    do {
+      let recovered = try AdRewardUseCase.shared.retryPendingRewards()
+      if !recovered.isEmpty {
+        showMessage("ad_reward_recovered", in: viewController)
+        return
+      }
+      let context = Presentation(session: try RewardedAdSession(account: account), viewController: viewController)
+      presentation = context
+      viewController.showLoadingIndicator()
+      Task { @MainActor in
+        do {
+          let ad = try await RewardedAd.load(with: MobitConstants.rewardAdType, request: Request())
+          guard self.presentation === context else { return }
+          guard let presenter = context.viewController, presenter.viewIfLoaded?.window != nil else {
+            self.finish(context)
+            return
+          }
+          self.rewardedAd = ad
+          ad.fullScreenContentDelegate = self
+          ad.present(from: presenter) { [weak self, context] in
+            Task { @MainActor in
+              context.session.earned(using: AdRewardUseCase.shared)
+              MobitAnalyticsUtil.sendAdEvent(event: .reward_finish)
+              self?.showResultIfReady(context)
+            }
+          }
+        } catch {
+          self.finish(context)
+          if let presenter = context.viewController { self.showMessage("ad_reward_load_failed", in: presenter) }
+        }
+      }
+    } catch {
+      showMessage("ad_reward_pending", in: viewController)
+    }
+  }
 
-	Task {
-	  do {
-		self.showLoadingIndicator(in: viewController)
-		
-		rewardedAd = try await RewardedAd.load(
-		  with: MobitConstants.rewardAdType,
-		  request: Request()
-		)
-		rewardedAd?.fullScreenContentDelegate = self
-		await rewardedAd?.present(from: viewController, userDidEarnRewardHandler: {
-		  Log.info("광고 끝! 돈 충전해줄게요!!")
-		  MobitAnalyticsUtil.sendAdEvent(event: .reward_finish)
-		})
-	  } catch {	
-		Log.info("Rewarded ad load error: \(error.localizedDescription)")
-		self.hideLoadingIndicator(in: viewController)
-		self.showFailAlert(in: viewController)
-	  }
-	}
+  func retryPendingRewards() {
+    guard presentation == nil else { return }
+    do { try AdRewardUseCase.shared.retryPendingRewards() }
+    catch { Log.info("광고 보상 정산 대기: 로컬 기록을 유지합니다.") }
   }
-  
-  /// 광고 로드 실패
-  private func showFailAlert(in vc: MobitBaseViewController) {
-	vc.show(
-	  alertType: .onlyConfirm,
-	  content: "광고를 불러오는 데 실패했습니다.\n다시 시도해 주세요.",
-	  callBack: nil
-	)
+
+  func resetSpotInvestment(from viewController: MobitBaseViewController) {
+    guard presentation == nil else {
+      showMessage("ad_reward_reset_pending", in: viewController)
+      return
+    }
+    do {
+      try AdRewardUseCase.shared.resetSpotInvestment()
+      showMessage("ad_reward_reset_complete", in: viewController)
+    } catch {
+      showMessage("ad_reward_reset_pending", in: viewController)
+    }
   }
-  
-  /// 광고 띄우기 전 로드 시점 > 인디케이터 화면 노출 (광고 보여주는 화면에서 구현되어 있어야 함)
-  private func showLoadingIndicator(in vc: MobitBaseViewController) {
-	vc.showLoadingIndicator()
+
+  private func finish(_ context: Presentation) {
+    context.viewController?.hideLoadingIndicator()
+    guard presentation === context else { return }
+    presentation = nil
+    rewardedAd = nil
   }
-  
-  private func hideLoadingIndicator(in vc: MobitBaseViewController) {
-	vc.hideLoadingIndicator()
+
+  private func showResultIfReady(_ context: Presentation) {
+    guard let result = context.session.takeResultIfReady(),
+          let viewController = context.viewController, viewController.viewIfLoaded?.window != nil else { return }
+    switch result {
+    case .success: showMessage("ad_reward_complete", in: viewController)
+    case .failure: showMessage("ad_reward_pending", in: viewController)
+    }
+  }
+
+  private func showMessage(_ key: String, in viewController: MobitBaseViewController) {
+    let table = Locale.preferredLanguages.first?.hasPrefix("ko") == true ? "Localizable(KO)" : "Localizable(EN)"
+    let message = NSLocalizedString(key, tableName: table, bundle: .main, value: key, comment: "")
+    viewController.show(alertType: .onlyConfirm, content: message, callBack: nil)
   }
 }
 
-// MARK: - FullScreenContentDelegate
 extension RewardedAdManager: FullScreenContentDelegate {
   func adWillPresentFullScreenContent(_ ad: FullScreenPresentingAd) {
-	Log.info("Ad will present")
-	MobitAnalyticsUtil.sendAdEvent(event: .reward_present)
-	guard let presentingVC = self.presentingVC else { return }
-	self.hideLoadingIndicator(in: presentingVC)
-  }
-  
-  // 광고 닫힘 후 처리
-  func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
-	Log.info("Ad dismissed")
-	MobitAnalyticsUtil.sendAdEvent(event: .reward_close)
-	self.rewardCompletion?()
+    guard (ad as AnyObject) === rewardedAd else { return }
+    MobitAnalyticsUtil.sendAdEvent(event: .reward_present)
+    presentation?.viewController?.hideLoadingIndicator()
   }
 
-  /// 광고 로드 실패
+  func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
+    guard let context = presentation, (ad as AnyObject) === rewardedAd else { return }
+    MobitAnalyticsUtil.sendAdEvent(event: .reward_close)
+    context.session.dismissed()
+    finish(context)
+    showResultIfReady(context)
+  }
+
   func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
-	Log.info("Ad failed to present: \(error.localizedDescription)")
-	MobitAnalyticsUtil.sendAdEvent(event: .reward_failed)
-	guard let presentingVC = self.presentingVC else { return }
-	self.hideLoadingIndicator(in: presentingVC)
-	self.showFailAlert(in: presentingVC)
+    guard let context = presentation, (ad as AnyObject) === rewardedAd else { return }
+    MobitAnalyticsUtil.sendAdEvent(event: .reward_failed)
+    finish(context)
+    if let viewController = context.viewController { showMessage("ad_reward_load_failed", in: viewController) }
   }
 }
