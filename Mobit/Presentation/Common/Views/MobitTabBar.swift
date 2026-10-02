@@ -126,6 +126,11 @@ final class MobitTabBar: UIView {
 	
   }
   
+  func selectItem(at index: Int) {
+    guard tabItems.indices.contains(index) else { return }
+    selectedIndex = index
+  }
+
   private func updateUI() {
 	tabItems
 	  .enumerated()

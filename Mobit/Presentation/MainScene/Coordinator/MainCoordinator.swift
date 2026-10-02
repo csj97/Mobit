@@ -25,6 +25,7 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
   var navigationController: UINavigationController
   var dataManager: AppDataManager
   weak var delegate: MainCoordinatorDelegate?
+  var futuresReactor: FuturesAccountReactor?
   
   init(
 	navigationController: UINavigationController,
@@ -43,7 +44,10 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
         mainRepository: MainRepository(exchangeProvider: exchangeProvider)
       )
     )
-	let mainVC = MainViewController(reactor: reactor)
+	let mainVC = MainViewController(
+	  reactor: reactor,
+	  futuresReactor: futuresReactor
+	)
 	mainVC.coordinator = self
 	self.navigationController.viewControllers = [mainVC]
   }
@@ -70,6 +74,7 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
 	  cmcInformation: cmcInformation,
 	  navigationController: self.navigationController
 	)
+    cryptoDetailCoordinator.futuresReactor = futuresReactor
     self.childCoordinators.append(cryptoDetailCoordinator)
 	cryptoDetailCoordinator.delegate = self
     cryptoDetailCoordinator.start()

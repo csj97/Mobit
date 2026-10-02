@@ -112,7 +112,18 @@ final class FuturesReconciliationService {
   // 준비 결과는 계좌 revision에 묶인다. 실제 저장 시 다시 검증해야 한다.
   func prepareOrder(account: TradingAccountID, instrument: TradingInstrumentID) -> Single<FuturesOrderPreflight> {
     Single.deferred { [self] in
-      guard active, !running else { throw FuturesOrderPreflightError.reconciliationInProgress }
+      guard active else { throw FuturesOrderPreflightError.reconciliationInProgress }
+      if running {
+        // 자동 검증만 기다린다. 이미 진행 중인 주문을 뒤에 쌓아 중복 실행하지 않는다.
+        guard case .refreshing = try subject.value() else { throw FuturesOrderPreflightError.reconciliationInProgress }
+        return subject.filter { status in
+          if case .refreshing = status { return false }
+          return true
+        }.take(1).asSingle().flatMap { [self] status in
+          guard case .finished = status else { throw FuturesOrderPreflightError.reconciliationInProgress }
+          return prepareOrder(account: account, instrument: instrument)
+        }
+      }
       guard account.supports(instrument),
             let provider = providerFactory(instrument) else { throw FuturesOrderPreflightError.invalidTarget }
       running = true

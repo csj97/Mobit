@@ -16,6 +16,13 @@ struct PNLShareUnit {
   let exitPrice: Double
   let transactionDate: String
   var currency: String = "KRW"
+  var product: TradingProduct = .spot
+  var exchange: Exchange? = nil
+
+  var marketDescription: String {
+	guard product == .perpetual, let exchange else { return marketName }
+	return "\(exchange.rawValue.capitalized) · \(FuturesText.text("futures_product")) · \(currency)\n\(marketName)"
+  }
 }
 
 enum PNLShareButtonType {
@@ -35,6 +42,8 @@ class PNLShareView: UIView {
   @IBOutlet weak var quantityLabel: UILabel!
   @IBOutlet weak var transactionDateLabel: UILabel!
   @IBOutlet weak var buttonStackView: UIStackView!
+  @IBOutlet weak var entryTitle: UILabel!
+  @IBOutlet weak var exitTitle: UILabel!
   
   var callBack: ((PNLShareButtonType) -> ())? = nil
   
@@ -65,9 +74,14 @@ class PNLShareView: UIView {
   }
   
   func configure(pnlShareUnit: PNLShareUnit) {
+    if pnlShareUnit.product == .perpetual {
+      entryTitle.text = FuturesText.text("futures_entry")
+      exitTitle.text = FuturesText.text("futures_exit_price")
+      marketName.numberOfLines = 0
+    }
     let digits = pnlShareUnit.currency == "KRW" ? 2 : 8
     let unit = pnlShareUnit.currency == "KRW" ? " ₩" : " " + pnlShareUnit.currency
-	self.marketName.text = pnlShareUnit.marketName
+	self.marketName.text = pnlShareUnit.marketDescription
 	self.entryPriceLabel.text = "\(pnlShareUnit.entryPrice.formatSignificantDigits(digits: digits))".addComma()
 	self.exitPriceLabel.text = "\(pnlShareUnit.exitPrice.formatSignificantDigits(digits: digits))".addComma()
 	self.quantityLabel.text = "\(pnlShareUnit.quantity.formatSignificantDigits(digits: 2))".addComma()

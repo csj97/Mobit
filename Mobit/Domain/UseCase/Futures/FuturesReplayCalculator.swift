@@ -28,7 +28,7 @@ enum FuturesReplayCalculator {
     for fallback in state.entryCloseFallbacks ?? [] {
       guard position.order.instrument.usesDomesticSpotPrice, fallback.start % 60_000 != 0,
             try position.executions.contains(where: { try FuturesReconciliationState.milliseconds($0.executedAt) == fallback.start }),
-            fallback.endExclusive == fallback.start - fallback.start % 60_000 + 60_000,
+            validFallbackBoundary(fallback, instrument: position.order.instrument),
             fallback.endExclusive <= state.verifiedThrough else { throw FuturesReconciliationError.invalidState }
     }
     if let liquidation = state.liquidation {
@@ -113,6 +113,17 @@ enum FuturesReplayCalculator {
     return FuturesReplayResult(state: result, hold: nil)
   }
 
+  private static func validFallbackBoundary(
+	_ fallback: FuturesBoundaryFallback,
+	instrument: TradingInstrumentID
+  ) -> Bool {
+	let minuteEnd = fallback.start - fallback.start % 60_000 + 60_000
+	let secondEnd = fallback.start - fallback.start % 1000 + 1000
+	return fallback.endExclusive == minuteEnd || (
+	  instrument.exchange == .upbit && fallback.start % 1000 != 0 && fallback.endExclusive == secondEnd
+	)
+  }
+
   private static func replayDetail(_ batch: FuturesReplayBatch, position: FuturesPosition,
                                    state: FuturesReconciliationState, settledAt: Date) throws -> FuturesReplayResult {
     guard position.order.instrument.usesDomesticSpotPrice, batch.instrument == position.order.instrument,
@@ -125,7 +136,11 @@ enum FuturesReplayCalculator {
       let entry = try FuturesReconciliationState.milliseconds(position.lastExecutionAt)
       guard batch.start == entry, entry % 60_000 != 0,
             batch.endExclusive == entry - entry % 60_000 + 60_000,
-            batch.candles.count == 1, let candle = batch.candles.first,
+            let candle = batch.candles.first,
+            validFallbackBoundary(
+              .init(start: entry, endExclusive: candle.closeTime + 1),
+              instrument: batch.instrument
+            ),
             candle.open == candle.close, candle.low == candle.close, candle.high == candle.close else {
         throw FuturesReconciliationError.invalidHistory
       }
@@ -146,8 +161,10 @@ enum FuturesReplayCalculator {
     for candle in batch.candles {
       result.verifiedThrough = candle.closeTime + 1
       result.lastVerifiedMark = candle.close
-      if batch.entryCloseFallback {
-        result.entryCloseFallbacks = (result.entryCloseFallbacks ?? []) + [.init(start: batch.start, endExclusive: batch.endExclusive)]
+      if batch.entryCloseFallback, candle.openTime == batch.start {
+        result.entryCloseFallbacks = (result.entryCloseFallbacks ?? []) + [
+          .init(start: batch.start, endExclusive: candle.closeTime + 1)
+        ]
       }
       let adverse = position.order.side == .long ? candle.low : candle.high
       if try FuturesCalculator.evaluate(position, markPrice: adverse).shouldLiquidate {

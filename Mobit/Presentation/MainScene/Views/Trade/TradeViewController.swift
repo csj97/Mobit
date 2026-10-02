@@ -42,6 +42,8 @@ class TradeViewController: MobitBaseViewController {
   weak var coordinator: CryptoDetailCoordinator?
   weak var delegate: MainCoordinatorDelegate?
   var reactor: TradeReactor
+  var futuresReactor: FuturesAccountReactor?
+  private var futuresOrderController: FuturesOrderViewController?
   var orderView: TradeOrderView? = nil
   var chartView: TradeChartView? = nil
   var informationView: TradeInformationView? = nil
@@ -115,8 +117,16 @@ class TradeViewController: MobitBaseViewController {
 	applyThemeColors()
 	self.miniChartContainerView.layer.borderWidth = 0.5
 	
+    if let futuresReactor {
+      let instrument = TradingInstrumentID(exchange: futuresReactor.account.exchange, product: .perpetual,
+        rawSymbol: MarketFormat.apiMarket(fromDisplayMarket: reactor.selectCrypto.market), settlementCurrency: .krw)
+      let controller = FuturesOrderViewController(reactor: futuresReactor, instrument: instrument)
+      addChild(controller)
+      futuresOrderController = controller
+    }
 	orderView = TradeOrderView.instanceFromNib(
-	  reactor: self.reactor
+	  reactor: self.reactor,
+      futuresOrderController: futuresOrderController
 	) { [weak self] orderResult in
 	  guard let self = self else { return }
 	  switch orderResult {
@@ -169,6 +179,7 @@ class TradeViewController: MobitBaseViewController {
 	else { return }
 	
 	self.segmentedContainerView.addSubview(orderView)
+    futuresOrderController?.didMove(toParent: self)
 	self.segmentedContainerView.addSubview(chartView)
 	self.segmentedContainerView.addSubview(informationView)
 	

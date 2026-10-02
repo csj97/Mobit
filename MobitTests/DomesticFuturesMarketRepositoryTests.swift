@@ -185,6 +185,117 @@ final class DomesticFuturesMarketRepositoryTests: XCTestCase {
     XCTAssertNil(result.state.liquidation)
   }
 
+  func testEightDayMillisecondEntryUsesRemainingSecondsForBothLiquidationDirections() throws {
+    let old = base - 8 * 86_400_000
+    let start = old + 34_123
+    for side in [FuturesSide.long, .short] {
+      let repo = repository { target in
+        guard case .candles(let seconds, _, _) = target.query else {
+          XCTFail("Expired ticks must not be requested")
+          return "[]"
+        }
+        XCTAssertTrue(seconds)
+        return "[" + (33..<60).map { self.candle(old + Int64($0) * 1000, seconds: true) }.joined(separator: ",") + "]"
+      }
+      let batch = try value(repo.boundaryHistory(
+        instrument(),
+        start: start,
+        endExclusive: old + 60_000,
+        initialEntry: true
+      ))
+      XCTAssertEqual(batch.candles.count, 26)
+      XCTAssertEqual(batch.candles[0].openTime, start)
+      XCTAssertEqual(batch.candles[0].low, 100)
+      XCTAssertEqual(batch.candles[0].high, 100)
+      let position = try FuturesCalculator.open(domesticFuturesOrder(
+        side: side,
+        margin: 100,
+        price: 100,
+        date: Date(timeIntervalSince1970: Double(start) / 1000)
+      ))
+      let result = try FuturesReplayCalculator.replay(
+        batch,
+        position: position,
+        state: .initial(for: position),
+        settledAt: Date(timeIntervalSince1970: Double(base) / 1000)
+      )
+      XCTAssertEqual(result.state.liquidation?.intervalStart, old + 35_000)
+      XCTAssertEqual(result.state.verifiedThrough, old + 36_000)
+      XCTAssertEqual(result.state.entryCloseFallbacks, [.init(start: start, endExclusive: old + 35_000)])
+      let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("accounts.json")
+      defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+      let store = LocalFuturesAccountRepository(fileURL: url)
+      try store.applyAdvertisementReward(AdRewardClaim(account: position.order.account))
+      try store.openTestPosition(position.order, expectedRevision: store.snapshot().revision)
+      let saved = try store.reconcile(
+        positionID: position.id,
+        expectedRevision: store.snapshot().revision,
+        batch: batch,
+        settledAt: Date(timeIntervalSince1970: Double(base) / 1000)
+      )
+      XCTAssertEqual(saved.state, result.state)
+      let reopened = try LocalFuturesAccountRepository(fileURL: url).snapshot()
+      XCTAssertEqual(reopened.reconciliations.first, result.state)
+      XCTAssertFalse(reopened.isActive(position))
+      XCTAssertEqual(reopened.positions.first?.order.executedAt, position.order.executedAt)
+      let record = try XCTUnwrap(reopened.transactionHistory(for: position.order.account).last)
+      XCTAssertEqual(record.kind, .liquidation)
+      XCTAssertEqual(record.intervalStart, old + 35_000)
+      let assets = try reopened.valuation(for: position.order.account, quotes: [:], now: Date())
+      XCTAssertEqual(assets.realizedPnL, -100)
+      XCTAssertEqual(assets.availableBalance, 9_999_900)
+      XCTAssertEqual(assets.totalEquity, 9_999_900)
+    }
+  }
+
+  func testEightDayEntryFallbackExcludesPreEntryExtremeAndPersistsOnlyPartialSecond() throws {
+    let old = base - 8 * 86_400_000
+    let start = old + 34_123
+    let repo = repository { _ in
+      "[" + (33..<60).map { second in
+        let row = self.candle(old + Int64(second) * 1000, seconds: true)
+        return second == 34 ? row : row.replacingOccurrences(of: "\"high_price\":120", with: "\"high_price\":100").replacingOccurrences(of: "\"low_price\":80", with: "\"low_price\":100")
+      }.joined(separator: ",") + "]"
+    }
+    let batch = try value(repo.boundaryHistory(
+      instrument(),
+      start: start,
+      endExclusive: old + 60_000,
+      initialEntry: true
+    ))
+    let position = try FuturesCalculator.open(domesticFuturesOrder(
+      margin: 100,
+      price: 100,
+      date: Date(timeIntervalSince1970: Double(start) / 1000)
+    ))
+    let result = try FuturesReplayCalculator.replay(
+      batch,
+      position: position,
+      state: .initial(for: position),
+      settledAt: Date(timeIntervalSince1970: Double(base) / 1000)
+    )
+    XCTAssertNil(result.state.liquidation)
+    XCTAssertEqual(result.state.verifiedThrough, old + 60_000)
+    XCTAssertEqual(result.state.entryCloseFallbacks, [.init(start: start, endExclusive: old + 35_000)])
+    try FuturesReplayCalculator.validate(result.state, position: position)
+    XCTAssertThrowsError(try value(repo.boundaryHistory(
+      instrument(),
+      start: start,
+      endExclusive: old + 60_000,
+      initialEntry: false
+    )))
+    for status in [429, 500] {
+      XCTAssertThrowsError(try value(repository(status: status) { _ in "[]" }.boundaryHistory(
+        instrument(),
+        start: start,
+        endExclusive: old + 60_000,
+        initialEntry: true
+      ))) {
+        XCTAssertEqual($0 as? FuturesMarketDataError, .httpStatus(status))
+      }
+    }
+  }
+
   func testExpiredEntryBoundaryUsesAuditableCloseOnlyAndErrorsNeverFallback() throws {
     let old = base - 120 * 86_400_000
     let repo = repository { target in

@@ -7,11 +7,17 @@
 
 import UIKit
 import Photos
+import RxSwift
 
 class PNLViewController: MobitBaseViewController {
   
   @IBOutlet weak var pnlTableView: SelfSizingTableView!
     @IBOutlet weak var noResultView: UIView!
+    @IBOutlet weak var emptyLabel: UILabel!
+
+  var futuresReactor: FuturesAccountReactor?
+  private let futuresBag = DisposeBag()
+  private var futuresRecords: [(record: FuturesTransactionRecord, position: FuturesPosition)] = []
     
   weak var coordinator: PNLCoordinator?
   weak var delegate: MainCoordinatorDelegate?
@@ -60,6 +66,13 @@ class PNLViewController: MobitBaseViewController {
   }
 
   func setData() {
+    if let futuresReactor {
+      pnlTableView.rowHeight = UITableView.automaticDimension
+      pnlTableView.estimatedRowHeight = 200
+      futuresReactor.state.observe(on: MainScheduler.instance)
+        .subscribe(onNext: { [weak self] _ in self?.renderFutures() }).disposed(by: futuresBag)
+      return
+    }
 	// 최신순을 위해 reversed
     let currentExchange = ExchangeSelectionStore.currentExchange
     let datas = UserDataManager.userPNLHistory?.filter {
@@ -76,7 +89,7 @@ class PNLViewController: MobitBaseViewController {
   }
   
   @IBAction func tapOnBackButton(_ sender: UIButton) {
-	self.coordinator?.navigationController.popViewController(animated: true)
+	self.navigationController?.popViewController(animated: true)
   }
 }
 
@@ -84,11 +97,12 @@ class PNLViewController: MobitBaseViewController {
 extension PNLViewController: UITableViewDelegate, UITableViewDataSource {
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
 	
-	return self.pnlHistoryDatas?.count ?? 0
+	return futuresReactor != nil ? futuresRecords.count : self.pnlHistoryDatas?.count ?? 0
   }
   
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    if futuresReactor != nil { return futuresCell(tableView, at: indexPath) }
 	guard let cell = tableView.dequeueReusableCell(withIdentifier: "PNLTableViewCell",for: indexPath) as? PNLTableViewCell,
 		  let pnlHistory = self.pnlHistoryDatas?[indexPath.row]
 	else {
@@ -125,9 +139,17 @@ extension PNLViewController: UITableViewDelegate, UITableViewDataSource {
         currency: currency
 	  )
 	  
+      self.showShare(pnlShareUnit)
+	}
+
+	return cell
+  }
+
+  private func showShare(_ pnlShareUnit: PNLShareUnit) {
 	  let shareView = PNLShareView.instanceFromNib(
 		pnlShareUnit: pnlShareUnit
-	  ) { button in
+	  ) { [weak self] button in
+        guard let self else { return }
 		switch button {
 		case .save(let saveImg):
 		  self.checkPhotoPermission { isAuthorized in
@@ -146,24 +168,26 @@ extension PNLViewController: UITableViewDelegate, UITableViewDataSource {
 		  
 		case .share(let shareImg):
 		  var pnlSign = ""
-		  if pnlHistory.pnl > 0 { pnlSign = "+" }
+		  if pnlShareUnit.pnl > 0 { pnlSign = "+" }
 		  var roiSign = ""
-		  if roi > 0 { roiSign = "+" }
+		  if pnlShareUnit.roi > 0 { roiSign = "+" }
 		  
-		  let entryPrice = "\(pnlHistory.entryPrice.formatSignificantDigits(digits: 2))".addComma()
-		  let exitPrice = "\(pnlHistory.exitPrice.formatSignificantDigits(digits: 2))".addComma()
-		  let pnl = pnlSign + "\(pnlHistory.pnl.formatSignificantDigits(digits: 2))".addComma() + " ₩"
+		  let entryPrice = "\(pnlShareUnit.entryPrice.formatSignificantDigits(digits: 2))".addComma()
+		  let exitPrice = "\(pnlShareUnit.exitPrice.formatSignificantDigits(digits: 2))".addComma()
+		  let pnl = pnlSign + "\(pnlShareUnit.pnl.formatSignificantDigits(digits: 2))".addComma() + " ₩"
 		  let roi = roiSign + "\(pnlShareUnit.roi.formatSignificantDigits(digits: 2)) %"
 		  
 		  let image = shareImg
+          let entryTitle = FuturesText.text(pnlShareUnit.product == .perpetual ? "futures_entry" : "investment_average_price")
+          let exitTitle = FuturesText.text(pnlShareUnit.product == .perpetual ? "futures_exit_price" : "investment_exit_price")
 		  let message = """
 📈 MOBIT 실현손익
-* 코인명 : \(pnlHistory.marketName)
+* 코인명 : \(pnlShareUnit.marketDescription)
 * 수익률 : \(roi) 
 * P&L  : \(pnl)
-* 매수평균가 : \(entryPrice)
-* 매도가 : \(exitPrice)
-* 거래일 : \(pnlHistory.transactionDate)
+* \(entryTitle) : \(entryPrice)
+* \(exitTitle) : \(exitPrice)
+* 거래일 : \(pnlShareUnit.transactionDate)
 """
 		  
 		  let activityVC = UIActivityViewController(
@@ -187,9 +211,42 @@ extension PNLViewController: UITableViewDelegate, UITableViewDataSource {
 		}
 	  }
 	  self.showPNLShareView(shareView: shareView)
-	}
-	
-	return cell
+  }
+
+  private func renderFutures() {
+    guard let reactor = futuresReactor else { return }
+    futuresRecords = []
+    emptyLabel.numberOfLines = 0
+    emptyLabel.text = FuturesText.text("futures_no_history")
+    do {
+      if let snapshot = reactor.currentState.snapshot {
+        let records = try snapshot.transactionHistory(for: reactor.account).filter { $0.realizedPnL != nil }.reversed()
+        futuresRecords = records.compactMap { record in
+          snapshot.positions.first(where: { $0.id == record.positionID }).map { (record, $0) }
+        }
+      } else {
+        emptyLabel.text = FuturesText.text("futures_loading")
+      }
+      if reactor.currentState.loadFailed { emptyLabel.text = FuturesText.text("futures_storage_error") }
+    } catch {
+      emptyLabel.text = FuturesText.text("futures_storage_error")
+    }
+    noResultView.isHidden = !futuresRecords.isEmpty
+    pnlTableView.reloadData()
+  }
+
+  private func futuresCell(_ table: UITableView, at path: IndexPath) -> UITableViewCell {
+    guard futuresRecords.indices.contains(path.row),
+          let cell = table.dequeueReusableCell(withIdentifier: "PNLTableViewCell", for: path) as? PNLTableViewCell else { return UITableViewCell() }
+    let item = futuresRecords[path.row]
+    cell.configure(record: item.record, position: item.position)
+    cell.selectionStyle = .none
+    cell.shareCallBack = { [weak self] in
+      guard let self else { return }
+      do { showShare(try FuturesText.shareUnit(item.record, position: item.position)) }
+      catch { show(alertType: .onlyConfirm, title: FuturesText.text("futures_realized"), content: FuturesText.text("futures_storage_error"), callBack: nil) }
+    }
+    return cell
   }
 
   /// UIView Image로 앨범 저장 Handler

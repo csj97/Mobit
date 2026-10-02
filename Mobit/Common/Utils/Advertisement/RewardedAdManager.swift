@@ -26,8 +26,10 @@ final class RewardedAdManager: NSObject {
       return
     }
     do {
+      try AdRewardUseCase.shared.prepareAccount(account)
       let recovered = try AdRewardUseCase.shared.retryPendingRewards()
       if !recovered.isEmpty {
+        NotificationCenter.default.post(name: .futuresAccountDidChange, object: nil)
         showMessage("ad_reward_recovered", in: viewController)
         return
       }
@@ -47,6 +49,7 @@ final class RewardedAdManager: NSObject {
           ad.present(from: presenter) { [weak self, context] in
             Task { @MainActor in
               context.session.earned(using: AdRewardUseCase.shared)
+              NotificationCenter.default.post(name: .futuresAccountDidChange, object: nil)
               MobitAnalyticsUtil.sendAdEvent(event: .reward_finish)
               self?.showResultIfReady(context)
             }
@@ -63,7 +66,10 @@ final class RewardedAdManager: NSObject {
 
   func retryPendingRewards() {
     guard presentation == nil else { return }
-    do { try AdRewardUseCase.shared.retryPendingRewards() }
+    do {
+      let recovered = try AdRewardUseCase.shared.retryPendingRewards()
+      if !recovered.isEmpty { NotificationCenter.default.post(name: .futuresAccountDidChange, object: nil) }
+    }
     catch { Log.info("광고 보상 정산 대기: 로컬 기록을 유지합니다.") }
   }
 

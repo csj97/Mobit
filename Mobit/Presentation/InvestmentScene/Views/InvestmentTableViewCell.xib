@@ -208,6 +208,10 @@
             <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
             <connections>
+                <outlet property="amountTitle" destination="UcV-wW-3yY" id="fn-amo-txt"/>
+                <outlet property="averagePriceTitle" destination="5Z4-zF-heC" id="fn-ave-txt"/>
+                <outlet property="buyPriceTitle" destination="QcA-tg-tdv" id="fn-buy-txt"/>
+                <outlet property="profitRateTitle" destination="LF6-kG-bk8" id="fn-pro-txt"/>
                 <outlet property="bgView" destination="iHx-qk-Ur0" id="GQx-JX-gmp"/>
                 <outlet property="cryptoAmount" destination="sFZ-j3-5AA" id="d8p-Zt-sw5"/>
                 <outlet property="cryptoAveragePrice" destination="O9e-b1-b8f" id="a3L-qR-lXn"/>

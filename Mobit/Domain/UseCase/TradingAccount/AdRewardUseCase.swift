@@ -17,6 +17,13 @@ final class AdRewardUseCase {
     self.apply = apply
   }
 
+  func prepareAccount(_ account: TradingAccountID) throws {
+	guard account.availability == .available else { throw AdRewardError.invalidClaim }
+	if account.product == .perpetual {
+	  try LocalFuturesAccountRepository.applicationStore().ensureAccount(account)
+	}
+  }
+
   func receive(_ claim: AdRewardClaim) throws {
     Self.lock.lock()
     defer { Self.lock.unlock() }

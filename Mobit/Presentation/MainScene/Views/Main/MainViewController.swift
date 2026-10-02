@@ -59,6 +59,7 @@ class MainViewController: MobitBaseViewController {
   var dataSource: UITableViewDiffableDataSource<TableViewSection, CryptoCellInfo>?
   var disposeBag = DisposeBag()
   var reactor: MainReactor
+  private let futuresReactor: FuturesAccountReactor?
   var isSocketUpdating = false
   var prevSortedButton: UIButton?
   let defaultTitles = ["현재가 ↑↓", "전일대비 ↑↓", "거래대금 ↑↓"]
@@ -78,8 +79,12 @@ class MainViewController: MobitBaseViewController {
   
   private let cellIndentifier = "MainCryptoTableViewCell"
   
-  init(reactor: MainReactor) {
+  init(
+	reactor: MainReactor,
+	futuresReactor: FuturesAccountReactor? = nil
+  ) {
 	self.reactor = reactor
+	self.futuresReactor = futuresReactor
 	super.init(nibName: nil, bundle: nil)
   }
   
@@ -342,6 +347,7 @@ class MainViewController: MobitBaseViewController {
 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    (navigationController?.parent as? MobitTabBarViewController)?.alignTradingAccessory(fearGreedFloatingButton)
     self.requestMainNativeAdIfNeeded()
     if !reactor.currentState.totalCryptoList.isEmpty {
       presentLegacyBTCSettlementAlertIfNeeded()
@@ -451,6 +457,10 @@ class MainViewController: MobitBaseViewController {
   private func updatePortfolioSummary(
 	cryptos: [CryptoTransactionDataModel]? = UserDataManager.userCryptoList
   ) {
+	if let futuresReactor {
+	  updateFuturesPortfolioSummary(futuresReactor)
+	  return
+	}
 	// 거래소별 자산 분리: 현재 선택 거래소 보유분만 합산한다.
 	let currentExchange = ExchangeSelectionStore.currentExchange
 	let cryptos = (cryptos ?? []).filter { $0.staticData.exchange == currentExchange }
@@ -491,6 +501,42 @@ class MainViewController: MobitBaseViewController {
 	self.profitRateValueLabel.text = totalProfitRate.map { self.formattedSignedPercent($0) } ?? "-"
 	self.profitLossValueLabel.textColor = self.portfolioValueColor(totalProfitLoss ?? 0)
 	self.profitRateValueLabel.textColor = self.portfolioValueColor(totalProfitRate ?? 0)
+  }
+
+  private func updateFuturesPortfolioSummary(_ reactor: FuturesAccountReactor) {
+	let state = reactor.currentState
+	let margin = state.snapshot.flatMap { _ in
+	  try? reactor.positions.map { try $0.margin }.reduce(Decimal(0), FuturesDecimal.add)
+	}
+	let valuation = try? state.snapshot?.valuation(
+	  for: reactor.account,
+	  quotes: state.quotes,
+	  now: Date(),
+	  allowStaleQuotes: true
+	)
+	let rate = valuation.flatMap {
+	  $0.reservedMargin > 0
+		? try? FuturesDecimal.multiply(FuturesDecimal.divide($0.unrealizedPnL, $0.reservedMargin), 100)
+		: Decimal(0)
+	}
+	let pnl = valuation.map { NSDecimalNumber(decimal: $0.unrealizedPnL).doubleValue }
+	let percent = rate.map { NSDecimalNumber(decimal: $0).doubleValue }
+	totalBalanceTitleLabel.text = FuturesText.text("futures_total_margin")
+	evaluationPriceTitleLabel.text = FuturesText.text("futures_total")
+	totalBalanceLabel.accessibilityIdentifier = "futures.main.margin"
+	evaluationPriceValueLabel.accessibilityIdentifier = "futures.main.equity"
+	profitLossValueLabel.accessibilityIdentifier = "futures.main.pnl"
+	profitRateValueLabel.accessibilityIdentifier = "futures.main.roe"
+	totalBalanceLabel.attributedText = attributedPortfolioKRW(margin.map { NSDecimalNumber(decimal: $0).doubleValue })
+	evaluationPriceValueLabel.attributedText = attributedPortfolioKRW(valuation.map { NSDecimalNumber(decimal: $0.totalEquity).doubleValue })
+	evaluationPriceValueLabel.accessibilityValue = nil
+	profitLossValueLabel.attributedText = attributedPortfolioKRW(
+	  pnl,
+	  formatter: { self.formattedSignedKRW($0, includeUnit: false) }
+	)
+	profitRateValueLabel.text = percent.map { formattedSignedPercent($0) } ?? "-"
+	profitLossValueLabel.textColor = portfolioValueColor(pnl ?? 0)
+	profitRateValueLabel.textColor = portfolioValueColor(percent ?? 0)
   }
 
   /// BTC/KRW 시세를 아직 받지 못하면 0원 대신 '-'로 표시해 자산이 사라진 것처럼 보이지 않게 한다.
@@ -560,7 +606,10 @@ class MainViewController: MobitBaseViewController {
 		  withIdentifier: MainHoldingTableViewCell.reuseIdentifier,
 		  for: indexPath
 		) as? MainHoldingTableViewCell else { return UITableViewCell() }
-		cell.configure(crypto: crypto)
+		cell.configure(
+		  crypto: crypto,
+		  product: self.futuresReactor == nil ? .spot : .perpetual
+		)
 		return cell
 	  }
 
@@ -791,12 +840,13 @@ class MainViewController: MobitBaseViewController {
 		  .marginTop(4)
 		  .marginBottom(6)
 
-		// KRW, BTC, 관심
 		flex.addItem().direction(.row).define { flex in
-		  flex.addItem(self.holdButton).width(25%)
-		  flex.addItem(self.krwButton).width(25%)
-		  flex.addItem(self.btcButton).width(25%)
-		  flex.addItem(self.favoriteButton).width(25%)
+          let buttons = ExchangeSelectionStore.currentProduct == .perpetual
+            ? [self.holdButton, self.krwButton, self.favoriteButton]
+            : [self.holdButton, self.krwButton, self.btcButton, self.favoriteButton]
+          buttons.forEach { button in
+            flex.addItem(button).basis(0).grow(1)
+          }
 		}.height(40)
 		
 		flex.addItem(DividerLineView()).height(1)
@@ -1105,7 +1155,7 @@ extension MainViewController {
   }
 
   private func presentLegacyBTCSettlementAlertIfNeeded() {
-    guard !hasCheckedLegacyBTCSettlement,
+    guard futuresReactor == nil, !hasCheckedLegacyBTCSettlement,
           view.window != nil,
           presentedViewController == nil else { return }
     guard let legacyHoldings = UserDataManager.legacyBTCMarketHoldings() else { return }
@@ -1141,6 +1191,14 @@ extension MainViewController {
 extension MainViewController: View {
   
   func bind(reactor: MainReactor) {
+	futuresReactor?.state
+	  .observe(on: MainScheduler.instance)
+	  .subscribe(onNext: { [weak self] _ in
+		guard let self else { return }
+		self.updatePortfolioSummary()
+		if self.selectedTab == .hold { self.refreshDisplayedList() }
+	  })
+	  .disposed(by: disposeBag)
 	
 	// totalCryptoList 변경 감지 → 현재 탭에 맞게 필터링하여 스냅샷 적용
 	reactor.state
@@ -1272,11 +1330,31 @@ extension MainViewController: View {
         .map(\.pairID)
     )
 	
-	var filteredList = totalList
+    // 선물에서는 관심·보유 탭에서도 BTC 마켓 상세로 진입하지 않도록 제한한다.
+    var filteredList = ExchangeSelectionStore.currentProduct == .perpetual
+      ? totalList.filter { $0.market.hasSuffix("/KRW") }
+      : totalList
 	
 	// 1. 탭별 필터링
 	switch self.selectedTab {
 	case .hold:
+	  if let futuresReactor {
+		filteredList = filteredList.compactMap { cell in
+		  guard let position = futuresReactor.positions.first(where: {
+			ExchangePairID(exchange: $0.order.instrument.exchange, rawMarketCode: $0.order.instrument.rawSymbol) == cell.exchangePairID
+		  }) else { return nil }
+		  var enriched = cell
+		  let value = try? FuturesText.valuation(position, quotes: futuresReactor.currentState.quotes)
+		  enriched.holdingQuantity = NSDecimalNumber(decimal: position.quantity).doubleValue
+		  enriched.averageBuyPrice = (try? position.averageEntryPrice).map { NSDecimalNumber(decimal: $0).doubleValue }
+		  enriched.averageBuyPriceKRW = enriched.averageBuyPrice
+		  enriched.evaluationPrice = value.map { NSDecimalNumber(decimal: $0.displayedEquity).doubleValue }
+		  enriched.evaluationProfitLoss = (try? value?.displayedPnL).map { NSDecimalNumber(decimal: $0).doubleValue }
+		  enriched.profitRate = value.map { NSDecimalNumber(decimal: $0.displayedROEPercent).doubleValue }
+		  return enriched
+		}
+		break
+	  }
 	  // 보유 코인만 남기고, 보유데이터(보유량/평단/평가금액/수익률)를 표시 시세 기준으로 채운다.
 	  let holdingByMarket = Dictionary(
         self.reactor.currentState.userCryptos
@@ -1341,6 +1419,12 @@ extension MainViewController: View {
 	case .profitRateAscending:       return list.sorted { PortfolioCalculator.orderedBefore($0.profitRate, $1.profitRate, ascending: true) }
 	case .profitRateDescending:      return list.sorted { PortfolioCalculator.orderedBefore($0.profitRate, $1.profitRate, ascending: false) }
 	default:
+	  if let futuresReactor {
+		let markets = futuresReactor.positions.map { FuturesText.symbol($0.order.instrument) }
+		return list.sorted {
+		  (markets.firstIndex(of: $0.market) ?? Int.max) < (markets.firstIndex(of: $1.market) ?? Int.max)
+		}
+	  }
 	  // 초기 순서: 보유 목록 순서 기준 (마켓 정렬 영향 없음)
 	  let order = Dictionary(
         self.reactor.currentState.userCryptos
@@ -1420,6 +1504,9 @@ extension MainViewController: View {
 	case .hold:
 	  self.tableView.isHidden = true
 	  self.noHoldView.isHidden = false
+	  if let futuresReactor {
+		self.noHoldLabel.text = FuturesText.text(futuresReactor.currentState.loadFailed ? "futures_storage_error" : "futures_no_position")
+	  }
 	  self.noFavoriteView.isHidden = true
 
 	case .favorite:

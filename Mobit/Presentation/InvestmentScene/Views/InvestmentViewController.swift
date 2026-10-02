@@ -28,6 +28,8 @@ class InvestmentViewController: MobitBaseViewController {
   @IBOutlet weak var totalEvalProfitLoss: UILabel!
   @IBOutlet weak var totalProfitRate: UILabel!
   @IBOutlet weak var totalBuyPrice: UILabel!
+  @IBOutlet weak var totalBuyTitle: UILabel!
+  @IBOutlet weak var emptyLabel: UILabel!
   @IBOutlet weak var availableUserBalance: UILabel!
   @IBOutlet weak var noResultView: UIView!
   @IBOutlet weak var sortLabel: UILabel!

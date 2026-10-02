@@ -621,6 +621,40 @@ final class FuturesPreUIIntegrationTests: XCTestCase {
     XCTAssertEqual(try store.snapshot().accounts[0].availableBalance, 9_999_900)
   }
 
+  func testOrderWaitsForAutomaticRefreshThenRunsFreshPreflight() throws {
+    let order = domesticFuturesOrder(margin: 100, price: 100)
+    try store.ensureAccount(order.account)
+    try store.applyAdvertisementReward(AdRewardClaim(account: order.account))
+    try store.openTestPosition(order, expectedRevision: store.snapshot().revision)
+    let gate = PublishSubject<FuturesMarkQuote>()
+    let started = expectation(description: "automatic quote started")
+    var requests = 0
+    var provider = DetailReplayProvider(instrument: order.instrument, timestamp: 65_000, adverse: 100)
+    provider.quoteOverride = {
+      requests += 1
+      if requests == 1 {
+        return gate.take(1).asSingle().do(onSubscribe: { started.fulfill() })
+      }
+      return .just(.init(instrument: order.instrument, price: 100, timestamp: 65_000))
+    }
+    let service = FuturesReconciliationService(store: { self.store }, provider: { _ in provider },
+      now: { Date(timeIntervalSince1970: 66) })
+    defer { service.suspend() }
+    service.refresh()
+    wait(for: [started], timeout: 3)
+    let prepared = expectation(description: "order prepared after refresh")
+    let subscription = service.prepareOrder(account: order.account, instrument: order.instrument).subscribe(onSuccess: { result in
+      XCTAssertEqual(result.instrument, order.instrument)
+      XCTAssertGreaterThan(requests, 1)
+      prepared.fulfill()
+    }, onFailure: { error in XCTFail("Queued preparation failed: \(error)"); prepared.fulfill() })
+    defer { subscription.dispose() }
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+      gate.onNext(.init(instrument: order.instrument, price: 100, timestamp: 65_000))
+    }
+    wait(for: [prepared], timeout: 3)
+  }
+
   func testSuspendedServiceRejectsNewPreparationWithoutMutation() throws {
     let order = domesticFuturesOrder(margin: 100, price: 100)
     try store.ensureAccount(order.account)
@@ -655,8 +689,9 @@ private struct DetailReplayProvider: FuturesDetailedMarketDataProviding {
   let timestamp: Int64
   let adverse: Decimal
   var adverseAtEndOnly = false
+  var quoteOverride: (() -> Single<FuturesMarkQuote>)?
   func markQuote(_ instrument: TradingInstrumentID) -> Single<FuturesMarkQuote> {
-    .just(.init(instrument: instrument, price: 100, timestamp: timestamp))
+    quoteOverride?() ?? .just(.init(instrument: instrument, price: 100, timestamp: timestamp))
   }
   func contract(_ instrument: TradingInstrumentID) -> Single<FuturesMarketContract> { .error(FuturesMarketDataError.invalidRequest) }
   func funding(_ instrument: TradingInstrumentID, start: Int64, endExclusive: Int64) -> Single<FuturesHistoryPage<FuturesFundingEvent>> {

@@ -22,6 +22,39 @@ class MobitTabBarViewController: UIViewController {
   private var viewControllers: [UIViewController] = []
   private(set) var selectedIndex: Int = 0
 
+  private let productControl = TradingProductControl()
+  var onProductSelected: ((TradingProduct) -> Void)?
+  private var tradingChromeHidden = false
+
+  func setProduct(_ product: TradingProduct) {
+    loadViewIfNeeded()
+    productControl.selectedSegmentIndex = product == .spot ? 0 : 1
+  }
+
+  func setTradingChromeHidden(_ hidden: Bool) {
+    tradingChromeHidden = hidden
+    mobitTabBar.isHidden = hidden
+    updateProductVisibility()
+  }
+
+  private func updateProductVisibility() {
+    let visible = !tradingChromeHidden && selectedIndex < 2
+    productControl.isHidden = !visible
+    currentViewController?.additionalSafeAreaInsets.bottom = visible ? 76 : 0
+  }
+
+  @objc private func selectProduct() {
+    onProductSelected?(productControl.selectedSegmentIndex == 0 ? .spot : .perpetual)
+  }
+
+  func alignTradingAccessory(_ accessory: UIView) {
+    accessory.snp.remakeConstraints {
+      $0.trailing.equalTo(view.safeAreaLayoutGuide).offset(-16)
+      $0.centerY.equalTo(productControl)
+      $0.width.height.equalTo(56)
+    }
+  }
+
   var onTabSelected: ((Int) -> Void)?
 
   override func viewDidLoad() {
@@ -50,6 +83,18 @@ class MobitTabBarViewController: UIViewController {
 	view.backgroundColor = .clear
 	view.addSubview(mobitTabBar)
 	UITabBar.clearShadow()
+    view.addSubview(productControl)
+    productControl.accessibilityLabel = FuturesText.text("futures_product_selector")
+    productControl.accessibilityIdentifier = "tradingProductSelector"
+    productControl.addTarget(self, action: #selector(selectProduct), for: .valueChanged)
+    productControl.snp.makeConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalTo(mobitTabBar.snp.top).offset(-12)
+      $0.width.equalTo(216).priority(750)
+      // 작은 화면에서도 우측 공포·탐욕 버튼과 겹치지 않도록 공간을 확보한다.
+      $0.width.lessThanOrEqualTo(view.safeAreaLayoutGuide).offset(-152)
+      $0.height.greaterThanOrEqualTo(56)
+    }
 
 	mobitTabBar.translatesAutoresizingMaskIntoConstraints = false
 
@@ -104,6 +149,7 @@ class MobitTabBarViewController: UIViewController {
 	view.addSubview(newVC.view)
 	newVC.view.translatesAutoresizingMaskIntoConstraints = false
 	self.view.bringSubviewToFront(mobitTabBar)
+    self.view.bringSubviewToFront(productControl)
 	
 	newVC.view.snp.makeConstraints { make in
 	  make.top.bottom.leading.trailing.equalToSuperview()
@@ -112,6 +158,8 @@ class MobitTabBarViewController: UIViewController {
 	newVC.didMove(toParent: self)
 	currentViewController = newVC
 	self.selectedIndex = index
+    mobitTabBar.selectItem(at: index)
+    updateProductVisibility()
   }
   
   func controlSocket(appState: AppState) {
@@ -143,5 +191,68 @@ extension UITabBar {
 	UITabBar.appearance().shadowImage = UIImage()
 	UITabBar.appearance().backgroundImage = UIImage()
 	UITabBar.appearance().backgroundColor = .mobitColors(.surfacePrimary)
+  }
+}
+
+private final class TradingProductControl: UIControl {
+  var selectedSegmentIndex = 0 { didSet { updateSelection() } }
+  private let buttons: [UIButton] = ["futures_spot", "futures_product"].map { key in
+    let button = TradingProductButton(type: .system)
+    button.setTitle(FuturesText.text(key), for: .normal)
+    button.titleLabel?.font = .preferredFont(forTextStyle: .headline)
+    button.titleLabel?.adjustsFontForContentSizeCategory = true
+    return button
+  }
+
+  override var intrinsicContentSize: CGSize {
+    CGSize(width: 216, height: max(56, UIFont.preferredFont(forTextStyle: .headline).lineHeight + 28))
+  }
+
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    backgroundColor = .mobitColors(.surfacePrimary)
+    layer.shadowColor = UIColor.black.cgColor
+    layer.shadowOpacity = 0.14
+    layer.shadowRadius = 12
+    layer.shadowOffset = CGSize(width: 0, height: 4)
+    let stack = UIStackView(arrangedSubviews: buttons)
+    stack.distribution = .fillEqually
+    addSubview(stack)
+    stack.snp.makeConstraints { $0.edges.equalToSuperview().inset(4) }
+    for (index, button) in buttons.enumerated() {
+      button.addAction(UIAction { [weak self] _ in
+        self?.selectedSegmentIndex = index
+        self?.sendActions(for: .valueChanged)
+      }, for: .touchUpInside)
+    }
+    updateSelection()
+  }
+  required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    layer.cornerRadius = bounds.height / 2
+  }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    invalidateIntrinsicContentSize()
+  }
+
+  private func updateSelection() {
+    for (index, button) in buttons.enumerated() {
+      let selected = index == selectedSegmentIndex
+      button.backgroundColor = selected ? .systemBlue : .clear
+      button.setTitleColor(selected ? .white : .mobitColors(.textPrimary), for: .normal)
+      button.accessibilityTraits = selected ? [.button, .selected] : [.button]
+      button.accessibilityIdentifier = index == 0 ? "selectSpot" : "selectFutures"
+    }
+  }
+}
+
+private final class TradingProductButton: UIButton {
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    layer.cornerRadius = bounds.height / 2
   }
 }

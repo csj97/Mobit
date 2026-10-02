@@ -205,6 +205,10 @@ final class LocalFuturesAccountRepository {
       return
     }
     var accounts = current.accounts
+    // 화면 방문 전에 획득한 보상도 계좌 생성과 지급 기록을 함께 저장해 재처리한다.
+    if !accounts.contains(where: { $0.id == claim.account }) {
+      accounts.append(FuturesCashAccount(id: claim.account, availableBalance: 0))
+    }
     guard let index = accounts.firstIndex(where: { $0.id == claim.account }) else {
       throw StoreError.invalidStoredData
     }

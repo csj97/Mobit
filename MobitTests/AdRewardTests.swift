@@ -140,6 +140,49 @@ final class AdRewardTests: XCTestCase {
     XCTAssertEqual(UserDataManager.userInformation?.userAvailableBalance, 0)
   }
 
+  func testDomesticRewardBeforeAnyAccountVisitCreatesOnlyCapturedAccountOnce() throws {
+    let url = directory.appendingPathComponent("futures.json")
+    let repository = LocalFuturesAccountRepository(fileURL: url)
+    let pending = PendingStoreDouble()
+    let useCase = AdRewardUseCase(store: pending, apply: repository.applyAdvertisementReward)
+    for exchange in [Exchange.upbit, .bithumb] {
+      let account = TradingAccountID(exchange: exchange, product: .perpetual, currency: .krw)
+      let claim = try AdRewardClaim(account: account)
+      XCTAssertFalse(try repository.snapshot().accounts.contains { $0.id == account })
+      ExchangeSelectionStore.currentExchange = exchange == .upbit ? .bithumb : .upbit
+      try useCase.receive(claim)
+      try useCase.receive(claim)
+      let saved = try repository.snapshot()
+      XCTAssertEqual(saved.accounts.first { $0.id == account }?.availableBalance, 10_000_000)
+      XCTAssertEqual(saved.rewardClaims.filter { $0.id == claim.id }, [claim])
+      XCTAssertEqual(try saved.transactionHistory(for: account).count, 0)
+      XCTAssertEqual(try saved.valuation(for: account, quotes: [:], now: Date()).realizedPnL, 0)
+      XCTAssertTrue(pending.claims.isEmpty)
+    }
+    XCTAssertEqual(try LocalFuturesAccountRepository(fileURL: url).snapshot().accounts.count, 2)
+    XCTAssertEqual(UserDataManager.userInformation(for: .upbit)?.userAvailableBalance, 0)
+  }
+
+  func testMissingAccountRewardWriteFailureRetainsPendingClaimAndRetriesAtomically() throws {
+    let url = directory.appendingPathComponent("futures.json")
+    let account = TradingAccountID(exchange: .upbit, product: .perpetual, currency: .krw)
+    let claim = try AdRewardClaim(account: account)
+    let pending = PendingStoreDouble()
+    let failing = LocalFuturesAccountRepository(fileURL: url) { _, _ in throw CocoaError(.fileWriteOutOfSpace) }
+    let useCase = AdRewardUseCase(store: pending, apply: failing.applyAdvertisementReward)
+    XCTAssertThrowsError(try useCase.receive(claim))
+    XCTAssertEqual(pending.claims, [claim])
+    XCTAssertTrue(try failing.snapshot().accounts.isEmpty)
+    XCTAssertTrue(try failing.snapshot().rewardClaims.isEmpty)
+    let good = LocalFuturesAccountRepository(fileURL: url)
+    let retry = AdRewardUseCase(store: pending, apply: good.applyAdvertisementReward)
+    XCTAssertEqual(try retry.retryPendingRewards(), [claim])
+    XCTAssertTrue(try retry.retryPendingRewards().isEmpty)
+    XCTAssertEqual(try good.snapshot().accounts.first?.availableBalance, 10_000_000)
+    XCTAssertEqual(try good.snapshot().rewardClaims, [claim])
+    XCTAssertEqual(try good.snapshot().revision, 1)
+  }
+
   func testUSDTRewardAndReceiptCommitTogetherAndSurviveReopen() throws {
     let url = directory.appendingPathComponent("futures.json")
     let repository = LocalFuturesAccountRepository(fileURL: url)

@@ -59,7 +59,7 @@ final class LocalFuturesAccountRepositoryTests: XCTestCase {
       let domestic = TradingAccountID(exchange: exchange, product: .perpetual, currency: .krw)
       let snapshot = try store.ensureAccount(domestic)
       XCTAssertEqual(snapshot.accounts.first(where: { $0.id == domestic })?.availableBalance, 0)
-      XCTAssertEqual(domestic.availability, .preparing)
+      XCTAssertEqual(domestic.availability, .available)
       let claim = try AdRewardClaim(account: domestic)
       try store.applyAdvertisementReward(claim)
       try store.applyAdvertisementReward(claim)

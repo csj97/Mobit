@@ -35,6 +35,7 @@ class TradeOrderView: UIView, ViewRule {
   var bidView: TradeBidView? = nil
   var askView: TradeAskView? = nil
   var historyView: TradeHistoryView? = nil
+  private weak var futuresOrderController: FuturesOrderViewController?
   
   private let cellIndentifier = "OrderBookCell"
   private var askMaxSize: Double? = 0
@@ -48,6 +49,7 @@ class TradeOrderView: UIView, ViewRule {
   
   static func instanceFromNib(
 	reactor: TradeReactor,
+    futuresOrderController: FuturesOrderViewController? = nil,
 	callback: @escaping (OrderResult) -> ()
   ) -> TradeOrderView {
 	
@@ -63,6 +65,7 @@ class TradeOrderView: UIView, ViewRule {
 	}
 	
 	selfView.reactor = reactor
+    selfView.futuresOrderController = futuresOrderController
 	selfView.callback = callback
 	selfView.setData()
 	selfView.setUI()
@@ -84,7 +87,18 @@ class TradeOrderView: UIView, ViewRule {
   func setUI() {
 	guard let reactor = self.reactor else { return }
 	self.applyThemeColors()
-	buildOrderSubViews(reactor: reactor)
+    if let controller = futuresOrderController {
+      segmentedContainerStackView.addArrangedSubview(controller.view)
+      investLiveView.isHidden = true
+      // 스크롤 주문 영역은 intrinsic height가 없어 하단까지 명시적으로 채운다.
+      segmentedContainerStackView.superview?.snp.makeConstraints { $0.bottom.equalTo(segmentedContainerView) }
+      segmentedControl.segments = ["futures_long", "futures_short", "futures_history"].map(FuturesText.text)
+      segmentedControl.onSegmentChanged = { [weak controller] index in controller?.selectTab(index) }
+      segmentedControl.selectedIndex = 0
+      controller.selectTab(0)
+    } else {
+      buildOrderSubViews(reactor: reactor)
+    }
   }
 
   private func applyThemeColors() {
@@ -360,7 +374,7 @@ extension TradeOrderView {
 	  .throttle(.milliseconds(350), scheduler: MainScheduler.instance)
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] cryptos in
-		guard let self else { return }
+		guard let self, self.futuresOrderController == nil else { return }
         let targetPairID = ExchangeMarketCodeConverter.pairID(
           fromDisplayMarket: reactor.selectCrypto.market,
           exchange: reactor.exchange

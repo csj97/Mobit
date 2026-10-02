@@ -23,9 +23,9 @@ struct TradingAccountID: Codable, Hashable {
 
   var availability: TradingAvailability {
     switch (exchange, product, currency) {
-    case (.upbit, .spot, .krw), (.bithumb, .spot, .krw): return .available
-    case (.upbit, .perpetual, .krw), (.bithumb, .perpetual, .krw),
-         (.binance, .perpetual, .usdt), (.okx, .perpetual, .usdt): return .preparing
+    case (.upbit, .spot, .krw), (.bithumb, .spot, .krw),
+         (.upbit, .perpetual, .krw), (.bithumb, .perpetual, .krw): return .available
+    case (.binance, .perpetual, .usdt), (.okx, .perpetual, .usdt): return .preparing
     default: return .unsupported
     }
   }
@@ -150,4 +150,8 @@ struct FuturesAccountSnapshot: Codable, Equatable {
   }
 
   static let empty = Self(revision: 0, accounts: [])
+}
+
+extension Notification.Name {
+  static let futuresAccountDidChange = Notification.Name("futuresAccountDidChange")
 }

@@ -18,6 +18,10 @@ class InvestmentTableViewCell: UITableViewCell {
   @IBOutlet weak var bgView: UIView!
   @IBOutlet weak var dividerView: UIView!
   @IBOutlet weak var metricsStackView: UIStackView!
+  @IBOutlet weak var amountTitle: UILabel!
+  @IBOutlet weak var averagePriceTitle: UILabel!
+  @IBOutlet weak var buyPriceTitle: UILabel!
+  @IBOutlet weak var profitRateTitle: UILabel!
   private var currentProfitRate: Double?
   private let unsupportedBadgeView = UIView()
   private let unsupportedBadgeIcon = UIImageView()
@@ -86,6 +90,10 @@ class InvestmentTableViewCell: UITableViewCell {
 	  isLast: Bool,
 	  isTradingUnsupported: Bool = false
 	) {
+    amountTitle.text = FuturesText.text("investment_quantity") + " : "
+    averagePriceTitle.text = FuturesText.text("investment_average_price") + " : "
+    buyPriceTitle.text = FuturesText.text("investment_buy_amount") + " : "
+    profitRateTitle.text = FuturesText.text("investment_profit_rate") + " : "
     let valuation = PortfolioCalculator.valuation(
       of: crypto, btcKRWPrice: AppDataManager.shared.lastBTCKRWPrice(for: crypto.staticData.exchange)
     )
@@ -109,6 +117,33 @@ class InvestmentTableViewCell: UITableViewCell {
     self.cryptoEvalLoss.textColor = color
 	self.setTradingUnsupported(isTradingUnsupported)
     self.dividerView.isHidden = isLast
+  }
+
+  func configure(position: FuturesPosition, valuation: FuturesValuation?, isLast: Bool) {
+    cryptoName.text = "\(FuturesText.symbol(position.order.instrument)) · \(FuturesText.side(position.order.side)) \(position.order.leverage)×"
+    cryptoName.numberOfLines = 0
+    amountTitle.text = FuturesText.text("futures_position_quantity") + " : "
+    averagePriceTitle.text = FuturesText.text("futures_entry") + " : "
+    buyPriceTitle.text = FuturesText.text("futures_margin") + " : "
+    profitRateTitle.text = FuturesText.text("futures_roe") + " : "
+    cryptoAmount.text = FuturesText.number(position.quantity, digits: 8)
+    cryptoAveragePrice.text = FuturesText.number(try? position.averageEntryPrice, digits: 4)
+    cryptoBuyPrice.text = Self.futuresKRW(try? position.margin)
+    cryptoEvalPrice.text = Self.futuresKRW(valuation?.displayedEquity)
+    let pnl = try? valuation?.displayedPnL
+    cryptoEvalLoss.text = Self.futuresKRW(pnl)
+    cryptoProfitRate.text = valuation.map { FuturesText.number($0.displayedROEPercent, digits: 2) + " %" } ?? "—"
+    currentProfitRate = pnl.map { NSDecimalNumber(decimal: $0).doubleValue }
+    let color = currentProfitRate.map { MarketColorPalette.color(forSignedValue: $0) }
+      ?? UIColor.mobitColors(.investmentTextSecondary)
+    cryptoProfitRate.textColor = color
+    cryptoEvalLoss.textColor = color
+    setTradingUnsupported(false)
+    dividerView.isHidden = isLast
+  }
+
+  private static func futuresKRW(_ value: Decimal?) -> String {
+    value.map { FuturesText.number($0) + " KRW" } ?? "—"
   }
 
   private func setupUnsupportedStatusViews() {

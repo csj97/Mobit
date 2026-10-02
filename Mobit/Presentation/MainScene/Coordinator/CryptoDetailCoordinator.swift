@@ -12,6 +12,7 @@ class CryptoDetailCoordinator: BaseCoordinator {
   var navigationController: UINavigationController
   var selectCrypto: CryptoCellInfo
   var cmcInformation: FirebaseCMCResponse?
+  var futuresReactor: FuturesAccountReactor?
   weak var delegate: MainCoordinatorDelegate?
   
   init(
@@ -39,7 +40,8 @@ class CryptoDetailCoordinator: BaseCoordinator {
         mainRepository: MainRepository(exchangeProvider: exchangeProvider)
       )
     )
-    let tradeVC =  TradeViewController(reactor: reactor)
+    let tradeVC = TradeViewController(reactor: reactor)
+    tradeVC.futuresReactor = futuresReactor
     tradeVC.coordinator = self
 	tradeVC.hidesBottomBarWhenPushed = true
 	tradeVC.delegate = self

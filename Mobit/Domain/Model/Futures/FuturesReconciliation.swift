@@ -153,7 +153,12 @@ extension FuturesAccountSnapshot {
     }
   }
 
-  func valuation(for account: TradingAccountID, quotes: [TradingInstrumentID: FuturesMarkQuote], now: Date) throws -> FuturesAccountValuation {
+  func valuation(
+	for account: TradingAccountID,
+	quotes: [TradingInstrumentID: FuturesMarkQuote],
+	now: Date,
+	allowStaleQuotes: Bool = false
+  ) throws -> FuturesAccountValuation {
     guard let cash = accounts.first(where: { $0.id == account }) else {
       throw FuturesCalculationError.invalidAccount
     }
@@ -175,7 +180,7 @@ extension FuturesAccountSnapshot {
       guard let quote = quotes[position.order.instrument], quote.instrument == position.order.instrument else {
         throw FuturesMarketDataError.incompleteHistory
       }
-      guard quote.timestamp > 0, quote.timestamp <= timestamp, quote.timestamp >= timestamp - 30_000 else {
+      guard quote.timestamp > 0, quote.timestamp <= timestamp, (allowStaleQuotes || quote.timestamp >= timestamp - 30_000) else {
         throw FuturesOrderPreflightError.staleQuote
       }
       let price = quote.price

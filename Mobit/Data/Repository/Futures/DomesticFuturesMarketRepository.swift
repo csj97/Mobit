@@ -149,6 +149,36 @@ final class DomesticFuturesMarketRepository: FuturesDetailedMarketDataProviding 
     if (0...7).contains(age) {
       return tickHistory(instrument, start: start, end: endExclusive, calendar: calendar, attempts: 0).map(batch)
     }
+	if instrument.exchange == .upbit, initialEntry, start % 1000 != 0,
+	   endExclusive == start - start % 60_000 + 60_000,
+	   let earliest = calendar.date(byAdding: .month, value: -3, to: now()),
+	   Double(start - start % 1000) / 1000 >= earliest.timeIntervalSince1970 {
+	  // 복원 불가능한 진입 초만 종가로 보완하고 이후 온전한 초봉의 고저가는 검증한다.
+	  return secondCandles(
+		instrument,
+		start: start - start % 1000,
+		endExclusive: endExclusive
+	  ).map { page in
+		guard let first = page.values.first else { throw FuturesMarketDataError.incompleteHistory }
+		let boundary = FuturesMarkCandle(
+		  openTime: start,
+		  closeTime: first.closeTime,
+		  open: first.close,
+		  high: first.close,
+		  low: first.close,
+		  close: first.close
+		)
+		return .init(
+		  instrument: instrument,
+		  start: start,
+		  endExclusive: endExclusive,
+		  candles: [boundary] + page.values.dropFirst(),
+		  funding: [],
+		  detailed: true,
+		  entryCloseFallback: true
+		)
+	  }
+	}
     // 보존 기간이 지난 최초 진입 분에만 합의한 마감가 규칙을 적용한다. API 오류는 대체하지 않는다.
     guard initialEntry, start % 60_000 != 0, endExclusive == start - start % 60_000 + 60_000 else {
       return .error(FuturesMarketDataError.incompleteHistory)

@@ -8,6 +8,11 @@
 import Foundation
 
 enum ExchangeSelectionStore {
+  static var currentProduct: TradingProduct {
+    get { TradingProduct(rawValue: UserDefaults.standard.string(forKey: "selected-trading-product") ?? "") ?? .spot }
+    set { UserDefaults.standard.set(newValue.rawValue, forKey: "selected-trading-product") }
+  }
+
   private static let key = "selected-exchange"
 
   static var currentExchange: Exchange {

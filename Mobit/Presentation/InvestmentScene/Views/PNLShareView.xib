@@ -240,6 +240,8 @@
                 <constraint firstItem="WAl-NE-fui" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" id="uYf-CE-kL4"/>
             </constraints>
             <connections>
+                <outlet property="entryTitle" destination="KlU-sr-pbO" id="fn-share-entry"/>
+                <outlet property="exitTitle" destination="IoI-En-UBG" id="fn-share-exit"/>
                 <outlet property="buttonStackView" destination="Lt7-FF-Qmo" id="D92-da-81D"/>
                 <outlet property="entryPriceLabel" destination="tu6-sh-BaS" id="2aE-UZ-eVK"/>
                 <outlet property="exitPriceLabel" destination="BzC-zS-Dv2" id="8zZ-xN-bZh"/>

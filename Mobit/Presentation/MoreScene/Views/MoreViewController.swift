@@ -72,17 +72,19 @@ class MoreViewController: MobitBaseViewController {
 
   func setData() {
 	self.updateVersionLabel()
+    chargeMoneyButton.setTitle(FuturesText.text(ExchangeSelectionStore.currentProduct == .perpetual ? "futures_charge" : "futures_spot_charge"), for: .normal)
+    investInitButton.setTitle(FuturesText.text("futures_spot_reset"), for: .normal)
   }
   
   @IBAction func tapOnChargeMoney(_ sender: UIButton) {
 	
 	MobitAnalyticsUtil.sendClickEvent(event: .more_charge)
 	
-    let account = TradingAccountID.spot(for: ExchangeSelectionStore.currentExchange)
+    let account = TradingAccountID(exchange: ExchangeSelectionStore.currentExchange, product: ExchangeSelectionStore.currentProduct, currency: .krw)
 	self.show(
 	  alertType: .canCancel,
 	  title: "안내",
-	  content: "본 광고를 시청하시면 모의투자 금액\n10,000,000원이 보유 금액으로 추가됩니다."
+	  content: account.product == .perpetual ? FuturesText.text("futures_reward_note") : FuturesText.text("futures_spot_reward_note")
 	) { isOk in
 	  if isOk {
 		MobitAnalyticsUtil.sendClickEvent(event: .ad_click_confirm)
@@ -119,10 +121,7 @@ class MoreViewController: MobitBaseViewController {
   
   @IBAction func tapOnInvestInitButton(_ sender: UIButton) {
 	
-	let noticeContent = """
-  투자하신 거래 내역이 모두 초기화되며,
-  보유 금액도 0원이 됩니다.
- """
+	let noticeContent = FuturesText.text("futures_spot_reset_note")
 	
 	MobitAnalyticsUtil.sendClickEvent(event: .more_init_data)
 	

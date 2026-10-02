@@ -86,7 +86,10 @@ final class MainHoldingTableViewCell: UITableViewCell {
     }
   }
 
-  func configure(crypto: CryptoCellInfo) {
+  func configure(
+	crypto: CryptoCellInfo,
+	product: TradingProduct = .spot
+  ) {
     cryptoNameLabel.text = crypto.cryptoName
     cryptoSymbolLabel.text = crypto.market
 
@@ -97,6 +100,12 @@ final class MainHoldingTableViewCell: UITableViewCell {
     let rate = crypto.profitRate ?? 0
     profitRateLabel.text = String(format: "%.2f%%", rate)
     profitLossLabel.text = Self.formatSignedAmount(crypto.evaluationProfitLoss ?? 0)
+
+	if product == .perpetual {
+	  evaluationPriceLabel.text = crypto.evaluationPrice.map(Self.formatPrice) ?? "—"
+	  profitRateLabel.text = crypto.profitRate.map { String(format: "%.2f%%", $0) } ?? "—"
+	  profitLossLabel.text = crypto.evaluationProfitLoss.map(Self.formatSignedAmount) ?? "—"
+	}
 
     let color = Self.signColor(rate)
     profitRateLabel.textColor = color

@@ -17,6 +17,8 @@
                 <outlet property="dimView" destination="7dx-62-x7x" id="jk4-VP-arH"/>
                 <outlet property="noResultView" destination="rwH-Pi-cIy" id="wBr-za-5tr"/>
                 <outlet property="sortLabel" destination="q1Z-or-7eo" id="hfS-TN-M1Y"/>
+                <outlet property="totalBuyTitle" destination="aw1-uU-I04" id="fmT-1k-buY"/>
+                <outlet property="emptyLabel" destination="rR5-bF-kay" id="fmT-1k-emp"/>
                 <outlet property="totalBuyPrice" destination="v1d-Ge-tnE" id="MTy-LV-l3h"/>
                 <outlet property="totalEvalProfitLoss" destination="nY4-PA-kiv" id="nvH-xx-suc"/>
                 <outlet property="totalProfitRate" destination="f6d-js-1Gl" id="R92-2K-rtg"/>
