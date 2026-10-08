@@ -101,7 +101,7 @@ class MainViewController: MobitBaseViewController {
   }
 
   private let totalBalanceTitleLabel: UILabel = UILabel().then {
-	$0.text = "총매수"
+	$0.text = "총 매수"
 	$0.font = UIFont(name: "SUIT-Medium", size: 12)
 	$0.textColor = .mobitColors(.textSecondary)
   }
@@ -135,7 +135,7 @@ class MainViewController: MobitBaseViewController {
   }
 
   private let evaluationPriceTitleLabel: UILabel = UILabel().then {
-	$0.text = "총평가"
+	$0.text = "총 평가"
 	$0.font = UIFont(name: "SUIT-Medium", size: 12)
 	$0.textColor = .mobitColors(.textSecondary)
   }
@@ -188,7 +188,7 @@ class MainViewController: MobitBaseViewController {
 	$0.setTitle("보유코인", for: .normal)
 	$0.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
 	$0.setTitleColor(.mobitColors(.textPrimary), for: .normal)
-	$0.setTitleColor(MarketColorPalette.riseRedFallBlueFallColor, for: .selected)
+	$0.setTitleColor(.mobitColors(.accentPrimary), for: .selected)
 	$0.tag = 0
   }
   
@@ -196,7 +196,7 @@ class MainViewController: MobitBaseViewController {
 	$0.setTitle("원화마켓", for: .normal)
 	$0.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
 	$0.setTitleColor(.mobitColors(.textPrimary), for: .normal)
-	$0.setTitleColor(MarketColorPalette.riseRedFallBlueFallColor, for: .selected)
+	$0.setTitleColor(.mobitColors(.accentPrimary), for: .selected)
 	$0.isSelected = true
 	$0.tag = 1
   }
@@ -205,7 +205,7 @@ class MainViewController: MobitBaseViewController {
 	$0.setTitle("BTC마켓", for: .normal)
 	$0.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
 	$0.setTitleColor(.mobitColors(.textPrimary), for: .normal)
-	$0.setTitleColor(MarketColorPalette.riseRedFallBlueFallColor, for: .selected)
+	$0.setTitleColor(.mobitColors(.accentPrimary), for: .selected)
 	$0.tag = 2
   }
   
@@ -214,7 +214,7 @@ class MainViewController: MobitBaseViewController {
 	$0.setTitle("즐겨찾기", for: .normal)
 	$0.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
 	$0.setTitleColor(.mobitColors(.textPrimary), for: .normal)
-	$0.setTitleColor(MarketColorPalette.riseRedFallBlueFallColor, for: .selected)
+	$0.setTitleColor(.mobitColors(.accentPrimary), for: .selected)
 	$0.tag = 3
   }
   
@@ -347,7 +347,6 @@ class MainViewController: MobitBaseViewController {
 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    (navigationController?.parent as? MobitTabBarViewController)?.alignTradingAccessory(fearGreedFloatingButton)
     self.requestMainNativeAdIfNeeded()
     if !reactor.currentState.totalCryptoList.isEmpty {
       presentLegacyBTCSettlementAlertIfNeeded()
@@ -359,6 +358,7 @@ class MainViewController: MobitBaseViewController {
 	
 	rootContainer.pin.all(self.view.pin.safeArea)
 	rootContainer.flex.layout()
+    (navigationController?.parent as? MobitTabBarViewController)?.alignTradingAccessory(fearGreedFloatingButton)
   }
   
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -512,7 +512,7 @@ class MainViewController: MobitBaseViewController {
 	  for: reactor.account,
 	  quotes: state.quotes,
 	  now: Date(),
-	  allowStaleQuotes: true
+	  forDisplay: true
 	)
 	let rate = valuation.flatMap {
 	  $0.reservedMargin > 0
@@ -522,13 +522,13 @@ class MainViewController: MobitBaseViewController {
 	let pnl = valuation.map { NSDecimalNumber(decimal: $0.unrealizedPnL).doubleValue }
 	let percent = rate.map { NSDecimalNumber(decimal: $0).doubleValue }
 	totalBalanceTitleLabel.text = FuturesText.text("futures_total_margin")
-	evaluationPriceTitleLabel.text = FuturesText.text("futures_total")
+	evaluationPriceTitleLabel.text = FuturesText.text("futures_total_evaluation")
 	totalBalanceLabel.accessibilityIdentifier = "futures.main.margin"
 	evaluationPriceValueLabel.accessibilityIdentifier = "futures.main.equity"
 	profitLossValueLabel.accessibilityIdentifier = "futures.main.pnl"
 	profitRateValueLabel.accessibilityIdentifier = "futures.main.roe"
 	totalBalanceLabel.attributedText = attributedPortfolioKRW(margin.map { NSDecimalNumber(decimal: $0).doubleValue })
-	evaluationPriceValueLabel.attributedText = attributedPortfolioKRW(valuation.map { NSDecimalNumber(decimal: $0.totalEquity).doubleValue })
+	evaluationPriceValueLabel.attributedText = attributedPortfolioKRW(valuation.flatMap { try? NSDecimalNumber(decimal: $0.positionsEquity).doubleValue })
 	evaluationPriceValueLabel.accessibilityValue = nil
 	profitLossValueLabel.attributedText = attributedPortfolioKRW(
 	  pnl,
@@ -549,7 +549,7 @@ class MainViewController: MobitBaseViewController {
   }
 
   private func formattedKRW(_ value: Double) -> String {
-	value == 0 ? "0" : abs(value).formatSignificantDigits(digits: 0)
+	value == 0 ? "0" : abs(value).formatTradingValue()
   }
 
   // 금액 뒤에 작은 '원' 단위를 붙인다. 숫자는 라벨 기본 색/폰트 유지, '원'만 작게 회색 처리
@@ -565,10 +565,10 @@ class MainViewController: MobitBaseViewController {
   }
 
   private func formattedSignedKRW(_ value: Double, includeUnit: Bool = true) -> String {
-	guard value != 0 else { return includeUnit ? "0 KRW" : "0" }
+	guard value != 0 else { return includeUnit ? "0 \(FuturesText.text("currency_krw_unit"))" : "0" }
 	let prefix = value > 0 ? "+" : "-"
 	let formattedValue = "\(prefix)\(self.formattedKRW(value))"
-	return includeUnit ? "\(formattedValue) KRW" : formattedValue
+	return includeUnit ? "\(formattedValue) \(FuturesText.text("currency_krw_unit"))" : formattedValue
   }
 
   private func formattedSignedPercent(_ value: Double) -> String {
@@ -1872,7 +1872,7 @@ final class MainNativeAdPopupViewController: UIViewController {
 	config.baseBackgroundColor = .mobitPrimary
 	config.baseForegroundColor = .white
 	config.cornerStyle = .fixed
-	config.background.cornerRadius = 4
+	config.background.cornerRadius = 8
 	ctaButton.configuration = config
 
     ctaButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)

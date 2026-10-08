@@ -5,6 +5,8 @@ import RxCocoa
 final class FuturesInvestmentViewController: MobitBaseViewController, UITableViewDelegate, SocketControllable {
   @IBOutlet weak var transactionTableview: UITableView!
   @IBOutlet weak var totalUserBalance: UILabel!
+  // 현물과 공유하는 요약 제목을 선물의 보유 포지션 범위에 맞춰 표시한다.
+  @IBOutlet weak var totalEvaluationTitle: UILabel!
   @IBOutlet weak var totalEvalProfitLoss: UILabel!
   @IBOutlet weak var totalProfitRate: UILabel!
   @IBOutlet weak var totalBuyPrice: UILabel!
@@ -14,12 +16,13 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
   @IBOutlet weak var emptyLabel: UILabel!
   @IBOutlet weak var sortLabel: UILabel!
   @IBOutlet weak var dimView: UIView!
-  @IBOutlet weak var chargeButton: NeumorphicButton!
+  @IBOutlet weak var chargeButton: MobitChargeButton!
 
   weak var coordinator: FuturesCoordinator?
   private let reactor: FuturesAccountReactor
   private let marketReactor: MainReactor
-  private let bag = DisposeBag()
+  // 화면이 해제될 때 Rx 구독을 함께 정리한다.
+  private let disposeBag = DisposeBag()
   private let statusLabel = FuturesText.label(style: .caption1)
   private var dataSource: UITableViewDiffableDataSource<TableViewSection, UUID>?
   private var items: [(position: FuturesPosition, value: FuturesValuation?)] = []
@@ -36,6 +39,7 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
     super.viewDidLoad()
     applyThemeColors()
     totalBuyTitle.text = FuturesText.text("futures_total_margin")
+    totalEvaluationTitle.text = FuturesText.text("futures_total_evaluation")
     chargeButton.accessibilityLabel = FuturesText.text("futures_charge")
     transactionTableview.contentInset.bottom = 70
     transactionTableview.bounces = false
@@ -55,7 +59,7 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
     }
     transactionTableview.delegate = self
     reactor.state.observe(on: MainScheduler.instance)
-      .subscribe(onNext: { [weak self] _ in self?.render() }).disposed(by: bag)
+      .subscribe(onNext: { [weak self] _ in self?.render() }).disposed(by: disposeBag)
   }
 
   override func viewWillAppear(_ animated: Bool) {
@@ -92,10 +96,6 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
     [totalUserBalance, totalBuyPrice, availableUserBalance].forEach {
       $0?.textColor = .mobitColors(.investmentTextPrimary)
     }
-    chargeButton.configuration = nil
-    chargeButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
-    chargeButton.titleLabel?.backgroundColor = .clear
-    chargeButton.titleLabel?.isOpaque = false
   }
 
   private func render() {
@@ -103,7 +103,7 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
     let state = reactor.currentState
     let positions = reactor.positions
     let now = Date()
-    items = positions.map { ($0, try? FuturesText.valuation($0, quotes: state.quotes, now: now)) }
+    items = positions.map { ($0, try? FuturesText.valuation($0, quotes: state.quotes)) }
     items.sort { left, right in
       if selectedSortType == .name {
         return FuturesText.symbol(left.position.order.instrument) < FuturesText.symbol(right.position.order.instrument)
@@ -129,9 +129,9 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
 	  for: reactor.account,
 	  quotes: state.quotes,
 	  now: now,
-	  allowStaleQuotes: true
+	  forDisplay: true
 	)
-    totalUserBalance.text = Self.krw(valuation?.totalEquity)
+    totalUserBalance.text = Self.krw(valuation.flatMap { try? $0.positionsEquity })
     totalEvalProfitLoss.text = Self.krw(valuation?.unrealizedPnL)
     // 선물 수익률은 보유 현금을 제외하고 포지션에 사용한 증거금을 기준으로 계산한다.
     let rate = valuation.flatMap { $0.reservedMargin > 0 ? try? FuturesDecimal.multiply(FuturesDecimal.divide($0.unrealizedPnL, $0.reservedMargin), 100) : Decimal(0) }
@@ -156,7 +156,7 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
   }
 
   private static func krw(_ value: Decimal?) -> String {
-    value.map { FuturesText.number($0) + " KRW" } ?? "—"
+    value.map { FuturesText.number($0) + " \(FuturesText.text("currency_krw_unit"))" } ?? "—"
   }
 
   private static func sortKey(_ type: InvestSortType) -> String {
@@ -171,7 +171,7 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
     }
   }
 
-  @IBAction func tapOnChargeButton(_ sender: NeumorphicButton) {
+  @IBAction func tapOnChargeButton(_ sender: MobitChargeButton) {
     guard !reactor.currentState.submitting else { return }
     MobitAnalyticsUtil.sendClickEvent(event: .investment_charge)
     show(alertType: .canCancel, title: FuturesText.text("futures_charge"), content: FuturesText.text("futures_reward_note")) { [weak self] confirmed in

@@ -169,7 +169,7 @@ enum TradeOrderService {
         costBasisKRW: (previousCost ?? 0) + acquiredCost
       )
 
-      MarketDataServiceUtil.shared.fetchData(
+      MarketDataServiceUtil.shared.updateHoldingData(
         data: staticData,
         currentPrice: currentPrice
       )
@@ -408,7 +408,7 @@ enum TradeOrderService {
         costBasisKRW: originalCost - allocatedCost
       )
 
-      MarketDataServiceUtil.shared.fetchData(
+      MarketDataServiceUtil.shared.updateHoldingData(
         data: newStaticData,
         currentPrice: currentPrice
       )
@@ -592,7 +592,7 @@ extension TradeOrderService {
       }
     )
 
-    MarketDataServiceUtil.shared.fetchData(
+    MarketDataServiceUtil.shared.updateHoldingData(
       data: updatedStaticData,
       currentPrice: btcKRWPrice
     )
@@ -650,7 +650,7 @@ extension TradeOrderService {
         currentPrice: btcKRWPrice
       )
     } else {
-      MarketDataServiceUtil.shared.fetchData(
+      MarketDataServiceUtil.shared.updateHoldingData(
         data: updatedStaticData,
         currentPrice: btcKRWPrice
       )

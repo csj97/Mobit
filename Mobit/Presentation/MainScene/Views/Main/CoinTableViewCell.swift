@@ -159,13 +159,7 @@ class CoinTableViewCell: UITableViewCell {
 	self.coinSymbol.text = crypto.market
 	self.coinSymbol.textColor = .mobitColors(.textTertiary)
     
-    let numberFormatter = NumberFormatter()
-    numberFormatter.numberStyle = .decimal
-    if tradePrice < 1 {
-      self.price.text = formatDecimalPoint(tradePrice)
-    } else {
-      self.price.text = numberFormatter.string(from: NSNumber(value: tradePrice))
-    }
+    self.price.text = tradePrice.formatTradingValue()
     
     self.changeRate.text = String(format: "%.2f%%", signedChangeRate * 100)
     
@@ -220,30 +214,17 @@ class CoinTableViewCell: UITableViewCell {
     setNeedsLayout()
   }
   
-  /// 1보다 작은 금액 Format 설정
-  /// - Parameters:
-  ///   - tradePrice: 변환할 거래 가격
-  ///   - precision: 소수점 자리 수
-  func formatDecimalPoint(
-    _ tradePrice: Double?,
-    _ precision: Int = 8
-  ) -> String {
-    guard let price = tradePrice else {
-      return "N/A"  // 값이 없을 때 반환할 기본 문자열
-    }
-    
-    return String(format: "%.\(precision)f", price)
-  }
-  
   /// 거래대금 Format
   func formatTradeVolume(
     for tradeVolume: Double,
     cryptoSymbolType: String
   ) -> String {
+    // 거래대금 뒤에 붙일 기존 표시 단위를 보관한다.
     var currency: String = ""
+    // 거래대금에 적용했던 마켓별 소수점 자릿수를 복원한다.
     let numberFormatter = NumberFormatter()
     numberFormatter.numberStyle = .decimal
-    
+
     if cryptoSymbolType == CryptoSymbolType.krw.rawValue {
       numberFormatter.maximumFractionDigits = 0
       currency = "백만"
@@ -251,12 +232,12 @@ class CoinTableViewCell: UITableViewCell {
       numberFormatter.maximumFractionDigits = 3
       currency = ""
     }
-    
+
+    // 백만 단위로 환산한 기존 거래대금 표시를 만든다.
     guard let formatVolume = numberFormatter.string(
       from: NSNumber(value: tradeVolume / 1_000_000)
     ) else { return "-"}
-    
-    
+
     return formatVolume + currency
   }
   

@@ -16,7 +16,11 @@ final class UpbitWebSocketClient: WebSocketDelegate, WebSocketClientProtocol {
   private let connectedSubject = PublishSubject<Void>()
   private let dataSubject = PublishSubject<Data>()
   
-  private(set) var isConnected = false
+  private let connectionSubject = BehaviorSubject<Bool>(value: false)
+  var connectionChanges: Observable<Bool> { connectionSubject.distinctUntilChanged() }
+  private(set) var isConnected = false {
+    didSet { connectionSubject.onNext(isConnected) }
+  }
   private var isConnecting = false
   private var isUserInitiatedDisconnect = false
   private var reconnectWorkItem: DispatchWorkItem?

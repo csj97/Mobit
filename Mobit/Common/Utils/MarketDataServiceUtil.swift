@@ -21,7 +21,8 @@ class MarketDataServiceUtil {
     )
   }
 
-  func fetchData(
+  // 체결 후 보유 자산의 거래 정보와 현재가 기준 평가값을 갱신한다.
+  func updateHoldingData(
 	data: CryptoTransactionDataModel.CryptoTransactionStaticData,
 	currentPrice: Double
   ) {
@@ -47,14 +48,14 @@ class MarketDataServiceUtil {
 	staticData: CryptoTransactionDataModel.CryptoTransactionStaticData,
 	currentPrice: Double
   ) {
-	let profitRate = fetchProfitRate(
+	let profitRate = updateProfitRate(
 	  for: marketName,
       exchange: staticData.exchange,
 	  currentPrice: currentPrice,
 	  averageBuyPrice: staticData.averageBuyPrice
 	)
 	
-	let evalProfitLoss = fetchEvalProfitLoss(
+	let evalProfitLoss = updateEvaluationProfitLoss(
 	  for: marketName,
       exchange: staticData.exchange,
 	  currentPrice: currentPrice,
@@ -62,7 +63,7 @@ class MarketDataServiceUtil {
 	  averageBuyPrice: staticData.averageBuyPrice
 	)
 	
-	let evalPrice = fetchEvalPrice(
+	let evalPrice = updateEvaluationPrice(
 	  for: marketName,
       exchange: staticData.exchange,
 	  currentPrice: currentPrice,
@@ -85,8 +86,8 @@ class MarketDataServiceUtil {
 	UserDataManager.userCryptoList?.append(newCrypto)
   }
   
-  /// Static & Dynamic Data Fetch
-  func fetchAll(
+  /// 보유 자산의 거래 정보와 수익률·평가손익·평가금액을 함께 갱신한다.
+  func updateAllHoldingData(
 	for marketName: String,
     exchange: Exchange = ExchangeSelectionStore.currentExchange,
 	cryptoName: String?,
@@ -96,7 +97,7 @@ class MarketDataServiceUtil {
 	buyAmount: Double
   ) {
 	// 정적 데이터 업데이트
-	fetchStaticData(
+	updateStaticHoldingData(
 	  for: marketName,
       exchange: exchange,
 	  cryptoName: cryptoName,
@@ -105,14 +106,14 @@ class MarketDataServiceUtil {
 	  buyAmount: buyAmount
 	)
 	// 수익률
-	fetchProfitRate(
+	updateProfitRate(
 	  for: marketName,
       exchange: exchange,
 	  currentPrice: currentPrice,
 	  averageBuyPrice: averageBuyPrice
 	)
 	// 평가손익
-	fetchEvalProfitLoss(
+	updateEvaluationProfitLoss(
 	  for: marketName,
       exchange: exchange,
 	  currentPrice: currentPrice,
@@ -120,7 +121,7 @@ class MarketDataServiceUtil {
 	  averageBuyPrice: averageBuyPrice
 	)
 	// 평가금액
-	fetchEvalPrice(
+	updateEvaluationPrice(
 	  for: marketName,
       exchange: exchange,
 	  currentPrice: currentPrice,
@@ -128,8 +129,8 @@ class MarketDataServiceUtil {
 	)
   }
   
-  /// 정적 데이터 업데이트 (평균매수가, 개수, 매수금액)
-  func fetchStaticData(
+  /// 평균 매수가·보유 수량·매수금액을 보유 자산에 반영한다.
+  func updateStaticHoldingData(
 	for marketName: String,
     exchange: Exchange = ExchangeSelectionStore.currentExchange,
 	cryptoName: String?,
@@ -239,8 +240,8 @@ class MarketDataServiceUtil {
 	}
   }
   
-  /// 매수&매도 시, 사용자 잔고 업데이트
-  func fetchUserAvailableBalance(
+  /// 매수·매도 금액을 반영해 사용자의 가용 잔액을 갱신한다.
+  func updateUserAvailableBalance(
 	orderType: OrderType,
 	balance: Double,
 	newBuyAmount: Double
@@ -260,9 +261,9 @@ class MarketDataServiceUtil {
 	)
   }
   
-  /// 수익률 계산
+  /// 현재가로 수익률을 계산해 보유 자산에 반영하고 반환한다.
   @discardableResult
-  func fetchProfitRate(
+  func updateProfitRate(
 	for marketName: String,
     exchange: Exchange = ExchangeSelectionStore.currentExchange,
 	currentPrice: Double,
@@ -287,9 +288,9 @@ class MarketDataServiceUtil {
 	return profitRate
   }
   
-  /// 평가손익 계산
+  /// 현재가와 평균 매수가의 차이로 평가손익을 계산해 반영하고 반환한다.
   @discardableResult
-  func fetchEvalProfitLoss(
+  func updateEvaluationProfitLoss(
 	for marketName: String,
     exchange: Exchange = ExchangeSelectionStore.currentExchange,
 	currentPrice: Double,
@@ -318,9 +319,9 @@ class MarketDataServiceUtil {
 	return profitLoss
   }
   
-  /// 평가금액 계산
+  /// 현재가와 보유 수량으로 평가금액을 계산해 반영하고 반환한다.
   @discardableResult
-  func fetchEvalPrice(
+  func updateEvaluationPrice(
 	for marketName: String,
     exchange: Exchange = ExchangeSelectionStore.currentExchange,
 	currentPrice: Double,

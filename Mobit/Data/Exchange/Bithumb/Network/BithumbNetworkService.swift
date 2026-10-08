@@ -9,23 +9,27 @@ import Foundation
 import Moya
 
 enum BithumbMainNetworkService {
-  case getCryptoList
-  case getCryptoTicker(markets: [String])
-  case getCryptoInformation(market: String, currency: String = "KRW")
-  case getFearAndGreedIndex
+  // 빗썸의 거래 가능한 마켓 목록 요청을 정의한다.
+  case fetchCryptoList
+  // 지정한 빗썸 마켓들의 현재 시세 요청을 정의한다.
+  case fetchCryptoTicker(markets: [String])
+  // CoinMarketCap의 종목 시세·시가총액 요청을 정의한다.
+  case fetchCryptoInformation(market: String, currency: String = "KRW")
+  // CoinMarketCap의 시장 공포·탐욕 지수 요청을 정의한다.
+  case fetchFearAndGreedIndex
 }
 
 
 extension BithumbMainNetworkService: TargetType {
   var baseURL: URL {
     switch self {
-    case .getCryptoList:
+    case .fetchCryptoList:
       return URL(string: "https://api.bithumb.com/v1/market/all")!
-    case .getCryptoTicker:
+    case .fetchCryptoTicker:
       return URL(string: "https://api.bithumb.com/v1/ticker")!
-    case .getCryptoInformation:
+    case .fetchCryptoInformation:
       return URL(string: "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest")!
-    case .getFearAndGreedIndex:
+    case .fetchFearAndGreedIndex:
       return URL(string: "https://pro-api.coinmarketcap.com/v3/fear-and-greed/latest")!
     }
   }
@@ -40,32 +44,32 @@ extension BithumbMainNetworkService: TargetType {
 
   var task: Moya.Task {
     switch self {
-    case .getCryptoList:
+    case .fetchCryptoList:
       return .requestParameters(
         parameters: ["isDetails": true],
         encoding: URLEncoding.queryString
       )
 
-    case .getCryptoTicker(let markets):
+    case .fetchCryptoTicker(let markets):
       return .requestParameters(
         parameters: ["markets": markets.joined(separator: ",")],
         encoding: URLEncoding.queryString
       )
 
-    case .getCryptoInformation(let market, let currency):
+    case .fetchCryptoInformation(let market, let currency):
       return .requestParameters(
         parameters: ["symbol": market, "convert": currency],
         encoding: URLEncoding.queryString
       )
 
-    case .getFearAndGreedIndex:
+    case .fetchFearAndGreedIndex:
       return .requestPlain
     }
   }
 
   var headers: [String: String]? {
     switch self {
-    case .getCryptoInformation, .getFearAndGreedIndex:
+    case .fetchCryptoInformation, .fetchFearAndGreedIndex:
       guard let apiKey = Environment.coinMarketCapApiKey else { return nil }
       return ["X-CMC_PRO_API_KEY": apiKey]
     default:
@@ -78,8 +82,10 @@ extension BithumbMainNetworkService: TargetType {
 }
 
 enum BithumbTradeNetworkService {
-  case getCandleListMinutes(market: String, unit: Int32, to: String?, count: Int?)
-  case getCandleListDays(market: String, to: String?, count: Int?, convertingPriceUnit: String?)
+  // 종목·봉 간격·조회 범위를 지정한 빗썸 분봉 요청을 정의한다.
+  case fetchCandleListMinutes(market: String, unit: Int32, to: String?, count: Int?)
+  // 종목과 조회 범위를 지정한 빗썸 일봉 요청을 정의한다.
+  case fetchCandleListDays(market: String, to: String?, count: Int?, convertingPriceUnit: String?)
 }
 
 extension BithumbTradeNetworkService: TargetType {
@@ -89,9 +95,9 @@ extension BithumbTradeNetworkService: TargetType {
 
   var path: String {
     switch self {
-    case .getCandleListMinutes(_, let unit, _, _):
+    case .fetchCandleListMinutes(_, let unit, _, _):
       return "/minutes/\(unit)"
-    case .getCandleListDays:
+    case .fetchCandleListDays:
       return "/days"
     }
   }
@@ -102,7 +108,7 @@ extension BithumbTradeNetworkService: TargetType {
 
   var task: Moya.Task {
     switch self {
-    case .getCandleListMinutes(let market, _, let to, let count):
+    case .fetchCandleListMinutes(let market, _, let to, let count):
       var parameters: [String: Any] = ["market": market]
       if let to {
         parameters["to"] = Self.candleToParameter(from: to)
@@ -112,7 +118,7 @@ extension BithumbTradeNetworkService: TargetType {
       }
       return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
 
-    case .getCandleListDays(let market, let to, let count, let convertingPriceUnit):
+    case .fetchCandleListDays(let market, let to, let count, let convertingPriceUnit):
       var parameters: [String: Any] = ["market": market]
       if let to {
         parameters["to"] = Self.candleToParameter(from: to)

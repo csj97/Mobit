@@ -172,9 +172,9 @@ extension PNLViewController: UITableViewDelegate, UITableViewDataSource {
 		  var roiSign = ""
 		  if pnlShareUnit.roi > 0 { roiSign = "+" }
 		  
-		  let entryPrice = "\(pnlShareUnit.entryPrice.formatSignificantDigits(digits: 2))".addComma()
-		  let exitPrice = "\(pnlShareUnit.exitPrice.formatSignificantDigits(digits: 2))".addComma()
-		  let pnl = pnlSign + "\(pnlShareUnit.pnl.formatSignificantDigits(digits: 2))".addComma() + " ₩"
+		  let entryPrice = "\(pnlShareUnit.entryPrice.formatTradingValue())".addComma()
+		  let exitPrice = "\(pnlShareUnit.exitPrice.formatTradingValue())".addComma()
+		  let pnl = pnlSign + "\(pnlShareUnit.pnl.formatTradingValue())".addComma() + " ₩"
 		  let roi = roiSign + "\(pnlShareUnit.roi.formatSignificantDigits(digits: 2)) %"
 		  
 		  let image = shareImg

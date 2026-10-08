@@ -48,14 +48,25 @@ class MobitTabBarViewController: UIViewController {
   }
 
   func alignTradingAccessory(_ accessory: UIView) {
-    accessory.snp.remakeConstraints {
-      $0.trailing.equalTo(view.safeAreaLayoutGuide).offset(-16)
-      $0.centerY.equalTo(productControl)
-      $0.width.height.equalTo(56)
+    guard let container = accessory.superview, container.isDescendant(of: view),
+      productControl.bounds.height > 0 else { return }
+    let controlFrame = productControl.convert(productControl.bounds, to: container)
+    let bottomOffset = controlFrame.midY + accessory.bounds.height / 2 - container.safeAreaLayoutGuide.layoutFrame.maxY
+    // 화면이 내비게이션 계층에서 분리돼도 버튼의 위치 제약은 소유 화면 안에 남긴다.
+    accessory.snp.updateConstraints {
+      $0.bottom.equalTo(container.safeAreaLayoutGuide).offset(bottomOffset)
     }
   }
 
   var onTabSelected: ((Int) -> Void)?
+  // 첫 화면 표시 완료 후 대기 중인 앱 안내를 노출한다.
+  var didAppearCallBack: (() -> Void)?
+
+  override func viewDidAppear(_ animated: Bool) {
+	super.viewDidAppear(animated)
+	didAppearCallBack?()
+	didAppearCallBack = nil
+  }
 
   override func viewDidLoad() {
 	super.viewDidLoad()
@@ -242,7 +253,7 @@ private final class TradingProductControl: UIControl {
   private func updateSelection() {
     for (index, button) in buttons.enumerated() {
       let selected = index == selectedSegmentIndex
-      button.backgroundColor = selected ? .systemBlue : .clear
+      button.backgroundColor = selected ? .mobitColors(.accentButton) : .clear
       button.setTitleColor(selected ? .white : .mobitColors(.textPrimary), for: .normal)
       button.accessibilityTraits = selected ? [.button, .selected] : [.button]
       button.accessibilityIdentifier = index == 0 ? "selectSpot" : "selectFutures"

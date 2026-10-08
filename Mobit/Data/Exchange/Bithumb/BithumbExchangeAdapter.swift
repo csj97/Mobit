@@ -13,11 +13,11 @@ struct BithumbExchangeAdapter: ExchangeMarketDataProviding {
   private let decoder = JSONDecoder()
 
   func makeCryptoListTarget() -> MultiTarget {
-    MultiTarget(BithumbMainNetworkService.getCryptoList)
+    MultiTarget(BithumbMainNetworkService.fetchCryptoList)
   }
 
   func makeCryptoTickerTarget(markets: [String]) -> MultiTarget {
-    MultiTarget(BithumbMainNetworkService.getCryptoTicker(markets: markets))
+    MultiTarget(BithumbMainNetworkService.fetchCryptoTicker(markets: markets))
   }
 
   func makeCryptoInformationTarget(
@@ -25,7 +25,7 @@ struct BithumbExchangeAdapter: ExchangeMarketDataProviding {
     currency: String
   ) -> MultiTarget {
     MultiTarget(
-      BithumbMainNetworkService.getCryptoInformation(
+      BithumbMainNetworkService.fetchCryptoInformation(
         market: market,
         currency: currency
       )
@@ -33,7 +33,7 @@ struct BithumbExchangeAdapter: ExchangeMarketDataProviding {
   }
 
   func makeFearAndGreedIndexTarget() -> MultiTarget {
-    MultiTarget(BithumbMainNetworkService.getFearAndGreedIndex)
+    MultiTarget(BithumbMainNetworkService.fetchFearAndGreedIndex)
   }
 
   func makeCandleMinutesTarget(
@@ -43,7 +43,7 @@ struct BithumbExchangeAdapter: ExchangeMarketDataProviding {
     count: Int?
   ) -> MultiTarget {
     MultiTarget(
-      BithumbTradeNetworkService.getCandleListMinutes(
+      BithumbTradeNetworkService.fetchCandleListMinutes(
         market: market,
         unit: unit,
         to: to,
@@ -59,7 +59,7 @@ struct BithumbExchangeAdapter: ExchangeMarketDataProviding {
     convertingPriceUnit: String?
   ) -> MultiTarget {
     MultiTarget(
-      BithumbTradeNetworkService.getCandleListDays(
+      BithumbTradeNetworkService.fetchCandleListDays(
         market: market,
         to: to,
         count: count,

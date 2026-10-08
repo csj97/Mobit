@@ -11,9 +11,12 @@ import RxMoya
 import RxSwift
 
 protocol MainRepositoryProtocol {
-  func loadCryptoList() -> Observable<CryptoList>
-  func loadCryptoTicker(markets: [String]) -> Observable<CryptoTickerList>
-  func loadFearGreedIndex() -> Observable<FearGreedIndex>
+  // 거래소에서 거래 가능한 마켓 목록을 조회한다.
+  func fetchCryptoList() -> Observable<CryptoList>
+  // 지정한 마켓들의 현재 시세를 조회한다.
+  func fetchCryptoTicker(markets: [String]) -> Observable<CryptoTickerList>
+  // CoinMarketCap에서 시장 공포·탐욕 지수를 조회한다.
+  func fetchFearGreedIndex() -> Observable<FearGreedIndex>
 }
 
 class MainRepository: MainRepositoryProtocol {
@@ -132,7 +135,8 @@ class MainRepository: MainRepositoryProtocol {
     }
   }
   
-  func loadCryptoList() -> Observable<CryptoList> {
+  // 거래소에서 거래 가능한 마켓 목록을 조회한다.
+  func fetchCryptoList() -> Observable<CryptoList> {
     return Observable.create { observer in
       let disposable = self.provider.rx.request(
         self.exchangeProvider.makeCryptoListTarget()
@@ -166,8 +170,8 @@ class MainRepository: MainRepositoryProtocol {
     }
   }
   
-    // ticker 리스트 조회
-  func loadCryptoTicker(markets: [String]) -> Observable<CryptoTickerList> {
+  // 지정한 마켓들의 현재 시세를 조회한다.
+  func fetchCryptoTicker(markets: [String]) -> Observable<CryptoTickerList> {
 	// 공백, 빈문자열, 중복 제거, 정렬 > 항상 같은 순서로 정리
     let normalizedMarkets = Array(
       Set(
@@ -226,7 +230,7 @@ class MainRepository: MainRepositoryProtocol {
   }
 
   // 시장 공포·탐욕 지수 (CMC). 하루 단위 갱신이라 화면 진입 시 1회만 조회한다.
-  func loadFearGreedIndex() -> Observable<FearGreedIndex> {
+  func fetchFearGreedIndex() -> Observable<FearGreedIndex> {
     let decodeTarget = FearGreedIndexResponseDTO.self
 
     return Observable.create { observer in

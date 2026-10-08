@@ -13,11 +13,11 @@ struct UpbitExchangeAdapter: ExchangeMarketDataProviding {
   private let decoder = JSONDecoder()
 
   func makeCryptoListTarget() -> MultiTarget {
-    MultiTarget(MainNetworkService.getCryptoList)
+    MultiTarget(MainNetworkService.fetchCryptoList)
   }
 
   func makeCryptoTickerTarget(markets: [String]) -> MultiTarget {
-    MultiTarget(MainNetworkService.getCryptoTicker(markets: markets))
+    MultiTarget(MainNetworkService.fetchCryptoTicker(markets: markets))
   }
 
   func makeCryptoInformationTarget(
@@ -25,7 +25,7 @@ struct UpbitExchangeAdapter: ExchangeMarketDataProviding {
     currency: String
   ) -> MultiTarget {
     MultiTarget(
-      MainNetworkService.getCryptoInformation(
+      MainNetworkService.fetchCryptoInformation(
         market: market,
         currency: currency
       )
@@ -33,7 +33,7 @@ struct UpbitExchangeAdapter: ExchangeMarketDataProviding {
   }
 
   func makeFearAndGreedIndexTarget() -> MultiTarget {
-    MultiTarget(MainNetworkService.getFearAndGreedIndex)
+    MultiTarget(MainNetworkService.fetchFearAndGreedIndex)
   }
 
   func makeCandleMinutesTarget(
@@ -43,7 +43,7 @@ struct UpbitExchangeAdapter: ExchangeMarketDataProviding {
     count: Int?
   ) -> MultiTarget {
     MultiTarget(
-      TradeNetworkService.getCandleListMinutes(
+      TradeNetworkService.fetchCandleListMinutes(
         market: market,
         unit: unit,
         to: to,
@@ -59,7 +59,7 @@ struct UpbitExchangeAdapter: ExchangeMarketDataProviding {
     convertingPriceUnit: String?
   ) -> MultiTarget {
     MultiTarget(
-      TradeNetworkService.getCandleListDays(
+      TradeNetworkService.fetchCandleListDays(
         market: market,
         to: to,
         count: count,

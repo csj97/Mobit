@@ -27,6 +27,8 @@ extension UIColor {
 	  return UIColor(named: "text_tertiary")!
 	case .accentPrimary:
 	  return UIColor(named: "accent_primary")!
+	case .accentButton:
+	  return UIColor(named: "primary_blue")!
 	case .chartBackground:
 	  return UIColor(named: "chart_background")!
 	case .chartGrid:
@@ -117,6 +119,8 @@ extension UIColor {
 	case textSecondary
 	case textTertiary
 	case accentPrimary
+	// 흰색 문구를 쓰는 채움 버튼의 대비를 유지하는 포인트 배경색이다.
+	case accentButton
 	case chartBackground
 	case chartGrid
 	case segmentSelected

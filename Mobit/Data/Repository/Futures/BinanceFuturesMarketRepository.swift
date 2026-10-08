@@ -35,7 +35,7 @@ final class BinanceFuturesMarketRepository: FuturesMarketDataProviding {
       guard minimum <= maximum else { throw FuturesMarketDataError.invalidResponse }
       return FuturesMarketContract(instrument: instrument, quantityStep: try Self.number(lot.stepSize, positive: true),
                                    minimumQuantity: minimum, maximumQuantity: maximum,
-                                   minimumNotional: try Self.number(filter("MIN_NOTIONAL").notional, positive: true),
+                                   minimumOrderAmount: try Self.number(filter("MIN_NOTIONAL").minimumOrderAmount, positive: true),
                                    priceTick: try Self.number(filter("PRICE_FILTER").tickSize, positive: true))
     }
   }
@@ -133,8 +133,14 @@ private struct FilterDTO: Decodable {
   let minQty: String?
   let maxQty: String?
   let stepSize: String?
-  let notional: String?
+  // 계약의 최소 주문금액으로 변환할 거래소 응답 문자열이다.
+  let minimumOrderAmount: String?
   let tickSize: String?
+
+  private enum CodingKeys: String, CodingKey {
+    case filterType, minQty, maxQty, stepSize, tickSize
+    case minimumOrderAmount = "notional"
+  }
 }
 private struct CandleDTO: Decodable {
   let openTime: Int64

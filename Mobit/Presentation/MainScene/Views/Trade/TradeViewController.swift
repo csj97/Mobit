@@ -283,8 +283,6 @@ class TradeViewController: MobitBaseViewController {
   
   func setCrypto(crypto: CryptoCellInfo? = nil) {
 	self.prevClosingPrice = crypto?.prevPrice
-	let numberFormatter = NumberFormatter()
-	numberFormatter.numberStyle = .decimal
 	
 	let selectCrypto = crypto ?? self.reactor.selectCrypto
 	guard let tradePrice = selectCrypto.tradePrice,
@@ -293,25 +291,13 @@ class TradeViewController: MobitBaseViewController {
 	
 	self.cryptoMarketName.text = "\(selectCrypto.cryptoName)(\(selectCrypto.market))"
 	
-	if tradePrice < 1 {
-	  self.cryptoPrice.text = self.formatTradePrice(tradePrice)
-	} else {
-	  self.cryptoPrice.text = numberFormatter.string(
-		from: NSNumber(value: tradePrice)
-	  )
-	}
+	self.cryptoPrice.text = tradePrice.formatTradingValue()
 	
 	self.cryptoChangedRate.text = String(
 	  format: "%.2f%%", signedChangeRate * 100
 	)
 	
-	if changePrice < 1 {
-	  self.cryptoChangedPrice.text = self.formatTradePrice(changePrice)
-	} else {
-	  self.cryptoChangedPrice.text = numberFormatter.string(
-		from: NSNumber(value: changePrice)
-	  )
-	}
+	self.cryptoChangedPrice.text = changePrice.formatTradingValue()
 	
 	switch selectCrypto.change {
 	case "RISE":
@@ -336,7 +322,7 @@ class TradeViewController: MobitBaseViewController {
 	self.cryptoUpDownArrowImageView.image = arrowImage
 	self.cryptoUpDownArrowImageView.tintColor = arrowColor
 	
-	self.fetchUserCryptoList(
+	self.updateCurrentInvestmentData(
 	  marketName: selectCrypto.market,
 	  currentPrice: tradePrice
 	)
@@ -372,8 +358,8 @@ class TradeViewController: MobitBaseViewController {
 	)
   }
   
-  /// crypto socket 업데이트 될 때, 매수 목록 fetch
-  func fetchUserCryptoList(
+  /// 소켓 시세로 현재 보유 자산의 평가 값과 화면을 갱신한다.
+  func updateCurrentInvestmentData(
 	marketName: String,
 	currentPrice: Double?
   ) {
@@ -444,10 +430,12 @@ class TradeViewController: MobitBaseViewController {
   }
 
   private func showGoogleBanner() {
+    // SDK 광고 크기를 유지한 채 하단 안전영역에 표시할 배너다.
     let bannerView = BannerView(adSize: AdSizeBanner)
     bannerView.adUnitID = MobitConstants.bannerAdType
     bannerView.rootViewController = self
-		bannerView.backgroundColor = .mobitColors(.tradeSurface)
+    bannerView.delegate = self
+	bannerView.backgroundColor = .mobitColors(.tradeSurface)
     self.bannerContainerView.addSubview(bannerView)
 
     bannerView.snp.makeConstraints { make in
@@ -467,15 +455,6 @@ class TradeViewController: MobitBaseViewController {
     }
   }
   
-  /// price format
-  func formatTradePrice(_ tradePrice: Double?, precision: Int = 8) -> String {
-	guard let price = tradePrice else {
-	  return "N/A"  // 값이 없을 때 반환할 기본 문자열
-	}
-	return String(format: "%.\(precision)f", price)
-  }
-  
-  
   // MARK: - Charts
   func setChartData() {
 	let now = Date()
@@ -487,7 +466,7 @@ class TradeViewController: MobitBaseViewController {
 	
 	// 10분봉 144개 > 24시간 미니차트
 	self.reactor.action
-	  .onNext(.getCandleListMinutes(
+	  .onNext(.loadCandleListMinutes(
 		market: self.reactor.selectCrypto.market.marketForCandleRequest,
 		unit: 10,
 		to: toString,
@@ -495,7 +474,7 @@ class TradeViewController: MobitBaseViewController {
 	  ))
 	
 //	self.reactor.action
-//	  .onNext(.getCandleListDays(
+//	  .onNext(.loadCandleListDays(
 //		market: self.reactor.selectCrypto.market.marketForCandleRequest,
 //		to: toString,
 //		count: 50,
@@ -553,8 +532,8 @@ class TradeViewController: MobitBaseViewController {
   }
   
   func showCalculatorView(cryptoInvestData: CryptoTransactionDataModel) {
-	let holdingQty = cryptoInvestData.staticData.holdingQuantity.formatSignificantDigits(digits: 2)
-	let holdingAvgPrice = cryptoInvestData.staticData.averageBuyPrice.formatSignificantDigits(digits: 4)
+	let holdingQty = cryptoInvestData.staticData.holdingQuantity.formatTradingValue()
+	let holdingAvgPrice = cryptoInvestData.staticData.averageBuyPrice.formatTradingValue()
 	let marketName = cryptoInvestData.staticData.marketName
 	
 	guard let doubleHoldingQty = Double(holdingQty.replacingOccurrences(of: ",", with: "")),
@@ -619,6 +598,22 @@ extension TradeViewController {
 //		print("day candle response")
 //	  })
 //	  .disposed(by: self.disposeBag)
+  }
+}
+
+extension TradeViewController: BannerViewDelegate {
+  func bannerViewDidReceiveAd(_ bannerView: BannerView) {
+    Log.info("하단 배너 로드 성공", tag: "TradeBanner")
+  }
+
+  func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
+    // 광고 식별자와 응답 원문 없이 SDK 오류 종류만 기록한다.
+    let bannerError = error as NSError
+    Log.warning("하단 배너 로드 실패: domain=\(bannerError.domain), code=\(bannerError.code)", tag: "TradeBanner")
+  }
+
+  func bannerViewDidRecordImpression(_ bannerView: BannerView) {
+    Log.info("하단 배너 노출 기록", tag: "TradeBanner")
   }
 }
 

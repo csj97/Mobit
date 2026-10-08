@@ -19,7 +19,8 @@ final class NetworkMonitor {
   private var connectionType: NWInterface.InterfaceType = .other
   
   private init() { }
-  private func getConnectionType(_ path: NWPath) {
+  // 네트워크 경로에 맞춰 현재 연결 방식(Wi-Fi·셀룰러 등)을 갱신한다.
+  private func updateConnectionType(_ path: NWPath) {
 	if path.usesInterfaceType(.wifi) {
 	  connectionType = .wifi
 	} else if path.usesInterfaceType(.cellular) {
@@ -37,7 +38,7 @@ final class NetworkMonitor {
 	  
 	  DispatchQueue.main.async {
 			self.isConnected = path.status == .satisfied
-			self.getConnectionType(path)
+			self.updateConnectionType(path)
 
 			let networkStatus = self.isConnected ? "✅연결됨" : "⛔️끊김"
 			print("Network 연결 상태 : \(networkStatus)")

@@ -81,6 +81,83 @@ final class DomesticFuturesMarketRepositoryTests: XCTestCase {
     }
   }
 
+  func testBithumbTickerNormalizesOnlyProvenKSTOffset() throws {
+    // API 응답의 UTC 체결 시각과 비교할 밀리초 원본이다.
+    let timestamp = base + 39_123
+    // 빗썸이 UTC 체결 일시에 더해 반환하는 KST 오프셋이다.
+    let offset: Int64 = 9 * 60 * 60 * 1000
+    for exchange in [Exchange.upbit, .bithumb] {
+      for shift in [Int64(0), offset, Int64(1000)] {
+        // 실제 시계 오류는 보정하지 않고 시각 검증에 그대로 전달한다.
+        let repo = repository { _ in
+          "[{\"market\":\"KRW-BTC\",\"trade_price\":100,\"timestamp\":\(timestamp + shift),"
+            + "\"trade_timestamp\":\(timestamp + shift),\"trade_date\":\"\(self.text(timestamp, format: "yyyyMMdd"))\","
+            + "\"trade_time\":\"\(self.text(timestamp, format: "HHmmss"))\"}]"
+        }
+        XCTAssertEqual(
+          try value(repo.markQuote(instrument(exchange))).timestamp,
+          exchange == .bithumb && shift == offset ? timestamp : timestamp + shift
+        )
+      }
+    }
+    // UTC 일시가 깨진 응답은 신뢰할 수 없어 원본 시각을 유지한다.
+    let invalid = repository { _ in
+      "[{\"market\":\"KRW-BTC\",\"trade_price\":100,\"timestamp\":\(timestamp + offset),"
+        + "\"trade_timestamp\":\(timestamp + offset),\"trade_date\":\"20261399\",\"trade_time\":\"256199\"}]"
+    }
+    XCTAssertEqual(try value(invalid.markQuote(instrument(.bithumb))).timestamp, timestamp + offset)
+  }
+
+  func testBithumbShiftedTickerCompletesHistoryAndClosesPosition() throws {
+    // 과거 검증과 종료 저장을 분리된 임시 계좌에서 확인한다.
+    let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("accounts.json")
+    defer { try? FileManager.default.removeItem(at: fileURL.deletingLastPathComponent()) }
+    // 검증 전후의 포지션·잔액·정산 내역을 확인할 저장소다.
+    let store = LocalFuturesAccountRepository(fileURL: fileURL)
+    // UTC 체결 이력과 비교할 현재 시점이다.
+    let now = Date(timeIntervalSince1970: Double(base + 40_000) / 1000)
+    // 최초 진입한 초의 내부 경계까지 체결 이력으로 검증한다.
+    let order = domesticFuturesOrder(exchange: .bithumb, margin: 100, price: 100, date: now.addingTimeInterval(-5.877))
+    try store.applyAdvertisementReward(AdRewardClaim(account: order.account))
+    try store.openTestPosition(order, expectedRevision: store.snapshot().revision)
+    // 공개 API에서 확인한 9시간 차이의 ticker와 정상 UTC 체결 응답이다.
+    let repo = repository(serverTime: base + 40_000) { target in
+      switch target.query {
+      case .ticker:
+        return "[{\"market\":\"KRW-BTC\",\"trade_price\":100,\"timestamp\":\(self.base + 39_123 + 32_400_000),"
+          + "\"trade_timestamp\":\(self.base + 39_123 + 32_400_000),\"trade_date\":\"\(self.text(self.base, format: "yyyyMMdd"))\","
+          + "\"trade_time\":\"\(self.text(self.base + 39_000, format: "HHmmss"))\"}]"
+      case .trades:
+        return "[{\"market\":\"KRW-BTC\",\"trade_price\":100,\"timestamp\":\(self.base + 34_000),\"sequential_id\":1}]"
+      case .candles:
+        return "[\(self.candle(self.base - 60_000))]"
+      }
+    }
+    // 실제 Repository 응답을 주문 준비 상태로 연결한다.
+    let service = FuturesHistoryCheckService(store: { store }, provider: { _ in repo }, now: { now })
+    // 비동기 과거 검증 완료를 기다린다.
+    let finished = expectation(description: "Bithumb ticker allows historical verification")
+    // 종료를 허용하기 전 과거 검증이 보류 없이 완료되는지 확인한다.
+    let subscription = service.status.subscribe(onNext: { status in
+      if case .finished(let results) = status, !results.isEmpty {
+        XCTAssertNil(results[0].hold)
+        finished.fulfill()
+      }
+    })
+    defer { subscription.dispose(); service.suspend() }
+    service.refresh()
+    wait(for: [finished], timeout: 3)
+    // 검증을 마친 포지션을 기존 소켓 가격 고정 정책으로 종료한다.
+    let useCase = FuturesTradingUseCase(store: { store }, historyCheck: service, now: { now })
+    // 종료 버튼을 누른 순간의 UTC 체결 시각이다.
+    let price = FuturesOrderPrice(quote: .init(instrument: order.instrument, price: 100, timestamp: base + 39_123), requestedAt: base + 40_000)
+    // 종료 결과를 다시 읽어 중복 정산 없이 원금이 반환됐는지 확인한다.
+    let saved = try value(useCase.close(requestID: UUID(), positionID: order.requestID, price: price))
+    XCTAssertFalse(saved.isActive(saved.positions[0]))
+    XCTAssertEqual(saved.closedPositions.count, 1)
+    XCTAssertEqual(saved.accounts[0].availableBalance, 10_000_000)
+  }
+
   func testEmptyMissingAnchorDuplicateAndInvalidCandleNeverBecomeSafeHistory() {
     for body in ["[]", "[\(candle(base))]", "[\(candle(base - 60_000)),\(candle(base - 60_000))]",
       "[\(candle(base - 60_000, close: 999))]", "[\(candle(base - 60_000).replacingOccurrences(of: "KRW-BTC", with: "KRW-ETH"))]"] {
@@ -126,7 +203,7 @@ final class DomesticFuturesMarketRepositoryTests: XCTestCase {
       case .trades: return "[]"
       }
     }
-    let service = FuturesReconciliationService(store: { store }, provider: { _ in repo },
+    let service = FuturesHistoryCheckService(store: { store }, provider: { _ in repo },
       now: { Date(timeIntervalSince1970: Double(self.base + 125_000) / 1000) })
     let finished = expectation(description: "domestic liquidation persisted")
     let subscription = service.status.subscribe(onNext: { status in
@@ -227,7 +304,7 @@ final class DomesticFuturesMarketRepositoryTests: XCTestCase {
       let store = LocalFuturesAccountRepository(fileURL: url)
       try store.applyAdvertisementReward(AdRewardClaim(account: position.order.account))
       try store.openTestPosition(position.order, expectedRevision: store.snapshot().revision)
-      let saved = try store.reconcile(
+      let saved = try store.checkHistoryAndSettle(
         positionID: position.id,
         expectedRevision: store.snapshot().revision,
         batch: batch,
@@ -235,7 +312,7 @@ final class DomesticFuturesMarketRepositoryTests: XCTestCase {
       )
       XCTAssertEqual(saved.state, result.state)
       let reopened = try LocalFuturesAccountRepository(fileURL: url).snapshot()
-      XCTAssertEqual(reopened.reconciliations.first, result.state)
+      XCTAssertEqual(reopened.historyCheckStates.first, result.state)
       XCTAssertFalse(reopened.isActive(position))
       XCTAssertEqual(reopened.positions.first?.order.executedAt, position.order.executedAt)
       let record = try XCTUnwrap(reopened.transactionHistory(for: position.order.account).last)
@@ -343,8 +420,8 @@ final class DomesticFuturesMarketRepositoryTests: XCTestCase {
   func testDetailReplayRejectsGapsAndArbitraryFallbackAndCatchesDipRecovery() throws {
     let position = try FuturesCalculator.open(domesticFuturesOrder(margin: 100, price: 100,
       date: Date(timeIntervalSince1970: Double(base + 34_123) / 1000)))
-    let start = try FuturesReconciliationState.milliseconds(position.order.executedAt)
-    let initial = try FuturesReconciliationState.initial(for: position)
+    let start = try FuturesHistoryCheckState.milliseconds(position.order.executedAt)
+    let initial = try FuturesHistoryCheckState.initial(for: position)
     let candle = FuturesMarkCandle(openTime: start, closeTime: start + 999, open: 100, high: 100, low: 80, close: 100)
     let batch = FuturesReplayBatch(instrument: position.order.instrument, start: start, endExclusive: start + 1000,
       candles: [candle], funding: [], detailed: true)

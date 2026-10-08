@@ -76,10 +76,10 @@ final class LocalFuturesAccountRepositoryTests: XCTestCase {
 
   func testLegacyDomesticBTCFileRemainsReadableButNewBTCOrdersAreRejected() throws {
     let order = domesticFuturesOrder(currency: .btc, symbol: "BTC-ETH", margin: 1, price: 1)
-    let position = FuturesPosition(order: order, quantity: 10, entryNotional: 10, entryFee: 0, ruleVersion: .simpleMarginV1)
+    let position = FuturesPosition(order: order, quantity: 10, entryTradeAmount: 10, entryFee: 0, ruleVersion: .simpleMarginV1)
     let snapshot = FuturesAccountSnapshot(revision: 2,
       accounts: [.init(id: order.account, availableBalance: 3)], positions: [position],
-      ledger: [try FuturesCalculator.openingLedgerEntry(for: position)], reconciliations: [try .initial(for: position)])
+      ledger: [try FuturesCalculator.openingLedgerEntry(for: position)], historyCheckStates: [try .initial(for: position)])
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     let bytes = try JSONEncoder().encode(snapshot)
     try bytes.write(to: fileURL)
@@ -98,6 +98,85 @@ final class LocalFuturesAccountRepositoryTests: XCTestCase {
       XCTAssertEqual($0 as? LocalFuturesAccountRepository.StoreError, .revisionConflict)
     }
     XCTAssertEqual(try first.snapshot(), updated)
+  }
+
+  func testStoredAccountKeysRemainCompatibleAfterRenaming() throws {
+    let data = Data(#"""
+      {
+        "schemaVersion": 5, "revision": 2,
+        "accounts": [{
+          "id": {"exchange": "upbit", "product": "perpetual", "currency": "KRW"},
+          "availableBalance": 900000
+        }],
+        "rewardClaims": [], "closedPositions": [],
+        "positions": [{
+          "order": {
+            "requestID": "00000000-0000-0000-0000-000000000001",
+            "account": {"exchange": "upbit", "product": "perpetual", "currency": "KRW"},
+            "instrument": {
+              "exchange": "upbit", "product": "perpetual",
+              "rawSymbol": "KRW-BTC", "settlementCurrency": "KRW"
+            },
+            "side": "long", "margin": 100000, "leverage": 10,
+            "executionPrice": 100000000, "entryFeeRate": 0, "executedAt": 60,
+            "contractRules": {
+              "maximumLeverage": 100, "quantityStep": 0.00000001,
+              "minimumQuantity": 0.00000001, "minimumNotional": 500
+            }
+          },
+          "quantity": 0.01, "entryNotional": 1000000,
+          "entryFee": 0, "ruleVersion": "simpleMarginV1"
+        }],
+        "ledger": [{
+          "id": "00000000-0000-0000-0000-000000000001",
+          "positionID": "00000000-0000-0000-0000-000000000001",
+          "account": {"exchange": "upbit", "product": "perpetual", "currency": "KRW"},
+          "occurredAt": 60, "kind": "open", "cashDelta": -100000,
+          "collateralDelta": 100000, "feePaid": 0
+        }],
+        "reconciliations": [{
+          "positionID": "00000000-0000-0000-0000-000000000001",
+          "verifiedThrough": 978307260000, "netFunding": 0, "fundingReceipts": []
+        }]
+      }
+      """#.utf8)
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    try data.write(to: fileURL)
+
+    let snapshot = try LocalFuturesAccountRepository(fileURL: fileURL).snapshot()
+    let position = try XCTUnwrap(snapshot.positions.first)
+    XCTAssertEqual(position.entryTradeAmount, 1_000_000)
+    XCTAssertEqual(position.order.contractRules.minimumOrderAmount, 500)
+    XCTAssertEqual(snapshot.ledger.first?.reservedMarginChange, 100_000)
+    XCTAssertEqual(snapshot.historyCheckStates.first?.verifiedThrough, 978_307_260_000)
+    XCTAssertEqual(try Data(contentsOf: fileURL), data)
+
+    let original = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? NSDictionary)
+    let encoded = try JSONEncoder().encode(snapshot)
+    let saved = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? NSDictionary)
+    XCTAssertEqual(saved, original)
+    try encoded.write(to: fileURL)
+    XCTAssertEqual(try LocalFuturesAccountRepository(fileURL: fileURL).snapshot(), snapshot)
+  }
+
+  func testStoredLiquidationPriceKeyRemainsCompatibleAfterRenaming() throws {
+    let data = Data(#"""
+      {
+        "intervalStart": 60000, "intervalEndExclusive": 120000,
+        "witnessMarkPrice": 89.5, "settledAt": 120
+      }
+      """#.utf8)
+    let record = try JSONDecoder().decode(FuturesLiquidationRecord.self, from: data)
+    XCTAssertEqual(record.observedLiquidationPrice, Decimal(string: "89.5"))
+    XCTAssertNil(record.observedAt)
+    XCTAssertEqual(record.occurredMinute, 60_000)
+
+    let original = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? NSDictionary)
+    let encoded = try JSONEncoder().encode(record)
+    // 발생 분만 새로 저장하고 기존 청산 가격 키와 검증 구간은 보존한다.
+    var saved = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+    XCTAssertEqual(saved.removeValue(forKey: "occurredMinute") as? Int, 60_000)
+    XCTAssertEqual(saved as NSDictionary, original)
   }
 
   func testFailedWriteKeepsPreviousFileAndRevision() throws {

@@ -89,9 +89,9 @@ class MobitAlertViewController: UIViewController {
 	  .forEach { $0.backgroundColor = .mobitColors(.borderPrimary) }
 	self.cancelButton.backgroundColor = .mobitColors(.surfaceElevated)
 	self.confirmButton.backgroundColor = .mobitColors(.surfaceElevated)
-	self.cancelButton.setTitleColor(MarketColorPalette.fallColor, for: .normal)
+	self.cancelButton.setTitleColor(.mobitColors(.textSecondary), for: .normal)
     self.confirmButton.setTitleColor(.mobitColors(.accentPrimary), for: .normal)
-	self.cancelButton.configuration?.baseForegroundColor = MarketColorPalette.fallColor
+	self.cancelButton.configuration?.baseForegroundColor = .mobitColors(.textSecondary)
 	self.confirmButton.configuration?.baseForegroundColor = .mobitColors(.accentPrimary)
   }
   

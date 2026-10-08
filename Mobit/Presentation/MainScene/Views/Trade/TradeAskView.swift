@@ -97,7 +97,7 @@ class TradeAskView: UIView, ViewRule {
 	self.inputTradeAmount.keyboardType = .decimalPad
 	// BTC 마켓은 총액도 소수라 정수 키패드로는 입력할 수 없다.
 	self.totalPriceTextField.keyboardType = self.settlementCurrency == .krw ? .numberPad : .decimalPad
-	self.settlementCurrencyLabels?.forEach { $0.text = self.settlementCurrency.rawValue }
+	self.settlementCurrencyLabels?.forEach { $0.text = self.settlementCurrency == .krw ? FuturesText.text("currency_krw_unit") : self.settlementCurrency.rawValue }
 
 	self.updateOrderValidationState()
   }
@@ -212,8 +212,8 @@ class TradeAskView: UIView, ViewRule {
 	  currency: self.settlementCurrency
 	)
 	self.availableCryptoCount = crypto.staticData.holdingQuantity
-	self.availableCrypto.text = String(self.availableCryptoCount.formatSignificantDigits())
-	self.availableTradePrice.text = "≈ " + availableSettlementAmount.formatSignificantDigits()
+	self.availableCrypto.text = String(self.availableCryptoCount.formatTradingValue())
+	self.availableTradePrice.text = "≈ " + availableSettlementAmount.formatTradingValue()
 
 	if self.inputAmount > 0 {
 	  let totalPriceFromInputAmount = PortfolioCalculator.executedAmount(
@@ -221,7 +221,7 @@ class TradeAskView: UIView, ViewRule {
 		quantity: self.inputAmount,
 		currency: self.settlementCurrency
 	  )
-	  self.totalPriceTextField.text = totalPriceFromInputAmount.formatSignificantDigits()
+	  self.totalPriceTextField.text = totalPriceFromInputAmount.formatTradingValue()
 	} else {
 	  self.totalPriceTextField.text = "0"
 	}
@@ -251,9 +251,9 @@ class TradeAskView: UIView, ViewRule {
 	  quantity: availableCrypto.staticData.holdingQuantity,
 	  currency: self.settlementCurrency
 	)
-	self.inputTradeAmount.text = String(availableCrypto.staticData.holdingQuantity.formatSignificantDigits())
+	self.inputTradeAmount.text = String(availableCrypto.staticData.holdingQuantity.formatTradingValue())
 	self.inputAmount = availableCrypto.staticData.holdingQuantity
-	self.totalPriceTextField.text = availableSettlementAmount.formatSignificantDigits()
+	self.totalPriceTextField.text = availableSettlementAmount.formatTradingValue()
 	self.updateOrderValidationState()
   }
 
@@ -452,7 +452,7 @@ extension TradeAskView: UITextFieldDelegate {
 	  let inputTotalPrice = textField.text?.digitsOnlyDouble ?? 0
 	  let inputAmount = inputTotalPrice / currentPrice
 	  self.inputAmount = inputAmount
-	  self.inputTradeAmount.text = inputAmount.formatSignificantDigits(digits: 4)
+	  self.inputTradeAmount.text = inputAmount.formatTradingValue()
 	  self.totalPrice = inputTotalPrice
 
 	case .amount:
@@ -462,7 +462,7 @@ extension TradeAskView: UITextFieldDelegate {
 		quantity: inputAmount,
 		currency: self.settlementCurrency
 	  )
-	  self.totalPriceTextField.text = totalPrice.formatSignificantDigits()
+	  self.totalPriceTextField.text = totalPrice.formatTradingValue()
 	  self.inputAmount = inputAmount
 	  self.totalPrice = totalPrice
 	}

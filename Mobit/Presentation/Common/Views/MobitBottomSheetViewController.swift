@@ -101,7 +101,7 @@ class MobitBottomSheetViewController: MobitBaseViewController {
 	self.dimView.backgroundColor = UIColor.black.withAlphaComponent(0.35)
 	self.sheetView.backgroundColor = .mobitColors(.surfaceElevated)
 	self.stackView.backgroundColor = .mobitColors(.surfaceElevated)
-	self.confirmButton.backgroundColor = MarketColorPalette.riseRedFallBlueFallColor
+	self.confirmButton.backgroundColor = .mobitColors(.accentButton)
 	self.stackView.arrangedSubviews.forEach { subview in
 	  subview.backgroundColor = .mobitColors(.surfaceElevated)
 	  subview.subviews.compactMap { $0 as? UILabel }.forEach {
@@ -176,7 +176,7 @@ class MobitBottomSheetViewController: MobitBaseViewController {
   }
 
   private func radioColor(isSelected: Bool) -> UIColor {
-	isSelected ? MarketColorPalette.riseRedFallBlueFallColor : .mobitColors(.borderPrimary)
+	isSelected ? .mobitColors(.accentPrimary) : .mobitColors(.borderPrimary)
   }
     
   @objc func buttonTapped(_ sender: UIButton) {

@@ -99,12 +99,12 @@ class InvestmentTableViewCell: UITableViewCell {
     )
     let currency = crypto.settlementCurrency
     self.cryptoName.text = crypto.staticData.marketName
-    self.cryptoAmount.text = crypto.staticData.holdingQuantity.formatSignificantDigits()
+    self.cryptoAmount.text = crypto.staticData.holdingQuantity.formatTradingValue()
     if currency == .btc {
-      self.cryptoAveragePrice.text = crypto.staticData.averageBuyPrice.formatSignificantDigits(digits: 8)
+      self.cryptoAveragePrice.text = crypto.staticData.averageBuyPrice.formatTradingValue()
     } else {
       self.cryptoAveragePrice.text = valuation.averagePriceKRW.map {
-        $0.formatSignificantDigits(digits: 4)
+        $0.formatTradingValue()
       } ?? "-"
     }
     self.cryptoBuyPrice.text = Self.krwText(valuation.costBasisKRW)
@@ -126,8 +126,8 @@ class InvestmentTableViewCell: UITableViewCell {
     averagePriceTitle.text = FuturesText.text("futures_entry") + " : "
     buyPriceTitle.text = FuturesText.text("futures_margin") + " : "
     profitRateTitle.text = FuturesText.text("futures_roe") + " : "
-    cryptoAmount.text = FuturesText.number(position.quantity, digits: 8)
-    cryptoAveragePrice.text = FuturesText.number(try? position.averageEntryPrice, digits: 4)
+    cryptoAmount.text = FuturesText.number(position.quantity)
+    cryptoAveragePrice.text = FuturesText.number(try? position.averageEntryPrice)
     cryptoBuyPrice.text = Self.futuresKRW(try? position.margin)
     cryptoEvalPrice.text = Self.futuresKRW(valuation?.displayedEquity)
     let pnl = try? valuation?.displayedPnL
@@ -143,7 +143,7 @@ class InvestmentTableViewCell: UITableViewCell {
   }
 
   private static func futuresKRW(_ value: Decimal?) -> String {
-    value.map { FuturesText.number($0) + " KRW" } ?? "—"
+    value.map { FuturesText.number($0) + " \(FuturesText.text("currency_krw_unit"))" } ?? "—"
   }
 
   private func setupUnsupportedStatusViews() {
@@ -262,6 +262,6 @@ class InvestmentTableViewCell: UITableViewCell {
   }
 
   private static func krwText(_ amount: Double?) -> String {
-    amount.map { $0.formatSignificantDigits(digits: 0) } ?? "-"
+    amount.map { $0.formatTradingValue() } ?? "-"
   }
 }

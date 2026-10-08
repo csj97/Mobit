@@ -33,7 +33,8 @@ struct FuturesMarketContract: Equatable {
   let quantityStep: Decimal
   let minimumQuantity: Decimal
   let maximumQuantity: Decimal
-  let minimumNotional: Decimal
+  // 주문에 필요한 최소 거래금액으로, 증거금과 구분한다.
+  let minimumOrderAmount: Decimal
   let priceTick: Decimal
 }
 

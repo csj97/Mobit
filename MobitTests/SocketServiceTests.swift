@@ -471,11 +471,11 @@ private final class MockExchangeMarketDataProvider: ExchangeMarketDataProviding 
   }
 
   func makeCryptoListTarget() -> Moya.MultiTarget {
-    Moya.MultiTarget(MainNetworkService.getCryptoList)
+    Moya.MultiTarget(MainNetworkService.fetchCryptoList)
   }
 
   func makeCryptoTickerTarget(markets: [String]) -> Moya.MultiTarget {
-    Moya.MultiTarget(MainNetworkService.getCryptoTicker(markets: markets))
+    Moya.MultiTarget(MainNetworkService.fetchCryptoTicker(markets: markets))
   }
 
   func makeCryptoInformationTarget(
@@ -483,7 +483,7 @@ private final class MockExchangeMarketDataProvider: ExchangeMarketDataProviding 
     currency: String
   ) -> Moya.MultiTarget {
     Moya.MultiTarget(
-      MainNetworkService.getCryptoInformation(
+      MainNetworkService.fetchCryptoInformation(
         market: market,
         currency: currency
       )
@@ -491,7 +491,7 @@ private final class MockExchangeMarketDataProvider: ExchangeMarketDataProviding 
   }
 
   func makeFearAndGreedIndexTarget() -> Moya.MultiTarget {
-    Moya.MultiTarget(MainNetworkService.getFearAndGreedIndex)
+    Moya.MultiTarget(MainNetworkService.fetchFearAndGreedIndex)
   }
 
   func makeCandleMinutesTarget(
@@ -501,7 +501,7 @@ private final class MockExchangeMarketDataProvider: ExchangeMarketDataProviding 
     count: Int?
   ) -> Moya.MultiTarget {
     Moya.MultiTarget(
-      TradeNetworkService.getCandleListMinutes(
+      TradeNetworkService.fetchCandleListMinutes(
         market: market,
         unit: unit,
         to: to,
@@ -517,7 +517,7 @@ private final class MockExchangeMarketDataProvider: ExchangeMarketDataProviding 
     convertingPriceUnit: String?
   ) -> Moya.MultiTarget {
     Moya.MultiTarget(
-      TradeNetworkService.getCandleListDays(
+      TradeNetworkService.fetchCandleListDays(
         market: market,
         to: to,
         count: count,
@@ -634,7 +634,7 @@ final class ExchangeSwitchLoadDiagTests: XCTestCase {
     var markets: [String] = []
 
     let listExp = expectation(description: "list-\(exchange.rawValue)")
-    repo.loadCryptoList().subscribe(
+    repo.fetchCryptoList().subscribe(
       onNext: { markets = $0.map { $0.market }; listCount = $0.count },
       onError: { listErr = "\($0)"; listExp.fulfill() },
       onCompleted: { listExp.fulfill() }
@@ -644,7 +644,7 @@ final class ExchangeSwitchLoadDiagTests: XCTestCase {
     guard listErr == nil, !markets.isEmpty else { return (listCount, listErr, tickerErr) }
 
     let tickerExp = expectation(description: "ticker-\(exchange.rawValue)")
-    repo.loadCryptoTicker(markets: markets).subscribe(
+    repo.fetchCryptoTicker(markets: markets).subscribe(
       onNext: { _ in },
       onError: { tickerErr = "\($0)"; tickerExp.fulfill() },
       onCompleted: { tickerExp.fulfill() }

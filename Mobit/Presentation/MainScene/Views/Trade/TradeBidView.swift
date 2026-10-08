@@ -95,7 +95,7 @@ class TradeBidView: UIView, ViewRule {
   }
 
   private func applySettlementCurrencyText() {
-	self.settlementCurrencyLabels?.forEach { $0.text = self.settlementCurrency.rawValue }
+	self.settlementCurrencyLabels?.forEach { $0.text = self.settlementCurrency == .krw ? FuturesText.text("currency_krw_unit") : self.settlementCurrency.rawValue }
   }
 
   private func applyThemeColors() {
@@ -175,7 +175,7 @@ class TradeBidView: UIView, ViewRule {
 	self.inputTradeAmount.accessibilityIdentifier = "amount"
 	self.totalPriceTextField.accessibilityIdentifier = "totalPrice"
 
-	self.availableTradePrice.text = self.availableSettlementBalance.formatSignificantDigits()
+	self.availableTradePrice.text = self.availableSettlementBalance.formatTradingValue()
   }
 
   @IBAction func tapOnMaxAmount(_ sender: UIButton) {
@@ -193,8 +193,8 @@ class TradeBidView: UIView, ViewRule {
 	  quantity: inputAmount,
 	  currency: self.settlementCurrency
 	)
-	self.inputTradeAmount.text = inputAmount.formatSignificantDigits()
-	self.totalPriceTextField.text = totalPrice.formatSignificantDigits()
+	self.inputTradeAmount.text = inputAmount.formatTradingValue()
+	self.totalPriceTextField.text = totalPrice.formatTradingValue()
 	self.updateOrderValidationState()
   }
 
@@ -245,7 +245,7 @@ class TradeBidView: UIView, ViewRule {
 
 	  switch result {
 	  case .success(let execution):
-		self.availableTradePrice.text = execution.availableBalance.formatSignificantDigits()
+		self.availableTradePrice.text = execution.availableBalance.formatTradingValue()
 		self.callBack?(.successLottie)
 		self.initTextFieldValue()
 		self.callBack?(.updateHistory)
@@ -270,7 +270,7 @@ class TradeBidView: UIView, ViewRule {
 	  return
 	}
 
-	self.availableTradePrice.text = self.availableSettlementBalance.formatSignificantDigits()
+	self.availableTradePrice.text = self.availableSettlementBalance.formatTradingValue()
 	self.updateOrderValidationState()
   }
 
@@ -278,14 +278,6 @@ class TradeBidView: UIView, ViewRule {
 	UserDataManager.userInformation = MobitUserInformation(
 	  userAvailableBalance: availableBalance
 	)
-  }
-
-  /// price format
-  func formatTradePrice(_ tradePrice: Double?, precision: Int = 8) -> String {
-	guard let price = tradePrice else {
-	  return "N/A"  // 값이 없을 때 반환할 기본 문자열
-	}
-	return String(format: "%.\(precision)f", price)
   }
 
   func initTextFieldValue() {
@@ -352,9 +344,6 @@ class TradeBidView: UIView, ViewRule {
 	  .subscribe(onNext: { [weak self] cellInfo in
 		guard let self = self else { return }
 
-		let numberFormatter = NumberFormatter()
-		numberFormatter.numberStyle = .decimal
-
 		self.cryptoInfo = cellInfo
 
 		guard let tradePrice = self.cryptoInfo?.tradePrice else {
@@ -362,13 +351,7 @@ class TradeBidView: UIView, ViewRule {
 		  return
 		}
 
-		if tradePrice < 1 {
-		  self.currentPrice.text = formatTradePrice(tradePrice)
-		} else {
-		  self.currentPrice.text = numberFormatter.string(
-			from: NSNumber(value: tradePrice)
-		  )
-		}
+		self.currentPrice.text = tradePrice.formatTradingValue()
 		self.updateOrderValidationState()
 	  })
 	  .disposed(by: self.disposeBag)
@@ -413,7 +396,7 @@ extension TradeBidView: UITextFieldDelegate {
 	  let inputAmount = inputTotalPrice / currentPrice
 
 	  self.inputAmount = inputAmount
-	  self.inputTradeAmount.text = inputAmount.formatSignificantDigits(digits: 4)
+	  self.inputTradeAmount.text = inputAmount.formatTradingValue()
 
 	case .amount:
 	  let inputAmount = textField.text?.digitsOnlyDouble ?? 0
@@ -424,7 +407,7 @@ extension TradeBidView: UITextFieldDelegate {
 		quantity: inputAmount,
 		currency: self.settlementCurrency
 	  )
-	  self.totalPriceTextField.text = totalPrice.formatSignificantDigits()
+	  self.totalPriceTextField.text = totalPrice.formatTradingValue()
 	}
 
 	self.updateOrderValidationState()

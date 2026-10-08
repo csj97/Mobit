@@ -71,7 +71,7 @@ extension InvestReactor {
 	switch action {
 	case .loadTransactions:
 	  let currentExchange = ExchangeSelectionStore.currentExchange
-	  let supportedMarkets = self.mainUseCase.loadCryptoList()
+	  let supportedMarkets = self.mainUseCase.fetchCryptoList()
 		.map { cryptoList in
 		  InvestMutation.setSupportedMarketPairIDs(
 			MarketFormat.exchangePairIDs(
@@ -96,7 +96,7 @@ extension InvestReactor {
 	  // 실패해도 이동은 하되(정보 탭만 비활성) 기존 동작을 유지한다.
 	  let apiMarket = MarketFormat.apiMarket(fromDisplayMarket: marketName)
 	  let fallback = CryptoCellInfo(cryptoName: cryptoName, market: marketName)
-	  return self.mainUseCase.loadCryptoTicker(markets: [apiMarket])
+	  return self.mainUseCase.fetchCryptoTicker(markets: [apiMarket])
 		.map { tickers -> InvestMutation in
 		  guard let ticker = tickers.first else { return .setDetailCrypto(fallback) }
 		  var info = fallback

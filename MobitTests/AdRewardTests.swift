@@ -80,11 +80,11 @@ final class AdRewardTests: XCTestCase {
     let failed = AdRewardUseCase(store: store) { _ in throw AdRewardError.invalidStoredData }
     let claim = try AdRewardClaim(account: .spot(for: .upbit))
     XCTAssertThrowsError(try failed.receive(claim))
-    XCTAssertEqual(try store.load(), [claim])
+    XCTAssertEqual(try store.fetchClaims(), [claim])
     XCTAssertThrowsError(try failed.resetSpotInvestment())
     let restarted = AdRewardUseCase(store: store)
     XCTAssertEqual(try restarted.retryPendingRewards(), [claim])
-    XCTAssertTrue(try store.load().isEmpty)
+    XCTAssertTrue(try store.fetchClaims().isEmpty)
     XCTAssertEqual(UserDataManager.userInformation?.userAvailableBalance, 10_000_000)
   }
 
@@ -214,7 +214,7 @@ final class AdRewardTests: XCTestCase {
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     try Data(#"{"schemaVersion":1,"revision":3,"accounts":[]}"#.utf8).write(to: url)
     let repository = LocalFuturesAccountRepository(fileURL: url)
-    XCTAssertEqual(try repository.ensureAccount(futuresAccount).schemaVersion, 5)
+    XCTAssertEqual(try repository.ensureAccount(futuresAccount).schemaVersion, 6)
     let corrupt = Data(#"{"schemaVersion":2,"revision":3,"accounts":[]}"#.utf8)
     try corrupt.write(to: url)
     XCTAssertThrowsError(try repository.ensureAccount(futuresAccount))
@@ -277,7 +277,8 @@ private final class PendingStoreDouble: AdRewardPendingStore {
   var claims: [AdRewardClaim] = []
   var failSave = false
   var failEmptySave = false
-  func load() throws -> [AdRewardClaim] { claims }
+  // 파일 대신 메모리에 보관한 테스트용 보상 요청을 반환한다.
+  func fetchClaims() throws -> [AdRewardClaim] { claims }
   func save(_ claims: [AdRewardClaim]) throws {
     if failSave || (failEmptySave && claims.isEmpty) { throw CocoaError(.fileWriteOutOfSpace) }
     self.claims = claims

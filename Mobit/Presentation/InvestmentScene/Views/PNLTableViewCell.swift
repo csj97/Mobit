@@ -69,19 +69,18 @@ class PNLTableViewCell: UITableViewCell {
     entryTitle.text = FuturesText.text("investment_entry_price") + " :"
     exitTitle.text = FuturesText.text("investment_exit_price") + " :"
 	let currency = pnlHistory.settlementCurrency
-	let priceDigits = currency == .krw ? 2 : 8
 	let realizedKRW = pnlHistory.realizedProfitLossKRW.map(PortfolioCalculator.double)
 	  ?? (currency == .krw ? pnlHistory.pnl : nil)
 	self.currentPNL = realizedKRW
 
 	self.marketNameLabel.text = pnlHistory.exchangePairID.displayMarket
 	self.pnlLabel.text = realizedKRW.map {
-	  $0.formatSignificantDigits(digits: 2).addComma() + " 원"
+	  $0.formatTradingValue().addComma() + " 원"
 	} ?? "-"
 	self.pnlLabel.adjustsFontSizeToFitWidth = false
-	self.quantityLabel.text = "\(pnlHistory.orderQuantity.formatSignificantDigits(digits: 2))".addComma()
-	self.entryPriceLabel.text = "\(pnlHistory.entryPrice.formatSignificantDigits(digits: priceDigits))".addComma() + (currency == .krw ? "" : " " + currency.rawValue)
-	self.exitPriceLabel.text = "\(pnlHistory.exitPrice.formatSignificantDigits(digits: priceDigits))".addComma() + (currency == .krw ? "" : " " + currency.rawValue)
+	self.quantityLabel.text = "\(pnlHistory.orderQuantity.formatTradingValue())".addComma()
+	self.entryPriceLabel.text = "\(pnlHistory.entryPrice.formatTradingValue())".addComma() + (currency == .krw ? "" : " " + currency.rawValue)
+	self.exitPriceLabel.text = "\(pnlHistory.exitPrice.formatTradingValue())".addComma() + (currency == .krw ? "" : " " + currency.rawValue)
 	self.transactionDateLabel.text = "\(pnlHistory.transactionDate)"
 	
 	self.pnlLabel.textColor = realizedKRW.map { MarketColorPalette.color(forSignedValue: $0) }
@@ -93,30 +92,17 @@ class PNLTableViewCell: UITableViewCell {
   func configure(record: FuturesTransactionRecord, position: FuturesPosition) {
     marketNameLabel.text = "\(FuturesText.symbol(record.instrument)) · \(FuturesText.side(record.side)) \(record.leverage)× · \(FuturesText.text("futures_" + record.kind.rawValue))"
     marketNameLabel.numberOfLines = 0
-    entryTitle.text = FuturesText.text("futures_entry") + " :"
-    exitTitle.text = FuturesText.text(record.kind == .liquidation ? "futures_liquidation_price" : "futures_exit_price") + " :"
-    quantityLabel.text = FuturesText.number(record.quantity, digits: 8)
-    entryPriceLabel.text = FuturesText.number(try? position.averageEntryPrice, digits: 4)
-    exitPriceLabel.text = FuturesText.number(record.price, digits: 4)
-    pnlLabel.text = FuturesText.number(record.realizedPnL) + " KRW"
+    entryTitle.text = FuturesText.text("futures_entry_price") + " :"
+    exitTitle.text = FuturesText.text(record.kind == .liquidation ? "futures_liquidation_exit_price" : "futures_exit_price") + " :"
+    quantityLabel.text = FuturesText.number(record.quantity)
+    entryPriceLabel.text = FuturesText.number(try? record.entryPrice ?? position.averageEntryPrice)
+    exitPriceLabel.text = FuturesText.number(record.price)
+    pnlLabel.text = FuturesText.number(record.realizedPnL) + " \(FuturesText.text("currency_krw_unit"))"
     currentPNL = record.realizedPnL.map { NSDecimalNumber(decimal: $0).doubleValue }
     pnlLabel.textColor = currentPNL.map { MarketColorPalette.color(forSignedValue: $0) } ?? .mobitColors(.textSecondary)
-    if let dateRow = transactionDateLabel.superview as? UIStackView,
-       let priceRow = dateRow.superview as? UIStackView, priceRow !== metricsStackView {
-      priceRow.removeArrangedSubview(dateRow)
-      metricsStackView.addArrangedSubview(dateRow)
-      priceRow.distribution = .fill
-      metricsStackView.distribution = .fill
-      dateRow.axis = .vertical
-      dateRow.spacing = 4
-    }
-    dateTitle.text = FuturesText.text("futures_occurrence") + " :"
-    var dates = FuturesText.date(Date(timeIntervalSince1970: Double(record.intervalStart) / 1000))
-    if let end = record.intervalEndExclusive {
-      dates += " ~\n" + FuturesText.date(Date(timeIntervalSince1970: Double(end) / 1000))
-    }
-    transactionDateLabel.text = dates + "\n" + FuturesText.text("futures_settled") + " " + FuturesText.date(record.recordedAt)
-    transactionDateLabel.numberOfLines = 0
+    dateTitle.text = FuturesText.text("investment_execution_time") + " :"
+    transactionDateLabel.text = FuturesText.occurrenceDate(record)
+    transactionDateLabel.numberOfLines = 1
     layer.cornerRadius = 8
   }
 

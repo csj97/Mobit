@@ -22,7 +22,7 @@ final class DomesticFuturesMarketRepository: FuturesDetailedMarketDataProviding 
         throw FuturesMarketDataError.invalidResponse
       }
       try Self.validatePrice(row.trade_price)
-      return FuturesMarkQuote(instrument: instrument, price: row.trade_price, timestamp: row.timestamp)
+      return FuturesMarkQuote(instrument: instrument, price: row.trade_price, timestamp: row.calculateQuoteTimestamp(exchange: instrument.exchange))
     }
   }
 
@@ -313,7 +313,7 @@ final class DomesticFuturesMarketRepository: FuturesDetailedMarketDataProviding 
     formatter.timeZone = TimeZone(secondsFromGMT: 0)
     formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss zzz"
     guard let date = formatter.date(from: header) else { return nil }
-    return try? FuturesReconciliationState.milliseconds(date)
+    return try? FuturesHistoryCheckState.milliseconds(date)
   }
 }
 
@@ -321,6 +321,33 @@ private struct DomesticTickerDTO: Decodable {
   let market: String
   let trade_price: Decimal
   let timestamp: Int64
+  // 빗썸의 시각 오프셋을 실제 UTC 체결 일시와 대조한다.
+  let trade_date: String?
+  // UTC 체결 일자와 합쳐 초 단위 경계를 복원한다.
+  let trade_time: String?
+  // 현재가 생성 시각에도 같은 오프셋이 있는지 확인한다.
+  let trade_timestamp: Int64?
+
+  func calculateQuoteTimestamp(exchange: Exchange) -> Int64 {
+    guard exchange == .bithumb, let trade_date, let trade_time, let trade_timestamp else { return timestamp }
+    // UTC 문자열로 9시간 오프셋이 입증된 응답만 보정해 실제 미래 시세는 계속 거절한다.
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(secondsFromGMT: 0)
+    formatter.dateFormat = "yyyyMMddHHmmss"
+    formatter.isLenient = false
+    // API의 UTC 체결 일시를 손실 없이 검증할 문자열이다.
+    let tradeTime = trade_date + trade_time
+    guard let date = formatter.date(from: tradeTime), formatter.string(from: date) == tradeTime,
+      let utcTimestamp = try? FuturesHistoryCheckState.milliseconds(date)
+    else { return timestamp }
+    // 빗썸이 KST를 Unix timestamp로 인코딩한 경우에만 제거할 오프셋이다.
+    let offset: Int64 = 9 * 60 * 60 * 1000
+    guard trade_timestamp - trade_timestamp % 1000 == utcTimestamp + offset,
+      timestamp - timestamp % 1000 == utcTimestamp + offset
+    else { return timestamp }
+    return timestamp - offset
+  }
 }
 private struct DomesticTradeDTO: Decodable {
   let market: String
@@ -342,7 +369,7 @@ private struct DomesticCandleDTO: Decodable {
           let date = formatter.date(from: candle_date_time_utc), formatter.string(from: date) == candle_date_time_utc else {
       throw FuturesMarketDataError.invalidResponse
     }
-    let start = try FuturesReconciliationState.milliseconds(date)
+    let start = try FuturesHistoryCheckState.milliseconds(date)
     guard start % duration == 0 else { throw FuturesMarketDataError.invalidResponse }
     for value in [opening_price, high_price, low_price, trade_price] { try DomesticFuturesMarketRepository.validatePrice(value) }
     guard low_price <= min(opening_price, trade_price), high_price >= max(opening_price, trade_price) else {

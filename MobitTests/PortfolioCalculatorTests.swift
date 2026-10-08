@@ -316,7 +316,7 @@ final class PortfolioCalculatorTests: XCTestCase {
 
     XCTAssertEqual(cell.orderTypeLabel.text, "시스템 정산")
     XCTAssertEqual(cell.tradeCryptoPrice.text, "0.00003 BTC")
-    XCTAssertEqual(cell.tradeTotalPrice.text, "600,000 KRW")
+    XCTAssertEqual(cell.tradeTotalPrice.text, "600,000 원")
   }
 
   func testPNLCellDisplaysBTCMarketAndRealizedProfitInKRW() throws {

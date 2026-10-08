@@ -79,12 +79,11 @@ class PNLShareView: UIView {
       exitTitle.text = FuturesText.text("futures_exit_price")
       marketName.numberOfLines = 0
     }
-    let digits = pnlShareUnit.currency == "KRW" ? 2 : 8
     let unit = pnlShareUnit.currency == "KRW" ? " ₩" : " " + pnlShareUnit.currency
 	self.marketName.text = pnlShareUnit.marketDescription
-	self.entryPriceLabel.text = "\(pnlShareUnit.entryPrice.formatSignificantDigits(digits: digits))".addComma()
-	self.exitPriceLabel.text = "\(pnlShareUnit.exitPrice.formatSignificantDigits(digits: digits))".addComma()
-	self.quantityLabel.text = "\(pnlShareUnit.quantity.formatSignificantDigits(digits: 2))".addComma()
+	self.entryPriceLabel.text = "\(pnlShareUnit.entryPrice.formatTradingValue())".addComma()
+	self.exitPriceLabel.text = "\(pnlShareUnit.exitPrice.formatTradingValue())".addComma()
+	self.quantityLabel.text = "\(pnlShareUnit.quantity.formatTradingValue())".addComma()
 	self.transactionDateLabel.text = pnlShareUnit.transactionDate
 	
 	var pnlSign = ""
@@ -98,7 +97,7 @@ class PNLShareView: UIView {
 	  self.pnlLabel.textColor = .mobitColors(.textPrimary)
 	  pnlSign = ""
 	}
-	self.pnlLabel.text = pnlSign + "\(pnlShareUnit.pnl.formatSignificantDigits(digits: digits))".addComma() + unit
+	self.pnlLabel.text = pnlSign + "\(pnlShareUnit.pnl.formatTradingValue())".addComma() + unit
 	
 	var roiSign = ""
 	if pnlShareUnit.roi > 0 {

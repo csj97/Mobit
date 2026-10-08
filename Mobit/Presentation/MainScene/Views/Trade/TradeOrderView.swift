@@ -30,7 +30,8 @@ class TradeOrderView: UIView, ViewRule {
   var prevClosingPrice: Double? = nil
   var isFirstInput: Bool = false
   var reactor: TradeReactor? = nil
-  var callback: ((OrderResult) -> ())? = nil
+  // 주문 결과나 계산기 요청을 상위 화면에 전달한다.
+  var callBack: ((OrderResult) -> ())? = nil
   var cryptoInvestData: CryptoTransactionDataModel? = nil
   var bidView: TradeBidView? = nil
   var askView: TradeAskView? = nil
@@ -50,7 +51,8 @@ class TradeOrderView: UIView, ViewRule {
   static func instanceFromNib(
 	reactor: TradeReactor,
     futuresOrderController: FuturesOrderViewController? = nil,
-	callback: @escaping (OrderResult) -> ()
+	// 주문 결과나 계산기 요청을 상위 화면에 전달한다.
+	callBack: @escaping (OrderResult) -> ()
   ) -> TradeOrderView {
 	
 	let selfView = UINib(
@@ -66,7 +68,13 @@ class TradeOrderView: UIView, ViewRule {
 	
 	selfView.reactor = reactor
     selfView.futuresOrderController = futuresOrderController
-	selfView.callback = callback
+    futuresOrderController?.captureOrderPrice = { [weak reactor] in
+      reactor?.captureFuturesOrderPrice()
+    }
+    futuresOrderController?.orderPriceUpdates = reactor.state.map { [weak reactor] _ in
+      reactor?.captureFuturesOrderPrice()?.quote
+    }.distinctUntilChanged().map { _ in () }
+	selfView.callBack = callBack
 	selfView.setData()
 	selfView.setUI()
 	
@@ -147,10 +155,10 @@ class TradeOrderView: UIView, ViewRule {
 		historyView?.updateHistory()
 	  case .alert(let title, let message):
 		MobitAnalyticsUtil.sendClickEvent(event: .trade_order_buy_fail)
-		self.callback?(.alert(title: title, message: message))
+		self.callBack?(.alert(title: title, message: message))
 	  case .successLottie:
 		MobitAnalyticsUtil.sendClickEvent(event: .trade_order_buy_complete)
-		self.callback?(.successLottie)
+		self.callBack?(.successLottie)
 	  default:
 		break
 	  }
@@ -166,10 +174,10 @@ class TradeOrderView: UIView, ViewRule {
 		historyView?.updateHistory()
 	  case .alert(let title, let message):
 		MobitAnalyticsUtil.sendClickEvent(event: .trade_order_sell_fail)
-		self.callback?(.alert(title: title, message: message))
+		self.callBack?(.alert(title: title, message: message))
 	  case .successLottie:
 		MobitAnalyticsUtil.sendClickEvent(event: .trade_order_sell_complete)
-		self.callback?(.successLottie)
+		self.callBack?(.successLottie)
 	  default:
 		break
 	  }
@@ -273,15 +281,15 @@ class TradeOrderView: UIView, ViewRule {
       of: data, btcKRWPrice: AppDataManager.shared.lastBTCKRWPrice(for: data.staticData.exchange)
     )
     if data.settlementCurrency == .btc {
-      self.cryptoAveragePrice.text = data.staticData.averageBuyPrice.formatSignificantDigits(digits: 8)
+      self.cryptoAveragePrice.text = data.staticData.averageBuyPrice.formatTradingValue()
     } else {
       self.cryptoAveragePrice.text = valuation.averagePriceKRW.map {
-        $0.formatSignificantDigits(digits: 4) + " KRW"
+        $0.formatTradingValue() + " \(FuturesText.text("currency_krw_unit"))"
       } ?? "-"
     }
-    self.cryptoHoldingQuantity.text = data.staticData.holdingQuantity.formatSignificantDigits(digits: 8)
-    self.cryptoEvalPrice.text = valuation.evaluationKRW.map { $0.formatSignificantDigits() + " KRW" } ?? "-"
-    self.cryptoEvalLoss.text = valuation.profitLossKRW.map { $0.formatSignificantDigits(digits: 0) + " KRW" } ?? "-"
+    self.cryptoHoldingQuantity.text = data.staticData.holdingQuantity.formatTradingValue()
+    self.cryptoEvalPrice.text = valuation.evaluationKRW.map { $0.formatTradingValue() + " \(FuturesText.text("currency_krw_unit"))" } ?? "-"
+    self.cryptoEvalLoss.text = valuation.profitLossKRW.map { $0.formatTradingValue() + " \(FuturesText.text("currency_krw_unit"))" } ?? "-"
     self.cryptoProfitRate.text = valuation.profitRate.map { $0.formatSignificantDigits(digits: 2) + " %" } ?? "-"
     let textColor = MarketColorPalette.color(forSignedValue: valuation.profitLossKRW ?? 0)
     self.cryptoEvalLoss.textColor = textColor
@@ -332,7 +340,7 @@ class TradeOrderView: UIView, ViewRule {
   @IBAction func tapOnAveragePriceCalcButton(_ sender: UIButton) {
 	
 	guard let cryptoInvestData = self.cryptoInvestData else { return }
-	self.callback?(.calcuator(cryptoInvestData: cryptoInvestData))
+	self.callBack?(.calcuator(cryptoInvestData: cryptoInvestData))
   }
   
 }

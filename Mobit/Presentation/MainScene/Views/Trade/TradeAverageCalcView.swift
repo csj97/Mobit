@@ -116,14 +116,14 @@ class TradeAverageCalcView: UIView {
   }
 
   private func updateHoldingSummaryText() {
-	guard let holdingQuantity = self.holdingQuantity?.formatSignificantDigits(digits: 2),
+	guard let holdingQuantity = self.holdingQuantity?.formatTradingValue(),
 		  let holdingAverage = self.holdingAverage,
 		  let cryptoSymbol = self.cryptoSymbol else { return }
 
 	self.newBuyQuantityTextField.placeholder = "0 \(cryptoSymbol)"
 	self.newBuyQuantityTextField.setAdaptivePlaceholderColor()
 	self.holdingQuantityLabel.attributedText = makeHighlightedText("\(holdingQuantity) \(cryptoSymbol)", highlights: [cryptoSymbol])
-	self.holdingAverageLabel.attributedText = makeHighlightedText("\(holdingAverage) KRW", highlights: ["KRW"])
+	self.holdingAverageLabel.attributedText = makeHighlightedText("\(holdingAverage) \(FuturesText.text("currency_krw_unit"))", highlights: [FuturesText.text("currency_krw_unit")])
   }
 
   private func makeHighlightedText(_ text: String, highlights: [String]) -> NSMutableAttributedString {
@@ -150,7 +150,7 @@ class TradeAverageCalcView: UIView {
   
   func setData() {
 	self.newBuyQuantitySymbolLabel.text = self.cryptoSymbol
-	self.newBuyAveragePriceCurrencyLabel.text = "KRW"
+	self.newBuyAveragePriceCurrencyLabel.text = FuturesText.text("currency_krw_unit")
 	
 	self.newBuyQuantityTextField.keyboardType = .decimalPad
 	self.newBuyPriceTextField.keyboardType = .decimalPad
@@ -183,7 +183,7 @@ class TradeAverageCalcView: UIView {
 	self.calcResultView.isHidden = false
 
 	let newAverage = (holdingQty * holdingAvg + newQty * newPrice) / totalQty
-	self.averageResultLabel.text = "\(newAverage.formatSignificantDigits(digits: 4)) KRW"
+	self.averageResultLabel.text = "\(newAverage.formatTradingValue()) \(FuturesText.text("currency_krw_unit"))"
   }
   
   /// 닫기 버튼

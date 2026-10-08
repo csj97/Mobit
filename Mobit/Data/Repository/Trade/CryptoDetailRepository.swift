@@ -11,7 +11,8 @@ import RxMoya
 import RxSwift
 
 protocol CryptoDetailRepositoryProtocol {
-  func getCryptoInformation(market: String) -> Observable<CryptoQuoteResponse>
+  // 종목의 시세·시가총액 정보를 조회한다.
+  func fetchCryptoInformation(market: String) -> Observable<CryptoQuoteResponse>
 }
 
 class CryptoDetailRepository: CryptoDetailRepositoryProtocol {
@@ -27,7 +28,8 @@ class CryptoDetailRepository: CryptoDetailRepositoryProtocol {
     self.provider = provider
   }
   
-  func getCryptoInformation(market: String) -> Observable<CryptoQuoteResponse> {
+  // 종목의 시세·시가총액 정보를 조회한다.
+  func fetchCryptoInformation(market: String) -> Observable<CryptoQuoteResponse> {
 	return Observable.create { observer in
 	  let disposable = self.provider.rx.request(
         self.exchangeProvider.makeCryptoInformationTarget(
@@ -65,10 +67,8 @@ class CryptoDetailRepository: CryptoDetailRepositoryProtocol {
 	}
   }
   
-  /// market: KRW-BTC
-  /// to : 조회 기간의 종료 시작 (ex. 2025-06-24T13:56:53+09:00)
-  /// count : 조회할 캔들의 개수
-  func getCandleListMinutes(market: String, unit: Int32, to: String?, count: Int?) -> Observable<[MinuteResponseModel]> {
+  /// 종목·봉 간격·종료 시각·개수를 지정해 거래소의 분봉 데이터를 조회한다.
+  func fetchCandleListMinutes(market: String, unit: Int32, to: String?, count: Int?) -> Observable<[MinuteResponseModel]> {
 	return Observable.create { observer in
 	  let disposable = self.provider.rx.request(
         self.exchangeProvider.makeCandleMinutesTarget(
@@ -105,7 +105,8 @@ class CryptoDetailRepository: CryptoDetailRepositoryProtocol {
 	}
   }
   
-  func getCandleListDays(
+  // 지정한 종목의 일봉 데이터를 조회한다.
+  func fetchCandleListDays(
   market: String,
   to: String?,
   count: Int?,

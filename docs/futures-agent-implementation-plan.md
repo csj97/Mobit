@@ -685,13 +685,13 @@ W6 연결 전 반드시 구분할 한계:
 
 변경 파일:
 
-- `Mobit/Domain/Model/Futures/FuturesReconciliation.swift`: 정산 상태·펀딩 원장·청산 구간·보류 사유.
+- `Mobit/Domain/Model/Futures/FuturesHistoryCheck.swift`: 정산 상태·펀딩 원장·청산 구간·보류 사유.
 - `Mobit/Domain/UseCase/Futures/FuturesReplayCalculator.swift`: 부분 구간 안전성, 사건 순서, 재생·저장 상태 검증.
-- `Mobit/Domain/UseCase/Futures/FuturesReconciliationService.swift`: 활성화 중복 합치기, 순차 네트워크 조회, 진행 상태·오류 분리.
+- `Mobit/Domain/UseCase/Futures/FuturesHistoryCheckService.swift`: 활성화 중복 합치기, 순차 네트워크 조회, 진행 상태·오류 분리.
 - `Mobit/Domain/Model/TradingAccount.swift`, `Mobit/Data/Repository/Futures/LocalFuturesAccountRepository.swift`: schema 4 이관·원자 정산 커밋·미검증 계좌 주문 방어.
 - `Mobit/Domain/Model/Futures/FuturesMarketData.swift`: 이력 사건의 Codable 지원.
 - `Mobit/Application/SceneDelegate.swift`: 앱 활성화 연결.
-- `MobitTests/FuturesReconciliationTests.swift`, 기존 스키마 기대값 테스트와 Xcode target membership.
+- `MobitTests/FuturesHistoryCheckTests.swift`, 기존 스키마 기대값 테스트와 Xcode target membership.
 
 W6 전체 완료 전 남은 사항:
 
@@ -706,7 +706,7 @@ W6 전체 완료 전 남은 사항:
 - 일반 실행: `Mobit-Dev`, iPhone 16 / iOS 26.3.1, 전체 단위 테스트 188개 통과, 실패 0개. 로그 `/tmp/mobit-futures-reconciliation-tests.log`.
 - 이후 테스트만 3개 추가(미검증 계좌의 다른 종목 주문 차단, 네트워크 응답 대기 중 광고 충전 revision 충돌, 페이지 예산 후 체크포인트 보존). 최종 소스에 대해 정산 17개·포지션 저장 9개·광고 16개, 총 42개를 Thread Sanitizer 활성화로 실행하여 통과했다. 이번 실행의 data race 보고 없음. 로그 `/tmp/mobit-futures-reconciliation-tsan.log`.
 - 앞선 W5 실행의 Firebase SDK 경합이 해결됐음을 뜻하지 않는다. SDK 변경/경고 억제는 하지 않았다. 실제 앱의 모든 경합이 없다고 보장하지 않는다.
-- 검증 명령: `xcodebuild -project Mobit.xcodeproj -scheme Mobit-Dev -destination 'platform=iOS Simulator,id=4FC3068F-2934-48BB-A8A0-58192C7AADF6' -disableAutomaticPackageResolution -parallel-testing-enabled NO -enableThreadSanitizer YES -only-testing:MobitTests/FuturesReconciliationTests -only-testing:MobitTests/FuturesPositionRepositoryTests -only-testing:MobitTests/AdRewardTests test`.
+- 검증 명령: `xcodebuild -project Mobit.xcodeproj -scheme Mobit-Dev -destination 'platform=iOS Simulator,id=4FC3068F-2934-48BB-A8A0-58192C7AADF6' -disableAutomaticPackageResolution -parallel-testing-enabled NO -enableThreadSanitizer YES -only-testing:MobitTests/FuturesHistoryCheckTests -only-testing:MobitTests/FuturesPositionRepositoryTests -only-testing:MobitTests/AdRewardTests test`.
 - Xcode 프로젝트 lint, `git diff --check` 통과. 신규 소스 컴파일 오류/경고 없음. 기존 중복 rpath·AppIntents 메타데이터 추출 생략 경고는 남아 있다.
 - 실제 기기 강제 종료, 장기 미접속 실제 계좌 이력 재생, 시세 단절/복귀 UI, Release 빌드/배포는 이번 단위에서 수행하지 않았다. 테스트는 고정 자료·실패 주입으로 검증했다.
 
@@ -716,7 +716,7 @@ W6 전체 완료 전 남은 사항:
 
 1. 정산 결과에 `workLimit`이 있으면 앱 활성 상태에서 1초 후 다음 묶음을 자동 실행한다. 사용자에게 앱 재진입을 반복하도록 요구하지 않는다. 저장된 체크포인트를 다시 읽고 시세 조회 상한도 갱신한다.
 2. `sceneWillResignActive`에서 `suspend()`를 호출한다. 진행 요청을 dispose하고 실행 세대를 변경해 예약된 이어가기를 취소한다. 복귀 시 마지막 성공 커밋부터 재개한다. 타이머의 유효성 검사와 실제 시작을 같은 직렬 큐 작업에서 처리해 중단 후 재활성화되는 경합을 피한다.
-3. `prepareOrder(account:instrument:)`는 대상 계좌만 정산한 뒤 최신 Mark와 계좌 revision을 묶은 `FuturesOrderPreflight`를 만든다. 실행 중인 정산과 겹치면 재시도 필요 오류를 반환한다. 구독 취소/앱 비활성화 시 주문 준비도 중단하며 이전 실행의 dispose가 새 실행의 상태를 덮어쓰지 않게 세대를 확인한다.
+3. `prepareOrder(account:instrument:)`는 대상 계좌만 정산한 뒤 최신 Mark와 계좌 revision을 묶은 `FuturesOrderCheck`를 만든다. 실행 중인 정산과 겹치면 재시도 필요 오류를 반환한다. 구독 취소/앱 비활성화 시 주문 준비도 중단하며 이전 실행의 dispose가 새 실행의 상태를 덮어쓰지 않게 세대를 확인한다.
 4. 주문 사전 검증은 계좌·상품·통화·시세 대상, 5초 이내/미래가 아닌 Mark, 모든 활성 포지션의 검증 시각을 확인한다. 현재가 한 점으로 과거 틈새를 메우지 않는다. 미검증 현재 구간이 있으면 준비 결과를 발급하지 않는다.
 5. 저장소에 `openPosition(_:preflight:now:)` 경로를 추가했다. 잠금 안에서 최신 revision과 시세 신선도·대상·실행 시각을 다시 검증한 뒤 잔액/포지션/원장을 저장한다. 준비 뒤 광고/정산으로 revision이 바뀌면 거절한다. 동일 주문 ID의 성공 재시도는 재차감하지 않는다.
 6. Mark는 청산 위험 검증 자료다. 이번 단계에서 Mark를 실제 체결가로 자동 채우거나 최대 레버리지·수수료를 결정하지 않았다. 체결 가격/호가와 주문 입력 검증은 화면 연결 전 별도 주문 UseCase에서 결합해야 한다. 기존 `expectedRevision` 진입 API는 저수준 저장/테스트 경로이며 UI가 사전 검증을 우회하는 진입점으로 사용하면 안 된다.
@@ -730,11 +730,11 @@ W6 전체 완료 전 남은 사항:
 
 변경 파일:
 
-- `FuturesReconciliationService.swift`: 자동 이어가기·실행 세대·중단·주문 준비.
-- `FuturesOrderPreflight.swift`: 대상·revision·신선도·검증 시각 기준.
+- `FuturesHistoryCheckService.swift`: 자동 이어가기·실행 세대·중단·주문 준비.
+- `FuturesOrderCheck.swift`: 대상·revision·신선도·검증 시각 기준.
 - `LocalFuturesAccountRepository.swift`: 주문 준비 결과를 재검사하는 원자 진입 경로.
 - `SceneDelegate.swift`: 비활성화 중단 연결.
-- `FuturesReconciliationTests.swift`: 자동 이어가기/중단/복귀, 준비 결과와 원자 저장, 광고 충돌, 현재 구간 거절 사례 추가.
+- `FuturesHistoryCheckTests.swift`: 자동 이어가기/중단/복귀, 준비 결과와 원자 저장, 광고 충돌, 현재 구간 거절 사례 추가.
 - Xcode target membership과 본 문서. 기존 사용자 UI 변경은 수정하지 않았다.
 
 검증 결과:
@@ -1017,3 +1017,19 @@ API 근거: [업비트 체결](https://docs.upbit.com/kr/reference/list-pair-tra
 - 백그라운드 미접속 구간 검증, 증거금 소진 청산 및 원자 저장 정책은 유지한다. 현재 시세만 보고 과거 청산을 생략하지 않는다. 화면에는 필요한 주문 결과·포지션 종료·실제 저장 오류만 안내한다.
 
 검증: 현재 코드의 `Mobit-Dev` / iPhone 16 Simulator 앱·테스트 빌드 및 전체 단위 테스트 261개 통과, 실패 0. 정상/검증/보류 상태의 안내 비노출, 주문 버튼 유지, 제출 중 중복 요청 차단과 이전 금액 유지 회귀를 확인했다. `git diff --check` 통과. 로그: `/private/tmp/mobit-futures-silent-flow-20261002.log`.
+
+
+## 2026-10-06 현재가 청산·로딩 보완
+
+최신 변경과 남은 한계는 `futures-session-handoff.md`의 2026-10-06 절 중 마지막 「주문과 접속·복구 검증 분리」를 따른다. 주문에서 과거 조회와 검증 완료 대기는 제거됐으며, 접속·복구 검증 및 화면 독립 보유 종목 감시가 이를 담당한다. ticker 누락 가능성에 대한 30초 보완 검증은 주문과 독립적으로 유지한다.
+
+- 소켓의 국내 KRW 체결 가격과 REST 현재가에서 증거금 소진이 확인되면 과거 API 성공을 기다리지 않고 정산한다. 진입 이후의 신선한 시세만 사용하고, 저장 잠금 안에서 최신 포지션을 다시 확인한다.
+- 관측 시각과 연속 검증 경계를 구분한다. 관측 청산은 과거 미검증 구간을 지우지 않으며 청산 발생 가능 구간으로 남긴다. 과거에 급변했다가 현재 회복한 경우는 기존 과거 재생이 계속 필요하다.
+- 정산 성공 후 앱 내부 배너를 표시하고 자산/내역을 재조회한다. Firebase/OS 알림 권한은 추가하지 않는다. 앱이 꺼져 있는 동안 새 가격을 감지하는 기능은 아니다.
+- 주문 준비 전체 5초 제한(후속 요청으로 30초에서 단축), 광고 로딩 생성 창 기억/제거, 관련 여러 줄 호출·선언 형식 정리를 적용했다.
+- 선물 UI 주문은 연결된 소켓의 표시 가격과 클릭 시각을 고정한다. 과거 조회는 접속·복구 및 독립 보완 검증이 담당한다. 주문은 해당 결과만 확인하며, 복귀 후 새 소켓 가격이 없거나 검증이 끝나지 않으면 즉시 거부한다. 실패한 주문을 나중에 자동 실행하지 않는다.
+- 기존 실제 API 진단 1개는 인증서 오류로 실패했고 분리했다. 나머지 회귀 269개가 통과했다. 실제 시세 전체 수동 검증과 주말 증상 재현은 아직 완료로 표시하지 않는다.
+
+추가 검증: 최종 청산 경계 보완 후 `FuturesHistoryCheckTests` 36개를 Thread Sanitizer 활성화로 실행하여 전부 통과했다. 해당 실행에 Thread Sanitizer data race 경고가 없었다. 로그: `/tmp/mobit-liquidation-tsan-20261006.log`. 일반 회귀 로그: `/tmp/mobit-liquidation-final-20261006.log`. 한영 문자열 문법 검사 및 `git diff --check`도 통과했다.
+
+`Mobit-Release` / Release / generic iOS Simulator 빌드도 통과했다. 로그: `/tmp/mobit-liquidation-release-20261006.log`. 기존 AppIntents 메타데이터 경고만 확인했다. 커밋/푸시는 수행하지 않았다.

@@ -37,7 +37,7 @@ final class AdRewardUseCase {
   func retryPendingRewards() throws -> [AdRewardClaim] {
     Self.lock.lock()
     defer { Self.lock.unlock() }
-    var pending = try store.load()
+    var pending = try store.fetchClaims()
     for claim in unsavedClaims.values {
       if let existing = pending.first(where: { $0.id == claim.id }) {
         guard existing == claim else { throw AdRewardError.conflictingClaim }
@@ -69,7 +69,7 @@ final class AdRewardUseCase {
   func resetSpotInvestment() throws {
     Self.lock.lock()
     defer { Self.lock.unlock() }
-    guard unsavedClaims.isEmpty, try store.load().isEmpty else { throw AdRewardError.pendingReward }
+    guard unsavedClaims.isEmpty, try store.fetchClaims().isEmpty else { throw AdRewardError.pendingReward }
     guard UserDataManager.resetInvestmentData() else { throw AdRewardError.invalidStoredData }
   }
 }

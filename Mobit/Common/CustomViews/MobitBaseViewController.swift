@@ -13,16 +13,20 @@ import UIKit
   @objc optional func hideLoadingIndicator()
 }
 
-class MobitBaseViewController: UIViewController, MobitAlertDelegate, MobitBottomSheetDelegate, LoadingIndicatorProtocol, ViewRule {
+class MobitBaseViewController: UIViewController, MobitAlertDelegate, MobitBottomSheetDelegate, LoadingIndicatorProtocol,
+  ViewRule
+{
+  private weak var loadingIndicatorWindow: UIWindow?
   private var indicatorViewTag: Int { return 999_999 }  // 유일한 태그로 구분
 
   func showLoadingIndicator() {
 	DispatchQueue.main.async {
-	  guard let windowScene = UIApplication.shared.connectedScenes
-		.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
-			let window = windowScene.windows.first(where: { $0.isKeyWindow }) else {
-		return
-	  }
+	  let activeWindow =
+		(UIApplication.shared.connectedScenes
+		.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene)?
+		.windows.first(where: { $0.isKeyWindow })
+	  guard let window = self.viewIfLoaded?.window ?? activeWindow else { return }
+	  self.loadingIndicatorWindow = window
 	  // 이미 있는 경우 중복 생성 방지
 	  if window.viewWithTag(self.indicatorViewTag) != nil { return }
 
@@ -42,15 +46,13 @@ class MobitBaseViewController: UIViewController, MobitAlertDelegate, MobitBottom
 
   func hideLoadingIndicator() {
 	DispatchQueue.main.async {
-	  guard let windowScene = UIApplication.shared.connectedScenes
-		.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
-			let window = windowScene.windows.first(where: { $0.isKeyWindow }) else {
-		return
-	  }
-	  if let overlay = window.viewWithTag(self.indicatorViewTag) as? MobitLottieView {
+	  // 광고가 key window를 바꾸거나 Scene이 비활성화돼도 생성한 창에서 제거한다.
+	  let window = self.loadingIndicatorWindow ?? self.viewIfLoaded?.window
+	  if let overlay = window?.viewWithTag(self.indicatorViewTag) as? MobitLottieView {
 		overlay.stopLottie()
 		overlay.removeFromSuperview()
 	  }
+	  self.loadingIndicatorWindow = nil
 	}
   }
 }

@@ -7,6 +7,10 @@
 import Foundation
 
 extension Double {
+  func formatTradingValue() -> String {
+    TradingNumberFormat.string(self)
+  }
+
   /// 자릿수 끊어내기
   func formatDigits(digits: Int) -> Double {
 	let digitStandard = Double(Int(pow(10.0, Double(digits))))
@@ -65,5 +69,39 @@ extension Double {
 		options: .regularExpression
 	  )
 	}
+  }
+}
+
+enum TradingNumberFormat {
+  static let integerThreshold: Decimal = 1_000
+  static let maximumFractionDigits = 8
+  private static let locale = Locale(identifier: "en_US_POSIX")
+
+  static func truncated(_ value: Decimal) -> Decimal {
+    guard !value.isNaN else { return .nan }
+    let scale = value >= integerThreshold || value <= -integerThreshold ? 0 : maximumFractionDigits
+    var source = value
+    var result = Decimal()
+    // 음수 손익도 소수 부분만 제거해 표시 손실이 커지지 않도록 한다.
+    NSDecimalRound(&result, &source, scale, value < 0 ? .up : .down)
+    return result == 0 ? 0 : result
+  }
+
+  static func string(_ value: Decimal?) -> String {
+    guard let value, !value.isNaN else { return "—" }
+    let formatter = NumberFormatter()
+    formatter.locale = locale
+    formatter.numberStyle = .decimal
+    formatter.usesGroupingSeparator = true
+    formatter.groupingSize = 3
+    formatter.secondaryGroupingSize = 3
+    formatter.minimumFractionDigits = 0
+    formatter.maximumFractionDigits = maximumFractionDigits
+    return formatter.string(from: NSDecimalNumber(decimal: truncated(value))) ?? "—"
+  }
+
+  static func string(_ value: Double) -> String {
+    guard value.isFinite, let decimal = Decimal(string: String(value), locale: locale) else { return "—" }
+    return string(decimal)
   }
 }

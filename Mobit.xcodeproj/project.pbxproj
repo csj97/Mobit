@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		E9967D894A3D4F188F7065B2 /* FuturesInvestmentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76482DD0266E470BBE4DB2F2 /* FuturesInvestmentViewController.swift */; };
 		157F7CC64BAA461BA7E5B642 /* FuturesAccountViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0E097AE7FC1447BBF425A91 /* FuturesAccountViewController.swift */; };
-		310865062E1EC3F40089D67A /* NeumorphicButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 310865052E1EC3F40089D67A /* NeumorphicButton.swift */; };
+		310865062E1EC3F40089D67A /* MobitChargeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 310865052E1EC3F40089D67A /* MobitChargeButton.swift */; };
 		311E33FA2C46068C0054C6BC /* ErrorType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 311E33F92C46068C0054C6BC /* ErrorType.swift */; };
 		311E33FC2C4608800054C6BC /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 311E33FB2C4608800054C6BC /* MainViewController.swift */; };
 		312861062DFE749200541A6A /* MobitTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 312861052DFE749200541A6A /* MobitTabBar.swift */; };
@@ -243,11 +243,11 @@
 		F09228000000000000000004 /* BinanceFuturesNetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09228000000000000000003 /* BinanceFuturesNetworkService.swift */; };
 		F09228000000000000000006 /* BinanceFuturesMarketRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09228000000000000000005 /* BinanceFuturesMarketRepository.swift */; };
 		F09228000000000000000008 /* BinanceFuturesMarketRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09228000000000000000007 /* BinanceFuturesMarketRepositoryTests.swift */; };
-		F09228000000000000000012 /* FuturesReconciliation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09228000000000000000011 /* FuturesReconciliation.swift */; };
+		F09228000000000000000012 /* FuturesHistoryCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09228000000000000000011 /* FuturesHistoryCheck.swift */; };
 		F09228000000000000000014 /* FuturesReplayCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09228000000000000000013 /* FuturesReplayCalculator.swift */; };
-		F09228000000000000000016 /* FuturesReconciliationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09228000000000000000015 /* FuturesReconciliationService.swift */; };
-		F09228000000000000000018 /* FuturesReconciliationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09228000000000000000017 /* FuturesReconciliationTests.swift */; };
-		F09229000000000000000002 /* FuturesOrderPreflight.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09229000000000000000001 /* FuturesOrderPreflight.swift */; };
+		F09228000000000000000016 /* FuturesHistoryCheckService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09228000000000000000015 /* FuturesHistoryCheckService.swift */; };
+		F09228000000000000000018 /* FuturesHistoryCheckTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09228000000000000000017 /* FuturesHistoryCheckTests.swift */; };
+		F09229000000000000000002 /* FuturesOrderCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09229000000000000000001 /* FuturesOrderCheck.swift */; };
 		F09329000000000000000002 /* DomesticFuturesNetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09329000000000000000001 /* DomesticFuturesNetworkService.swift */; };
 		F09329000000000000000004 /* DomesticFuturesMarketRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09329000000000000000003 /* DomesticFuturesMarketRepository.swift */; };
 		F09329000000000000000006 /* DomesticFuturesMarketRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09329000000000000000005 /* DomesticFuturesMarketRepositoryTests.swift */; };
@@ -259,6 +259,7 @@
 		FEA000000000000000000031 /* FearGreedIndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA000000000000000000030 /* FearGreedIndexView.swift */; };
 		FEA000000000000000000041 /* FearGreedInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA000000000000000000040 /* FearGreedInfoViewController.swift */; };
 		FEA000000000000000000051 /* MainHoldingTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA000000000000000000050 /* MainHoldingTableViewCell.swift */; };
+		F10007000000000000000002 /* FuturesCloseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10007000000000000000001 /* FuturesCloseViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -303,7 +304,7 @@
 
 /* Begin PBXFileReference section */
 		76482DD0266E470BBE4DB2F2 /* FuturesInvestmentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesInvestmentViewController.swift; sourceTree = "<group>"; };
-		310865052E1EC3F40089D67A /* NeumorphicButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeumorphicButton.swift; sourceTree = "<group>"; };
+		310865052E1EC3F40089D67A /* MobitChargeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitChargeButton.swift; sourceTree = "<group>"; };
 		311E33F92C46068C0054C6BC /* ErrorType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorType.swift; sourceTree = "<group>"; };
 		311E33FB2C4608800054C6BC /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		312861052DFE749200541A6A /* MobitTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitTabBar.swift; sourceTree = "<group>"; };
@@ -524,11 +525,11 @@
 		F09228000000000000000003 /* BinanceFuturesNetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BinanceFuturesNetworkService.swift; sourceTree = "<group>"; };
 		F09228000000000000000005 /* BinanceFuturesMarketRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BinanceFuturesMarketRepository.swift; sourceTree = "<group>"; };
 		F09228000000000000000007 /* BinanceFuturesMarketRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BinanceFuturesMarketRepositoryTests.swift; sourceTree = "<group>"; };
-		F09228000000000000000011 /* FuturesReconciliation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesReconciliation.swift; sourceTree = "<group>"; };
+		F09228000000000000000011 /* FuturesHistoryCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesHistoryCheck.swift; sourceTree = "<group>"; };
 		F09228000000000000000013 /* FuturesReplayCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesReplayCalculator.swift; sourceTree = "<group>"; };
-		F09228000000000000000015 /* FuturesReconciliationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesReconciliationService.swift; sourceTree = "<group>"; };
-		F09228000000000000000017 /* FuturesReconciliationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesReconciliationTests.swift; sourceTree = "<group>"; };
-		F09229000000000000000001 /* FuturesOrderPreflight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesOrderPreflight.swift; sourceTree = "<group>"; };
+		F09228000000000000000015 /* FuturesHistoryCheckService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesHistoryCheckService.swift; sourceTree = "<group>"; };
+		F09228000000000000000017 /* FuturesHistoryCheckTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesHistoryCheckTests.swift; sourceTree = "<group>"; };
+		F09229000000000000000001 /* FuturesOrderCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesOrderCheck.swift; sourceTree = "<group>"; };
 		F09329000000000000000001 /* DomesticFuturesNetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomesticFuturesNetworkService.swift; sourceTree = "<group>"; };
 		F09329000000000000000003 /* DomesticFuturesMarketRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomesticFuturesMarketRepository.swift; sourceTree = "<group>"; };
 		F09329000000000000000005 /* DomesticFuturesMarketRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomesticFuturesMarketRepositoryTests.swift; sourceTree = "<group>"; };
@@ -538,6 +539,7 @@
 		FEA000000000000000000030 /* FearGreedIndexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FearGreedIndexView.swift; sourceTree = "<group>"; };
 		FEA000000000000000000040 /* FearGreedInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FearGreedInfoViewController.swift; sourceTree = "<group>"; };
 		FEA000000000000000000050 /* MainHoldingTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainHoldingTableViewCell.swift; sourceTree = "<group>"; };
+		F10007000000000000000001 /* FuturesCloseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesCloseViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -604,7 +606,7 @@
 		106A38D319FF4C6C8F986C30 /* Futures */ = {
 			isa = PBXGroup;
 			children = (
-				F09228000000000000000011 /* FuturesReconciliation.swift */,
+				F09228000000000000000011 /* FuturesHistoryCheck.swift */,
 				F09228000000000000000001 /* FuturesMarketData.swift */,
 				F09223000000000000000001 /* FuturesPosition.swift */,
 			);
@@ -633,6 +635,7 @@
 			children = (
 				B0E097AE7FC1447BBF425A91 /* FuturesAccountViewController.swift */,
 				D479337EF3574613A3F16DFD /* FuturesOrderViewController.swift */,
+				F10007000000000000000001 /* FuturesCloseViewController.swift */,
 				EE703D167D454C228F42B31E /* FuturesText.swift */,
 			);
 			path = Views;
@@ -649,9 +652,9 @@
 		300C237261794E9CB15890DB /* Futures */ = {
 			isa = PBXGroup;
 			children = (
-				F09229000000000000000001 /* FuturesOrderPreflight.swift */,
+				F09229000000000000000001 /* FuturesOrderCheck.swift */,
 				F09329000000000000000007 /* FuturesTradingUseCase.swift */,
-				F09228000000000000000015 /* FuturesReconciliationService.swift */,
+				F09228000000000000000015 /* FuturesHistoryCheckService.swift */,
 				F09228000000000000000013 /* FuturesReplayCalculator.swift */,
 				F09223000000000000000003 /* FuturesCalculator.swift */,
 			);
@@ -703,7 +706,7 @@
 		3133E23D2C3E2357000D4B1A /* MobitTests */ = {
 			isa = PBXGroup;
 			children = (
-				F09228000000000000000017 /* FuturesReconciliationTests.swift */,
+				F09228000000000000000017 /* FuturesHistoryCheckTests.swift */,
 				F09228000000000000000007 /* BinanceFuturesMarketRepositoryTests.swift */,
 				F09329000000000000000005 /* DomesticFuturesMarketRepositoryTests.swift */,
 				F09223000000000000000007 /* FuturesPositionRepositoryTests.swift */,
@@ -1274,7 +1277,7 @@
 			children = (
 				C17BB4172E2F27A400BDAA0F /* MobitBaseViewController.swift */,
 				C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */,
-				310865052E1EC3F40089D67A /* NeumorphicButton.swift */,
+				310865052E1EC3F40089D67A /* MobitChargeButton.swift */,
 				C18B1DCA2E39A36F00E25DCE /* NeumorphicView.swift */,
 				C18EED4E2D55A82B0038BBF7 /* MobitSegmentedControl.swift */,
 				C1B327822E85157E00E50C50 /* MobitLottieView.swift */,
@@ -1674,16 +1677,17 @@
 				F09222000000000000000004 /* LocalFuturesAccountRepository.swift in Sources */,
 				F09222000000000000000002 /* TradingAccount.swift in Sources */,
 				F09223000000000000000004 /* FuturesCalculator.swift in Sources */,
-				F09229000000000000000002 /* FuturesOrderPreflight.swift in Sources */,
+				F09229000000000000000002 /* FuturesOrderCheck.swift in Sources */,
 				F09329000000000000000008 /* FuturesTradingUseCase.swift in Sources */,
 				E37F0D76B29045D89D18DDED /* FuturesCoordinator.swift in Sources */,
 				FAFFBE1989D14FF091DD469B /* FuturesAccountReactor.swift in Sources */,
 				157F7CC64BAA461BA7E5B642 /* FuturesAccountViewController.swift in Sources */,
 				F592674570AB41C3985E2306 /* FuturesOrderViewController.swift in Sources */,
+				F10007000000000000000002 /* FuturesCloseViewController.swift in Sources */,
 				C56776BCF4024B309D4DE86F /* FuturesText.swift in Sources */,
-				F09228000000000000000016 /* FuturesReconciliationService.swift in Sources */,
+				F09228000000000000000016 /* FuturesHistoryCheckService.swift in Sources */,
 				F09228000000000000000014 /* FuturesReplayCalculator.swift in Sources */,
-				F09228000000000000000012 /* FuturesReconciliation.swift in Sources */,
+				F09228000000000000000012 /* FuturesHistoryCheck.swift in Sources */,
 				F09228000000000000000006 /* BinanceFuturesMarketRepository.swift in Sources */,
 				F09329000000000000000004 /* DomesticFuturesMarketRepository.swift in Sources */,
 				F09228000000000000000004 /* BinanceFuturesNetworkService.swift in Sources */,
@@ -1699,7 +1703,7 @@
 				C19ED6E92DE31648001ACCF9 /* TradeInformationView.swift in Sources */,
 				31D644482C7257F900C7F96D /* CryptoDetailCoordinator.swift in Sources */,
 				998849E22C524AAA0073A27D /* CryptoCellInfo.swift in Sources */,
-				310865062E1EC3F40089D67A /* NeumorphicButton.swift in Sources */,
+				310865062E1EC3F40089D67A /* MobitChargeButton.swift in Sources */,
 				C18EED512D55FE3D0038BBF7 /* TradeBidView.swift in Sources */,
 				C17DB9722DA5FAF000DA673A /* InvestmentTableViewCell.swift in Sources */,
 				31E208072C4678B9000BFEBC /* MainCoordinator.swift in Sources */,
@@ -1814,7 +1818,7 @@
 				A7E29788888F4EF094B2ABE5 /* FuturesAccountReactorTests.swift in Sources */,
 				F09223000000000000000008 /* FuturesPositionRepositoryTests.swift in Sources */,
 				F09223000000000000000006 /* FuturesCalculatorTests.swift in Sources */,
-				F09228000000000000000018 /* FuturesReconciliationTests.swift in Sources */,
+				F09228000000000000000018 /* FuturesHistoryCheckTests.swift in Sources */,
 				F09228000000000000000008 /* BinanceFuturesMarketRepositoryTests.swift in Sources */,
 				F09329000000000000000006 /* DomesticFuturesMarketRepositoryTests.swift in Sources */,
 				F09222000000000000000020 /* AdRewardTests.swift in Sources */,

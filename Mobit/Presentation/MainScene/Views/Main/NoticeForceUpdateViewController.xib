@@ -45,7 +45,7 @@ MOBIT에 대한 관심과 이용에 진심으로 감사드립니다.
                     <state key="normal" title="업데이트"/>
                     <userDefinedRuntimeAttributes>
                         <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
-                            <real key="value" value="10"/>
+                            <real key="value" value="8"/>
                         </userDefinedRuntimeAttribute>
                     </userDefinedRuntimeAttributes>
                     <connections>
@@ -71,7 +71,7 @@ MOBIT에 대한 관심과 이용에 진심으로 감사드립니다.
             <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
         <namedColor name="notice_update_button">
-            <color red="0.55686277149999996" green="0.52941179279999995" blue="0.91764706370000004" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+            <color red="0.07058823529411765" green="0.2549019607843137" blue="0.4392156862745098" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
         <namedColor name="text_secondary">
             <color red="0.33333333333333331" green="0.33333333333333331" blue="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>

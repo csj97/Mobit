@@ -26,6 +26,7 @@ class TradeReactor: Reactor {
   private let disposeBag = DisposeBag()
   private let tickerSocketService: TickerSocketServiceProtocol
   private let orderBookSocketService: OrderBookSocketServiceProtocol
+  private var lastSocketOrderQuote: FuturesMarkQuote?
   private var isSettlementRateRefreshInFlight = false
   private var nextSettlementRateRefreshAllowedAt = Date.distantPast
   private var isSocketMonitoringEnabled = false
@@ -86,6 +87,22 @@ class TradeReactor: Reactor {
       .map { [weak self] ticker -> TradeMutation? in
         guard let self = self,
               self.exchange == ExchangeSelectionStore.currentExchange else { return nil }
+        if ticker.tradePrice.isFinite, ticker.tradePrice > 0, ticker.code.hasPrefix("KRW-") {
+          FuturesHistoryCheckService.shared.observe(
+            FuturesMarkQuote(
+              instrument: TradingInstrumentID(
+                exchange: self.exchange,
+                product: .perpetual,
+                rawSymbol: ticker.code,
+                settlementCurrency: .krw
+              ),
+              price: Decimal(ticker.tradePrice),
+              timestamp: ticker.tradeTimestamp
+            ),
+            displayTimestamp: ticker.timestamp
+          )
+        }
+
 
         // 결제용 BTC/KRW를 함께 구독하므로 종목을 구분하지 않으면 선택 종목 시세가 덮인다.
         if let settlementRateMarketCode = self.settlementRateMarketCode,
@@ -99,6 +116,19 @@ class TradeReactor: Reactor {
         }
 
         guard ticker.code == self.selectedMarketCode else { return nil }
+
+        if ticker.tradePrice.isFinite, ticker.tradePrice > 0, ticker.timestamp > 0 {
+          self.lastSocketOrderQuote = FuturesMarkQuote(
+            instrument: TradingInstrumentID(
+              exchange: self.exchange,
+              product: .perpetual,
+              rawSymbol: ticker.code,
+              settlementCurrency: .krw
+            ),
+            price: Decimal(ticker.tradePrice),
+            timestamp: ticker.timestamp
+          )
+        }
 
         var updatedCryptoCellInfo = self.selectCrypto
         updatedCryptoCellInfo.tradePrice = ticker.tradePrice
@@ -144,9 +174,12 @@ extension TradeReactor {
     case disconnectSockets(userInitiated: Bool)
     case pauseSocket
     case resumeSocket
-	case getCryptoInformation
-	case getCandleListMinutes(market: String, unit: Int32 = 60, to: String?, count: Int?)
-	case getCandleListDays(market: String, to: String?, count: Int?, convertingPriceUnit: String?)
+	// 종목 상세 정보를 조회해 화면에 반영하도록 요청한다.
+	case loadCryptoInformation
+	// 분봉 데이터를 조회해 차트에 반영하도록 요청한다.
+	case loadCandleListMinutes(market: String, unit: Int32 = 60, to: String?, count: Int?)
+	// 일봉 데이터를 조회해 차트에 반영하도록 요청한다.
+	case loadCandleListDays(market: String, to: String?, count: Int?, convertingPriceUnit: String?)
 	case setSelectedWholeTab(selectedWholeTab: SelectedWholeTab)
     case loadTransactions
     case validateSocketState
@@ -192,15 +225,15 @@ extension TradeReactor {
     case .resumeSocket:
       return self.resumeSocket()
 	  
-	case .getCryptoInformation:
+	case .loadCryptoInformation:
 	  let symbol = self.selectCrypto.market.components(separatedBy: "/").first ?? ""
-	  return self.getCryptoInformation(market: symbol)
+	  return self.loadCryptoInformation(market: symbol)
 	  
-	case .getCandleListMinutes(let market, let unit, let to, let count):
-	  return self.getCandleListMinutes(market: market, unit: unit, to: to, count: count)
+	case .loadCandleListMinutes(let market, let unit, let to, let count):
+	  return self.loadCandleListMinutes(market: market, unit: unit, to: to, count: count)
 	  
-	case .getCandleListDays(let market, let to, let count, let convertingPriceUnit):
-	  return self.getCandleListDays(market: market, to: to, count: count, convertingPriceUnit: convertingPriceUnit)
+	case .loadCandleListDays(let market, let to, let count, let convertingPriceUnit):
+	  return self.loadCandleListDays(market: market, to: to, count: count, convertingPriceUnit: convertingPriceUnit)
 	  
 	case .setSelectedWholeTab(let tab):
 	  return self.setSelectedWholeTab(tab: tab)
@@ -264,7 +297,19 @@ extension TradeReactor {
     ])
   }
 
+  func captureFuturesOrderPrice(now: Date = Date()) -> FuturesOrderPrice? {
+    guard tickerSocketService.isConnected,
+          exchange == ExchangeSelectionStore.currentExchange,
+          let quote = lastSocketOrderQuote,
+          let displayedPrice = currentState.cryptoCellInfo?.tradePrice,
+          displayedPrice.isFinite, Decimal(displayedPrice) == quote.price,
+          let requestedAt = try? FuturesHistoryCheckState.milliseconds(now),
+          quote.timestamp <= requestedAt else { return nil }
+    return FuturesOrderPrice(quote: quote, requestedAt: requestedAt)
+  }
+
   private func disconnectSockets(userInitiated: Bool) -> Observable<TradeMutation> {
+    lastSocketOrderQuote = nil
     isSocketMonitoringEnabled = false
     tickerSocketService.disconnect(userInitiated: userInitiated)
     orderBookSocketService.disconnect(userInitiated: userInitiated)
@@ -283,6 +328,7 @@ extension TradeReactor {
     isSocketMonitoringEnabled = true
     tickerSocketService.reconnectIfNeeded()
     if !tickerSocketService.isConnected {
+      lastSocketOrderQuote = nil
       tickerSocketService.connect()
     }
 
@@ -309,6 +355,7 @@ extension TradeReactor {
     guard isSocketMonitoringEnabled else { return .empty() }
 
     if !tickerSocketService.isConnected {
+      lastSocketOrderQuote = nil
       tickerSocketService.reconnectIfNeeded()
       if !tickerSocketService.isConnected { tickerSocketService.connect() }
       tickerSocketService.subscribe(markets: tickerMarketsToSubscribe)
@@ -333,7 +380,7 @@ extension TradeReactor {
 
     isSettlementRateRefreshInFlight = true
     nextSettlementRateRefreshAllowedAt = Date().addingTimeInterval(15)
-    return mainUseCase.loadCryptoTicker(markets: [market])
+    return mainUseCase.fetchCryptoTicker(markets: [market])
       .timeout(.seconds(10), scheduler: MainScheduler.asyncInstance)
       .flatMap { [weak self] tickers -> Observable<TradeMutation> in
         guard let self else { return .empty() }
@@ -363,22 +410,25 @@ extension TradeReactor {
     return [self.selectedMarketCode, settlementRateMarketCode]
   }
 
-  private func getCryptoInformation(market: String) -> Observable<TradeMutation> {
-	return self.cryptoDetailUseCase.getCryptoInformation(market: market)
+  // 조회한 종목 정보를 화면 상태 변경 이벤트로 변환한다.
+  private func loadCryptoInformation(market: String) -> Observable<TradeMutation> {
+	return self.cryptoDetailUseCase.fetchCryptoInformation(market: market)
 	  .map { cryptoQuoteResponse in
 		return .setCryptoInformation(cryptoQuoteResponse: cryptoQuoteResponse)
 	  }
   }
   
-  private func getCandleListMinutes(market: String, unit: Int32 = 60, to: String?, count: Int?) -> Observable<TradeMutation> {
-	return self.cryptoDetailUseCase.getCandleMinutes(market: market, unit: unit, to: to, count: count)
+  // 조회한 분봉 데이터를 차트 상태 변경 이벤트로 변환한다.
+  private func loadCandleListMinutes(market: String, unit: Int32 = 60, to: String?, count: Int?) -> Observable<TradeMutation> {
+	return self.cryptoDetailUseCase.fetchCandleMinutes(market: market, unit: unit, to: to, count: count)
 	  .map { minuteResponseModelList in
 		return .setCandleListMinutes(minuteResponseModelList: minuteResponseModelList)
 	  }
   }
   
-  private func getCandleListDays(market: String, to: String?, count: Int?, convertingPriceUnit: String?) -> Observable<TradeMutation> {
-	return self.cryptoDetailUseCase.getCandleDays(
+  // 조회한 일봉 데이터를 차트 상태 변경 이벤트로 변환한다.
+  private func loadCandleListDays(market: String, to: String?, count: Int?, convertingPriceUnit: String?) -> Observable<TradeMutation> {
+	return self.cryptoDetailUseCase.fetchCandleDays(
 	  market: market,
 	  to: to,
 	  count: count,

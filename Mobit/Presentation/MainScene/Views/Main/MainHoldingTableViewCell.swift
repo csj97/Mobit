@@ -114,36 +114,18 @@ final class MainHoldingTableViewCell: UITableViewCell {
 
   // MARK: - Formatting
 
-  /// 금액 표시용 소수점 자리수. 세 자리수(100) 이상이면 소수점을 버린다.
-  /// 예: 80.5 → 유지, 104 → 정수. 1 미만(BTC 마켓 등)은 소수점 유지.
-  private static func priceFractionDigits(for value: Double) -> Int {
-    let magnitude = abs(value)
-    if magnitude >= 100 { return 0 }
-    if magnitude >= 1 { return 2 }
-    return 8
-  }
-
   private static func formatPrice(_ value: Double) -> String {
-    guard value != 0 else { return "0" }
-    return formatNumber(value, maxFraction: priceFractionDigits(for: value))
+    value.formatTradingValue()
   }
 
   private static func formatQuantity(_ value: Double) -> String {
-    return formatNumber(value, maxFraction: 8)
+    value.formatTradingValue()
   }
 
   private static func formatSignedAmount(_ value: Double) -> String {
     guard value != 0 else { return "0" }
     let prefix = value > 0 ? "+" : ""
-    return prefix + formatNumber(value, maxFraction: priceFractionDigits(for: value))
-  }
-
-  private static func formatNumber(_ value: Double, maxFraction: Int) -> String {
-    let formatter = NumberFormatter()
-    formatter.numberStyle = .decimal
-    formatter.minimumFractionDigits = 0
-    formatter.maximumFractionDigits = maxFraction
-    return formatter.string(from: NSNumber(value: value)) ?? "0"
+    return prefix + value.formatTradingValue()
   }
 
   // 국내 관례: 이익=빨강, 손실=파랑

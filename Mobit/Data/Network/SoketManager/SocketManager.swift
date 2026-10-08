@@ -27,8 +27,13 @@ protocol SocketConnectable: AnyObject {
 
 protocol WebSocketClientProtocol: SocketConnectable {
   var onConnected: Observable<Void> { get }
+  var connectionChanges: Observable<Bool> { get }
   var rawDataStream: Observable<Data> { get }
   func sendSubscription(codes: [String])
+}
+
+extension WebSocketClientProtocol {
+  var connectionChanges: Observable<Bool> { onConnected.map { true } }
 }
 
 protocol TickerSocketServiceProtocol: SocketConnectable {
@@ -203,6 +208,70 @@ final class OrderBookSocketService: OrderBookSocketServiceProtocol {
     guard force || sentMarket != subscribedMarket else { return }
     client.sendSubscription(codes: [subscribedMarket])
     sentMarket = subscribedMarket
+  }
+}
+
+// 화면용 구독과 분리해 거래소 전환 중에도 모든 선물 보유 종목을 감시한다.
+final class FuturesPositionSocketMonitor: FuturesPositionMonitoring {
+  private struct Connection {
+    let client: WebSocketClientProtocol
+    let ticker: TickerSocketService
+    let bag: DisposeBag
+    var instruments: Set<TradingInstrumentID>
+  }
+  private var connections: [Exchange: Connection] = [:]
+  private let subject = PublishSubject<FuturesMonitorEvent>()
+  var events: Observable<FuturesMonitorEvent> { subject.asObservable() }
+
+  func watch(_ instruments: [TradingInstrumentID]) {
+    DispatchQueue.main.async { [weak self] in self?.update(instruments) }
+  }
+
+  func suspend() { watch([]) }
+
+  private func update(_ instruments: [TradingInstrumentID]) {
+    let grouped = Dictionary(grouping: instruments.filter { $0.usesDomesticSpotPrice }, by: \.exchange)
+    for exchange in Array(connections.keys) where grouped[exchange] == nil {
+      connections.removeValue(forKey: exchange)?.client.disconnect(userInitiated: true)
+    }
+    for (exchange, instruments) in grouped {
+      let desired = Set(instruments)
+      if var connection = connections[exchange] {
+        guard connection.instruments != desired else { continue }
+        connection.instruments = desired
+        connections[exchange] = connection
+        connection.ticker.subscribe(markets: instruments.map(\.rawSymbol))
+        continue
+      }
+      let provider = ExchangeAdapterRegistry.provider(for: exchange)
+      let client = provider.makeTickerWebSocketClient()
+      let ticker = TickerSocketService(client: client, exchangeProvider: provider)
+      let bag = DisposeBag()
+      connections[exchange] = Connection(client: client, ticker: ticker, bag: bag, instruments: desired)
+      client.connectionChanges.subscribe(onNext: { [weak self] connected in
+        self?.subject.onNext(.connection(exchange, connected))
+      }).disposed(by: bag)
+      ticker.stream.subscribe(onNext: { [weak self] tick in
+        guard tick.tradePrice.isFinite, tick.tradePrice > 0 else { return }
+        self?.subject.onNext(
+          .quote(
+            FuturesMarkQuote(
+              instrument: TradingInstrumentID(
+                exchange: exchange,
+                product: .perpetual,
+                rawSymbol: tick.code,
+                settlementCurrency: .krw
+              ),
+              price: Decimal(tick.tradePrice),
+              timestamp: tick.tradeTimestamp
+            ),
+            displayTimestamp: tick.timestamp
+          )
+        )
+      }).disposed(by: bag)
+      ticker.subscribe(markets: instruments.map(\.rawSymbol))
+      ticker.connect()
+    }
   }
 }
 

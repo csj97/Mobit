@@ -12,12 +12,6 @@ import Then
 
 class OrderBookCell: UITableViewCell {
     
-    private static let priceFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        return formatter
-    }()
-    
     private var obBarWidthRatio: CGFloat = 0
     
   let rootFlexContainer = UIView()
@@ -141,14 +135,8 @@ class OrderBookCell: UITableViewCell {
 	askMaxSize: Double,
 	bidMaxSize: Double
   ) {
-    if obPrice < 1 {
-      self.obPrice.text = formatOrderPrice(obPrice)
-    } else {
-      self.obPrice.text = Self.priceFormatter.string(
-        from: NSNumber(value: obPrice)
-      )
-    }
-	self.obSizeLabel.text = String(obSize.formatSignificantDigits(digits: 10))
+    self.obPrice.text = obPrice.formatTradingValue()
+	self.obSizeLabel.text = String(obSize.formatTradingValue())
     switch obType {
     case .ask:
 	  self.backgroundColor = MarketColorPalette.riseBackgroundColor
@@ -167,10 +155,4 @@ class OrderBookCell: UITableViewCell {
 	self.obChangeRate.textColor = MarketColorPalette.color(forSignedValue: changeRate)
   }
   
-  func formatOrderPrice(_ obPrice: Double?, precision: Int = 8) -> String {
-    guard let price = obPrice else {
-      return "N/A"  // 값이 없을 때 반환할 기본 문자열
-    }
-    return String(format: "%.\(precision)f", price)
-  }
 }

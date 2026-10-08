@@ -23,6 +23,7 @@
                 <outlet property="totalEvalProfitLoss" destination="nY4-PA-kiv" id="nvH-xx-suc"/>
                 <outlet property="totalProfitRate" destination="f6d-js-1Gl" id="R92-2K-rtg"/>
                 <outlet property="totalUserBalance" destination="uR8-CE-EKy" id="hj8-jD-LEe"/>
+                <outlet property="totalEvaluationTitle" destination="8aC-TP-yIU" id="Fet-Ti-tle"/>
                 <outlet property="transactionTableview" destination="vcj-0Q-9QG" id="D0H-G1-RJo"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
@@ -88,11 +89,10 @@
                                                     <color key="textColor" name="investment_text_secondary"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9ci-Re-J1f" customClass="NeumorphicButton" customModule="Mobit" customModuleProvider="target">
+                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9ci-Re-J1f" customClass="MobitChargeButton" customModule="Mobit" customModuleProvider="target">
                                                     <rect key="frame" x="273" y="0.0" width="80" height="40"/>
                                                     <constraints>
-                                                        <constraint firstAttribute="height" constant="40" id="0vW-Gp-mGk"/>
-                                                        <constraint firstAttribute="width" constant="80" id="SfW-DH-ITw"/>
+                                                        <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="44" id="0vW-Gp-mGk"/>
                                                     </constraints>
                                                     <fontDescription key="fontDescription" type="system" weight="medium" pointSize="16"/>
                                                     <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>

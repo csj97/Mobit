@@ -15,12 +15,14 @@ enum AppState {
 class CustomWindow: UIWindow {
   override init(frame: CGRect) {
 	super.init(frame: frame)
+	tintColor = .mobitColors(.accentPrimary)
 	
 	setupObservers()
   }
   
   required init?(coder: NSCoder) {
 	super.init(coder: coder)
+	tintColor = .mobitColors(.accentPrimary)
 	
 	setupObservers()
   }
@@ -44,7 +46,7 @@ class CustomWindow: UIWindow {
   // 앱이 Foreground로 돌아올 때
   @objc private func mobitDidBecomeActive() {
 	DispatchQueue.main.async {
-	  guard let controllable = self.getSocketControllableController(appState: .foreground) else { return }
+	  guard let controllable = self.prepareSocketControllableController(appState: .foreground) else { return }
 	  controllable.resumeSocket()
 	}
 	//	getVisibleController()?.resumeSocket()
@@ -53,7 +55,7 @@ class CustomWindow: UIWindow {
   // 앱이 백그라운드로 전환될 때
   @objc private func mobitWillResignActive() {
 	DispatchQueue.main.async {
-	  guard let controllableVC = self.getSocketControllableController(appState: .background) else { return }
+	  guard let controllableVC = self.prepareSocketControllableController(appState: .background) else { return }
 	  controllableVC.pauseSocket()
 	}
 	//	getVisibleController()?.pauseSocket()
@@ -71,7 +73,8 @@ class CustomWindow: UIWindow {
 	}
   }
   
-  private func getSocketControllableController(appState: AppState) -> SocketControllable? {
+  // 현재 화면의 소켓 제어 대상을 찾고 탭 화면은 소켓 상태도 반영한다.
+  private func prepareSocketControllableController(appState: AppState) -> SocketControllable? {
 	guard let rootVC = UIApplication.shared.connectedScenes
 	  .compactMap({ $0 as? UIWindowScene })
 	  .flatMap({ $0.windows })

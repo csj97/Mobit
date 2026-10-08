@@ -40,6 +40,7 @@ enum AdRewardError: Error {
 }
 
 protocol AdRewardPendingStore {
-  func load() throws -> [AdRewardClaim]
+  // 로컬 저장소에서 지급 대기 중인 광고 보상 요청을 읽는다.
+  func fetchClaims() throws -> [AdRewardClaim]
   func save(_ claims: [AdRewardClaim]) throws
 }

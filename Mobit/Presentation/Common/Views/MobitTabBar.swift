@@ -138,7 +138,7 @@ final class MobitTabBar: UIView {
 		let isButtonSelected = selectedIndex == i
 		let image = item.image
 		let textColor = isButtonSelected
-		  ? MarketColorPalette.riseRedFallBlueFallColor
+		  ? UIColor.mobitColors(.accentPrimary)
 		  : UIColor.mobitColors(.tabBarItem)
 		let font = isButtonSelected ? UIFont.systemFont(ofSize: 14, weight: .bold) : UIFont.systemFont(ofSize: 12, weight: .regular)
 		let selectedImage = tabImageViews[i]

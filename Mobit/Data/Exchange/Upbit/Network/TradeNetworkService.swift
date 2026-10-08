@@ -20,42 +20,43 @@ enum CandleTimeType {
 }
 
 enum TradeNetworkService {
-  // market (KRW-BTC), to (조회 종료 시각), count (조회 캔들 개수)
-  case getCandleListMinutes(market: String, unit: Int32, to: String?, count: Int?)
-  case getCandleListDays(market: String, to: String?, count: Int?, convertingPriceUnit: String?)
+  // 종목·봉 간격·조회 범위를 지정한 업비트 분봉 요청을 정의한다.
+  case fetchCandleListMinutes(market: String, unit: Int32, to: String?, count: Int?)
+  // 종목과 조회 범위를 지정한 업비트 일봉 요청을 정의한다.
+  case fetchCandleListDays(market: String, to: String?, count: Int?, convertingPriceUnit: String?)
 }
 
 extension TradeNetworkService: TargetType {
   var baseURL: URL {
 	switch self {
-	case .getCandleListMinutes:
+	case .fetchCandleListMinutes:
 	  return URL(string: "https://api.upbit.com/v1/candles")!
-	case .getCandleListDays:
+	case .fetchCandleListDays:
 	  return URL(string: "https://api.upbit.com/v1/candles")!
 	}
   }
   
   var path: String {
 	switch self {
-	case .getCandleListMinutes(_, let unit, _, _):
+	case .fetchCandleListMinutes(_, let unit, _, _):
 	  return "/minutes/\(unit)"
-	case .getCandleListDays:
+	case .fetchCandleListDays:
 	  return "/days"
 	}
   }
   
   var method: Moya.Method {
 	switch self {
-	case .getCandleListMinutes:
+	case .fetchCandleListMinutes:
 	  return .get
-	case .getCandleListDays:
+	case .fetchCandleListDays:
 	  return .get
 	}
   }
   
   var task: Moya.Task {
 	switch self {
-	case .getCandleListMinutes(let market, _, let to, let count):
+	case .fetchCandleListMinutes(let market, _, let to, let count):
 	  let param: [String: Any] = [
 		"market": market,
 		"to": to ?? "",
@@ -63,7 +64,7 @@ extension TradeNetworkService: TargetType {
 	  ]
 	  return .requestParameters(parameters: param, encoding: URLEncoding.queryString)
 	  
-	case .getCandleListDays(let market, let to, let count, let convertingPriceUnit):
+	case .fetchCandleListDays(let market, let to, let count, let convertingPriceUnit):
 	  var param: [String: Any] = [
 		"market": market
 	  ]

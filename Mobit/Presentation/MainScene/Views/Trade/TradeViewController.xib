@@ -171,7 +171,7 @@
                     <rect key="frame" x="0.0" y="772" width="393" height="80"/>
                     <color key="backgroundColor" systemColor="secondarySystemBackgroundColor"/>
                     <constraints>
-                        <constraint firstAttribute="height" constant="80" id="XRL-N0-cnv"/>
+                        <constraint firstAttribute="height" constant="50" id="XRL-N0-cnv"/>
                     </constraints>
                 </view>
             </subviews>
@@ -194,7 +194,7 @@
                 <constraint firstItem="xWf-v8-Qze" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="dGF-ns-als"/>
                 <constraint firstItem="ZMF-zH-Gij" firstAttribute="trailing" secondItem="fnl-2z-Ty3" secondAttribute="trailing" id="fON-go-rfg"/>
                 <constraint firstItem="tyi-4Y-wRR" firstAttribute="top" secondItem="om4-Hj-cJa" secondAttribute="bottom" id="gJG-so-d4h"/>
-                <constraint firstAttribute="bottom" secondItem="tyi-4Y-wRR" secondAttribute="bottom" id="hPN-Go-ZYA"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="bottom" secondItem="tyi-4Y-wRR" secondAttribute="bottom" id="hPN-Go-ZYA"/>
                 <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="om4-Hj-cJa" secondAttribute="trailing" id="jCv-Y8-Emw"/>
                 <constraint firstItem="VqE-1C-Oab" firstAttribute="top" secondItem="xWf-v8-Qze" secondAttribute="bottom" id="qHP-TY-YI0"/>
                 <constraint firstItem="VqE-1C-Oab" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="vGE-fH-1e9"/>

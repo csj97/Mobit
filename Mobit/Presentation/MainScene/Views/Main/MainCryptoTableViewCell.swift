@@ -84,13 +84,7 @@ class MainCryptoTableViewCell: UITableViewCell {
 	  return
 	}
 	
-	let numberFormatter = NumberFormatter()
-	numberFormatter.numberStyle = .decimal
-	if tradePrice < 1 {
-	  self.cryptoPrice.text = formatDecimalPoint(tradePrice)
-	} else {
-	  self.cryptoPrice.text = numberFormatter.string(from: NSNumber(value: tradePrice))
-	}
+	self.cryptoPrice.text = tradePrice.formatTradingValue()
 	
 	self.cryptoChangeRate.text = String(format: "%.2f%%", signedChangeRate * 100)
 	
@@ -179,31 +173,19 @@ class MainCryptoTableViewCell: UITableViewCell {
 	cryptoAccTradePrice.skeletonCornerRadius = 4
   }
   
-  /// 1보다 작은 금액 Format 설정
-  /// - Parameters:
-  ///   - tradePrice: 변환할 거래 가격
-  ///   - precision: 소수점 자리 수
-  func formatDecimalPoint(
-	_ tradePrice: Double?,
-	_ precision: Int = 8
-  ) -> String {
-	guard let price = tradePrice else {
-	  return "N/A"  // 값이 없을 때 반환할 기본 문자열
-	}
-	
-	return String(format: "%.\(precision)f", price)
-  }
-  
   /// 거래대금 Format
   func formatTradeVolume(
 	for tradeVolume: Double,
 	cryptoSymbolType: String
   ) -> String {
+	// 거래대금 뒤에 붙일 기존 표시 단위를 보관한다.
 	var currency: String = ""
+	// 마켓별 기존 자릿수로 변환한 거래대금을 보관한다.
 	var formatVolume: String = ""
+	// 거래대금에 적용했던 마켓별 소수점 자릿수를 복원한다.
 	let numberFormatter = NumberFormatter()
 	numberFormatter.numberStyle = .decimal
-	
+
 	if cryptoSymbolType == CryptoSymbolType.krw.rawValue {
 	  numberFormatter.maximumFractionDigits = 0
 	  formatVolume = numberFormatter.string(from: NSNumber(value: tradeVolume / 1_000_000)) ?? "0"
@@ -213,12 +195,7 @@ class MainCryptoTableViewCell: UITableViewCell {
 	  formatVolume = numberFormatter.string(from: NSNumber(value: tradeVolume)) ?? "0"
 	  currency = ""
 	}
-	
-//	guard let formatVolume = numberFormatter.string(
-//	  from: NSNumber(value: tradeVolume / 1_000_000)
-//	) else { return "-" }
-	
-	
+
 	return formatVolume + currency
   }
   

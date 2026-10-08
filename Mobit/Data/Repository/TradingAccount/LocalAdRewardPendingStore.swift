@@ -21,7 +21,8 @@ final class LocalAdRewardPendingStore: AdRewardPendingStore {
       .appendingPathComponent("AdRewards", isDirectory: true).appendingPathComponent("pending.json")
   }
 
-  func load() throws -> [AdRewardClaim] {
+  // 로컬 저장소에서 지급 대기 중인 광고 보상 요청을 읽는다.
+  func fetchClaims() throws -> [AdRewardClaim] {
     let data: Data
     do { data = try Data(contentsOf: resolvedURL()) }
     catch let error as CocoaError where error.code == .fileReadNoSuchFile { return [] }

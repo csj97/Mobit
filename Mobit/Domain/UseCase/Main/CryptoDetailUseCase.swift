@@ -9,7 +9,8 @@ import Foundation
 import RxSwift
 
 protocol CryptoDetailUseCaseProtocol {
-  func getCryptoInformation(market: String) -> Observable<CryptoQuoteResponse>
+  // 종목의 시세·시가총액 정보를 조회한다.
+  func fetchCryptoInformation(market: String) -> Observable<CryptoQuoteResponse>
 }
 
 class CryptoDetailUseCase: CryptoDetailUseCaseProtocol {
@@ -21,19 +22,19 @@ class CryptoDetailUseCase: CryptoDetailUseCaseProtocol {
     self.cryptoDetailRepository = cryptoDetailRepository
   }
   
-  /// crypto 정보 가져오기
-  func getCryptoInformation(market: String) -> Observable<CryptoQuoteResponse> {
-	self.cryptoDetailRepository.getCryptoInformation(market: market)
+  /// 종목의 시세·시가총액 정보를 조회한다.
+  func fetchCryptoInformation(market: String) -> Observable<CryptoQuoteResponse> {
+	self.cryptoDetailRepository.fetchCryptoInformation(market: market)
   }
   
-  /// crypto candle 분봉 데이터 가져오기
-  func getCandleMinutes(market: String, unit: Int32, to: String?, count: Int?) -> Observable<[MinuteResponseModel]> {
-	self.cryptoDetailRepository.getCandleListMinutes(market: market, unit: unit, to: to, count: count)
+  /// 지정한 종목의 분봉 데이터를 조회한다.
+  func fetchCandleMinutes(market: String, unit: Int32, to: String?, count: Int?) -> Observable<[MinuteResponseModel]> {
+	self.cryptoDetailRepository.fetchCandleListMinutes(market: market, unit: unit, to: to, count: count)
   }
   
-  /// crypto candle 일봉 데이터 가져오기
-  func getCandleDays(market: String, to: String?, count: Int?, convertingPriceUnit: String?) -> Observable<[DayResponseModel]> {
-	self.cryptoDetailRepository.getCandleListDays(
+  /// 지정한 종목의 일봉 데이터를 조회한다.
+  func fetchCandleDays(market: String, to: String?, count: Int?, convertingPriceUnit: String?) -> Observable<[DayResponseModel]> {
+	self.cryptoDetailRepository.fetchCandleListDays(
 	  market: market,
 	  to: to,
 	  count: count,

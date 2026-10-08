@@ -25,6 +25,8 @@ enum InvestSortType: String {
 class InvestmentViewController: MobitBaseViewController {
   @IBOutlet weak var transactionTableview: UITableView!
   @IBOutlet weak var totalUserBalance: UILabel!
+  // 선물과 공유하는 XIB 제목이며 현물에서는 기존 문구를 유지한다.
+  @IBOutlet weak var totalEvaluationTitle: UILabel!
   @IBOutlet weak var totalEvalProfitLoss: UILabel!
   @IBOutlet weak var totalProfitRate: UILabel!
   @IBOutlet weak var totalBuyPrice: UILabel!
@@ -34,7 +36,7 @@ class InvestmentViewController: MobitBaseViewController {
   @IBOutlet weak var noResultView: UIView!
   @IBOutlet weak var sortLabel: UILabel!
   @IBOutlet weak var dimView: UIView!
-  @IBOutlet weak var chargeButton: NeumorphicButton!
+  @IBOutlet weak var chargeButton: MobitChargeButton!
     
   weak var coordinator: InvestmentCoordinator?
   var dataSource: UITableViewDiffableDataSource<TableViewSection, CryptoTransactionDataModel>?
@@ -110,14 +112,6 @@ class InvestmentViewController: MobitBaseViewController {
 	  self.availableUserBalance
 	].forEach { $0?.textColor = .mobitColors(.investmentTextPrimary) }
 	self.applyInvestmentPanelTheme()
-	self.applyChargeButtonStyle()
-  }
-
-  private func applyChargeButtonStyle() {
-	self.chargeButton.configuration = nil
-	self.chargeButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
-	self.chargeButton.titleLabel?.backgroundColor = .clear
-	self.chargeButton.titleLabel?.isOpaque = false
   }
 
   private func applyInvestmentPanelTheme() {
@@ -220,7 +214,7 @@ class InvestmentViewController: MobitBaseViewController {
 	  btcKRWPrice: btcKRWPrice
 	)
 
-	let availableUserBalanceString: String = availableUserBalance == 0 ? "0" : availableUserBalance.formatSignificantDigits()
+	let availableUserBalanceString: String = availableUserBalance == 0 ? "0" : availableUserBalance.formatTradingValue()
 	let totalProfitRateString: String = totalProfitRate == 0 ? "0" : totalProfitRate.formatSignificantDigits(digits: 4)
 
 	self.availableUserBalance.text = availableUserBalanceString + " 원"
@@ -237,7 +231,7 @@ class InvestmentViewController: MobitBaseViewController {
 
   private static func krwText(_ value: Double?) -> String {
 	guard let value else { return unavailableText }
-	return (value == 0 ? "0" : value.formatSignificantDigits(digits: 0)) + " 원"
+	return (value == 0 ? "0" : value.formatTradingValue()) + " 원"
   }
 
   private func isTradingUnsupported(_ crypto: CryptoTransactionDataModel) -> Bool {
@@ -324,7 +318,7 @@ class InvestmentViewController: MobitBaseViewController {
   // MARK: - Button Actions
     
   /// 충전하기 버튼 클릭
-  @IBAction func tapOnChargeButton(_ sender: NeumorphicButton) {
+  @IBAction func tapOnChargeButton(_ sender: MobitChargeButton) {
 	MobitAnalyticsUtil.sendClickEvent(event: .investment_charge)
 	
     let account = TradingAccountID.spot(for: ExchangeSelectionStore.currentExchange)

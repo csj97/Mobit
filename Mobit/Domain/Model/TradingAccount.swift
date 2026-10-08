@@ -100,23 +100,27 @@ struct FuturesAccountSnapshot: Codable, Equatable {
   let positions: [FuturesPosition]
   let ledger: [FuturesLedgerEntry]
 
-  let reconciliations: [FuturesReconciliationState]
+  // 포지션별 검증 완료 시점과 청산 결과를 보관한다.
+  let historyCheckStates: [FuturesHistoryCheckState]
   let closedPositions: [FuturesClosedPosition]
 
-  init(schemaVersion: Int = 5, revision: UInt64, accounts: [FuturesCashAccount], rewardClaims: [AdRewardClaim] = [],
+  init(schemaVersion: Int = 6, revision: UInt64, accounts: [FuturesCashAccount], rewardClaims: [AdRewardClaim] = [],
        positions: [FuturesPosition] = [], ledger: [FuturesLedgerEntry] = [],
-       reconciliations: [FuturesReconciliationState] = [], closedPositions: [FuturesClosedPosition] = []) {
+       historyCheckStates: [FuturesHistoryCheckState] = [], closedPositions: [FuturesClosedPosition] = []) {
     self.schemaVersion = schemaVersion
     self.revision = revision
     self.accounts = accounts
     self.rewardClaims = rewardClaims
     self.positions = positions
     self.ledger = ledger
-    self.reconciliations = reconciliations
+    self.historyCheckStates = historyCheckStates
     self.closedPositions = closedPositions
   }
 
-  private enum CodingKeys: String, CodingKey { case schemaVersion, revision, accounts, rewardClaims, positions, ledger, reconciliations, closedPositions }
+  private enum CodingKeys: String, CodingKey {
+    case schemaVersion, revision, accounts, rewardClaims, positions, ledger, closedPositions
+    case historyCheckStates = "reconciliations"
+  }
 
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -127,16 +131,17 @@ struct FuturesAccountSnapshot: Codable, Equatable {
     positions = schemaVersion < 3 ? [] : try container.decode([FuturesPosition].self, forKey: .positions)
     ledger = schemaVersion < 3 ? [] : try container.decode([FuturesLedgerEntry].self, forKey: .ledger)
     closedPositions = schemaVersion < 5 ? [] : try container.decode([FuturesClosedPosition].self, forKey: .closedPositions)
-    let decodedReconciliations = schemaVersion < 4
-      ? try positions.map { try FuturesReconciliationState.initial(for: $0) }
-      : try container.decode([FuturesReconciliationState].self, forKey: .reconciliations)
+    // 저장 형식 버전에 맞춰 복원한 포지션별 검증 상태다.
+    let decodedHistoryCheckStates = schemaVersion < 4
+      ? try positions.map { try FuturesHistoryCheckState.initial(for: $0) }
+      : try container.decode([FuturesHistoryCheckState].self, forKey: .historyCheckStates)
     let storedVersion = schemaVersion
     let decodedPositions = positions
-    reconciliations = try decodedReconciliations.map { decoded in
+    historyCheckStates = try decodedHistoryCheckStates.map { decoded in
       var state = decoded
       if storedVersion < 5, state.lastVerifiedMark == nil, state.liquidation == nil,
          let position = decodedPositions.first(where: { $0.id == state.positionID }) {
-        let entry = try FuturesReconciliationState.milliseconds(position.lastExecutionAt)
+        let entry = try FuturesHistoryCheckState.milliseconds(position.lastExecutionAt)
         // 이전 ceil 변환의 부동소수 오차 1ms는 아직 미검증인 진입 경계에서만 다시 검사한다.
         if state.verifiedThrough == entry + 1 { state.verifiedThrough = entry }
       }
@@ -146,7 +151,7 @@ struct FuturesAccountSnapshot: Codable, Equatable {
 
   func isActive(_ position: FuturesPosition) -> Bool {
     !closedPositions.contains(where: { $0.order.positionID == position.id }) &&
-      reconciliations.first(where: { $0.positionID == position.id })?.liquidation == nil
+      historyCheckStates.first(where: { $0.positionID == position.id })?.liquidation == nil
   }
 
   static let empty = Self(revision: 0, accounts: [])

@@ -57,6 +57,22 @@ class MainReactor: Reactor {
       .map { [weak self] ticker -> MainMutation? in
         guard let self = self,
               self.exchange == ExchangeSelectionStore.currentExchange else { return nil }
+        if ticker.tradePrice.isFinite, ticker.tradePrice > 0, ticker.code.hasPrefix("KRW-") {
+          FuturesHistoryCheckService.shared.observe(
+            FuturesMarkQuote(
+              instrument: TradingInstrumentID(
+                exchange: self.exchange,
+                product: .perpetual,
+                rawSymbol: ticker.code,
+                settlementCurrency: .krw
+              ),
+              price: Decimal(ticker.tradePrice),
+              timestamp: ticker.tradeTimestamp
+            ),
+            displayTimestamp: ticker.timestamp
+          )
+        }
+
         let updatedList = self.updateSingleCrypto(ticker: ticker)
         return .setTotalCryptoList(cryptoList: updatedList)
       }
@@ -169,7 +185,7 @@ extension MainReactor {
 	  return .just(.setUserCrypto(UserDataManager.userCryptoList))
 
 	case .loadFearGreedIndex:
-	  return self.mainUseCase.loadFearGreedIndex()
+	  return self.mainUseCase.fetchFearGreedIndex()
 		.map { MainMutation.setFearGreedIndex($0) }
 		.catch { error in
 		  // 조회 실패 시 카드를 숨긴다(nil). 재시도는 다음 화면 진입에 맡긴다.
@@ -260,7 +276,9 @@ extension MainReactor {
   
   /// 1️⃣ 암호화폐 목록 로드 및 초기 티커 조회
   func loadCryptoList() -> Observable<MainMutation> {
-	let request = self.mainUseCase.loadCryptoList()
+    // 초기 준비와 화면 재진입이 겹쳐도 목록·초기 시세 조회는 한 번만 진행한다.
+    guard !currentState.isLoading else { return .empty() }
+	let request = self.mainUseCase.fetchCryptoList()
 	  .flatMapLatest { [weak self] cryptoList -> Observable<MainMutation> in
 		guard let self = self else { return .empty() }
 		
@@ -274,6 +292,7 @@ extension MainReactor {
 	  }
 	
 	return Observable.concat([
+	  .just(.setErrorMessage(message: nil)),
 	  .just(.setLoading(isLoading: true)),
 	  request,
 	  .just(.setLoading(isLoading: false))
@@ -294,7 +313,7 @@ extension MainReactor {
   ) -> Observable<MainMutation> {
 	guard !markets.isEmpty else { return .just(.setTotalCryptoList(cryptoList: [])) }
 	
-	return self.mainUseCase.loadCryptoTicker(markets: markets)
+	return self.mainUseCase.fetchCryptoTicker(markets: markets)
 	  .flatMap { [weak self] cryptoTickerList -> Observable<[CryptoCellInfo]> in
 		guard let self = self else { return .just([]) }
 		
@@ -459,7 +478,7 @@ extension MainReactor {
       fromDisplayMarket: holdingMarket,
       exchange: self.exchange
     )
-    return self.mainUseCase.loadCryptoTicker(markets: [market])
+    return self.mainUseCase.fetchCryptoTicker(markets: [market])
       .timeout(.seconds(10), scheduler: MainScheduler.asyncInstance)
       .do(onNext: { [weak self] tickers in
         guard let self else { return }

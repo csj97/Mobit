@@ -107,10 +107,10 @@ class TradeInformationView: UIView, ViewRule {
 	self.cryptoImageView.load(from: iconURL)
 	self.marketNameLabel.text = cmcInformation.name
 	self.symbolLabels.forEach { $0.text = cmcInformation.symbol }
-	self.totalSupplyLabel.text = cmcInformation.totalSupply.formatSignificantDigits()
-	self.marketCapLabel.text = cmcInformation.marketCap.formatSignificantDigits() + " 원"
+	self.totalSupplyLabel.text = cmcInformation.totalSupply.formatTradingValue()
+	self.marketCapLabel.text = cmcInformation.marketCap.formatTradingValue() + " 원"
 	self.updatedAtStringLabel.text = cmcInformation.updatedAtString
-	self.circulatingSupplyLabel.text = cmcInformation.circulatingSupply.formatSignificantDigits()
+	self.circulatingSupplyLabel.text = cmcInformation.circulatingSupply.formatTradingValue()
 	
 	guard let selectedCrypto = self.reactor?.selectCrypto,
 		  let accTradePrice24h = selectedCrypto.accTradePrice24h,
@@ -120,11 +120,11 @@ class TradeInformationView: UIView, ViewRule {
 		  let lowest52WeekPrice = selectedCrypto.lowest52WeekPrice
 	else { return }
 	
-	self.accTradeVolume24HLabel.text = accTradeVolume24h.formatSignificantDigits()
+	self.accTradeVolume24HLabel.text = accTradeVolume24h.formatTradingValue()
 	self.accTradePrice24HLabel.text = "\(accTradePrice24h.formatSignificantDigits()) 원"
-	self.prevClosingPriceLabel.text = "\(prevPrice.formatSignificantDigits()) 원"
-	self.highest52WeekPriceLabel.text = "\(highest52WeekPrice.formatSignificantDigits()) 원"
-	self.lowest52WeekPriceLabel.text = "\(lowest52WeekPrice.formatSignificantDigits()) 원"
+	self.prevClosingPriceLabel.text = "\(prevPrice.formatTradingValue()) 원"
+	self.highest52WeekPriceLabel.text = "\(highest52WeekPrice.formatTradingValue()) 원"
+	self.lowest52WeekPriceLabel.text = "\(lowest52WeekPrice.formatTradingValue()) 원"
   }
   
   func setData() {

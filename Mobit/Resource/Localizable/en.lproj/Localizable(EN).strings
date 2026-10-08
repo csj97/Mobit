@@ -65,13 +65,15 @@
 "futures_wait" = "Please try again shortly.";
 "futures_order_done" = "Trade completed. Assets and history have been updated.";
 "futures_insufficient" = "Insufficient available balance. Watch a rewarded ad to recharge.";
+"futures_margin_exceeds_balance" = "The entered margin exceeds your available balance. Reduce the margin or watch a rewarded ad to recharge.";
 "futures_position_closed" = "This position is closed or liquidated. Return to the list to start a new position.";
 "futures_same_conditions" = "Additions must use the same direction and leverage as the position.";
 "futures_retry_order" = "Price or liquidation verification could not finish. Check history and try again.";
+"futures_socket_wait" = "Waiting for live prices. Please try again after the price feed reconnects.";
 "futures_storage_error" = "Unable to read saved assets. Retry without resetting your data.";
-"futures_minimum" = "Notional order value must be at least 500 KRW.";
+"futures_minimum" = "Notional order value must be at least 500 원.";
 "futures_leverage_error" = "Check the allowed leverage for this market.";
-"futures_input_error" = "Enter a valid KRW margin greater than zero.";
+"futures_input_error" = "Enter a valid margin in 원 greater than zero.";
 "futures_submitting" = "Processing order…";
 "futures_verifying" = "Checking liquidation conditions during your absence.";
 "futures_paused" = "Liquidation verification resumes when the app becomes active.";
@@ -92,13 +94,13 @@
 "futures_add" = "Add with same conditions";
 "futures_direction" = "Position direction";
 "futures_leverage" = "Leverage";
-"futures_margin_placeholder" = "Margin to use (KRW)";
+"futures_margin_placeholder" = "Margin to use (원)";
 "futures_paper" = "Futures paper trading";
 "futures_available" = "Available";
 "futures_margin_hint" = "Liquidated when the full margin is depleted. No trading fees or funding.";
 "futures_notional" = "Notional value";
 "futures_execution_note" = "Quantity and execution price are determined from the quote fetched when ordering.";
-"futures_close_confirm" = "Close the entire position at market. Historical liquidation is checked before closing.";
+"futures_close_confirm" = "Close the entire position at the currently displayed market price.";
 "futures_cancel" = "Cancel";
 "futures_krw" = "KRW";
 "futures_positions" = "Positions";
@@ -109,21 +111,24 @@
 "futures_account_sections" = "Futures account sections";
 "futures_retry" = "Tap to refresh";
 "futures_charge" = "Recharge futures with an ad";
-"futures_reward_note" = "Complete a rewarded ad to receive 10,000,000 KRW in this exchange’s futures account, separate from spot.";
+"futures_reward_note" = "Complete a rewarded ad to receive 10,000,000 원 in this exchange’s futures account, separate from spot.";
 "futures_loading" = "Loading…";
 "futures_empty_market" = "No KRW markets to display. Check your search or connection.";
 "futures_manage" = "Add · Close entire position";
-"futures_no_position" = "No open positions. Select a coin in the KRW market.";
+"futures_no_position" = "No open positions.";
 "futures_opening" = "Open";
 "futures_addition" = "Add";
 "futures_closing" = "Manual close";
 "futures_liquidation" = "Liquidation";
 "futures_price" = "Price";
 "futures_occurrence" = "Occurrence interval";
+"futures_entry_price" = "Entry price";
+"futures_liquidation_exit_price" = "Liquidation price";
 "futures_settled" = "Settlement time";
 "futures_realized" = "Realized PNL";
 "futures_no_history" = "No transactions yet.";
 "futures_total" = "Total estimated assets";
+"futures_total_evaluation" = "Total valuation";
 "futures_valuation_wait" = "Valuation pending · Saved balances are preserved.";
 "futures_zero_balance" = "New futures accounts start at zero. Watch an ad to fund your account.";
 "futures_exchange" = "Choose exchange";
@@ -131,9 +136,9 @@
 "futures_sort_price" = "Price: high to low";
 "futures_sort_change" = "Change: high to low";
 "futures_sort_volume" = "Volume: high to low";
-"futures_estimated_krw" = "Unit: KRW · Valuation at the last known price";
+"futures_estimated_krw" = "Unit: 원 · Valuation at the last known price";
 "futures_spot_charge" = "Recharge spot with an ad";
-"futures_spot_reward_note" = "Complete a rewarded ad to receive 10,000,000 KRW in the current exchange’s spot account.";
+"futures_spot_reward_note" = "Complete a rewarded ad to receive 10,000,000 원 in the current exchange’s spot account.";
 "futures_spot_reset" = "Reset spot investments";
 "futures_spot_reset_note" = "Reset spot history and holdings to zero. Futures accounts and positions are preserved.";
 
@@ -147,6 +152,7 @@
 
 "futures_total_margin" = "Total margin";
 "futures_position_quantity" = "Position quantity";
+"futures_position_size" = "Position value";
 "futures_roe" = "ROE";
 "futures_exit_price" = "Exit price";
 "futures_sort_name" = "Name";
@@ -164,3 +170,21 @@
 "investment_entry_price" = "Buy price";
 "investment_exit_price" = "Sell price";
 "investment_execution_time" = "Execution time";
+
+"futures_liquidation_notice" = "%1$@ · %2$@ %3$@ %4$d× position liquidated.\nSee Investment History for details.";
+"futures_dismiss_notice" = "Dismiss notice";
+
+"futures_close_amount" = "Margin to close (원)";
+"futures_close_quantity" = "Close quantity";
+"futures_close_percent" = "Close percentage";
+"futures_close_return" = "Estimated returned funds";
+"futures_close_remaining" = "Remaining quantity";
+"futures_close_invalid" = "Enter an amount or quantity within your available position.";
+"futures_close_note" = "Close amount is the original margin allocated to the selected quantity. Estimated returned funds include this margin and live profit or loss. The price is checked again when you submit.";
+"futures_trade_loading" = "Market and price information is being prepared. Please select the coin again shortly.";
+"futures_trade_load_failed" = "The trading screen cannot open because market and price information could not be loaded. Reload the data, then select the coin again.";
+"futures_trade_unavailable" = "The trading screen cannot open because valid price information for this coin is currently unavailable.";
+"futures_trade_retry" = "Reload";
+
+"currency_krw_unit" = "원";
+"futures_held_position" = "Held position";
