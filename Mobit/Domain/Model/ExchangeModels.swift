@@ -21,26 +21,17 @@ enum SettlementCurrency: String, Codable, CaseIterable {
 
   /// BTC 최소 주문금액은 업비트 BTC 마켓 정책(0.00005 BTC)을 따른다.
   var minimumOrderAmount: Double {
-    switch self {
-    case .krw: return 500
-    case .btc: return 0.00005
-    }
+    TradingRules.Spot.minimumOrderAmount(for: self)
   }
 
   /// 체결금액 절삭 자릿수. 원화는 정수, BTC는 호가 단위(0.00000001)에 맞춘다.
   var amountFractionDigits: Int {
-    switch self {
-    case .krw: return 0
-    case .btc: return 8
-    }
+    TradingRules.Spot.amountFractionDigits(for: self)
   }
 
   /// 결제 자산을 보유 종목으로 들고 있는 마켓. 원화는 잔고로 관리하므로 nil이다.
   var holdingDisplayMarket: String? {
-    switch self {
-    case .krw: return nil
-    case .btc: return "BTC/KRW"
-    }
+    TradingRules.Spot.holdingDisplayMarket(for: self)
   }
 }
 

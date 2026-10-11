@@ -21,8 +21,7 @@ final class FuturesTradingUseCase {
 
   func accountSnapshot(for account: TradingAccountID) -> Single<FuturesAccountSnapshot> {
 	Single.deferred { [self] in
-	  guard account.product == .perpetual, account.currency == .krw,
-		account.exchange == .upbit || account.exchange == .bithumb
+	  guard TradingRules.DomesticFutures.supports(account)
 	  else {
 		throw FuturesOrderCheckError.invalidTarget
 	  }
@@ -41,11 +40,12 @@ final class FuturesTradingUseCase {
 	price: FuturesOrderPrice? = nil
   ) -> Single<FuturesAccountSnapshot> {
 	Single.deferred { [self] in
+	  // 주문 생성 시 적용할 배수·수량·최소 거래금액을 공통 규약에서 가져온다.
 	  guard instrument.usesDomesticSpotPrice, account.supports(instrument),
-		let maximum = instrument.maximumPaperLeverage
+		let rules = TradingRules.DomesticFutures.contractRules(for: instrument)
 	  else { throw FuturesOrderCheckError.invalidTarget }
 	  try FuturesDecimal.positive(margin)
-	  guard (1...maximum).contains(leverage) else { throw FuturesCalculationError.invalidLeverage }
+	  guard (1...rules.maximumLeverage).contains(leverage) else { throw FuturesCalculationError.invalidLeverage }
 	  let repository = try store()
 	  let snapshot = try repository.snapshot()
 	  if let position = snapshot.positions.first(where: { $0.executions.contains(where: { $0.requestID == requestID }) }
@@ -71,13 +71,6 @@ final class FuturesTradingUseCase {
 			throw LocalFuturesAccountRepository.StoreError.positionClosed
 		  }
 		}
-		let step = Decimal(sign: .plus, exponent: -8, significand: 1)
-		let rules = FuturesContractRules(
-		  maximumLeverage: maximum,
-		  quantityStep: step,
-		  minimumQuantity: step,
-		  minimumOrderAmount: Decimal(SettlementCurrency.krw.minimumOrderAmount)
-		)
 		let order = FuturesOpeningOrder(
 		  requestID: requestID,
 		  account: account,
@@ -86,7 +79,7 @@ final class FuturesTradingUseCase {
 		  margin: margin,
 		  leverage: leverage,
 		  executionPrice: orderCheck.mark.price,
-		  entryFeeRate: 0,
+		  entryFeeRate: TradingRules.DomesticFutures.feeRate,
 		  executedAt: Date(timeIntervalSince1970: Double(orderCheck.executionTime) / 1000),
 		  contractRules: rules
 		)

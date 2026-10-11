@@ -302,7 +302,7 @@ final class FuturesOrderViewController: MobitBaseViewController {
 	if expectedPositionID == nil { expectedPositionID = position?.id }
 	let closed = expectedPositionID != nil && position?.id != expectedPositionID
 	if let position {
-	  positionCard.configure(position, quotes: reactor.currentState.quotes)
+	  positionCard.configure(position, quotes: reactor.valuationQuotes)
 	  leverageControl.value = Double(position.order.leverage)
 	}
 	positionCard.isHidden = position == nil

@@ -228,6 +228,8 @@
 		D0C300022FFB000000000001 /* NetworkResponseValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C300012FFB000000000001 /* NetworkResponseValidator.swift */; };
 		E37F0D76B29045D89D18DDED /* FuturesCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8B3CBC579634A5BA3CBB74E /* FuturesCoordinator.swift */; };
 		F09222000000000000000002 /* TradingAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09222000000000000000001 /* TradingAccount.swift */; };
+		F10112000000000000000002 /* TradingRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10112000000000000000001 /* TradingRules.swift */; };
+		F10112000000000000000004 /* TradingRulesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10112000000000000000003 /* TradingRulesTests.swift */; };
 		F09222000000000000000004 /* LocalFuturesAccountRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09222000000000000000003 /* LocalFuturesAccountRepository.swift */; };
 		F09222000000000000000006 /* LocalFuturesAccountRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09222000000000000000005 /* LocalFuturesAccountRepositoryTests.swift */; };
 		F09222000000000000000012 /* AdRewardClaim.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09222000000000000000011 /* AdRewardClaim.swift */; };
@@ -510,6 +512,8 @@
 		D479337EF3574613A3F16DFD /* FuturesOrderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesOrderViewController.swift; sourceTree = "<group>"; };
 		EE703D167D454C228F42B31E /* FuturesText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesText.swift; sourceTree = "<group>"; };
 		F09222000000000000000001 /* TradingAccount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradingAccount.swift; sourceTree = "<group>"; };
+		F10112000000000000000001 /* TradingRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradingRules.swift; sourceTree = "<group>"; };
+		F10112000000000000000003 /* TradingRulesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradingRulesTests.swift; sourceTree = "<group>"; };
 		F09222000000000000000003 /* LocalFuturesAccountRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalFuturesAccountRepository.swift; sourceTree = "<group>"; };
 		F09222000000000000000005 /* LocalFuturesAccountRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalFuturesAccountRepositoryTests.swift; sourceTree = "<group>"; };
 		F09222000000000000000011 /* AdRewardClaim.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdRewardClaim.swift; sourceTree = "<group>"; };
@@ -706,6 +710,7 @@
 		3133E23D2C3E2357000D4B1A /* MobitTests */ = {
 			isa = PBXGroup;
 			children = (
+				F10112000000000000000003 /* TradingRulesTests.swift */,
 				F09228000000000000000017 /* FuturesHistoryCheckTests.swift */,
 				F09228000000000000000007 /* BinanceFuturesMarketRepositoryTests.swift */,
 				F09329000000000000000005 /* DomesticFuturesMarketRepositoryTests.swift */,
@@ -1134,6 +1139,7 @@
 				99C20AB72C4F775B009276E7 /* Crypto.swift */,
 				D0A100012FF0000000000001 /* ExchangeModels.swift */,
 				F09222000000000000000001 /* TradingAccount.swift */,
+				F10112000000000000000001 /* TradingRules.swift */,
 				FEA000000000000000000010 /* FearGreedIndex.swift */,
 				998849E12C524AAA0073A27D /* CryptoCellInfo.swift */,
 				367271AC2C7B2DA600F9D86E /* OrderBookResponse.swift */,
@@ -1676,6 +1682,7 @@
 				D0A100022FF0000000000001 /* ExchangeModels.swift in Sources */,
 				F09222000000000000000004 /* LocalFuturesAccountRepository.swift in Sources */,
 				F09222000000000000000002 /* TradingAccount.swift in Sources */,
+				F10112000000000000000002 /* TradingRules.swift in Sources */,
 				F09223000000000000000004 /* FuturesCalculator.swift in Sources */,
 				F09229000000000000000002 /* FuturesOrderCheck.swift in Sources */,
 				F09329000000000000000008 /* FuturesTradingUseCase.swift in Sources */,
@@ -1818,6 +1825,7 @@
 				A7E29788888F4EF094B2ABE5 /* FuturesAccountReactorTests.swift in Sources */,
 				F09223000000000000000008 /* FuturesPositionRepositoryTests.swift in Sources */,
 				F09223000000000000000006 /* FuturesCalculatorTests.swift in Sources */,
+				F10112000000000000000004 /* TradingRulesTests.swift in Sources */,
 				F09228000000000000000018 /* FuturesHistoryCheckTests.swift in Sources */,
 				F09228000000000000000008 /* BinanceFuturesMarketRepositoryTests.swift in Sources */,
 				F09329000000000000000006 /* DomesticFuturesMarketRepositoryTests.swift in Sources */,

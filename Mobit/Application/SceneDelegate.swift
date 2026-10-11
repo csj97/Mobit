@@ -18,8 +18,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   // 청산 정산과 별개로 화면 준비·활성 상태에 맞춰 안내를 표시한다.
   private lazy var liquidationNotices = FuturesLiquidationNoticePresenter(
 	window: window,
-	canShow: { [weak self] in
+	canShow: { [weak self] account in
 	  self?.mainScreenShown == true && self?.window?.windowScene?.activationState == .foregroundActive
+		&& TradingRules.canShowLiquidationNotice(
+		  for: account,
+		  selectedExchange: ExchangeSelectionStore.currentExchange,
+		  selectedProduct: ExchangeSelectionStore.currentProduct
+		)
 	}
   )
 
@@ -44,16 +49,22 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 	AppDataManager.shared.refreshCMCData()
 
-	DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1.5) {
-	  self.window?.rootViewController = navigationController
+	FuturesHistoryCheckService.shared.prepareLaunch().subscribe(
+	  onNext: { [weak self] _ in
+		guard let self else { return }
+		self.window?.rootViewController = navigationController
 
-	  self.appCoordinator = AppCoordinator(navigationController: navigationController)
-	  self.appCoordinator?.mainScreenShownCallBack = { [weak self] in
-		self?.mainScreenShown = true
-		self?.liquidationNotices.showPendingNotices()
+		self.appCoordinator = AppCoordinator(navigationController: navigationController)
+		self.appCoordinator?.mainScreenShownCallBack = { [weak self] in
+		  self?.mainScreenShown = true
+		  self?.liquidationNotices.showPendingNotices()
+		}
+		self.appCoordinator?.tradingSelectionChangedCallBack = { [weak self] in
+		  self?.liquidationNotices.showPendingNotices()
+		}
+		self.appCoordinator?.start()
 	  }
-	  self.appCoordinator?.start()
-	}
+	).disposed(by: disposeBag)
   }
 
   func sceneDidDisconnect(_ scene: UIScene) {
@@ -67,7 +78,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   func sceneDidBecomeActive(_ scene: UIScene) {
 	liquidationNotices.showPendingNotices()
 	RewardedAdManager.shared.retryPendingRewards()
-	FuturesHistoryCheckService.shared.refresh()
+	if TradingRules.Futures.HistoryCheck.shouldRefresh(
+	  on: .appForeground,
+	  selectedProduct: ExchangeSelectionStore.currentProduct
+	) { FuturesHistoryCheckService.shared.refresh() }
 	// Called when the scene has moved from an inactive state to an active state.
 	// Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
   }
@@ -96,16 +110,18 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 final class FuturesLiquidationNoticePresenter: NSObject {
   // 안내를 올릴 Scene의 창이며 창의 수명을 연장하지 않는다.
   private weak var window: UIWindow?
-  // 메인 화면 표시와 Scene 활성 상태를 함께 확인한다.
-  private let canShow: () -> Bool
+  // 메인 화면·Scene 활성 상태와 현재 선택한 거래 계좌를 함께 확인한다.
+  private let canShow: (TradingAccountID) -> Bool
   // 표시 중인 안내도 닫힐 때까지 보관해 비활성화 중 유실을 막는다.
   private var pendingNotices: [[FuturesPosition]] = []
+  // 다른 거래소 안내를 건너뛰어 표시한 항목만 닫을 때 제거한다.
+  private var displayedNoticeIndex: Int?
   // 창에서 제거되면 해제되는 현재 안내다.
   private weak var banner: UILabel?
   // 수동 닫기와 비활성화 시 취소할 자동 닫기 작업이다.
   private var dismissWorkItem: DispatchWorkItem?
 
-  init(window: UIWindow?, canShow: @escaping () -> Bool) {
+  init(window: UIWindow?, canShow: @escaping (TradingAccountID) -> Bool) {
 	self.window = window
 	self.canShow = canShow
 	super.init()
@@ -113,12 +129,27 @@ final class FuturesLiquidationNoticePresenter: NSObject {
 
   func receive(_ positions: [FuturesPosition]) {
 	guard !positions.isEmpty else { return }
-	pendingNotices.append(positions)
+	// 한 검증에서 여러 거래소가 청산돼도 안내는 계좌별로 분리한다.
+	var notices: [[FuturesPosition]] = []
+	for position in positions {
+	  if let index = notices.firstIndex(where: { $0.first?.order.account == position.order.account }) {
+		notices[index].append(position)
+	  } else { notices.append([position]) }
+	}
+	pendingNotices.append(contentsOf: notices)
 	showPendingNotices()
   }
 
   func showPendingNotices() {
-	guard canShow(), let window, banner == nil, let positions = pendingNotices.first else { return }
+	if let index = displayedNoticeIndex, let account = pendingNotices[index].first?.order.account,
+	   !canShow(account) { suspend() }
+	guard let window, banner == nil,
+	  let index = pendingNotices.firstIndex(where: { notice in
+		guard let account = notice.first?.order.account else { return false }
+		return canShow(account)
+	  }) else { return }
+	// 현재 화면에 해당하는 계좌의 안내만 표시한다.
+	let positions = pendingNotices[index]
 	// 사용자에게 아직 전달되지 않은 첫 번째 청산 안내다.
 	let notice = UILabel()
 	notice.numberOfLines = 0
@@ -161,6 +192,7 @@ final class FuturesLiquidationNoticePresenter: NSObject {
 	  notice.heightAnchor.constraint(greaterThanOrEqualToConstant: 64)
 	])
 	banner = notice
+	displayedNoticeIndex = index
 	UIAccessibility.post(notification: .announcement, argument: notice.text)
 	// 대기 시간이 아닌 실제 화면에 표시한 시점부터 3초를 센다.
 	let dismiss = DispatchWorkItem { [weak self, weak notice] in
@@ -172,7 +204,7 @@ final class FuturesLiquidationNoticePresenter: NSObject {
   }
 
   @objc func dismissNotice() {
-	guard let banner, banner.isUserInteractionEnabled else { return }
+	guard let banner, banner.isUserInteractionEnabled, let index = displayedNoticeIndex else { return }
 	dismissWorkItem?.cancel()
 	dismissWorkItem = nil
 	banner.isUserInteractionEnabled = false
@@ -190,7 +222,8 @@ final class FuturesLiquidationNoticePresenter: NSObject {
 		guard let self, self.banner === banner else { return }
 		banner.removeFromSuperview()
 		self.banner = nil
-		self.pendingNotices.removeFirst()
+		self.displayedNoticeIndex = nil
+		self.pendingNotices.remove(at: index)
 		self.showPendingNotices()
 	  }
 	)
@@ -207,6 +240,7 @@ final class FuturesLiquidationNoticePresenter: NSObject {
 	// 닫기 애니메이션이 끝나더라도 보관 중인 안내를 삭제하지 않도록 연결을 먼저 끊는다.
 	let notice = banner
 	banner = nil
+	displayedNoticeIndex = nil
 	notice?.layer.removeAllAnimations()
 	notice?.removeFromSuperview()
   }

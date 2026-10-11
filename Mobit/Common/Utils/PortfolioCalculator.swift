@@ -9,7 +9,7 @@ import Foundation
 
 enum PortfolioCalculator {
   /// 수량 비교 허용 오차. 소수점 아래가 잘린 입력값 때문에 생기는 미세 잔량을 보유로 취급하지 않기 위한 기준이다.
-  static let quantityTolerance: Double = 0.00000001
+  static let quantityTolerance = TradingRules.Spot.quantityTolerance
 
   static func executedAmount(
     price: Double,
@@ -62,7 +62,7 @@ enum PortfolioCalculator {
     averageBuyPrice: Double
   ) -> Double {
     guard averageBuyPrice != 0 else { return 0 }
-    return (((currentPrice - averageBuyPrice) / averageBuyPrice) * 100).formatDigits(digits: 2)
+    return (((currentPrice - averageBuyPrice) / averageBuyPrice) * 100).formatDigits(digits: TradingRules.Spot.profitRateFractionDigits)
   }
 
   static func evaluationPrice(
@@ -70,7 +70,7 @@ enum PortfolioCalculator {
     holdingQuantity: Double
   ) -> Double {
     guard holdingQuantity >= 0 else { return 0 }
-    return (currentPrice * holdingQuantity).formatDigits(digits: 8)
+    return (currentPrice * holdingQuantity).formatDigits(digits: TradingRules.Spot.evaluationFractionDigits)
   }
 
   static func evaluationProfitLoss(

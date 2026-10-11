@@ -508,12 +508,12 @@ class MainViewController: MobitBaseViewController {
 	let margin = state.snapshot.flatMap { _ in
 	  try? reactor.positions.map { try $0.margin }.reduce(Decimal(0), FuturesDecimal.add)
 	}
-	let valuation = try? state.snapshot?.valuation(
+	let valuation = reactor.canDisplayValuation ? try? state.snapshot?.valuation(
 	  for: reactor.account,
-	  quotes: state.quotes,
+	  quotes: reactor.valuationQuotes,
 	  now: Date(),
 	  forDisplay: true
-	)
+	) : nil
 	let rate = valuation.flatMap {
 	  $0.reservedMargin > 0
 		? try? FuturesDecimal.multiply(FuturesDecimal.divide($0.unrealizedPnL, $0.reservedMargin), 100)
@@ -841,9 +841,9 @@ class MainViewController: MobitBaseViewController {
 		  .marginBottom(6)
 
 		flex.addItem().direction(.row).define { flex in
-          let buttons = ExchangeSelectionStore.currentProduct == .perpetual
-            ? [self.holdButton, self.krwButton, self.favoriteButton]
-            : [self.holdButton, self.krwButton, self.btcButton, self.favoriteButton]
+          let buttons = TradingRules.visibleMarketCurrencies(for: ExchangeSelectionStore.currentProduct).contains(.btc)
+            ? [self.holdButton, self.krwButton, self.btcButton, self.favoriteButton]
+            : [self.holdButton, self.krwButton, self.favoriteButton]
           buttons.forEach { button in
             flex.addItem(button).basis(0).grow(1)
           }
@@ -891,7 +891,7 @@ class MainViewController: MobitBaseViewController {
 	self.fearGreedFloatingButton.snp.makeConstraints { make in
 	  make.trailing.equalTo(self.view.safeAreaLayoutGuide).offset(-16)
 	  // 하단 탭바(65pt) 위에 띄운다
-	  make.bottom.equalTo(self.view.safeAreaLayoutGuide).offset(-(65 + 16))
+	  make.bottom.equalTo(self.view.safeAreaLayoutGuide).offset(-(CGFloat(65) + 16))
 	  make.width.height.equalTo(56)
 	}
 	self.fearGreedFloatingButton.addTarget(
@@ -1324,6 +1324,8 @@ extension MainViewController: View {
   private func filterListForCurrentTab(totalList: [CryptoCellInfo]) -> [CryptoCellInfo] {
 	let searchText = self.searchBar.text?.lowercased() ?? ""
     let currentExchange = ExchangeSelectionStore.currentExchange
+    // 목록 한 번의 필터링 중에는 같은 상품 정책을 적용하고 저장 설정을 반복 조회하지 않는다.
+    let currentProduct = ExchangeSelectionStore.currentProduct
     let favoritePairIDs = Set(
       UserDataManager.userFavoritePairs
         .filter { $0.exchange == currentExchange }
@@ -1331,20 +1333,23 @@ extension MainViewController: View {
     )
 	
     // 선물에서는 관심·보유 탭에서도 BTC 마켓 상세로 진입하지 않도록 제한한다.
-    var filteredList = ExchangeSelectionStore.currentProduct == .perpetual
-      ? totalList.filter { $0.market.hasSuffix("/KRW") }
-      : totalList
+    var filteredList = totalList.filter {
+      TradingRules.isVisibleMarket($0.market, product: currentProduct)
+    }
 	
 	// 1. 탭별 필터링
 	switch self.selectedTab {
 	case .hold:
 	  if let futuresReactor {
+		// 전체 보유 목록이 동일한 검증 기준의 평가 시세를 사용한다.
+		let valuationQuotes = futuresReactor.valuationQuotes
 		filteredList = filteredList.compactMap { cell in
 		  guard let position = futuresReactor.positions.first(where: {
 			ExchangePairID(exchange: $0.order.instrument.exchange, rawMarketCode: $0.order.instrument.rawSymbol) == cell.exchangePairID
 		  }) else { return nil }
 		  var enriched = cell
-		  let value = try? FuturesText.valuation(position, quotes: futuresReactor.currentState.quotes)
+		  let value = futuresReactor.canDisplayValuation
+			? try? FuturesText.valuation(position, quotes: valuationQuotes) : nil
 		  enriched.holdingQuantity = NSDecimalNumber(decimal: position.quantity).doubleValue
 		  enriched.averageBuyPrice = (try? position.averageEntryPrice).map { NSDecimalNumber(decimal: $0).doubleValue }
 		  enriched.averageBuyPriceKRW = enriched.averageBuyPrice

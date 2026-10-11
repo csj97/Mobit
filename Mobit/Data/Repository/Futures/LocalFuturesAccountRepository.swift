@@ -51,9 +51,9 @@ final class LocalFuturesAccountRepository {
 	defer { Self.lock.unlock() }
 	let current = try fetchSnapshot()
 	if current.accounts.contains(where: { $0.id == id }) { return current }
-	guard id.product == .perpetual, id.availability != .unsupported else { throw StoreError.invalidStoredData }
+	guard TradingRules.Futures.canCreateAccount(id) else { throw StoreError.invalidStoredData }
 	var accounts = current.accounts
-	accounts.append(FuturesCashAccount(id: id, availableBalance: 0))
+	accounts.append(FuturesCashAccount(id: id, availableBalance: Decimal(TradingRules.Funding.unfundedAccountBalance)))
 	return try commit(accounts, previous: current)
   }
 
@@ -108,8 +108,7 @@ final class LocalFuturesAccountRepository {
 	}
 	if let activeIndex {
 	  let existing = current.positions[activeIndex]
-	  guard order.instrument.usesDomesticSpotPrice, existing.order.side == order.side,
-		existing.order.leverage == order.leverage
+	  guard TradingRules.Futures.allowsAdditionalEntry(for: order.instrument), TradingRules.canCombine(order, with: existing.order)
 	  else {
 		throw StoreError.positionAlreadyOpen
 	  }
@@ -191,7 +190,7 @@ final class LocalFuturesAccountRepository {
 	let quote = try FuturesCalculator.closingQuote(
 	  position,
 	  executionPrice: order.executionPrice,
-	  exitFeeRate: 0,
+	  exitFeeRate: TradingRules.Futures.closingFeeRate(for: position.order.instrument),
 	  netFunding: state.netFunding,
       quantity: order.quantity
 	)
@@ -290,10 +289,9 @@ final class LocalFuturesAccountRepository {
 	Self.lock.lock()
 	defer { Self.lock.unlock() }
 	let timestamp = try FuturesHistoryCheckState.milliseconds(settledAt)
-	guard quote.instrument.usesDomesticSpotPrice,
-	  quote.instrument.settlementCurrency == .krw,
+	guard TradingRules.Futures.allowsObservedLiquidation(for: quote.instrument),
 	  quote.timestamp > 0, quote.timestamp <= timestamp,
-	  quote.timestamp >= timestamp - 30_000,
+	  quote.timestamp >= timestamp - TradingRules.Futures.HistoryCheck.quoteMaximumAgeMilliseconds,
 	  !quote.price.isNaN, quote.price > 0
 	else {
 	  throw FuturesOrderCheckError.staleQuote
@@ -329,7 +327,7 @@ final class LocalFuturesAccountRepository {
 	Self.lock.lock()
 	defer { Self.lock.unlock() }
 	try claim.validate()
-	guard claim.account.product == .perpetual, claim.account.availability != .unsupported else {
+	guard TradingRules.Futures.canCreateAccount(claim.account) else {
 	  throw AdRewardError.invalidClaim
 	}
 	let current = try fetchSnapshot()
@@ -340,7 +338,7 @@ final class LocalFuturesAccountRepository {
 	var accounts = current.accounts
 	// 화면 방문 전에 획득한 보상도 계좌 생성과 지급 기록을 함께 저장해 재처리한다.
 	if !accounts.contains(where: { $0.id == claim.account }) {
-	  accounts.append(FuturesCashAccount(id: claim.account, availableBalance: 0))
+	  accounts.append(FuturesCashAccount(id: claim.account, availableBalance: Decimal(TradingRules.Funding.unfundedAccountBalance)))
 	}
 	guard let index = accounts.firstIndex(where: { $0.id == claim.account }) else {
 	  throw StoreError.invalidStoredData
@@ -472,7 +470,7 @@ final class LocalFuturesAccountRepository {
 		let quote = try FuturesCalculator.closingQuote(
 		  position,
 		  executionPrice: closed.order.executionPrice,
-		  exitFeeRate: 0,
+		  exitFeeRate: TradingRules.Futures.closingFeeRate(for: position.order.instrument),
 		  netFunding: state.netFunding
 		)
 		guard quote.returnedMargin > 0, quote.returnedMargin == closed.returnedMargin,
@@ -505,9 +503,7 @@ final class LocalFuturesAccountRepository {
 	else { throw StoreError.invalidStoredData }
 	guard Set(snapshot.accounts.map(\.id)).count == snapshot.accounts.count,
 	  snapshot.accounts.allSatisfy({
-		$0.id.product == .perpetual
-		  && ($0.id.currency == .usdt || $0.id.availability != .unsupported
-			|| (($0.id.exchange == .upbit || $0.id.exchange == .bithumb) && $0.id.currency == .btc))
+		TradingRules.Futures.canRestoreAccount($0.id)
 		  && !$0.availableBalance.isNaN && $0.availableBalance >= 0
 	  })
 	else { throw StoreError.invalidStoredData }

@@ -73,7 +73,41 @@ final class FuturesAccountReactor: Reactor {
   }
 
   var canSubmit: Bool {
-	guard canRequestOrder else { return false }
+	canRequestOrder && hasVerifiedPositions
+  }
+
+  // 청산 저장 반영 전만 숨기며 조회 보류 자체로 평가값을 없애지 않는다.
+  var canDisplayValuation: Bool {
+	guard !currentState.loadFailed, currentState.snapshot != nil else { return false }
+	return !positions.contains { position in
+	  currentState.lastCompletedVerification?.contains { $0.positionID == position.id && $0.liquidated } == true
+	}
+  }
+
+  // 검증 진행·보류 중에는 마지막 검증 가격으로 평가하고 완료 후 현재가를 반영한다.
+  var valuationQuotes: [TradingInstrumentID: FuturesMarkQuote] {
+	guard canDisplayValuation else { return [:] }
+	// 화면 표시만 마지막 검증 가격으로 대체하며 주문 검증 조건은 유지한다.
+	var quotes = currentState.quotes
+	for position in positions {
+	  // 현재 검증을 완료한 포지션만 실시간 가격으로 표시한다.
+	  let completed = currentState.lastCompletedVerification?.first { $0.positionID == position.id }
+	  if case .finished = currentState.status, let completed,
+		 TradingRules.Futures.HistoryCheck.isPositionReady(liquidated: completed.liquidated, hold: completed.hold) { continue }
+	  // 보류된 과거 구간을 건너뛴 현재가 대신 확인한 가격으로 계산한다.
+	  let verification = currentState.snapshot?.historyCheckStates.first { $0.positionID == position.id }
+	  guard let price = completed?.lastVerifiedMark ?? verification?.lastVerifiedMark ?? (try? position.averageEntryPrice),
+		let timestamp = completed?.verifiedThrough ?? verification?.verifiedThrough
+		  ?? (try? FuturesHistoryCheckState.milliseconds(position.lastExecutionAt))
+	  else { quotes.removeValue(forKey: position.order.instrument); continue }
+	  quotes[position.order.instrument] = FuturesMarkQuote(instrument: position.order.instrument, price: price, timestamp: timestamp)
+	}
+	return quotes
+  }
+
+  // 주문 허용 여부는 현재 검증 결과를 확인한다.
+  private var hasVerifiedPositions: Bool {
+    // 진행 중인 주기 검증에서는 직전 완료 결과로 주문 가능 여부를 확인한다.
 	let results: [FuturesRefreshResult]
 	switch currentState.status {
 	case .finished(let completed): results = completed
@@ -83,7 +117,9 @@ final class FuturesAccountReactor: Reactor {
 	case .paused, .storageFailed: return false
 	}
 	return positions.allSatisfy { position in
-	  results.contains { $0.positionID == position.id && !$0.liquidated && $0.hold == nil }
+	  results.contains {
+		$0.positionID == position.id && TradingRules.Futures.HistoryCheck.isPositionReady(liquidated: $0.liquidated, hold: $0.hold)
+	  }
 	}
   }
 
@@ -236,7 +272,9 @@ final class FuturesAccountReactor: Reactor {
 	  switch status {
 	  case .finished(let results): state.lastCompletedVerification = results
 	  case .refreshing: break
-	  case .paused, .storageFailed: state.lastCompletedVerification = nil
+	  case .paused:
+		state.lastCompletedVerification = state.lastCompletedVerification?.map { $0.requiringHistoryCheck() }
+	  case .storageFailed: state.lastCompletedVerification = nil
 	  }
 	case .submitting(let value): state.submitting = value
 	case .message(let message): state.message = message

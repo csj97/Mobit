@@ -174,7 +174,12 @@ class MobitTabBarViewController: UIViewController {
   }
   
   func controlSocket(appState: AppState) {
-	if let vc = (currentViewController as? UINavigationController)?.visibleViewController as? SocketControllable {
+	// 현물 투자내역은 자체 소켓이 없어 보유 자산을 갱신하는 메인 소켓을 대신 제어한다.
+	let current = (currentViewController as? UINavigationController)?.visibleViewController as? SocketControllable
+	// 상세 화면의 자체 소켓이 있다면 메인 소켓을 중복 연결하지 않는다.
+	let fallback = ExchangeSelectionStore.currentProduct == .spot
+	  ? (viewControllers.first as? UINavigationController)?.viewControllers.first as? SocketControllable : nil
+	if let vc = current ?? fallback {
 	  appState == .foreground ? vc.resumeSocket() : vc.pauseSocket()
 	}
   }

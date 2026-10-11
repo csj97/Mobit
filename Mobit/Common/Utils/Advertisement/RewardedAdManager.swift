@@ -105,7 +105,7 @@ final class RewardedAdManager: NSObject {
   private func showMessage(_ key: String, in viewController: MobitBaseViewController) {
     let table = Locale.preferredLanguages.first?.hasPrefix("ko") == true ? "Localizable(KO)" : "Localizable(EN)"
     let message = NSLocalizedString(key, tableName: table, bundle: .main, value: key, comment: "")
-    viewController.show(alertType: .onlyConfirm, content: message, callBack: nil)
+	viewController.show(alertType: .onlyConfirm, title: "안내", content: message, callBack: nil)
   }
 }
 

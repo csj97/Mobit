@@ -57,6 +57,40 @@ ViewController/XIB
 - Repository와 NetworkService는 API, Firebase, WebSocket, DTO 변환을 담당한다.
 - Coordinator는 화면 전환과 ViewController 생성 흐름을 담당한다.
 
+## 모의 거래 규약
+
+실행 규칙은 [`TradingRules.swift`](Mobit/Domain/Model/TradingRules.swift)에 정의한다. 실제 거래소 약관이 아니라 **MOBIT 내부 모의거래 정책**이며, 계좌 판정·주문 생성·계산·저장 로직이 이 규칙을 참조한다.
+
+| 거래소·모드 | 마켓·결제 | 가격 기준 | 청산 |
+| --- | --- | --- | --- |
+| 업비트 현물 | KRW / BTC | 업비트 현물 시세 | 손익률 -100%여도 수량을 자동 제거하지 않음 |
+| 빗썸 현물 | KRW / BTC | 빗썸 현물 시세 | 손익률 -100%여도 수량을 자동 제거하지 않음 |
+| 업비트 선물 | KRW만 지원 | 업비트 KRW 현물 시세 기반 롱/숏 모의거래 | 증거금 + 실제 손익이 0 이하일 때 |
+| 빗썸 선물 | KRW만 지원 | 빗썸 KRW 현물 시세 기반 롱/숏 모의거래 | 증거금 + 실제 손익이 0 이하일 때 |
+| Binance / OKX 선물 | USDT 저장 모형만 보존 | 국내 선물 가격 제공자로 사용하지 않음 | 현재 주문 화면은 미지원·준비 상태 |
+
+- 국내 선물은 실제 거래소로 주문을 보내지 않고, 수수료·펀딩·MMR을 적용하지 않는다.
+- 레버리지 상한은 BTC·ETH 100배, SOL/XRP/ADA/AVAX/NEAR/SUI/DOGE/SHIB/LINK/UNI/AAVE/RNDR 50배, 나머지 20배다. 유사한 심볼로 대체하지 않는다.
+- 같은 거래소·계좌·마켓에서 방향과 레버리지가 같을 때만 추가 진입을 합산한다. 과거 검증을 먼저 완료하고 최초 진입 시각과 개별 체결을 보존한다.
+- 거래소와 현물/선물의 자산은 분리한다. 현물 BTC 마켓은 보유 BTC로 결제하며 별도 BTC 현금 계좌를 만들지 않는다. 과거 국내 선물 BTC 저장 데이터는 읽되 신규 주문은 거절한다.
+- 인트로는 최소 1.5초, 최대 5초 대기한다. 최대 시간은 화면 대기 한도이며 실제 검증을 취소하지 않는다.
+- 앱 복귀·거래소 전환·현물에서 선물 전환 시 과거 청산 검증을 요청한다. 이미 검증 중이면 중복 실행하지 않는다. 검증은 저장된 완료 경계부터 재개한다.
+- 검증 완료 전에는 마지막 검증 가격으로 평가하고, 완료 후 최신 수신 시세를 자동 반영한다. 검증 중 받은 청산 가격은 과거 검증 완료 후 처리하며 더 이른 과거 청산을 우선한다.
+- 청산 결과·실현 손익·자산·검증 경계를 함께 저장하며 중복 정산하거나 현물 자산을 차감하지 않는다. 청산 안내는 해당 거래소의 선물 모드에서만 표시한다.
+
+`TradingRules`의 정책 정의와 실제 실행 책임은 다음처럼 구분한다.
+
+| 정책 정의 | 참조하는 실행 코드 |
+| --- | --- |
+| `Funding`: 초기 지급 계좌·금액, 미지급·초기화 잔고, 광고 보상 금액·버전 | `TradingFundingPolicy`, `AdRewardClaim`, `UserDataManager`, 계좌 Repository |
+| `Spot`: 최소 주문금액, 결제 자산, 체결·평가 정밀도, 잔량 허용 오차 | `SettlementCurrency`, `TradeOrderValidator`, `TradeOrderService`, `PortfolioCalculator` |
+| `Futures`: 신규 계좌·구형 계좌 복원, 추가 진입·부분 종료·펀딩·현재가 청산 허용 조건, 표시 손실 한도 | 계좌 모델, `FuturesCalculator`, `LocalFuturesAccountRepository` |
+| `Futures.HistoryCheck`: 주문 검증 경계, 현재가 유효 시간, 정밀 검증 허용 범위, 재검증 진입 조건 | `FuturesOrderCheck`, 검증 서비스·계산기, Reactor, Scene·Coordinator |
+| `DomesticFutures`: 국내 가격 출처·계약·레버리지·비용, 인트로 대기 한도 | `FuturesTradingUseCase`, 가격 Repository, 검증 서비스 |
+| 마켓 노출·청산 안내 조건 | 메인 화면, `SceneDelegate` |
+
+기존 `TradingFundingPolicy`와 `SettlementCurrency` API는 호환용 참조를 유지하며 정책 값은 `TradingRules`에서만 정의한다. 계좌·마켓 ID 비교, 금액 계산, 검증 순서, 원자적 저장, API 형식·조회 범위는 기존 계층의 책임이다. 규칙 변경 시 [`TradingRulesTests.swift`](MobitTests/TradingRulesTests.swift)와 실제 실행 경로의 `FuturesCalculatorTests`, `LocalFuturesAccountRepositoryTests`, `FuturesHistoryCheckTests`, `FuturesAccountReactorTests`, `UserDataManagerTests`, 현물 주문·평가 테스트를 함께 검증한다.
+
 ## 주요 의존성
 
 Swift Package Manager 기반으로 외부 라이브러리를 관리한다.

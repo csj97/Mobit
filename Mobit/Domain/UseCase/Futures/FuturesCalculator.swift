@@ -16,7 +16,7 @@ enum FuturesCalculator {
       throw FuturesCalculationError.invalidTimestamp
     }
     if !preservingStoredPosition, order.instrument.usesDomesticSpotPrice {
-      guard order.entryFeeRate == 0 else { throw FuturesCalculationError.invalidContract }
+      guard order.entryFeeRate == TradingRules.DomesticFutures.feeRate else { throw FuturesCalculationError.invalidContract }
       guard let maximum = order.instrument.maximumPaperLeverage, order.leverage <= maximum else {
         throw FuturesCalculationError.invalidLeverage
       }
@@ -72,8 +72,7 @@ enum FuturesCalculator {
   }
 
   private static func merge(_ added: FuturesPosition, into position: FuturesPosition) throws -> FuturesPosition {
-    guard position.order.account == added.order.account, position.order.instrument == added.order.instrument,
-      position.order.side == added.order.side, position.order.leverage == added.order.leverage
+    guard TradingRules.canCombine(added.order, with: position.order)
     else { throw FuturesCalculationError.inconsistentPosition }
     // 남은 원가에 신규 체결 원가만 더하고 이전 부분 종료 기록은 보존한다.
     var result = FuturesPosition(
@@ -94,7 +93,7 @@ enum FuturesCalculator {
     // 원금 반환과 실현 손익을 대조할 부분 종료 기록이다.
     let closings = position.partialClosings ?? []
     guard Set(openings.map(\.requestID) + closings.map { $0.order.requestID }).count == openings.count + closings.count,
-      closings.isEmpty || position.order.instrument.usesDomesticSpotPrice
+      closings.isEmpty || TradingRules.Futures.allowsPartialClosing(for: position.order.instrument)
     else { throw FuturesCalculationError.inconsistentPosition }
     // 원래 진입 시각과 첫 체결은 종료 이후에도 유지한다.
     var rebuilt = try storedFill(position.order)
@@ -119,7 +118,13 @@ enum FuturesCalculator {
         closed.order.expectedQuantity == nil || closed.order.expectedQuantity == rebuilt.quantity
       else { throw FuturesCalculationError.inconsistentPosition }
       // 저장된 정산 금액은 해당 종료 직전 원가와 종료 시세로 재현할 수 있어야 한다.
-      let quote = try makeClosingQuote(rebuilt, executionPrice: closed.order.executionPrice, exitFeeRate: 0, netFunding: 0, quantity: quantity)
+      let quote = try makeClosingQuote(
+        rebuilt,
+        executionPrice: closed.order.executionPrice,
+        exitFeeRate: TradingRules.Futures.closingFeeRate(for: rebuilt.order.instrument),
+        netFunding: 0,
+        quantity: quantity
+      )
       guard quote.returnedMargin > 0, quote.returnedMargin == closed.returnedMargin,
         quote.realizedPnL == closed.realizedPnL
       else { throw FuturesCalculationError.inconsistentPosition }
@@ -213,8 +218,14 @@ enum FuturesCalculator {
     let netPnL = try FuturesDecimal.subtract(equity, position.margin)
     let roe = try FuturesDecimal.multiply(FuturesDecimal.divide(netPnL, position.margin), 100)
     // 수익률 표시 반올림과 무관하게 실제 자본으로 청산 경계를 판단한다.
-    return FuturesValuation(tradingPnL: pnl, remainingMargin: remainingMargin, equity: equity, netPnL: netPnL,
-                            roePercent: roe, shouldLiquidate: equity <= 0)
+    return FuturesValuation(
+      tradingPnL: pnl,
+      remainingMargin: remainingMargin,
+      equity: equity,
+      netPnL: netPnL,
+      roePercent: roe,
+      shouldLiquidate: TradingRules.liquidationRule(for: position.order.account.product).shouldLiquidate(remainingEquity: equity)
+    )
   }
 
   static func estimatedLiquidationPrice(_ position: FuturesPosition, netFunding: Decimal = 0) throws -> Decimal? {
@@ -233,7 +244,7 @@ enum FuturesCalculator {
     try validate(position)
     try FuturesDecimal.positive(markPrice)
     try FuturesDecimal.finite(rate)
-    guard !position.order.instrument.usesDomesticSpotPrice || rate == 0 else {
+    guard TradingRules.Futures.allowsFunding(for: position.order.instrument) || rate == TradingRules.DomesticFutures.fundingRate else {
       throw FuturesCalculationError.invalidContract
     }
     let payment = try FuturesDecimal.multiply(FuturesDecimal.multiply(position.quantity, markPrice), rate)
@@ -262,8 +273,9 @@ enum FuturesCalculator {
     try FuturesDecimal.positive(executionPrice)
     try validateFeeRate(exitFeeRate)
     try validateFunding(position, netFunding: netFunding)
-    guard !position.order.instrument.usesDomesticSpotPrice || exitFeeRate == 0,
-      quantity == position.quantity || (position.order.instrument.usesDomesticSpotPrice && exitFeeRate == 0 && netFunding == 0),
+    guard !position.order.instrument.usesDomesticSpotPrice || exitFeeRate == TradingRules.DomesticFutures.feeRate,
+      quantity == position.quantity || (TradingRules.Futures.allowsPartialClosing(for: position.order.instrument)
+        && exitFeeRate == TradingRules.Futures.closingFeeRate(for: position.order.instrument) && netFunding == 0),
       try closingQuantity(quantity, position: position) == quantity
     else { throw FuturesCalculationError.invalidContract }
     // 이번에 종료하는 수량에 배분할 진입 원금이다.
@@ -316,7 +328,7 @@ enum FuturesCalculator {
   private static func validateFunding(_ position: FuturesPosition, netFunding: Decimal) throws {
     try FuturesDecimal.finite(netFunding)
     // 국내 모의 펀딩 정책이 정해지기 전에는 해외 펀딩을 섞지 않는다.
-    guard !position.order.instrument.usesDomesticSpotPrice || netFunding == 0 else {
+    guard TradingRules.Futures.allowsFunding(for: position.order.instrument) || netFunding == 0 else {
       throw FuturesCalculationError.invalidContract
     }
   }

@@ -7,7 +7,7 @@ enum FuturesReplayCalculator {
 	guard state.positionID == position.id, state.verifiedThrough >= start,
 	  state.verifiedThrough <= 253_402_300_799_000
 	else { throw FuturesHistoryCheckError.invalidState }
-	guard !position.order.instrument.usesDomesticSpotPrice || state.fundingReceipts.isEmpty else {
+	guard TradingRules.Futures.allowsFunding(for: position.order.instrument) || state.fundingReceipts.isEmpty else {
 	  throw FuturesHistoryCheckError.invalidState
 	}
 	var total: Decimal = 0
@@ -31,13 +31,13 @@ enum FuturesReplayCalculator {
 	if let mark = state.lastVerifiedMark { try FuturesDecimal.positive(mark) }
 	if state.verifiedThrough > start {
 	  guard state.lastVerifiedMark != nil,
-		(position.order.instrument.usesDomesticSpotPrice || state.verifiedThrough % 60_000 == 0)
+		(TradingRules.Futures.HistoryCheck.allowsDetailedHistory(for: position.order.instrument) || state.verifiedThrough % 60_000 == 0)
 	  else { throw FuturesHistoryCheckError.invalidState }
 	} else if state.lastVerifiedMark != nil || (state.liquidation != nil && state.liquidation?.observedAt == nil) {
 	  throw FuturesHistoryCheckError.invalidState
 	}
 	for fallback in state.entryCloseFallbacks ?? [] {
-	  guard position.order.instrument.usesDomesticSpotPrice, fallback.start % 60_000 != 0,
+	  guard TradingRules.Futures.HistoryCheck.allowsDetailedHistory(for: position.order.instrument), fallback.start % 60_000 != 0,
 		try (position.executions.map(\.executedAt) + (position.partialClosings ?? []).map { $0.order.executedAt }).contains(where: {
 		  try FuturesHistoryCheckState.milliseconds($0) == fallback.start
 		}),
@@ -54,7 +54,7 @@ enum FuturesReplayCalculator {
 	  let settledTime = try FuturesHistoryCheckState.milliseconds(liquidation.settledAt)
 	  if let observedAt = liquidation.observedAt {
 		// 현재가로 확인한 청산도 미조회 과거를 검증 완료로 표시하지 않는다.
-		guard position.order.instrument.usesDomesticSpotPrice,
+		guard TradingRules.Futures.HistoryCheck.allowsDetailedHistory(for: position.order.instrument),
 		  liquidation.intervalStart == state.verifiedThrough,
 		  observedAt >= state.verifiedThrough, observedAt > start,
 		  observedAt <= settledTime, liquidation.intervalEndExclusive == observedAt + 1
@@ -94,7 +94,7 @@ enum FuturesReplayCalculator {
 	  batch.endExclusive <= (try FuturesHistoryCheckState.milliseconds(settledAt)),
 	  batch.endExclusive - batch.start <= 499 * 60_000
 	else { throw FuturesHistoryCheckError.invalidHistory }
-	guard !position.order.instrument.usesDomesticSpotPrice || batch.funding.isEmpty else {
+	guard TradingRules.Futures.allowsFunding(for: position.order.instrument) || batch.funding.isEmpty else {
 	  throw FuturesHistoryCheckError.invalidHistory
 	}
 	let floorStart = batch.start - batch.start % 60_000
@@ -175,7 +175,7 @@ enum FuturesReplayCalculator {
   ) throws -> FuturesReplayResult {
 	// 분봉이 찾은 최초 청산 분과 정밀 이력의 범위가 같아야 한다.
 	let minuteResult = try replay(batch, position: position, state: state, settledAt: settledAt)
-	guard position.order.instrument.usesDomesticSpotPrice, !batch.detailed,
+	guard TradingRules.Futures.HistoryCheck.allowsDetailedHistory(for: position.order.instrument), !batch.detailed,
 	  let liquidation = minuteResult.state.liquidation, detailBatch.detailed, !detailBatch.entryCloseFallback,
 	  detailBatch.start == liquidation.intervalStart, detailBatch.endExclusive == liquidation.intervalEndExclusive
 	else { throw FuturesHistoryCheckError.invalidHistory }
@@ -208,7 +208,8 @@ enum FuturesReplayCalculator {
 	let minuteEnd = fallback.start - fallback.start % 60_000 + 60_000
 	let secondEnd = fallback.start - fallback.start % 1000 + 1000
 	return fallback.endExclusive == minuteEnd
-	  || (instrument.exchange == .upbit && fallback.start % 1000 != 0 && fallback.endExclusive == secondEnd)
+	  || (TradingRules.Futures.HistoryCheck.allowsEntrySecondCloseFallback(for: instrument.exchange)
+		&& fallback.start % 1000 != 0 && fallback.endExclusive == secondEnd)
   }
 
   private static func replayDetail(
@@ -217,7 +218,7 @@ enum FuturesReplayCalculator {
 	state: FuturesHistoryCheckState,
 	settledAt: Date
   ) throws -> FuturesReplayResult {
-	guard position.order.instrument.usesDomesticSpotPrice, batch.instrument == position.order.instrument,
+	guard TradingRules.Futures.HistoryCheck.allowsDetailedHistory(for: position.order.instrument), batch.instrument == position.order.instrument,
 	  state.liquidation == nil, batch.funding.isEmpty, batch.start == state.verifiedThrough,
 	  batch.endExclusive > batch.start, batch.endExclusive - batch.start <= 60_000,
 	  batch.endExclusive <= (try FuturesHistoryCheckState.milliseconds(settledAt))

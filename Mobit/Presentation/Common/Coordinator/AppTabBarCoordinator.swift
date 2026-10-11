@@ -12,6 +12,8 @@ class AppTabBarCoordinator: BaseCoordinator {
   var navigationController: UINavigationController
   // 탭 화면의 표시 완료를 상위 Coordinator에 전달한다.
   var mainScreenShownCallBack: (() -> Void)?
+  // 거래소·상품 전환 후 대기 중인 청산 안내의 표시 조건을 다시 확인한다.
+  var tradingSelectionChangedCallBack: (() -> Void)?
   private let mobitTabBarController = MobitTabBarViewController()
   private var futuresCoordinator: FuturesCoordinator?
   private var mainCoordinator: MainCoordinator?
@@ -30,7 +32,11 @@ class AppTabBarCoordinator: BaseCoordinator {
 	  mainCoordinator?.disconnectSocket()
 	  futuresCoordinator?.disconnectSocket()
 	  ExchangeSelectionStore.currentProduct = product
+	  if TradingRules.Futures.HistoryCheck.shouldRefresh(on: .productSelection, selectedProduct: product) {
+		FuturesHistoryCheckService.shared.refresh()
+	  }
 	  configureTabs(selectedIndex: mobitTabBarController.selectedIndex)
+	  tradingSelectionChangedCallBack?()
 	}
 	self.configureTabs(selectedIndex: 0)
 	self.navigationController.viewControllers = [mobitTabBarController]
@@ -43,11 +49,16 @@ class AppTabBarCoordinator: BaseCoordinator {
 	self.mainCoordinator?.disconnectSocket()
 	self.futuresCoordinator?.disconnectSocket()
 	ExchangeSelectionStore.currentExchange = exchange
+	if TradingRules.Futures.HistoryCheck.shouldRefresh(
+	  on: .exchangeSelection,
+	  selectedProduct: ExchangeSelectionStore.currentProduct
+	) { FuturesHistoryCheckService.shared.refresh() }
 	// 전환된 거래소의 보유 현금을 구독자에게 즉시 반영한다.
 	UserDataManager.publishCurrentExchangeBalance()
 	// 정보탭 CMC 캐시를 새 거래소 기준으로 갱신한다.
 	AppDataManager.shared.refreshCMCData(for: exchange)
 	self.configureTabs(selectedIndex: 0)
+	tradingSelectionChangedCallBack?()
   }
   
   private func configureTabs(selectedIndex: Int) {

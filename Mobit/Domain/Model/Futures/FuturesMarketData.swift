@@ -5,6 +5,20 @@ struct FuturesMarkQuote: Equatable {
   let instrument: TradingInstrumentID
   let price: Decimal
   let timestamp: Int64
+  // REST 서버 응답 시각으로 무체결 현재가도 새로 조회됐는지 확인한다.
+  let responseTimestamp: Int64?
+
+  init(
+    instrument: TradingInstrumentID,
+    price: Decimal,
+    timestamp: Int64,
+    responseTimestamp: Int64? = nil
+  ) {
+    self.instrument = instrument
+    self.price = price
+    self.timestamp = timestamp
+    self.responseTimestamp = responseTimestamp
+  }
 }
 
 struct FuturesMarkCandle: Codable, Equatable {

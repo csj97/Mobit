@@ -22,7 +22,12 @@ final class DomesticFuturesMarketRepository: FuturesDetailedMarketDataProviding 
         throw FuturesMarketDataError.invalidResponse
       }
       try Self.validatePrice(row.trade_price)
-      return FuturesMarkQuote(instrument: instrument, price: row.trade_price, timestamp: row.calculateQuoteTimestamp(exchange: instrument.exchange))
+      return FuturesMarkQuote(
+        instrument: instrument,
+        price: row.trade_price,
+        timestamp: row.calculateQuoteTimestamp(exchange: instrument.exchange),
+        responseTimestamp: Self.serverTime(response)
+      )
     }
   }
 
@@ -149,7 +154,7 @@ final class DomesticFuturesMarketRepository: FuturesDetailedMarketDataProviding 
     if (0...7).contains(age) {
       return tickHistory(instrument, start: start, end: endExclusive, calendar: calendar, attempts: 0).map(batch)
     }
-	if instrument.exchange == .upbit, initialEntry, start % 1000 != 0,
+	if TradingRules.Futures.HistoryCheck.allowsEntrySecondCloseFallback(for: instrument.exchange), initialEntry, start % 1000 != 0,
 	   endExclusive == start - start % 60_000 + 60_000,
 	   let earliest = calendar.date(byAdding: .month, value: -3, to: now()),
 	   Double(start - start % 1000) / 1000 >= earliest.timeIntervalSince1970 {
@@ -290,7 +295,7 @@ final class DomesticFuturesMarketRepository: FuturesDetailedMarketDataProviding 
   }
 
   private static func supports(_ instrument: TradingInstrumentID) -> Bool {
-    instrument.usesDomesticSpotPrice && instrument.settlementCurrency == .krw &&
+    TradingRules.DomesticFutures.supportsHistoryInstrument(instrument) &&
       TradingAccountID(exchange: instrument.exchange, product: .perpetual, currency: .krw).supports(instrument)
   }
   private static func validRange(_ start: Int64, _ end: Int64) -> Bool {

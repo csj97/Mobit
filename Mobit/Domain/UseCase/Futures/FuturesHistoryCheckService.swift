@@ -17,6 +17,19 @@ struct FuturesRefreshResult: Equatable {
   let verifiedThrough: Int64?
   let liquidated: Bool
   let hold: FuturesHistoryCheckHold?
+  // 저장 간격 사이에 완료한 검증 가격도 화면 전환 후 다시 사용할 수 있게 보관한다.
+  var lastVerifiedMark: Decimal? = nil
+
+  // 가격은 유지하되 새 세션의 과거 구간을 확인하기 전 주문 허용 근거로 쓰지 않는다.
+  func requiringHistoryCheck() -> Self {
+    Self(
+      positionID: positionID,
+      verifiedThrough: verifiedThrough,
+      liquidated: liquidated,
+      hold: liquidated ? hold : (hold ?? .currentInterval),
+      lastVerifiedMark: lastVerifiedMark
+    )
+  }
 }
 
 enum FuturesRefreshStatus {
@@ -30,7 +43,7 @@ final class FuturesHistoryCheckService {
   static let shared = FuturesHistoryCheckService(
     store: { try LocalFuturesAccountRepository.applicationStore() },
     provider: { instrument in
-      guard instrument.usesDomesticSpotPrice, instrument.settlementCurrency == .krw else { return nil }
+      guard TradingRules.DomesticFutures.supportsHistoryInstrument(instrument) else { return nil }
       return DomesticFuturesMarketRepository()
     },
     monitor: FuturesPositionSocketMonitor()
@@ -44,6 +57,8 @@ final class FuturesHistoryCheckService {
   private let queue: DispatchQueue
   private let scheduler: SerialDispatchQueueScheduler
   private let subject = BehaviorSubject<FuturesRefreshStatus>(value: .finished([]))
+  // 인트로 완료 직후 재조회가 시작돼도 새 화면에 직전 검증 결과를 전달한다.
+  private var lastFinishedResults: [FuturesRefreshResult]?
   private var running = false
   private var active = true
   private var generation: UInt64 = 0
@@ -57,6 +72,8 @@ final class FuturesHistoryCheckService {
   private var connectedExchanges: Set<Exchange> = []
   private var receivedInstruments: Set<TradingInstrumentID> = []
   private var readyPositions: [UUID: Date] = [:]
+  // 검증 중 수신한 최초 청산 가격을 보관해 다음 tick 없이도 완료 직후 정산한다.
+  private var pendingLiquidationQuotes: [TradingInstrumentID: FuturesMarkQuote] = [:]
 
   var liquidationEvents: Observable<[FuturesPosition]> {
     liquidations.asObservable().observe(on: MainScheduler.instance)
@@ -94,6 +111,7 @@ final class FuturesHistoryCheckService {
       snapshot.positions.filter { snapshot.isActive($0) }.map { ($0.order.instrument, $0) },
       uniquingKeysWith: { first, _ in first }
     )
+    pendingLiquidationQuotes = pendingLiquidationQuotes.filter { watchedPositions[$0.key] != nil }
     readyPositions = readyPositions.filter { id, execution in
       watchedPositions.values.contains { $0.id == id && $0.lastExecutionAt == execution }
     }
@@ -104,14 +122,19 @@ final class FuturesHistoryCheckService {
     guard active else { return }
     switch event {
     case let .connection(exchange, connected):
+      guard connectedExchanges.contains(exchange) != connected else { return }
       connectedExchanges.remove(exchange)
       receivedInstruments = receivedInstruments.filter { $0.exchange != exchange }
       readyPositions = readyPositions.filter { id, _ in
         watchedPositions.values.contains { $0.id == id && $0.order.account.exchange != exchange }
       }
-      generation &+= 1
-      disposable?.dispose()
-      running = false
+      // 실제 단절만 이전 세션 검증을 무효화하고 최초 연결은 진행 중인 검증에 합친다.
+      if !connected {
+        pendingLiquidationQuotes = pendingLiquidationQuotes.filter { $0.key.exchange != exchange }
+        generation &+= 1
+        disposable?.dispose()
+        running = false
+      }
       if connected { connectedExchanges.insert(exchange) }
       startRefresh()
     case let .quote(quote, displayTimestamp):
@@ -147,10 +170,18 @@ final class FuturesHistoryCheckService {
       )
     )
     guard quote.timestamp > 0, quote.timestamp <= timestamp else { return }
+    guard (try? FuturesCalculator.evaluate(position, markPrice: quote.price).shouldLiquidate) == true else { return }
     // 재진입·재연결 검증을 끝내기 전에는 현재가로 과거 최초 청산 구간을 덮어쓰지 않는다.
-    guard readyPositions[position.id] == position.lastExecutionAt else { return }
+    guard readyPositions[position.id] == position.lastExecutionAt else {
+      // 만료된 tick은 새 가격으로 교체하고 같은 구간에서는 첫 청산 시각을 보존한다.
+      if quote.timestamp >= timestamp - TradingRules.Futures.HistoryCheck.quoteMaximumAgeMilliseconds,
+        pendingLiquidationQuotes[quote.instrument].map({
+          $0.timestamp < timestamp - TradingRules.Futures.HistoryCheck.quoteMaximumAgeMilliseconds || quote.timestamp < $0.timestamp
+        }) ?? true
+      { pendingLiquidationQuotes[quote.instrument] = quote }
+      return
+    }
     do {
-      guard try FuturesCalculator.evaluate(position, markPrice: quote.price).shouldLiquidate else { return }
       let store = try storeFactory()
       let closed = try store.liquidateObservedQuote(quote, settledAt: now())
       updateWatchedPositions(try store.snapshot())
@@ -159,6 +190,7 @@ final class FuturesHistoryCheckService {
       // 저장 실패는 포지션을 유지해 다음 tick/REST에서 재시도한다.
       if reason(error) == .storageFailed {
         readyPositions.removeValue(forKey: position.id)
+        lastFinishedResults = nil
         subject.onNext(.storageFailed)
       }
     }
@@ -172,7 +204,14 @@ final class FuturesHistoryCheckService {
     }
   }
 
-  var status: Observable<FuturesRefreshStatus> { subject.asObservable().observe(on: MainScheduler.instance) }
+  var status: Observable<FuturesRefreshStatus> {
+    Observable.deferred { [self] in
+      guard case .refreshing = try subject.value(), let lastFinishedResults else {
+        return subject.asObservable()
+      }
+      return subject.asObservable().startWith(.finished(lastFinishedResults))
+    }.subscribe(on: scheduler).observe(on: MainScheduler.instance)
+  }
 
   init(
     store: @escaping () throws -> LocalFuturesAccountRepository,
@@ -205,6 +244,35 @@ final class FuturesHistoryCheckService {
     queue.async { [weak self] in self?.startRefresh() }
   }
 
+  // 보류된 조회는 완료가 아니며, 화면 대기가 끝나도 실제 검증은 계속한다.
+  func prepareLaunch(
+    minimumDuration: RxTimeInterval = .milliseconds(TradingRules.DomesticFutures.HistoryCheck.minimumIntroMilliseconds),
+    timeout: RxTimeInterval = .seconds(TradingRules.DomesticFutures.HistoryCheck.maximumIntroSeconds)
+  ) -> Observable<Void> {
+    // 새 검증의 완료만 기다리며 화면 구독용 직전 결과는 사용하지 않는다.
+    let completion = subject.asObservable().skip(1).observe(on: MainScheduler.instance)
+      .flatMapLatest { [weak self] status -> Observable<Void> in
+        switch status {
+        case .finished(let results):
+          if results.allSatisfy({ $0.liquidated || $0.hold == nil }) { return .just(()) }
+          // 인트로 대기가 유지되는 동안 보류 구간을 재시도한다.
+          return Observable<Int>.timer(.seconds(1), scheduler: MainScheduler.instance)
+            .flatMap { [weak self] _ -> Observable<Void> in
+              self?.refresh()
+              return .empty()
+            }
+        case .storageFailed: return .just(())
+        case .refreshing, .paused: return .empty()
+        }
+      }.take(1)
+      .do(onSubscribed: { [weak self] in self?.refresh() })
+      .timeout(timeout, other: Observable<Void>.just(()), scheduler: MainScheduler.instance)
+    return Observable.combineLatest(
+      Observable<Int>.timer(minimumDuration, scheduler: MainScheduler.instance),
+      completion
+    ).take(1).map { _ in () }
+  }
+
   private func startRefresh() {
     guard !running else { return }
     active = true
@@ -221,18 +289,22 @@ final class FuturesHistoryCheckService {
       }
       disposable = Observable.from(positions).concatMap { [self] position in
         self.refresh(position, store: store).asObservable()
-      }.toArray().observe(on: scheduler).subscribe(
+      }.toArray().observe(on: scheduler).map { [self] results in
+        guard active, generation == currentGeneration else { return results }
+        return try settlePendingLiquidationQuotes(results, store: store)
+      }.subscribe(
         onSuccess: { [weak self] results in
           guard let self, active, generation == currentGeneration else { return }
           running = false
           for result in results {
             guard let position = positions.first(where: { $0.id == result.positionID }) else { continue }
-            if result.hold == nil && !result.liquidated {
+            if TradingRules.Futures.HistoryCheck.isPositionReady(liquidated: result.liquidated, hold: result.hold) {
               readyPositions[position.id] = position.lastExecutionAt
             } else {
               readyPositions.removeValue(forKey: position.id)
             }
           }
+          lastFinishedResults = results
           subject.onNext(.finished(results))
           if results.contains(where: {
             !$0.liquidated && $0.hold != .unsupportedInstrument && $0.hold != .storageFailed
@@ -250,14 +322,46 @@ final class FuturesHistoryCheckService {
           guard let self, generation == currentGeneration else { return }
           running = false
           readyPositions.removeAll()
+          lastFinishedResults = nil
           subject.onNext(.storageFailed)
         }
       )
     } catch {
       running = false
       readyPositions.removeAll()
+      lastFinishedResults = nil
       subject.onNext(.storageFailed)
     }
+  }
+
+  private func settlePendingLiquidationQuotes(
+    _ results: [FuturesRefreshResult],
+    store: LocalFuturesAccountRepository
+  ) throws -> [FuturesRefreshResult] {
+    // 검증 완료 이벤트에는 대기 중인 소켓 청산까지 저장된 최종 결과를 전달한다.
+    var completed = results
+    // 저장소의 현재가 정산과 동일한 유효 시간만 허용한다.
+    let timestamp = try FuturesHistoryCheckState.milliseconds(now())
+    for (index, result) in results.enumerated() where TradingRules.Futures.HistoryCheck.isPositionReady(liquidated: result.liquidated, hold: result.hold) {
+      guard let position = watchedPositions.values.first(where: { $0.id == result.positionID }),
+        let quote = pendingLiquidationQuotes.removeValue(forKey: position.order.instrument),
+        let verifiedThrough = result.verifiedThrough,
+        quote.timestamp >= verifiedThrough,
+        quote.timestamp >= timestamp - TradingRules.Futures.HistoryCheck.quoteMaximumAgeMilliseconds, quote.timestamp <= timestamp
+      else { continue }
+      // 과거 검증 경계 이후에 수신한 가격만 사용해 더 이른 청산 이력을 덮어쓰지 않는다.
+      let closed = try store.liquidateObservedQuote(quote, settledAt: now())
+      guard !closed.isEmpty else { continue }
+      // 계좌와 알림보다 먼저 청산이 원자적으로 저장됐는지 확인한다.
+      let snapshot = try store.snapshot()
+      updateWatchedPositions(snapshot)
+      completed[index] = self.result(
+        position.id,
+        state: snapshot.historyCheckStates.first { $0.positionID == position.id }
+      )
+      publishLiquidations(closed)
+    }
+    return completed
   }
 
   func suspend() {
@@ -265,6 +369,9 @@ final class FuturesHistoryCheckService {
       guard let self else { return }
       active = false
       readyPositions.removeAll()
+      // 주문 가능 상태와 소켓 세션은 폐기하되 확인한 가격은 복귀 화면에 유지한다.
+      pendingLiquidationQuotes.removeAll()
+      lastFinishedResults = lastFinishedResults?.map { $0.requiringHistoryCheck() }
       connectedExchanges.removeAll()
       receivedInstruments.removeAll()
       monitor?.suspend()
@@ -325,8 +432,12 @@ final class FuturesHistoryCheckService {
       .timeout(.seconds(20), scheduler: scheduler).observe(on: scheduler)
       .flatMap { [self] quote -> Single<FuturesRefreshResult> in
         let current = try FuturesHistoryCheckState.milliseconds(now())
+        // 무체결로 체결 시각이 멈춰도 새 REST 응답이면 과거 구간 검증을 진행한다.
+        let freshnessTimestamp = quote.responseTimestamp ?? quote.timestamp
         guard quote.instrument == position.order.instrument, quote.timestamp > 0,
-          quote.timestamp <= current + 5_000, quote.timestamp >= current - 30_000,
+          quote.timestamp <= current + TradingRules.Futures.HistoryCheck.restClockAheadMilliseconds,
+          freshnessTimestamp <= current + TradingRules.Futures.HistoryCheck.restClockAheadMilliseconds,
+          freshnessTimestamp >= current - TradingRules.Futures.HistoryCheck.quoteMaximumAgeMilliseconds,
           !quote.price.isNaN, quote.price > 0
         else {
           return .just(result(position.id, hold: .staleQuote))
@@ -334,7 +445,8 @@ final class FuturesHistoryCheckService {
         // REST 현재가는 검증 종료 경계로만 사용하고 청산은 과거 가격 순서로 확정한다.
         let end =
           provider is FuturesDetailedMarketDataProviding
-          ? min(quote.timestamp + 1, current) : quote.timestamp - quote.timestamp % 60_000
+          ? min(max(quote.timestamp + 1, quote.responseTimestamp ?? 0), current)
+          : quote.timestamp - quote.timestamp % 60_000
         return process(position, store: store, provider: provider, end: end, pages: 0)
       }.catch { [self] error in .just(result(position.id, hold: reason(error))) }
   }
@@ -378,7 +490,7 @@ final class FuturesHistoryCheckService {
         pageEnd = min(end - end % 60_000, floorStart + 499 * 60_000)
         guard pageEnd > start else { return .just(result(position.id, state: state, hold: .currentInterval)) }
         let funding: Single<FuturesHistoryPage<FuturesFundingEvent>> =
-          position.order.instrument.usesDomesticSpotPrice
+          !TradingRules.Futures.allowsFunding(for: position.order.instrument)
           ? .just(.init(instrument: position.order.instrument, values: [], nextStartTime: nil))
           : provider.funding(position.order.instrument, start: start, endExclusive: pageEnd)
         batch = Single.zip(
@@ -432,7 +544,7 @@ final class FuturesHistoryCheckService {
     Single.deferred { [self] in
       // 최초 청산 분을 찾은 뒤 해당 분만 정밀 조회해 불필요한 전체 초봉 조회를 피한다.
       let minuteResult = try FuturesReplayCalculator.replay(batch, position: position, state: state, settledAt: now())
-      guard !batch.detailed, position.order.instrument.usesDomesticSpotPrice,
+      guard !batch.detailed, TradingRules.Futures.HistoryCheck.allowsDetailedHistory(for: position.order.instrument),
         let liquidation = minuteResult.state.liquidation,
         let detail = provider as? FuturesDetailedMarketDataProviding
       else {
@@ -478,11 +590,14 @@ final class FuturesHistoryCheckService {
     state: FuturesHistoryCheckState? = nil,
     hold: FuturesHistoryCheckHold? = nil
   ) -> FuturesRefreshResult {
-    FuturesRefreshResult(
+    // REST 오류로 새 이력 상태가 없더라도 앞선 검증 가격은 표시용으로 유지한다.
+    let previous = lastFinishedResults?.first { $0.positionID == id }
+    return FuturesRefreshResult(
       positionID: id,
-      verifiedThrough: state?.verifiedThrough,
+      verifiedThrough: state?.verifiedThrough ?? previous?.verifiedThrough,
       liquidated: state?.liquidation != nil,
-      hold: hold
+      hold: hold,
+      lastVerifiedMark: state?.lastVerifiedMark ?? previous?.lastVerifiedMark
     )
   }
 

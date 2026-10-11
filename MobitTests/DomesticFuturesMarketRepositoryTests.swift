@@ -108,7 +108,7 @@ final class DomesticFuturesMarketRepositoryTests: XCTestCase {
     XCTAssertEqual(try value(invalid.markQuote(instrument(.bithumb))).timestamp, timestamp + offset)
   }
 
-  func testBithumbShiftedTickerCompletesHistoryAndClosesPosition() throws {
+  func testBithumbIdleTickerCompletesHistoryThroughResponseTimeAndClosesPosition() throws {
     // 과거 검증과 종료 저장을 분리된 임시 계좌에서 확인한다.
     let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("accounts.json")
     defer { try? FileManager.default.removeItem(at: fileURL.deletingLastPathComponent()) }
@@ -124,15 +124,19 @@ final class DomesticFuturesMarketRepositoryTests: XCTestCase {
     let repo = repository(serverTime: base + 40_000) { target in
       switch target.query {
       case .ticker:
-        return "[{\"market\":\"KRW-BTC\",\"trade_price\":100,\"timestamp\":\(self.base + 39_123 + 32_400_000),"
-          + "\"trade_timestamp\":\(self.base + 39_123 + 32_400_000),\"trade_date\":\"\(self.text(self.base, format: "yyyyMMdd"))\","
-          + "\"trade_time\":\"\(self.text(self.base + 39_000, format: "HHmmss"))\"}]"
+        return "[{\"market\":\"KRW-BTC\",\"trade_price\":100,\"timestamp\":\(self.base + 5_123 + 32_400_000),"
+          + "\"trade_timestamp\":\(self.base + 5_123 + 32_400_000),\"trade_date\":\"\(self.text(self.base, format: "yyyyMMdd"))\","
+          + "\"trade_time\":\"\(self.text(self.base + 5_000, format: "HHmmss"))\"}]"
       case .trades:
-        return "[{\"market\":\"KRW-BTC\",\"trade_price\":100,\"timestamp\":\(self.base + 34_000),\"sequential_id\":1}]"
+        return "[{\"market\":\"KRW-BTC\",\"trade_price\":100,\"timestamp\":\(self.base + 5_123),\"sequential_id\":1}]"
       case .candles:
         return "[\(self.candle(self.base - 60_000))]"
       }
     }
+    // 마지막 체결이 오래됐어도 새 응답 시각까지 검증하며 체결 원본은 보존한다.
+    let quote = try value(repo.markQuote(order.instrument))
+    XCTAssertEqual(quote.timestamp, base + 5_123)
+    XCTAssertEqual(quote.responseTimestamp, base + 40_000)
     // 실제 Repository 응답을 주문 준비 상태로 연결한다.
     let service = FuturesHistoryCheckService(store: { store }, provider: { _ in repo }, now: { now })
     // 비동기 과거 검증 완료를 기다린다.
@@ -141,6 +145,7 @@ final class DomesticFuturesMarketRepositoryTests: XCTestCase {
     let subscription = service.status.subscribe(onNext: { status in
       if case .finished(let results) = status, !results.isEmpty {
         XCTAssertNil(results[0].hold)
+        XCTAssertEqual(results[0].verifiedThrough, self.base + 40_000)
         finished.fulfill()
       }
     })
@@ -196,7 +201,7 @@ final class DomesticFuturesMarketRepositoryTests: XCTestCase {
     try store.ensureAccount(order.account)
     try store.applyAdvertisementReward(AdRewardClaim(account: order.account))
     try store.openTestPosition(order, expectedRevision: store.snapshot().revision)
-    let repo = repository { target in
+    let repo = repository(serverTime: base + 125_000) { target in
       switch target.query {
       case .ticker: return "[{\"market\":\"KRW-BTC\",\"trade_price\":100,\"timestamp\":\(self.base + 125_000)}]"
       case .candles: return "[\(self.candle(self.base)),\(self.candle(self.base - 60_000))]"

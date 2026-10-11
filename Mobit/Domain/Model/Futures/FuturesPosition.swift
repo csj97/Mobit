@@ -100,8 +100,8 @@ struct FuturesValuation: Equatable {
   let shouldLiquidate: Bool
 
   // 청산 근거의 원시 손실은 보존하되 표시 손실은 예약 증거금까지만 반영한다.
-  var displayedEquity: Decimal { max(0, equity) }
-  var displayedROEPercent: Decimal { max(-100, roePercent) }
+  var displayedEquity: Decimal { max(TradingRules.Futures.minimumDisplayedEquity, equity) }
+  var displayedROEPercent: Decimal { max(TradingRules.Futures.minimumDisplayedReturnPercent, roePercent) }
   var displayedPnL: Decimal {
     get throws { try FuturesDecimal.subtract(displayedEquity, FuturesDecimal.subtract(equity, netPnL)) }
   }

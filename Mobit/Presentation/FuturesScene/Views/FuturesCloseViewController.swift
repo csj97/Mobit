@@ -368,7 +368,12 @@ final class FuturesCloseViewController: UIViewController {
         return
       }
       // 종료 수량의 원금과 손익만 돌려주는 예상 정산 결과다.
-      let quote = try FuturesCalculator.closingQuote(position, executionPrice: price.quote.price, exitFeeRate: 0, quantity: quantity)
+      let quote = try FuturesCalculator.closingQuote(
+        position,
+        executionPrice: price.quote.price,
+        exitFeeRate: TradingRules.Futures.closingFeeRate(for: position.order.instrument),
+        quantity: quantity
+      )
       // 반환금액·손익·잔여 수량의 최종 표시값을 한 번에 적용한다.
       let summaryText = "\(FuturesText.text("futures_close_return")) \(FuturesText.number(quote.returnedMargin)) \(FuturesText.text("currency_krw_unit"))\n"
         + "\(FuturesText.text("futures_realized")) \(FuturesText.number(quote.realizedPnL)) \(FuturesText.text("currency_krw_unit"))\n"
@@ -413,7 +418,12 @@ final class FuturesCloseViewController: UIViewController {
       let quantity = try selection.calculateQuantity(position: position)
       guard quantity > 0 else { throw FuturesCalculationError.invalidNumber }
       // 시세로 종료가 불가능해진 경우에도 버튼 대신 탭 시점에 요청을 막는다.
-      let quote = try FuturesCalculator.closingQuote(position, executionPrice: price.quote.price, exitFeeRate: 0, quantity: quantity)
+      let quote = try FuturesCalculator.closingQuote(
+        position,
+        executionPrice: price.quote.price,
+        exitFeeRate: TradingRules.Futures.closingFeeRate(for: position.order.instrument),
+        quantity: quantity
+      )
       guard quote.returnedMargin > 0 else {
         showCloseError(FuturesText.text("futures_retry_order"))
         return

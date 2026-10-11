@@ -103,7 +103,9 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
     let state = reactor.currentState
     let positions = reactor.positions
     let now = Date()
-    items = positions.map { ($0, try? FuturesText.valuation($0, quotes: state.quotes)) }
+    // 검증 전에는 메인 화면과 같은 마지막 검증 가격으로 평가한다.
+    let quotes = reactor.valuationQuotes
+    items = positions.map { ($0, try? FuturesText.valuation($0, quotes: quotes)) }
     items.sort { left, right in
       if selectedSortType == .name {
         return FuturesText.symbol(left.position.order.instrument) < FuturesText.symbol(right.position.order.instrument)
@@ -127,7 +129,7 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
     totalBuyPrice.text = Self.krw(margin)
     let valuation = try? state.snapshot?.valuation(
 	  for: reactor.account,
-	  quotes: state.quotes,
+	  quotes: quotes,
 	  now: now,
 	  forDisplay: true
 	)

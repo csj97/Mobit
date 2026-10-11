@@ -8,6 +8,40 @@ import GoogleMobileAds
 
 final class FuturesAccountReactorTests: XCTestCase {
   @MainActor
+  func testSpotInvestmentForegroundResumesMainSocketButDetailUsesOnlyItsOwnSocket() {
+    // 다른 테스트의 상품 선택을 복구한다.
+    let previousProduct = ExchangeSelectionStore.currentProduct
+    ExchangeSelectionStore.currentProduct = .spot
+    defer { ExchangeSelectionStore.currentProduct = previousProduct }
+    // 현물 평가를 갱신하는 메인 소켓 제어 대상이다.
+    let main = LifecycleSocketViewControllerFixture()
+    // 투자내역처럼 별도 소켓이 없는 탭이다.
+    let investment = UIViewController()
+    // 실제 앱과 같은 탭·내비게이션 계층에서 제어 대상을 찾는다.
+    let tabs = MobitTabBarViewController()
+    tabs.setViewControllers([
+      UINavigationController(rootViewController: main),
+      UINavigationController(rootViewController: investment)
+    ], selectedIndex: 1)
+    tabs.controlSocket(appState: .background)
+    tabs.controlSocket(appState: .foreground)
+    XCTAssertEqual(main.pauses, 1)
+    XCTAssertEqual(main.resumes, 1)
+    // 거래 상세에서는 메인 소켓을 다시 연결하면 중복 구독이 된다.
+    let detail = LifecycleSocketViewControllerFixture()
+    tabs.setViewControllers([
+      UINavigationController(rootViewController: main),
+      UINavigationController(rootViewController: detail)
+    ], selectedIndex: 1)
+    tabs.controlSocket(appState: .background)
+    tabs.controlSocket(appState: .foreground)
+    XCTAssertEqual(main.pauses, 1)
+    XCTAssertEqual(main.resumes, 1)
+    XCTAssertEqual(detail.pauses, 1)
+    XCTAssertEqual(detail.resumes, 1)
+  }
+
+  @MainActor
   func testLiquidationNoticeWaitsForMainAppearanceAndStartsThreeSecondsOnDisplay() throws {
     // 메인 화면이 보이기 전에는 청산 안내의 타이머도 시작하지 않는다.
     var ready = false
@@ -17,7 +51,7 @@ final class FuturesAccountReactorTests: XCTestCase {
     window.makeKeyAndVisible()
     defer { window.isHidden = true; window.rootViewController = nil }
     // 청산 저장과 분리된 표시 순서만 검증한다.
-    let presenter = FuturesLiquidationNoticePresenter(window: window, canShow: { ready })
+    let presenter = FuturesLiquidationNoticePresenter(window: window, canShow: { _ in ready })
     presenter.receive([try FuturesCalculator.open(domesticFuturesOrder())])
     waitForNoticeUpdates(3.1)
     XCTAssertNil(window.subviews.first { $0.accessibilityIdentifier == "futuresLiquidationNotice" })
@@ -55,7 +89,7 @@ final class FuturesAccountReactorTests: XCTestCase {
     window.makeKeyAndVisible()
     defer { window.isHidden = true; window.rootViewController = nil }
     // 제스처와 자동 닫기가 공유하는 표시 수명이다.
-    let presenter = FuturesLiquidationNoticePresenter(window: window, canShow: { true })
+    let presenter = FuturesLiquidationNoticePresenter(window: window, canShow: { _ in true })
     // 서로 다른 청산 알림을 구분할 포지션이다.
     let firstPosition = try FuturesCalculator.open(domesticFuturesOrder())
     // 첫 안내가 표시되는 동안 도착하는 다음 포지션이다.
@@ -97,7 +131,7 @@ final class FuturesAccountReactorTests: XCTestCase {
     window.makeKeyAndVisible()
     defer { window.isHidden = true; window.rootViewController = nil }
     // 비활성화 때 타이머와 애니메이션을 함께 중단한다.
-    let presenter = FuturesLiquidationNoticePresenter(window: window, canShow: { active })
+    let presenter = FuturesLiquidationNoticePresenter(window: window, canShow: { _ in active })
     presenter.receive([try FuturesCalculator.open(domesticFuturesOrder())])
     // 중단한 애니메이션이 대기 목록까지 지우면 안 된다.
     let first = try XCTUnwrap(window.subviews.first { $0.accessibilityIdentifier == "futuresLiquidationNotice" } as? UILabel)
@@ -121,6 +155,86 @@ final class FuturesAccountReactorTests: XCTestCase {
     // 비활성화 중 들어온 다음 안내도 보존된다.
     let next = try XCTUnwrap(window.subviews.first { $0.accessibilityIdentifier == "futuresLiquidationNotice" } as? UILabel)
     XCTAssertNotEqual(next.text, resumed.text)
+    presenter.suspend()
+  }
+
+  @MainActor
+  func testLiquidationNoticesMatchExchangeAndFuturesModeWithoutLosingOtherAccounts() throws {
+    // 현물에서는 두 거래소의 선물 청산 안내를 모두 보류한다.
+    var selected = TradingAccountID(exchange: .upbit, product: .spot, currency: .krw)
+    // 계좌별 안내가 실제 창에 표시되는지 확인한다.
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 375, height: 667))
+    window.rootViewController = UIViewController()
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true; window.rootViewController = nil }
+    // 거래소·모드 선택만 바꿔 동일 안내 대기열을 재사용한다.
+    let presenter = FuturesLiquidationNoticePresenter(window: window, canShow: { $0 == selected })
+    // 대기열 앞의 빗썸 안내가 업비트 안내를 막으면 안 된다.
+    let bithumb = try FuturesCalculator.open(domesticFuturesOrder(exchange: .bithumb))
+    // 하나의 검증 완료 이벤트에 다른 거래소 청산도 함께 포함된다.
+    let upbit = try FuturesCalculator.open(domesticFuturesOrder())
+    presenter.receive([bithumb, upbit])
+    XCTAssertNil(window.subviews.first { $0.accessibilityIdentifier == "futuresLiquidationNotice" })
+    selected = upbit.order.account
+    presenter.showPendingNotices()
+    // 현재 거래소의 청산만 포함된 안내다.
+    let upbitNotice = try XCTUnwrap(window.subviews.first { $0.accessibilityIdentifier == "futuresLiquidationNotice" } as? UILabel)
+    XCTAssertTrue(upbitNotice.text?.contains(FuturesText.text("futures_upbit")) == true)
+    XCTAssertFalse(upbitNotice.text?.contains(FuturesText.text("futures_bithumb")) == true)
+    presenter.dismissNotice()
+    waitForNoticeUpdates(0.35)
+    XCTAssertNil(window.subviews.first { $0.accessibilityIdentifier == "futuresLiquidationNotice" })
+    selected = TradingAccountID(exchange: .bithumb, product: .spot, currency: .krw)
+    presenter.showPendingNotices()
+    XCTAssertNil(window.subviews.first { $0.accessibilityIdentifier == "futuresLiquidationNotice" })
+    selected = bithumb.order.account
+    presenter.showPendingNotices()
+    // 앞에서 건너뛴 빗썸 안내는 빗썸 선물 진입 때 표시된다.
+    let bithumbNotice = try XCTUnwrap(window.subviews.first { $0.accessibilityIdentifier == "futuresLiquidationNotice" } as? UILabel)
+    XCTAssertTrue(bithumbNotice.text?.contains(FuturesText.text("futures_bithumb")) == true)
+    XCTAssertFalse(bithumbNotice.text?.contains(FuturesText.text("futures_upbit")) == true)
+    presenter.dismissNotice()
+    waitForNoticeUpdates(0.35)
+    selected = upbit.order.account
+    presenter.showPendingNotices()
+    XCTAssertNil(window.subviews.first { $0.accessibilityIdentifier == "futuresLiquidationNotice" })
+  }
+
+  @MainActor
+  func testSelectionChangeHidesCurrentNoticeAndPreservesItDuringDismissal() throws {
+    // 화면 전환은 표시 중이던 다른 계좌의 안내를 즉시 숨긴다.
+    var selected = account
+    // 타이머와 애니메이션이 계좌 전환 이후 안내를 지우지 않는지 확인한다.
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 375, height: 667))
+    window.rootViewController = UIViewController()
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true; window.rootViewController = nil }
+    // 현재 선택한 계좌만 안내를 허용한다.
+    let presenter = FuturesLiquidationNoticePresenter(window: window, canShow: { $0 == selected })
+    // 업비트로 돌아왔을 때 다시 확인할 안내다.
+    let upbit = try FuturesCalculator.open(domesticFuturesOrder())
+    // 전환 직후 표시할 빗썸 안내다.
+    let bithumb = try FuturesCalculator.open(domesticFuturesOrder(exchange: .bithumb))
+    presenter.receive([upbit, bithumb])
+    // 닫기 도중 전환되어도 업비트 안내를 소비한 것으로 처리하지 않는다.
+    let original = try XCTUnwrap(window.subviews.first { $0.accessibilityIdentifier == "futuresLiquidationNotice" } as? UILabel)
+    presenter.dismissNotice()
+    selected = bithumb.order.account
+    presenter.showPendingNotices()
+    waitForNoticeUpdates(0.35)
+    XCTAssertNil(original.superview)
+    // 빗썸 화면에는 빗썸 안내만 남는다.
+    let current = try XCTUnwrap(window.subviews.first { $0.accessibilityIdentifier == "futuresLiquidationNotice" } as? UILabel)
+    XCTAssertTrue(current.text?.contains(FuturesText.text("futures_bithumb")) == true)
+    selected = TradingAccountID(exchange: .bithumb, product: .spot, currency: .krw)
+    presenter.showPendingNotices()
+    XCTAssertNil(current.superview)
+    XCTAssertNil(window.subviews.first { $0.accessibilityIdentifier == "futuresLiquidationNotice" })
+    selected = upbit.order.account
+    presenter.showPendingNotices()
+    // 원래 안내가 아직 소비되지 않아 다시 표시된다.
+    let resumed = try XCTUnwrap(window.subviews.first { $0.accessibilityIdentifier == "futuresLiquidationNotice" } as? UILabel)
+    XCTAssertEqual(resumed.text, original.text)
     presenter.suspend()
   }
 
@@ -451,6 +565,13 @@ final class FuturesAccountReactorTests: XCTestCase {
     var state = reactor.reduce(
       state: reactor.initialState,
       mutation: .snapshot(snapshot, [instrument: .init(instrument: instrument, price: 110_000_000, timestamp: timestamp)])
+    )
+    // 카드의 실시간 평가값은 보유 포지션 검증을 마친 상태에서만 표시한다.
+    state = reactor.reduce(
+      state: state,
+      mutation: .status(.finished([
+        .init(positionID: position.id, verifiedThrough: timestamp, liquidated: false, hold: nil, lastVerifiedMark: 110_000_000)
+      ]))
     )
     reactor.stub.state.value = state
     let controller = FuturesOrderViewController(reactor: reactor, instrument: instrument)
@@ -1116,6 +1237,90 @@ final class FuturesAccountReactorTests: XCTestCase {
     XCTAssertFalse(reactor.canRequestOrder)
   }
 
+  func testHeldVerificationDisplaysSavedValuationWithoutUsingUnverifiedProfit() throws {
+    // 보류 중 표시와 주문 허용 조건을 독립적으로 확인한다.
+    let reactor = reactor()
+    // 이미 확인한 가격이 있는 정상 보유 포지션이다.
+    let position = try FuturesCalculator.open(domesticFuturesOrder())
+    // 검증 완료된 과거 가격만 표시용 대체값으로 사용할 수 있다.
+    var verification = try FuturesHistoryCheckState.initial(for: position)
+    verification.verifiedThrough = 120_000
+    verification.lastVerifiedMark = 110_000_000
+    // 미검증 가격이 먼저 도착해도 저장된 평가값이 유지돼야 한다.
+    let snapshot = FuturesAccountSnapshot(
+      revision: 1,
+      accounts: [.init(id: account, availableBalance: 900_000)],
+      positions: [position],
+      historyCheckStates: [verification]
+    )
+    // 과거 청산 확인 전에는 큰 이익으로 표시하면 안 되는 현재가다.
+    let quote = FuturesMarkQuote(instrument: position.order.instrument, price: 150_000_000, timestamp: 125_000)
+    // REST·소켓 표시 가격 자체는 손실 없이 유지한다.
+    var state = reactor.reduce(state: reactor.initialState, mutation: .snapshot(snapshot, [quote.instrument: quote]))
+    for status in [
+      FuturesRefreshStatus.refreshing,
+      .finished([.init(positionID: position.id, verifiedThrough: 120_000, liquidated: false, hold: .missingHistory)]),
+      .refreshing
+    ] {
+      state = reactor.reduce(state: state, mutation: .status(status))
+      reactor.stub.state.value = state
+      XCTAssertTrue(reactor.canDisplayValuation)
+      XCTAssertFalse(reactor.canSubmit)
+      XCTAssertEqual(reactor.currentState.quotes[quote.instrument], quote)
+      XCTAssertEqual(reactor.valuationQuotes[quote.instrument]?.price, 110_000_000)
+      XCTAssertEqual(try FuturesText.valuation(position, quotes: reactor.valuationQuotes)?.displayedEquity, 200_000)
+      XCTAssertEqual(try FuturesText.valuation(position, quotes: reactor.valuationQuotes)?.displayedPnL, 100_000)
+      XCTAssertEqual(try FuturesText.valuation(position, quotes: reactor.valuationQuotes)?.displayedROEPercent, 100)
+    }
+    reactor.stub.state.value = reactor.reduce(
+      state: state,
+      mutation: .status(.finished([.init(positionID: position.id, verifiedThrough: 125_000, liquidated: false, hold: nil)]))
+    )
+    XCTAssertEqual(reactor.valuationQuotes[quote.instrument], quote)
+    XCTAssertEqual(try FuturesText.valuation(position, quotes: reactor.valuationQuotes)?.displayedEquity, 600_000)
+  }
+
+  func testRefreshUsesLastCompletedPriceThenAutomaticallyReturnsToLiveValuation() throws {
+    // 화면이 바뀌어도 현재가와 검증 가격을 별도로 관리한다.
+    let reactor = reactor()
+    // 저장된 경계 이후에도 완료한 검증 가격이 존재하는 포지션이다.
+    let position = try FuturesCalculator.open(domesticFuturesOrder(margin: 100, price: 100))
+    // 파일에 저장된 가격은 마지막 완료 결과보다 이전일 수 있다.
+    var verification = try FuturesHistoryCheckState.initial(for: position)
+    verification.lastVerifiedMark = 102
+    // 저장 가격과 화면 현재가의 우선순위를 확인한다.
+    let snapshot = FuturesAccountSnapshot(
+      revision: 1,
+      accounts: [.init(id: account, availableBalance: 900)],
+      positions: [position],
+      historyCheckStates: [verification]
+    )
+    // 검증 전 표시하면 손익을 크게 오인할 수 있는 현재가다.
+    let quote = FuturesMarkQuote(instrument: position.order.instrument, price: 134, timestamp: 125_000)
+    reactor.stub.state.value = reactor.reduce(
+      state: reactor.initialState,
+      mutation: .snapshot(snapshot, [quote.instrument: quote])
+    )
+    XCTAssertEqual(reactor.valuationQuotes[quote.instrument]?.price, 102)
+    // 파일 저장 간격과 무관하게 완료 시 확인한 가격을 재사용한다.
+    let finished = FuturesRefreshResult(
+      positionID: position.id,
+      verifiedThrough: 124_000,
+      liquidated: false,
+      hold: nil,
+      lastVerifiedMark: 105
+    )
+    reactor.stub.state.value = reactor.reduce(state: reactor.currentState, mutation: .status(.finished([finished])))
+    XCTAssertEqual(reactor.valuationQuotes[quote.instrument]?.price, 134)
+    reactor.stub.state.value = reactor.reduce(state: reactor.currentState, mutation: .status(.refreshing))
+    XCTAssertEqual(reactor.valuationQuotes[quote.instrument]?.price, 105)
+    XCTAssertEqual(try FuturesText.valuation(position, quotes: reactor.valuationQuotes)?.displayedPnL, 50)
+    XCTAssertEqual(reactor.currentState.quotes[quote.instrument]?.price, 134)
+    reactor.stub.state.value = reactor.reduce(state: reactor.currentState, mutation: .status(.finished([finished])))
+    XCTAssertEqual(reactor.valuationQuotes[quote.instrument]?.price, 134)
+    XCTAssertEqual(try FuturesText.valuation(position, quotes: reactor.valuationQuotes)?.displayedPnL, 340)
+  }
+
   func testLateSnapshotCannotRestoreOldBalanceOrPosition() {
     let reactor = reactor()
     let latest = FuturesAccountSnapshot(revision: 9, accounts: [.init(id: account, availableBalance: 900)])
@@ -1437,7 +1642,7 @@ final class FuturesAccountReactorTests: XCTestCase {
   }
 
   @MainActor
-  func testSocketQuotesUpdatePositionCardWhileRESTAndHistoricalVerificationArePending() throws {
+  func testSocketQuotesRemainSeparateFromPositionValuationUntilHistoryCompletes() throws {
     let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     defer { try? FileManager.default.removeItem(at: directory) }
     let store = LocalFuturesAccountRepository(fileURL: directory.appendingPathComponent("accounts.json"))
@@ -1460,15 +1665,16 @@ final class FuturesAccountReactorTests: XCTestCase {
     }
     monitor.subject.onNext(.connection(.upbit, true))
     let timestamp = try FuturesHistoryCheckState.milliseconds(Date()) - 1000
-    for (price, profit, rate) in [(Decimal(110), "+100", "+100%"), (Decimal(105), "+50", "+50%")] {
+    // 현재가는 계속 수신하되 검증 중 카드의 평가값은 진입 가격으로 유지한다.
+    for price in [Decimal(110), Decimal(105)] {
       let updated = expectation(description: "Socket price immediately updates card")
       reactor.state.filter { $0.quotes[order.instrument]?.price == price }.take(1)
         .subscribe(onNext: { _ in DispatchQueue.main.async { updated.fulfill() } }).disposed(by: bag)
       monitor.subject.onNext(.quote(.init(instrument: order.instrument, price: price, timestamp: timestamp)))
       wait(for: [updated], timeout: 3)
-      XCTAssertEqual(try label("futures_pnl").text, profit)
-      XCTAssertEqual(try label("futures_roe").text, rate)
-      XCTAssertEqual(try label("futures_current").text, FuturesText.number(price))
+      XCTAssertEqual(try label("futures_pnl").text, FuturesText.number(0))
+      XCTAssertEqual(try label("futures_roe").text, "0%")
+      XCTAssertEqual(try label("futures_current").text, FuturesText.number(100))
       if case .refreshing = reactor.currentState.status {} else { XCTFail("History should still be pending") }
       XCTAssertEqual(try store.snapshot(), saved)
     }
@@ -1488,7 +1694,7 @@ final class FuturesAccountReactorTests: XCTestCase {
     try store.applyAdvertisementReward(AdRewardClaim(account: order.account))
     // 평가 갱신 전후 비교할 원본 포지션과 잔고다.
     let saved = try store.openTestPosition(order, expectedRevision: store.snapshot().revision)
-    // REST와 과거 검증을 기다리는 중에도 실시간 평가는 가능해야 한다.
+    // REST와 과거 검증 중에도 원본 소켓 가격은 별도로 수신해야 한다.
     let provider = PendingFuturesQuoteProvider()
     // 거래소 소켓과 같은 가격·체결 시각·ticker 시각을 전달한다.
     let monitor = FuturesAccountMonitorFixture()
@@ -1543,11 +1749,11 @@ final class FuturesAccountReactorTests: XCTestCase {
       XCTAssertThrowsError(try saved.valuation(for: account, quotes: quotes, now: now))
       XCTAssertEqual(
         (descendants(controller.view).first { $0.accessibilityIdentifier == "futures_current" } as? UILabel)?.text,
-        FuturesText.number(price)
+        FuturesText.number(100)
       )
       XCTAssertEqual(
         (descendants(controller.view).first { $0.accessibilityIdentifier == "futures_pnl" } as? UILabel)?.text,
-        "+" + FuturesText.number((price - 100) * 10)
+        FuturesText.number(0)
       )
       XCTAssertThrowsError(
         try store.liquidateObservedQuote(
@@ -1685,9 +1891,9 @@ final class FuturesAccountReactorTests: XCTestCase {
     wait(for: [displayed], timeout: 3)
     let items = try XCTUnwrap(controller.dataSource?.snapshot().itemIdentifiers)
     XCTAssertEqual(items.map(\.market), ["ETH/KRW"])
-    XCTAssertEqual(items.first?.evaluationPrice, 200_000)
-    XCTAssertEqual(items.first?.evaluationProfitLoss, 100_000)
-    XCTAssertEqual(items.first?.profitRate, 100)
+    XCTAssertEqual(items.first?.evaluationPrice, 100_000)
+    XCTAssertEqual(items.first?.evaluationProfitLoss, 0)
+    XCTAssertEqual(items.first?.profitRate, 0)
     func summary(_ identifier: String) throws -> String {
       let label = try XCTUnwrap(
         descendants(controller.view).first { $0.accessibilityIdentifier == identifier } as? UILabel
@@ -1696,6 +1902,24 @@ final class FuturesAccountReactorTests: XCTestCase {
     }
     XCTAssertTrue(descendants(controller.view).contains { ($0 as? UILabel)?.text == FuturesText.text("futures_total_evaluation") })
     XCTAssertTrue(try summary("futures.main.margin").contains("100,000"))
+    XCTAssertTrue(try summary("futures.main.roe").contains("0"))
+    XCTAssertTrue(try summary("futures.main.equity").contains("100,000"))
+    // 미검증 현재가가 먼저 도착해도 이력 확인을 마친 뒤에만 손익을 표시한다.
+    let verified = FuturesRefreshResult(
+      positionID: position.id,
+      verifiedThrough: time,
+      liquidated: false,
+      hold: nil,
+      lastVerifiedMark: 110_000_000
+    )
+    futures.stub.state.value = futures.reduce(
+      state: futures.currentState,
+      mutation: .status(.finished([verified]))
+    )
+    flushDisplay()
+    XCTAssertEqual(controller.dataSource?.snapshot().itemIdentifiers.first?.evaluationPrice, 200_000)
+    XCTAssertEqual(controller.dataSource?.snapshot().itemIdentifiers.first?.evaluationProfitLoss, 100_000)
+    XCTAssertEqual(controller.dataSource?.snapshot().itemIdentifiers.first?.profitRate, 100)
     XCTAssertTrue(try summary("futures.main.equity").contains("200,000"))
     XCTAssertTrue(try summary("futures.main.pnl").contains("100,000"))
     XCTAssertTrue(try summary("futures.main.roe").contains("100"))
@@ -1723,8 +1947,24 @@ final class FuturesAccountReactorTests: XCTestCase {
     )
     futures.stub.state.value = futures.reduce(state: futures.currentState, mutation: .quote(lossQuote))
     flushDisplay()
+    XCTAssertEqual(try summary("futures.main.equity"), "200,000 원")
+    // 전환 후 검증이 완료되면 다음 사용자 동작 없이 수신한 현재가를 반영한다.
+    futures.stub.state.value = futures.reduce(
+      state: futures.currentState,
+      mutation: .status(.finished([verified]))
+    )
+    flushDisplay()
     XCTAssertEqual(try summary("futures.main.equity"), "50,000 원")
     XCTAssertTrue(try summary("futures.main.pnl").contains("-50,000"))
+    // 과거 청산은 저장된 포지션이 갱신되기 전에도 미정산 이익 표시를 차단한다.
+    let liquidated = FuturesRefreshResult(positionID: position.id, verifiedThrough: time, liquidated: true, hold: nil)
+    futures.stub.state.value = futures.reduce(
+      state: futures.currentState,
+      mutation: .status(.finished([liquidated]))
+    )
+    flushDisplay()
+    XCTAssertEqual(try summary("futures.main.roe"), "-")
+    XCTAssertNil(controller.dataSource?.snapshot().itemIdentifiers.first?.evaluationProfitLoss)
     let cashOnly = FuturesAccountSnapshot(revision: 2, accounts: [.init(id: account, availableBalance: 10_000_000)])
     futures.stub.state.value = futures.reduce(state: futures.currentState, mutation: .snapshot(cashOnly, [:]))
     flushDisplay()
@@ -1810,6 +2050,18 @@ final class FuturesAccountReactorTests: XCTestCase {
     XCTAssertEqual(controller.totalEvaluationTitle.text, FuturesText.text("futures_total_evaluation"))
     XCTAssertNotEqual(controller.totalEvaluationTitle.text, "futures_total_evaluation")
     flushDisplay()
+    XCTAssertEqual(controller.totalUserBalance.text, "100,000 원")
+    XCTAssertEqual(controller.totalEvalProfitLoss.text, "0 원")
+    // 화면을 재생성하지 않고 완료 이벤트만으로 현재가 평가를 표시한다.
+    let verified = FuturesRefreshResult(
+      positionID: position.id,
+      verifiedThrough: timestamp,
+      liquidated: false,
+      hold: nil,
+      lastVerifiedMark: 110_000_000
+    )
+    reactor.stub.state.value = reactor.reduce(state: reactor.currentState, mutation: .status(.finished([verified])))
+    flushDisplay()
     XCTAssertEqual(controller.totalUserBalance.text, "200,000 원")
     XCTAssertEqual(controller.availableUserBalance.text, "900,000 원")
     XCTAssertEqual(controller.totalBuyPrice.text, "100,000 원")
@@ -1878,6 +2130,10 @@ final class FuturesAccountReactorTests: XCTestCase {
       timestamp: try FuturesHistoryCheckState.milliseconds(Date())
     )
     reactor.stub.state.value = reactor.reduce(state: reactor.currentState, mutation: .quote(lossQuote))
+    flushDisplay()
+    XCTAssertEqual(controller.totalUserBalance.text, "200,000 원")
+    // 검증 중에는 마지막 확인 가격을 유지하고 완료 후 손실 시세를 표시한다.
+    reactor.stub.state.value = reactor.reduce(state: reactor.currentState, mutation: .status(.finished([verified])))
     flushDisplay()
     XCTAssertEqual(controller.totalUserBalance.text, "50,000 원")
     XCTAssertEqual(controller.totalEvalProfitLoss.text, "-50,000 원")
@@ -2077,6 +2333,15 @@ final class FuturesAccountReactorTests: XCTestCase {
     XCTAssertFalse(container.mobitTabBar.isHidden)
   }
 
+}
+
+private final class LifecycleSocketViewControllerFixture: UIViewController, SocketControllable {
+  // 백그라운드에서 선택된 소켓이 중단되는 횟수다.
+  var pauses = 0
+  // 포그라운드에서 선택된 소켓이 재개되는 횟수다.
+  var resumes = 0
+  func pauseSocket() { pauses += 1 }
+  func resumeSocket() { resumes += 1 }
 }
 
 private final class FuturesTradingControlsDelegateFixture: MainCoordinatorDelegate {

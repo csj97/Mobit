@@ -22,20 +22,14 @@ struct TradingAccountID: Codable, Hashable {
   }
 
   var availability: TradingAvailability {
-    switch (exchange, product, currency) {
-    case (.upbit, .spot, .krw), (.bithumb, .spot, .krw),
-         (.upbit, .perpetual, .krw), (.bithumb, .perpetual, .krw): return .available
-    case (.binance, .perpetual, .usdt), (.okx, .perpetual, .usdt): return .preparing
-    default: return .unsupported
-    }
+    TradingRules.availability(for: self)
   }
 
   func supports(_ instrument: TradingInstrumentID, preservingStoredPosition: Bool = false) -> Bool {
-    let legacyBTC = preservingStoredPosition && (exchange == .upbit || exchange == .bithumb) && currency == .btc
-    guard product == .perpetual, (availability != .unsupported || legacyBTC),
+    guard TradingRules.Futures.supportsAccount(self, preservingStoredPosition: preservingStoredPosition),
           instrument.exchange == exchange, instrument.product == product,
           instrument.settlementCurrency == currency else { return false }
-    if exchange == .upbit || exchange == .bithumb {
+    if TradingRules.isDomesticExchange(exchange) {
       let components = instrument.rawSymbol.split(separator: "-", omittingEmptySubsequences: false)
       return components.count == 2 && components[0] == currency.rawValue &&
         !components[1].isEmpty && components[1] != components[0] &&
@@ -52,15 +46,11 @@ struct TradingInstrumentID: Codable, Hashable {
   let settlementCurrency: TradingCurrency
 
   var maximumPaperLeverage: Int? {
-    guard usesDomesticSpotPrice, settlementCurrency == .krw, rawSymbol.hasPrefix("KRW-") else { return nil }
-    let coin = String(rawSymbol.dropFirst(4))
-    if ["BTC", "ETH"].contains(coin) { return 100 }
-    if ["SOL", "XRP", "ADA", "AVAX", "NEAR", "SUI", "DOGE", "SHIB", "LINK", "UNI", "AAVE", "RNDR"].contains(coin) { return 50 }
-    return 20
+    TradingRules.DomesticFutures.maximumLeverage(for: self)
   }
 
   var usesDomesticSpotPrice: Bool {
-    product == .perpetual && (exchange == .upbit || exchange == .bithumb)
+    TradingRules.DomesticFutures.usesSpotPrice(for: self)
   }
 }
 
@@ -71,18 +61,15 @@ enum TradingAvailability {
 }
 
 enum TradingFundingPolicy {
-  static let initialKRWBalance: Double = 1_000_000
+  // 기존 호출 API는 유지하되 지급액의 정의는 거래 규약 한곳에서 관리한다.
+  static let initialKRWBalance = TradingRules.Funding.initialKRWBalance
 
   static func initialGrant(for account: TradingAccountID) -> Decimal {
-    account == .spot(for: .upbit) ? Decimal(initialKRWBalance) : 0
+    TradingRules.Funding.initialGrant(for: account)
   }
 
   static func advertisementReward(for account: TradingAccountID) -> Decimal? {
-    switch (account.product, account.currency) {
-    case (.spot, .krw), (.perpetual, .krw): return 10_000_000
-    case (.perpetual, .usdt): return 1_000
-    default: return nil
-    }
+    TradingRules.Funding.advertisementReward(for: account)
   }
 }
 

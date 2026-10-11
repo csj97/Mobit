@@ -38,8 +38,9 @@ struct FuturesOrderCheck {
 	
     guard priceLockedAt == nil || priceLockedAt == executionTime,
       mark.timestamp > 0, mark.timestamp <= priceReferenceTime,
-      priceReferenceTime <= timestamp, priceReferenceTime >= timestamp - 5_000,
-      executionTime >= mark.timestamp, executionTime <= timestamp, executionTime >= timestamp - 5_000,
+      priceReferenceTime <= timestamp, priceReferenceTime >= timestamp - TradingRules.Futures.orderMaximumAgeMilliseconds,
+      executionTime >= mark.timestamp, executionTime <= timestamp,
+      executionTime >= timestamp - TradingRules.Futures.orderMaximumAgeMilliseconds,
       !mark.price.isNaN, mark.price > 0
     else { throw FuturesOrderCheckError.staleQuote }
 	
@@ -51,7 +52,7 @@ struct FuturesOrderCheck {
       if !snapshot.isActive(position) { continue }
 	  
       // 국내 모의 체결은 준비 시 고정한 시각에 묶고 저장 시 신선도와 revision을 재검사한다.
-      let requiredThrough = instrument.usesDomesticSpotPrice ? executionTime : timestamp
+      let requiredThrough = TradingRules.Futures.HistoryCheck.usesLockedExecutionTime(for: instrument) ? executionTime : timestamp
       
 	  guard
         monitoredPositions[position.id] == position.lastExecutionAt

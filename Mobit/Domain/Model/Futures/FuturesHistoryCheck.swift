@@ -303,7 +303,8 @@ extension FuturesAccountSnapshot {
 	  guard let quote = quotes[position.order.instrument], quote.instrument == position.order.instrument else {
 		throw FuturesMarketDataError.incompleteHistory
 	  }
-	  guard forDisplay || (quote.timestamp > 0 && quote.timestamp <= timestamp && quote.timestamp >= timestamp - 30_000)
+	  guard forDisplay || (quote.timestamp > 0 && quote.timestamp <= timestamp
+		&& quote.timestamp >= timestamp - TradingRules.Futures.HistoryCheck.quoteMaximumAgeMilliseconds)
 	  else {
 		throw FuturesOrderCheckError.staleQuote
 	  }

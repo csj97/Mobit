@@ -248,7 +248,7 @@ final class FuturesAccountViewController: MobitBaseViewController, UITableViewDa
 			content.text = try FuturesText.position(
 			  reactor.positions[row],
 			  snapshot: snapshot,
-			  quotes: reactor.currentState.quotes
+			  quotes: reactor.valuationQuotes
 			)
 		  } catch { content.text = FuturesText.text("futures_storage_error") }
 		  content.secondaryText = FuturesText.text("futures_manage")
@@ -392,7 +392,7 @@ private final class FuturesSummaryCell: UITableViewCell {
 	  values[3].text = FuturesText.number(realized)
 	  let valuation = try snapshot.valuation(
 		for: reactor.account,
-		quotes: reactor.currentState.quotes,
+		quotes: reactor.valuationQuotes,
 		now: Date(),
 		forDisplay: true
 	  )

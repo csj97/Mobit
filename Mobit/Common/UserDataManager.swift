@@ -604,7 +604,7 @@ class UserDataManager: NSObject {
   static func userInformation(for exchange: Exchange) -> MobitUserInformation? {
     synchronized {
       guard let store = userInformationStore, !store.isEmpty else { return nil }
-      return store[exchange.rawValue] ?? MobitUserInformation(userAvailableBalance: 0)
+      return store[exchange.rawValue] ?? MobitUserInformation(userAvailableBalance: TradingRules.Funding.unfundedAccountBalance)
     }
   }
 
@@ -718,7 +718,10 @@ class UserDataManager: NSObject {
       do {
         return try performAtomicInvestmentUpdate {
           if !hasExistingInvestment {
-            updateUserInformation(MobitUserInformation(userAvailableBalance: initialBalance), for: .upbit)
+            updateUserInformation(
+              MobitUserInformation(userAvailableBalance: initialBalance),
+              for: TradingRules.Funding.initialGrantAccount.exchange
+            )
           }
           stagedInvestmentState?.initialGrantCompleted = true
           return !hasExistingInvestment
@@ -731,14 +734,14 @@ class UserDataManager: NSObject {
   }
 
   @discardableResult
-  static func resetInvestmentData(availableBalance: Double = 0) -> Bool {
+  static func resetInvestmentData(availableBalance: Double = TradingRules.Funding.unfundedAccountBalance) -> Bool {
 	synchronized {
       guard availableBalance.isFinite, availableBalance >= 0, stagedInvestmentState == nil,
             recoverPendingInvestmentStateIfNeeded(), let claims = storedAdRewardClaims() else { return false }
 	  // 초기화도 주문과 같은 잠금·스냅샷 경로를 사용해 동시 체결과 섞이지 않게 한다.
 	  var store: [String: MobitUserInformation] = [:]
 	  for exchange in Exchange.allCases {
-		store[exchange.rawValue] = MobitUserInformation(userAvailableBalance: 0)
+		store[exchange.rawValue] = MobitUserInformation(userAvailableBalance: TradingRules.Funding.unfundedAccountBalance)
 	  }
 	  store[ExchangeSelectionStore.currentExchange.rawValue] = MobitUserInformation(
 		userAvailableBalance: availableBalance

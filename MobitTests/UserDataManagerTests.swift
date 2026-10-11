@@ -34,6 +34,33 @@ final class UserDataManagerTests: XCTestCase {
     XCTAssertEqual(UserDataManager.userInformation?.userAvailableBalance, 1_000_000)
   }
 
+  func testSpotHoldingIsNotRemovedAtMinusOneHundredPercentOnEitherExchange() throws {
+    UserDataManager.resetInvestmentData(availableBalance: 500)
+    UserDataManager.userCryptoList = [
+      makeTransaction(market: "BTC/KRW", exchange: .upbit),
+      makeTransaction(market: "BTC/KRW", exchange: .bithumb)
+    ]
+    // 손익률 갱신으로 거래 이력이 생기거나 수량·현금이 바뀌면 안 된다.
+    let before = try XCTUnwrap(UserDataManager.userCryptoList)
+    for holding in before {
+      MarketDataServiceUtil.shared.updateHoldingData(data: holding.staticData, currentPrice: 0)
+    }
+    // 평가금액 0원이어도 보유 자산과 매수 원가는 그대로 남는다.
+    let after = try XCTUnwrap(UserDataManager.userCryptoList)
+    XCTAssertEqual(after.map { $0.staticData.exchangePairID }, before.map { $0.staticData.exchangePairID })
+    XCTAssertEqual(after.map { $0.staticData.holdingQuantity }, before.map { $0.staticData.holdingQuantity })
+    XCTAssertEqual(after.map { $0.staticData.averageBuyPrice }, before.map { $0.staticData.averageBuyPrice })
+    XCTAssertEqual(after.map { $0.staticData.buyAmount }, before.map { $0.staticData.buyAmount })
+    XCTAssertEqual(after.map { $0.staticData.costBasisKRW }, before.map { $0.staticData.costBasisKRW })
+    XCTAssertEqual(after.map { $0.dynamicData.profitRate }, [-100, -100])
+    XCTAssertEqual(after.map { $0.dynamicData.evaluationPrice }, [0, 0])
+    XCTAssertEqual(after.map { $0.dynamicData.evaluationProfitLoss }, [-100, -100])
+    XCTAssertEqual(UserDataManager.userInformation(for: .upbit)?.userAvailableBalance, 500)
+    XCTAssertEqual(UserDataManager.userInformation(for: .bithumb)?.userAvailableBalance, 0)
+    XCTAssertEqual(UserDataManager.userTransactionList, [])
+    XCTAssertEqual(UserDataManager.userPNLHistory?.count, 0)
+  }
+
   func testInitialGrantAlwaysBelongsToUpbitEvenWhenBithumbSelected() {
     ExchangeSelectionStore.currentExchange = .bithumb
     XCTAssertTrue(UserDataManager.seedInitialUserInformationIfNeeded())
