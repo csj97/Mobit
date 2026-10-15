@@ -68,12 +68,12 @@
 "futures_margin_exceeds_balance" = "The entered margin exceeds your available balance. Reduce the margin or watch a rewarded ad to recharge.";
 "futures_position_closed" = "This position is closed or liquidated. Return to the list to start a new position.";
 "futures_same_conditions" = "Additions must use the same direction and leverage as the position.";
-"futures_retry_order" = "Price or liquidation verification could not finish. Check history and try again.";
+"futures_retry_order" = "Unable to complete the trade. Check your history and try again.";
 "futures_socket_wait" = "Waiting for live prices. Please try again after the price feed reconnects.";
 "futures_storage_error" = "Unable to read saved assets. Retry without resetting your data.";
 "futures_minimum" = "Notional order value must be at least 500 원.";
 "futures_leverage_error" = "Check the allowed leverage for this market.";
-"futures_input_error" = "Enter a valid margin in 원 greater than zero.";
+"futures_input_error" = "Enter the margin for your order.";
 "futures_submitting" = "Processing order…";
 "futures_verifying" = "Checking liquidation conditions during your absence.";
 "futures_paused" = "Liquidation verification resumes when the app becomes active.";
@@ -120,6 +120,8 @@
 "futures_addition" = "Add";
 "futures_closing" = "Manual close";
 "futures_liquidation" = "Liquidation";
+"futures_pnl_closed" = "Closed";
+"futures_pnl_liquidated" = "Liquidated";
 "futures_price" = "Price";
 "futures_occurrence" = "Occurrence interval";
 "futures_entry_price" = "Entry price";
@@ -145,6 +147,12 @@
 "futures_market_order" = "Market order";
 
 "futures_empty_history" = "No transactions yet.";
+"futures_history_open" = "Open %@";
+"futures_history_close" = "Close %@";
+"futures_history_liquidation" = "Liquidate %@";
+"futures_history_price" = "Fill price";
+"futures_history_quantity" = "Fill quantity";
+"futures_history_amount" = "Trade amount";
 
 "futures_enter_long" = "Open long";
 
@@ -174,17 +182,83 @@
 "futures_liquidation_notice" = "%1$@ · %2$@ %3$@ %4$d× position liquidated.\nSee Investment History for details.";
 "futures_dismiss_notice" = "Dismiss notice";
 
-"futures_close_amount" = "Margin to close (원)";
+"futures_close_amount" = "Margin to close (KRW)";
 "futures_close_quantity" = "Close quantity";
 "futures_close_percent" = "Close percentage";
-"futures_close_return" = "Estimated returned funds";
-"futures_close_remaining" = "Remaining quantity";
+"futures_close_return" = "Est. amount to receive";
 "futures_close_invalid" = "Enter an amount or quantity within your available position.";
-"futures_close_note" = "Close amount is the original margin allocated to the selected quantity. Estimated returned funds include this margin and live profit or loss. The price is checked again when you submit.";
+"futures_close_note" = "The estimated amount includes the margin and profit or loss for the quantity you close. The final amount may change with the execution price.";
 "futures_trade_loading" = "Market and price information is being prepared. Please select the coin again shortly.";
 "futures_trade_load_failed" = "The trading screen cannot open because market and price information could not be loaded. Reload the data, then select the coin again.";
 "futures_trade_unavailable" = "The trading screen cannot open because valid price information for this coin is currently unavailable.";
 "futures_trade_retry" = "Reload";
 
-"currency_krw_unit" = "원";
+"currency_krw_unit" = "KRW";
 "futures_held_position" = "Held position";
+
+// 데이터 준비 상태와 재시도 안내
+"futures_data_offline" = "Offline · Last confirmed values";
+"futures_data_held" = "Unable to load your assets. Please try again shortly.";
+"data_retry" = "Retry";
+"market_data_error" = "Unable to load prices. Please retry.";
+"network_lost" = "Network connection lost.\nPlease reconnect and try again.";
+
+"futures_close_estimated_pnl" = "Estimated P&L";
+"futures_order_not_ready" = "Your asset information is being checked. Please try placing your order again shortly.";
+
+"spot_order_missing_price" = "Please try again once the current price is available.";
+"spot_order_invalid_quantity" = "Enter an order quantity greater than zero.";
+"spot_order_minimum" = "The minimum order amount is %1$@ %2$@.";
+"spot_order_insufficient_btc" = "You do not have enough BTC. Buy BTC in the KRW market first.";
+"spot_order_insufficient_balance" = "Your available balance is insufficient.";
+"spot_order_insufficient_holding" = "You do not hold enough of this asset.";
+"spot_order_unsupported_market" = "This market is not supported.";
+"spot_order_storage_error" = "Your saved investment history could not be read. Please try again later.";
+"spot_order_missing_cost" = "The purchase cost of your existing holdings could not be verified.";
+"spot_order_missing_rate" = "Please try again once the BTC price is available.";
+
+"futures_close_holding" = "Position size";
+"futures_close_maximum" = "Max %@ %@";
+"futures_close_return_detail" = "Margin + estimated P&L";
+
+// 더보기 계좌 목록과 모의투자 안내
+"more_account_group_title" = "%@ (Available balance)";
+"more_accounts_read_error" = "Some account balances could not be read. Please reload them.";
+"more_current_account" = "In use";
+"more_reward_title" = "Recharge paper funds with an ad";
+"more_reward_description" = "Complete an ad to add %@ KRW to your chosen account.\nStart with its Recharge button.";
+"more_investment_title" = "Investment management";
+"more_community_title" = "Community & information";
+"more_reset_description" = "Clear spot holdings and trade history";
+"more_settings_title" = "App settings";
+"more_settings_description" = "Appearance and market price colors";
+"more_community_description" = "Share investing ideas with the MOBIT community";
+"more_notice_description" = "Paper trading guide and important information";
+"more_caution" = "Caution";
+"more_charge_account_title" = "Recharge %@";
+"more_charge_account_note" = "Complete a rewarded ad to recharge the %@ account with %@ KRW in paper funds. Other account balances will stay the same.";
+"more_notice_content" = "You cannot deposit or withdraw real money in this app. All trades, profits, and losses are virtual and have no effect on real assets.\n\nInformation and results are provided for learning or reference only and must not be used as a basis for real investment decisions. This app is not responsible for any losses arising from such use.";
+"more_app_version" = "App version %@";
+
+// 앱 테마와 시세 색상 설정
+"settings_title" = "Settings";
+"settings_description" = "Customize your app appearance and chart settings";
+"settings_app_theme" = "App theme";
+"settings_theme_system" = "System";
+"settings_theme_light" = "Light";
+"settings_theme_dark" = "Dark";
+"settings_theme_automatic" = "Follows device appearance";
+"settings_candle_color" = "Candlestick colors";
+"settings_candle_hint" = "Colors for price rises and falls";
+"settings_palette_korean" = "Korean";
+"settings_palette_global" = "Global";
+"settings_palette_recommended" = "Recommended";
+"settings_palette_description" = "Up %@ / Down %@";
+"settings_color_red" = "Red";
+"settings_color_blue" = "Blue";
+"settings_color_green" = "Green";
+"settings_price_tint" = "Highlight price backgrounds";
+"settings_price_tint_description" = "Highlight price list backgrounds for rises and falls";
+"settings_apply" = "Apply changes";
+"settings_cancel" = "Cancel";
+"settings_close" = "Close";

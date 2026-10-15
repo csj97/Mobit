@@ -1,5 +1,6 @@
 import Foundation
 import Moya
+import Alamofire
 import RxSwift
 
 final class DomesticFuturesMarketRepository: FuturesDetailedMarketDataProviding {
@@ -291,7 +292,17 @@ final class DomesticFuturesMarketRepository: FuturesDetailedMarketDataProviding 
       .delaySubscription(delay, scheduler: scheduler).observe(on: scheduler).map { response in
         guard (200..<300).contains(response.statusCode) else { throw FuturesMarketDataError.httpStatus(response.statusCode) }
         return response
-      }
+      }.do(onError: { error in
+        Log.warning("stage=request exchange=\(instrument.exchange.rawValue) market=\(instrument.rawSymbol) endpoint=\(target.path) cause=\(Self.networkFailureCode(error))", tag: "FuturesHistoryCheck")
+      })
+  }
+
+  // Moya·Alamofire가 감싼 네트워크 원인만 추출하고 URL·본문·에러 설명은 기록하지 않는다.
+  static func networkFailureCode(_ error: Error) -> String {
+    if case let MoyaError.underlying(underlying, _) = error { return networkFailureCode(underlying) }
+    if let error = error as? AFError, let underlying = error.underlyingError { return networkFailureCode(underlying) }
+    if let error = error as? MoyaError, let response = error.response { return "http.\(response.statusCode)" }
+    return FuturesHistoryCheckService.diagnosticCode(error)
   }
 
   private static func supports(_ instrument: TradingInstrumentID) -> Bool {

@@ -23,7 +23,8 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
   private let marketReactor: MainReactor
   // 화면이 해제될 때 Rx 구독을 함께 정리한다.
   private let disposeBag = DisposeBag()
-  private let statusLabel = FuturesText.label(style: .caption1)
+  // 실제 실패에만 기존 목록 하단에서 오류·재시도를 제공한다.
+  private lazy var dataErrorView = FuturesDataStatusView { [weak self] in self?.reactor.action.onNext(.reload) }
   private var dataSource: UITableViewDiffableDataSource<TableViewSection, UUID>?
   private var items: [(position: FuturesPosition, value: FuturesValuation?)] = []
   private var selectedSortType: InvestSortType = .name
@@ -89,7 +90,6 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
   private func applyThemeColors() {
     view.backgroundColor = .mobitColors(.investmentBackground)
     transactionTableview.backgroundColor = .mobitColors(.investmentBackground)
-    transactionTableview.superview?.backgroundColor = .mobitColors(.investmentBackground)
     noResultView.backgroundColor = .mobitColors(.investmentBackground)
     dimView.backgroundColor = UIColor.black.withAlphaComponent(0.35)
     sortLabel.textColor = .mobitColors(.investmentTextSecondary)
@@ -100,6 +100,12 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
 
   private func render() {
     guard isViewLoaded, !transactionTableview.isDragging, !transactionTableview.isDecelerating else { return }
+    // 오류 유무가 바뀔 때만 section을 갱신해 footer 생성·제거를 반영한다.
+    let previouslyHadError = !dataErrorView.isHidden
+    dataErrorView.render(
+      message: reactor.needsDataRetry ? FuturesText.status(reactor) : "",
+      retry: reactor.needsDataRetry && reactor.currentState.networkAvailable != false && !reactor.currentState.submitting
+    )
     let state = reactor.currentState
     let positions = reactor.positions
     let now = Date()
@@ -143,17 +149,21 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
     totalEvalProfitLoss.textColor = color
     totalProfitRate.textColor = color
     chargeButton.isEnabled = !state.submitting
-    noResultView.isHidden = !items.isEmpty
+    noResultView.isHidden = !items.isEmpty || reactor.needsDataRetry
     emptyLabel.text = state.loadFailed ? FuturesText.text("futures_storage_error")
       : state.snapshot == nil ? FuturesText.text("futures_loading") : FuturesText.text("futures_no_position")
     emptyLabel.numberOfLines = 0
+    emptyLabel.isHidden = false
     sortLabel.text = FuturesText.text(Self.sortKey(selectedSortType))
-    statusLabel.text = FuturesText.status(reactor)
     var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, UUID>()
     snapshot.appendSections([.invest])
     snapshot.appendItems(items.map { $0.position.id })
     let previous = dataSource?.snapshot()
-    snapshot.reconfigureItems(snapshot.itemIdentifiers.filter { previous?.indexOfItem($0) != nil })
+    if previous?.sectionIdentifiers.contains(.invest) == true && previouslyHadError != reactor.needsDataRetry {
+      snapshot.reloadSections([.invest])
+    } else {
+      snapshot.reconfigureItems(snapshot.itemIdentifiers.filter { previous?.indexOfItem($0) != nil })
+    }
     dataSource?.apply(snapshot, animatingDifferences: false)
   }
 
@@ -203,25 +213,21 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
     coordinator?.open(position: position, from: navigationController)
   }
 
-  func tableView(
-	_ tableView: UITableView,
-	heightForFooterInSection section: Int
-  ) -> CGFloat {
-    FuturesText.status(reactor).isEmpty ? .leastNormalMagnitude : UITableView.automaticDimension
+  func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+    reactor.needsDataRetry ? UITableView.automaticDimension : .leastNormalMagnitude
   }
 
   func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-    guard !FuturesText.status(reactor).isEmpty else { return nil }
+    guard reactor.needsDataRetry else { return nil }
+    // 정상 갱신에서는 footer를 만들지 않아 기존 목록 배치를 유지한다.
     let footer = UIView()
-    let label = statusLabel
-    label.textColor = .mobitColors(.investmentTextSecondary)
-    label.translatesAutoresizingMaskIntoConstraints = false
-    footer.addSubview(label)
+    footer.addSubview(dataErrorView)
+    dataErrorView.translatesAutoresizingMaskIntoConstraints = false
     NSLayoutConstraint.activate([
-      label.topAnchor.constraint(equalTo: footer.topAnchor, constant: 12),
-      label.bottomAnchor.constraint(equalTo: footer.bottomAnchor, constant: -12),
-      label.leadingAnchor.constraint(equalTo: footer.leadingAnchor, constant: 20),
-      label.trailingAnchor.constraint(equalTo: footer.trailingAnchor, constant: -20)
+      dataErrorView.topAnchor.constraint(equalTo: footer.topAnchor, constant: 12),
+      dataErrorView.bottomAnchor.constraint(equalTo: footer.bottomAnchor, constant: -12),
+      dataErrorView.leadingAnchor.constraint(equalTo: footer.leadingAnchor, constant: 20),
+      dataErrorView.trailingAnchor.constraint(equalTo: footer.trailingAnchor, constant: -20)
     ])
     return footer
   }

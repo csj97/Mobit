@@ -44,6 +44,8 @@ class TradeViewController: MobitBaseViewController {
   var reactor: TradeReactor
   var futuresReactor: FuturesAccountReactor?
   private var futuresOrderController: FuturesOrderViewController?
+  // 완료 안내를 광고·키보드 위에서 표시하고 화면 이탈 시 정리한다.
+  private let tradeToast = MobitToastPresenter()
   var orderView: TradeOrderView? = nil
   var chartView: TradeChartView? = nil
   var informationView: TradeInformationView? = nil
@@ -96,6 +98,7 @@ class TradeViewController: MobitBaseViewController {
   
   override func viewWillDisappear(_ animated: Bool) {
 	super.viewWillDisappear(animated)
+	tradeToast.dismiss()
 	self.delegate?.mainCoordinatorDidRequestShowTabBar()
   }
   /// 앱 상태가 백그라운드에서 Active 상태로 전환 되면 택시 상태를 조회하여 복구
@@ -121,6 +124,7 @@ class TradeViewController: MobitBaseViewController {
       let instrument = TradingInstrumentID(exchange: futuresReactor.account.exchange, product: .perpetual,
         rawSymbol: MarketFormat.apiMarket(fromDisplayMarket: reactor.selectCrypto.market), settlementCurrency: .krw)
       let controller = FuturesOrderViewController(reactor: futuresReactor, instrument: instrument)
+      controller.tradeCompletedCallBack = { [weak self] in self?.showTradeCompletionToast() }
       addChild(controller)
       futuresOrderController = controller
     }
@@ -134,31 +138,8 @@ class TradeViewController: MobitBaseViewController {
 		self.showDefaultAlert(title: title, message: message)
 	  case .settlementRateUnavailable:
 		self.showSettlementRateRetryAlert()
-	  case .successLottie:
-		let lottieView = MobitLottieView(
-		  lottieName: "check_deep_blue",
-		  loopMode: .playOnce,
-		  lottieSpeed: 1.7,
-		  bgColor: UIColor.mobitColors(.tradeBackground).withAlphaComponent(0.3)
-		)
-		lottieView.configure()
-		
-		self.view.addSubview(lottieView)
-		
-		lottieView.snp.makeConstraints { make in
-		  make.edges.equalToSuperview()
-		}
-		
-		DispatchQueue.main.async {
-		  lottieView.playLottie {
-			UIView.animate(withDuration: 0.4, animations: {
-				lottieView.alpha = 0
-			}, completion: { _ in
-				lottieView.stopLottie()
-				lottieView.removeFromSuperview()
-			})
-		  }
-		}
+	  case .tradeCompleted:
+		self.showTradeCompletionToast()
 	  case .calcuator(let cryptoInvestData):
 		self.showCalculatorView(cryptoInvestData: cryptoInvestData)
 	  default:
@@ -232,6 +213,17 @@ class TradeViewController: MobitBaseViewController {
 	
 	self.mobitSegmentedControl.selectedIndex = 0
 	self.mobitSegmentedControl.onSegmentChanged?(self.mobitSegmentedControl.selectedIndex)
+  }
+
+  private func showTradeCompletionToast() {
+    guard viewIfLoaded?.window != nil,
+      navigationController == nil || navigationController?.topViewController === self else { return }
+    tradeToast.show(
+      FuturesText.text("futures_order_done"),
+      in: view,
+      position: .bottom,
+      above: bannerContainerView.topAnchor
+    )
   }
 
   override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -512,8 +504,9 @@ class TradeViewController: MobitBaseViewController {
   }
   
   func showDefaultAlert(title: String, message: String) {
+    guard presentedViewController == nil else { return }
 	let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-	let okAction = UIAlertAction(title: "확인", style: .default, handler: nil)
+	let okAction = UIAlertAction(title: FuturesText.text("common_confirm"), style: .default, handler: nil)
 	
 	alert.addAction(okAction)
 	self.present(alert, animated: true, completion: nil)

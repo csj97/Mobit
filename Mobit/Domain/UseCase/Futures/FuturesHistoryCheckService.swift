@@ -39,6 +39,75 @@ enum FuturesRefreshStatus {
   case storageFailed
 }
 
+// 화면 수명과 분리해 같은 실패 구간의 안내 여부를 공유한다.
+struct FuturesDataFailure: Equatable {
+  // 검증 성공 전까지 유지하는 오류 안내 식별자다.
+  let id: UUID
+  // nil이면 계좌 구분 전 발생한 로컬 저장소 오류다.
+  let account: TradingAccountID?
+  // 실제 실패로 끝난 검증 횟수이며 진행 보류는 세지 않는다.
+  var attempts: Int
+  // 사용자 안내 수준과 진단에 사용하는 마지막 실패 사유다.
+  var hold: FuturesHistoryCheckHold
+
+  var shouldNotify: Bool {
+    hold == .storageFailed || hold == .unsupportedInstrument || attempts >= 3
+  }
+}
+
+struct FuturesDataFailurePolicy {
+  // 계좌별 오류 구간은 완전한 검증 성공 또는 포지션 소멸 때만 종료한다.
+  private(set) var failures: [FuturesDataFailure] = []
+  // 화면 재생성·수동 재시도에서도 이미 알린 오류를 다시 띄우지 않는다.
+  private var presentedIDs: Set<UUID> = []
+
+  mutating func recordStorageFailure() {
+    record(account: nil, hold: .storageFailed)
+  }
+
+  mutating func complete(_ results: [FuturesRefreshResult], positions: [FuturesPosition]) {
+    // 한 계좌에 여러 포지션이 있어도 검증 한 회를 한 번의 실패로 센다.
+    let accounts = Dictionary(grouping: positions, by: { $0.order.account })
+    // 로컬 읽기 복구 및 포지션 소멸은 기존 오류 구간을 끝낸다.
+    failures.removeAll { failure in failure.account.map { accounts[$0] == nil } ?? true }
+    for (account, positions) in accounts {
+      // 다른 계좌의 실패가 정상 계좌의 화면을 막지 않도록 결과를 분리한다.
+      let completed = results.filter { result in positions.contains { $0.id == result.positionID } }
+      if completed.count == positions.count,
+        completed.allSatisfy({ TradingRules.Futures.HistoryCheck.isPositionReady(liquidated: $0.liquidated, hold: $0.hold) }) {
+        failures.removeAll { $0.account == account }
+      } else {
+        // 복수 실패 중 로컬 저장소·미지원 오류를 우선해 즉시 조치가 필요한 실패를 숨기지 않는다.
+        let holds = completed.compactMap { $0.liquidated ? nil : $0.hold }.filter(Self.isFailure)
+        if let hold = holds.first(where: { $0 == .storageFailed || $0 == .unsupportedInstrument }) ?? holds.first {
+          record(account: account, hold: hold)
+        }
+      }
+    }
+    presentedIDs.formIntersection(Set(failures.map(\.id)))
+  }
+
+  mutating func claimNotice(_ id: UUID) -> Bool {
+    presentedIDs.insert(id).inserted
+  }
+
+  static func isFailure(_ hold: FuturesHistoryCheckHold) -> Bool {
+    switch hold {
+    case .workLimit, .currentInterval, .revisionChanged: return false
+    default: return true
+    }
+  }
+
+  private mutating func record(account: TradingAccountID?, hold: FuturesHistoryCheckHold) {
+    if let index = failures.firstIndex(where: { $0.account == account }) {
+      failures[index].attempts += 1
+      failures[index].hold = hold
+    } else {
+      failures.append(.init(id: UUID(), account: account, attempts: 1, hold: hold))
+    }
+  }
+}
+
 final class FuturesHistoryCheckService {
   static let shared = FuturesHistoryCheckService(
     store: { try LocalFuturesAccountRepository.applicationStore() },
@@ -46,7 +115,8 @@ final class FuturesHistoryCheckService {
       guard TradingRules.DomesticFutures.supportsHistoryInstrument(instrument) else { return nil }
       return DomesticFuturesMarketRepository()
     },
-    monitor: FuturesPositionSocketMonitor()
+    monitor: FuturesPositionSocketMonitor(),
+    networkAvailability: NetworkMonitor.shared.availability
   )
 
   private let storeFactory: () throws -> LocalFuturesAccountRepository
@@ -59,8 +129,18 @@ final class FuturesHistoryCheckService {
   private let subject = BehaviorSubject<FuturesRefreshStatus>(value: .finished([]))
   // 인트로 완료 직후 재조회가 시작돼도 새 화면에 직전 검증 결과를 전달한다.
   private var lastFinishedResults: [FuturesRefreshResult]?
+  // 오류의 수명과 표시 권한은 서비스 직렬 큐에서만 변경한다.
+  private var failurePolicy = FuturesDataFailurePolicy()
+  // 늦게 구독한 화면에도 현재 오류 구간을 그대로 전달한다.
+  private let failuresSubject = BehaviorSubject<[FuturesDataFailure]>(value: [])
+  // 일시 실패는 2초·5초 후 재시도하고 지속 실패는 기존 15초 간격을 사용한다.
+  private let failureRetryDelay: (Int) -> TimeInterval
   private var running = false
   private var active = true
+  // 연결 복구는 앱 활성 상태와 별도로 판단해 백그라운드 검증을 재개하지 않는다.
+  private var networkAvailable: Bool?
+  // 화면 수명과 무관하게 네트워크 유실·복구를 한 번만 처리한다.
+  private var networkSubscription: Disposable?
   private var generation: UInt64 = 0
   private var disposable: Disposable?
   private var watchedPositions: [TradingInstrumentID: FuturesPosition] = [:]
@@ -93,7 +173,7 @@ final class FuturesHistoryCheckService {
     queue.async { [weak self] in
       guard let self else { return }
       updateWatchedPositions(snapshot)
-      if active, monitoringGeneration == generation,
+      if active, networkAvailable != false, monitoringGeneration == generation,
         let position = watchedPositions.values.first(where: { position in
           (openingRequestID.map { id in position.executions.contains { $0.requestID == id } } ?? false)
             || (closingRequestID.map { id in (position.partialClosings ?? []).contains { $0.order.requestID == id } } ?? false)
@@ -115,25 +195,19 @@ final class FuturesHistoryCheckService {
     readyPositions = readyPositions.filter { id, execution in
       watchedPositions.values.contains { $0.id == id && $0.lastExecutionAt == execution }
     }
-    if active { monitor?.watch(Array(watchedPositions.keys)) }
+    if active, networkAvailable != false { monitor?.watch(Array(watchedPositions.keys)) }
   }
 
   private func receive(_ event: FuturesMonitorEvent) {
-    guard active else { return }
+    guard active, networkAvailable != false else { return }
     switch event {
     case let .connection(exchange, connected):
       guard connectedExchanges.contains(exchange) != connected else { return }
       connectedExchanges.remove(exchange)
       receivedInstruments = receivedInstruments.filter { $0.exchange != exchange }
-      readyPositions = readyPositions.filter { id, _ in
-        watchedPositions.values.contains { $0.id == id && $0.order.account.exchange != exchange }
-      }
       // 실제 단절만 이전 세션 검증을 무효화하고 최초 연결은 진행 중인 검증에 합친다.
       if !connected {
-        pendingLiquidationQuotes = pendingLiquidationQuotes.filter { $0.key.exchange != exchange }
-        generation &+= 1
-        disposable?.dispose()
-        running = false
+        invalidateVerification()
       }
       if connected { connectedExchanges.insert(exchange) }
       startRefresh()
@@ -155,7 +229,7 @@ final class FuturesHistoryCheckService {
   }
 
   private func processQuote(_ quote: FuturesMarkQuote, displayTimestamp: Int64?) {
-    guard active, let position = watchedPositions[quote.instrument],
+    guard active, networkAvailable != false, let position = watchedPositions[quote.instrument],
       !quote.price.isNaN, quote.price > 0,
       let timestamp = try? FuturesHistoryCheckState.milliseconds(now())
     else { return }
@@ -190,8 +264,7 @@ final class FuturesHistoryCheckService {
       // 저장 실패는 포지션을 유지해 다음 tick/REST에서 재시도한다.
       if reason(error) == .storageFailed {
         readyPositions.removeValue(forKey: position.id)
-        lastFinishedResults = nil
-        subject.onNext(.storageFailed)
+        failStorage(error, stage: "liveSettlement")
       }
     }
   }
@@ -219,7 +292,9 @@ final class FuturesHistoryCheckService {
     now: @escaping () -> Date = Date.init,
     maximumPages: Int = 8,
     orderPreparationTimeout: RxTimeInterval = .seconds(5),
-    monitor: FuturesPositionMonitoring? = nil
+    monitor: FuturesPositionMonitoring? = nil,
+    networkAvailability: Observable<Bool> = .empty(),
+    failureRetryDelay: @escaping (Int) -> TimeInterval = { $0 == 1 ? 2 : ($0 == 2 ? 5 : 15) }
   ) {
     self.storeFactory = store
     self.providerFactory = provider
@@ -227,55 +302,129 @@ final class FuturesHistoryCheckService {
     self.maximumPages = max(1, maximumPages)
     self.orderPreparationTimeout = orderPreparationTimeout
     self.monitor = monitor
+    self.failureRetryDelay = failureRetryDelay
     let queue = DispatchQueue(label: "mobit.futures.reconciliation")
     self.queue = queue
     self.scheduler = SerialDispatchQueueScheduler(
       queue: queue,
       internalSerialQueueName: "mobit.futures.reconciliation.rx"
     )
+    networkSubscription = networkAvailability.distinctUntilChanged().observe(on: scheduler)
+      .subscribe(onNext: { [weak self] in self?.updateNetworkAvailability($0) })
     monitorSubscription = monitor?.events.observe(on: scheduler)
       .subscribe(onNext: { [weak self] in self?.receive($0) })
   }
 
-  deinit { disposable?.dispose(); monitorSubscription?.dispose(); monitor?.suspend() }
+  deinit { disposable?.dispose(); networkSubscription?.dispose(); monitorSubscription?.dispose(); monitor?.suspend() }
+
+  // 활성화 권한은 Scene만 변경하고 화면 갱신·자동 재시도는 중단 상태를 존중한다.
+  func resume() {
+    queue.async { [weak self] in
+      guard let self else { return }
+      active = true
+      startRefresh()
+    }
+  }
+
+  private func updateNetworkAvailability(_ connected: Bool) {
+    // 최초 연결 알림은 진행 중인 앱 시작 검증을 중복 시작하지 않는다.
+    let wasDisconnected = networkAvailable == false
+    networkAvailable = connected
+    if !connected {
+      invalidateVerification()
+      connectedExchanges.removeAll()
+      receivedInstruments.removeAll()
+      monitor?.suspend()
+    } else if wasDisconnected {
+      startRefresh()
+    }
+  }
+
+  private func invalidateVerification() {
+    generation &+= 1
+    disposable?.dispose()
+    disposable = nil
+    running = false
+    readyPositions.removeAll()
+    pendingLiquidationQuotes.removeAll()
+    // 마지막 가격은 보존하지만 이전 세션의 거래 허용 상태는 화면에도 재사용하지 않는다.
+    lastFinishedResults = lastFinishedResults?.map { $0.requiringHistoryCheck() }
+    subject.onNext(.paused)
+  }
 
   // Scene 활성화가 겹쳐도 한 실행으로 합친다. 네트워크 대기는 저장소 잠금 밖이다.
   func refresh() {
     queue.async { [weak self] in self?.startRefresh() }
   }
 
-  // 보류된 조회는 완료가 아니며, 화면 대기가 끝나도 실제 검증은 계속한다.
-  func prepareLaunch(
-    minimumDuration: RxTimeInterval = .milliseconds(TradingRules.DomesticFutures.HistoryCheck.minimumIntroMilliseconds),
-    timeout: RxTimeInterval = .seconds(TradingRules.DomesticFutures.HistoryCheck.maximumIntroSeconds)
-  ) -> Observable<Void> {
-    // 새 검증의 완료만 기다리며 화면 구독용 직전 결과는 사용하지 않는다.
-    let completion = subject.asObservable().skip(1).observe(on: MainScheduler.instance)
-      .flatMapLatest { [weak self] status -> Observable<Void> in
-        switch status {
-        case .finished(let results):
-          if results.allSatisfy({ $0.liquidated || $0.hold == nil }) { return .just(()) }
-          // 인트로 대기가 유지되는 동안 보류 구간을 재시도한다.
-          return Observable<Int>.timer(.seconds(1), scheduler: MainScheduler.instance)
-            .flatMap { [weak self] _ -> Observable<Void> in
-              self?.refresh()
-              return .empty()
-            }
-        case .storageFailed: return .just(())
-        case .refreshing, .paused: return .empty()
+  // 인트로는 로컬 저장소의 읽기 결과만 기다리고 네트워크 검증은 독립적으로 계속한다.
+  func prepareLaunch() -> Observable<Void> {
+    Observable.create { [weak self] observer in
+      guard let self else { observer.onCompleted(); return Disposables.create() }
+      self.queue.async {
+        do {
+          _ = try self.storeFactory().snapshot()
+          observer.onNext(())
+          observer.onCompleted()
+          self.startRefresh()
+        } catch {
+          self.failStorage(error, stage: "launchSnapshot")
+          observer.onNext(())
+          observer.onCompleted()
         }
-      }.take(1)
-      .do(onSubscribed: { [weak self] in self?.refresh() })
-      .timeout(timeout, other: Observable<Void>.just(()), scheduler: MainScheduler.instance)
-    return Observable.combineLatest(
-      Observable<Int>.timer(minimumDuration, scheduler: MainScheduler.instance),
-      completion
-    ).take(1).map { _ in () }
+      }
+      return Disposables.create()
+    }.observe(on: MainScheduler.instance)
+  }
+
+  func dataFailure(for account: TradingAccountID) -> Observable<FuturesDataFailure?> {
+    failuresSubject.map { failures in
+      failures.first { $0.account == nil } ?? failures.first { $0.account == account }
+    }.distinctUntilChanged().observe(on: MainScheduler.instance)
+  }
+
+  func claimDataFailureNotice(_ id: UUID) -> Bool {
+    queue.sync { failurePolicy.claimNotice(id) }
+  }
+
+  // 화면의 로컬 읽기 오류도 공통 저장소 오류 구간으로 합친다.
+  func reportStorageFailure(_ error: Error) {
+    Log.warning("stage=accountSnapshot cause=\(Self.diagnosticCode(error))", tag: "FuturesHistoryCheck")
+    queue.async { [weak self] in
+      guard let self else { return }
+      if !failurePolicy.failures.contains(where: { $0.account == nil }) {
+        failurePolicy.recordStorageFailure()
+        failuresSubject.onNext(failurePolicy.failures)
+      }
+      if active, !running { scheduleRefresh(after: failureRetryDelay(1)) }
+    }
+  }
+
+  private func failStorage(_ error: Error, stage: String) {
+    generation &+= 1
+    disposable?.dispose()
+    disposable = nil
+    running = false
+    readyPositions.removeAll()
+    lastFinishedResults = nil
+    failurePolicy.recordStorageFailure()
+    failuresSubject.onNext(failurePolicy.failures)
+    Log.warning("stage=\(stage) cycle=\(generation) cause=\(Self.diagnosticCode(error))", tag: "FuturesHistoryCheck")
+    subject.onNext(.storageFailed)
+    scheduleRefresh(after: failureRetryDelay(failurePolicy.failures.map(\.attempts).max() ?? 1))
+  }
+
+  private func scheduleRefresh(after delay: TimeInterval) {
+    // 새 요청·백그라운드 전환은 기존 예약의 실행 권한을 무효화한다.
+    let scheduledGeneration = generation
+    queue.asyncAfter(deadline: .now() + delay) { [weak self] in
+      guard let self, active, !running, generation == scheduledGeneration else { return }
+      startRefresh()
+    }
   }
 
   private func startRefresh() {
-    guard !running else { return }
-    active = true
+    guard active, networkAvailable != false, !running else { return }
     running = true
     generation &+= 1
     let currentGeneration = generation
@@ -304,33 +453,43 @@ final class FuturesHistoryCheckService {
               readyPositions.removeValue(forKey: position.id)
             }
           }
+          // 오류 구간이 실제 검증 성공으로 끝났는지 진단한다.
+          let previousFailures = failurePolicy.failures
+          failurePolicy.complete(results, positions: positions)
+          for failure in previousFailures where !failurePolicy.failures.contains(where: { $0.id == failure.id }) {
+            Log.info("stage=recovered cycle=\(currentGeneration) attempts=\(failure.attempts)", tag: "FuturesHistoryCheck")
+          }
+          failuresSubject.onNext(failurePolicy.failures)
+          for result in results where result.hold.map(FuturesDataFailurePolicy.isFailure) == true {
+            // 원본 자산·응답 대신 검증 종류와 누적 실패 횟수만 기록한다.
+            let account = positions.first { $0.id == result.positionID }?.order.account
+            // 같은 계좌의 실패는 실행당 한 번씩 집계한다.
+            let attempts = failurePolicy.failures.first { $0.account == account }?.attempts ?? 0
+            Log.warning("stage=verification cycle=\(currentGeneration) hold=\(result.hold?.rawValue ?? "unknown") attempts=\(attempts)", tag: "FuturesHistoryCheck")
+          }
           lastFinishedResults = results
           subject.onNext(.finished(results))
-          if results.contains(where: {
-            !$0.liquidated && $0.hold != .unsupportedInstrument && $0.hold != .storageFailed
-          }) {
-            let delay: TimeInterval =
-              results.contains(where: { $0.hold == .workLimit })
-              ? 1 : (results.contains(where: { $0.hold != nil }) ? 15 : 30)
-            queue.asyncAfter(deadline: .now() + delay) { [weak self] in
-              guard let self, active, generation == currentGeneration else { return }
-              self.startRefresh()
+          if results.contains(where: { !$0.liquidated && $0.hold != .unsupportedInstrument }) {
+            // 실패 재시도를 우선 제한해 workLimit 포지션과 섞여도 서버 요청이 폭주하지 않게 한다.
+            let hasFailure = results.contains { result in
+              !result.liquidated && result.hold != .unsupportedInstrument
+                && result.hold.map(FuturesDataFailurePolicy.isFailure) == true
             }
+            // 이전 실패 후 정상 이어받기 중이면 진행 간격을 다시 적용한다.
+            let attempts = hasFailure ? failurePolicy.failures.filter { $0.hold != .unsupportedInstrument }.map(\.attempts).max() : nil
+            // 현재 실행의 실패·진행·정상 완료에 맞춘 다음 조회 간격이다.
+            let delay = attempts.map(failureRetryDelay)
+              ?? (results.contains(where: { $0.hold == .workLimit }) ? 1 : (results.contains(where: { $0.hold != nil }) ? 15 : 30))
+            scheduleRefresh(after: delay)
           }
         },
-        onFailure: { [weak self] _ in
+        onFailure: { [weak self] error in
           guard let self, generation == currentGeneration else { return }
-          running = false
-          readyPositions.removeAll()
-          lastFinishedResults = nil
-          subject.onNext(.storageFailed)
+          failStorage(error, stage: "settlement")
         }
       )
     } catch {
-      running = false
-      readyPositions.removeAll()
-      lastFinishedResults = nil
-      subject.onNext(.storageFailed)
+      failStorage(error, stage: "snapshot")
     }
   }
 
@@ -368,18 +527,10 @@ final class FuturesHistoryCheckService {
     queue.async { [weak self] in
       guard let self else { return }
       active = false
-      readyPositions.removeAll()
-      // 주문 가능 상태와 소켓 세션은 폐기하되 확인한 가격은 복귀 화면에 유지한다.
-      pendingLiquidationQuotes.removeAll()
-      lastFinishedResults = lastFinishedResults?.map { $0.requiringHistoryCheck() }
+      invalidateVerification()
       connectedExchanges.removeAll()
       receivedInstruments.removeAll()
       monitor?.suspend()
-      generation &+= 1
-      disposable?.dispose()
-      disposable = nil
-      running = false
-      subject.onNext(.paused)
     }
   }
 
@@ -390,7 +541,7 @@ final class FuturesHistoryCheckService {
     price: FuturesOrderPrice? = nil
   ) -> Single<FuturesOrderCheck> {
     Single.deferred { [self] in
-      guard active else { throw FuturesOrderCheckError.historyCheckInProgress }
+      guard active, networkAvailable != false else { throw FuturesOrderCheckError.historyCheckInProgress }
       guard let price else { throw FuturesOrderCheckError.staleQuote }
       guard account.supports(instrument), price.quote.instrument == instrument else {
         throw FuturesOrderCheckError.invalidTarget
@@ -448,7 +599,10 @@ final class FuturesHistoryCheckService {
           ? min(max(quote.timestamp + 1, quote.responseTimestamp ?? 0), current)
           : quote.timestamp - quote.timestamp % 60_000
         return process(position, store: store, provider: provider, end: end, pages: 0)
-      }.catch { [self] error in .just(result(position.id, hold: reason(error))) }
+      }.catch { [self] error in
+        logFailure(error, stage: "quote", instrument: position.order.instrument)
+        return .just(result(position.id, hold: reason(error)))
+      }
   }
 
   private func process(
@@ -529,7 +683,10 @@ final class FuturesHistoryCheckService {
           return .just(result(position.id, state: outcome.state, hold: outcome.hold))
         }
         return process(position, store: store, provider: provider, end: end, pages: pages + 1)
-      }.catch { [self] error in .just(result(position.id, state: state, hold: reason(error))) }
+      }.catch { [self] error in
+        logFailure(error, stage: "history", instrument: position.order.instrument)
+        return .just(result(position.id, state: state, hold: reason(error)))
+      }
     }
   }
 
@@ -601,11 +758,29 @@ final class FuturesHistoryCheckService {
     )
   }
 
+  private func logFailure(_ error: Error, stage: String, instrument: TradingInstrumentID) {
+    Log.warning("stage=\(stage) cycle=\(generation) exchange=\(instrument.exchange.rawValue) market=\(instrument.rawSymbol) cause=\(Self.diagnosticCode(error))", tag: "FuturesHistoryCheck")
+  }
+
+  // 응답 본문·URL·자산 값 대신 오류 유형과 코드만 남긴다.
+  static func diagnosticCode(_ error: Error) -> String {
+    if let error = error as? FuturesMarketDataError { return "market.\(error)" }
+    if let error = error as? LocalFuturesAccountRepository.StoreError { return "storage.\(error)" }
+    if let error = error as? FuturesHistoryCheckError { return "history.\(error)" }
+    if let error = error as? FuturesCalculationError { return "calculation.\(error)" }
+    if let error = error as? RxError, case .timeout = error { return "request.timeout" }
+    if let error = error as? URLError { return "url.\(error.code.rawValue)" }
+    // NSError 메시지와 userInfo에는 파일 경로나 원본 응답이 포함될 수 있다.
+    let code = (error as NSError).code
+    return "\(String(reflecting: type(of: error))).\(code)"
+  }
+
   private func reason(_ error: Error) -> FuturesHistoryCheckHold {
     if let error = error as? LocalFuturesAccountRepository.StoreError {
       return error == .revisionConflict ? .revisionChanged : .storageFailed
     }
     if error as? FuturesMarketDataError == .workLimit { return .workLimit }
+    if error as? FuturesMarketDataError == .unsupportedInstrument { return .unsupportedInstrument }
     if error is CocoaError { return .storageFailed }
     if error is FuturesHistoryCheckError || error is FuturesCalculationError { return .missingHistory }
     if let error = error as? FuturesMarketDataError, error == .incompleteHistory || error == .invalidResponse {

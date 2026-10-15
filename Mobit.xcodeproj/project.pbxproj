@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F10114000000000000000001 /* MobitToastPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10114000000000000000002 /* MobitToastPresenter.swift */; };
+		F10114000000000000000003 /* MobitToastTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10114000000000000000004 /* MobitToastTests.swift */; };
 		E9967D894A3D4F188F7065B2 /* FuturesInvestmentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76482DD0266E470BBE4DB2F2 /* FuturesInvestmentViewController.swift */; };
 		157F7CC64BAA461BA7E5B642 /* FuturesAccountViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0E097AE7FC1447BBF425A91 /* FuturesAccountViewController.swift */; };
 		310865062E1EC3F40089D67A /* MobitChargeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 310865052E1EC3F40089D67A /* MobitChargeButton.swift */; };
@@ -262,6 +264,8 @@
 		FEA000000000000000000041 /* FearGreedInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA000000000000000000040 /* FearGreedInfoViewController.swift */; };
 		FEA000000000000000000051 /* MainHoldingTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA000000000000000000050 /* MainHoldingTableViewCell.swift */; };
 		F10007000000000000000002 /* FuturesCloseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10007000000000000000001 /* FuturesCloseViewController.swift */; };
+		5EC8FC34947D4845944E46EF /* MoreAccountsUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2F4482507D447E1AC2D7D76 /* MoreAccountsUseCase.swift */; };
+		FFAADEE71F8742D5BD6EF3D7 /* MoreScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7A1682839BC44FD85A785C7 /* MoreScreenTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -305,6 +309,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		F10114000000000000000002 /* MobitToastPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitToastPresenter.swift; sourceTree = "<group>"; };
+		F10114000000000000000004 /* MobitToastTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitToastTests.swift; sourceTree = "<group>"; };
 		76482DD0266E470BBE4DB2F2 /* FuturesInvestmentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesInvestmentViewController.swift; sourceTree = "<group>"; };
 		310865052E1EC3F40089D67A /* MobitChargeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitChargeButton.swift; sourceTree = "<group>"; };
 		311E33F92C46068C0054C6BC /* ErrorType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorType.swift; sourceTree = "<group>"; };
@@ -544,6 +550,8 @@
 		FEA000000000000000000040 /* FearGreedInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FearGreedInfoViewController.swift; sourceTree = "<group>"; };
 		FEA000000000000000000050 /* MainHoldingTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainHoldingTableViewCell.swift; sourceTree = "<group>"; };
 		F10007000000000000000001 /* FuturesCloseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesCloseViewController.swift; sourceTree = "<group>"; };
+		D2F4482507D447E1AC2D7D76 /* MoreAccountsUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreAccountsUseCase.swift; sourceTree = "<group>"; };
+		A7A1682839BC44FD85A785C7 /* MoreScreenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreScreenTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -622,6 +630,7 @@
 			children = (
 				F09222000000000000000017 /* RewardedAdSession.swift */,
 				F09222000000000000000013 /* AdRewardUseCase.swift */,
+				D2F4482507D447E1AC2D7D76 /* MoreAccountsUseCase.swift */,
 			);
 			path = TradingAccount;
 			sourceTree = "<group>";
@@ -711,12 +720,14 @@
 			isa = PBXGroup;
 			children = (
 				F10112000000000000000003 /* TradingRulesTests.swift */,
+				F10114000000000000000004 /* MobitToastTests.swift */,
 				F09228000000000000000017 /* FuturesHistoryCheckTests.swift */,
 				F09228000000000000000007 /* BinanceFuturesMarketRepositoryTests.swift */,
 				F09329000000000000000005 /* DomesticFuturesMarketRepositoryTests.swift */,
 				F09223000000000000000007 /* FuturesPositionRepositoryTests.swift */,
 				F09223000000000000000005 /* FuturesCalculatorTests.swift */,
 				F09222000000000000000019 /* AdRewardTests.swift */,
+				A7A1682839BC44FD85A785C7 /* MoreScreenTests.swift */,
 				3133E23E2C3E2357000D4B1A /* MobitTests.swift */,
 				C0D100082EF6000000000011 /* PortfolioCalculatorTests.swift */,
 				C0D100092EF6000000000011 /* MarketFormatTests.swift */,
@@ -1282,6 +1293,7 @@
 			isa = PBXGroup;
 			children = (
 				C17BB4172E2F27A400BDAA0F /* MobitBaseViewController.swift */,
+				F10114000000000000000002 /* MobitToastPresenter.swift */,
 				C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */,
 				310865052E1EC3F40089D67A /* MobitChargeButton.swift */,
 				C18B1DCA2E39A36F00E25DCE /* NeumorphicView.swift */,
@@ -1661,6 +1673,7 @@
 				998849E62C5379960073A27D /* CryptoTicker.swift in Sources */,
 				3133E2702C3F7098000D4B1A /* MainUseCase.swift in Sources */,
 				C17BB4182E2F27A400BDAA0F /* MobitBaseViewController.swift in Sources */,
+				F10114000000000000000001 /* MobitToastPresenter.swift in Sources */,
 				99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */,
 				FEA000000000000000000051 /* MainHoldingTableViewCell.swift in Sources */,
 				FEA000000000000000000041 /* FearGreedInfoViewController.swift in Sources */,
@@ -1704,6 +1717,7 @@
 				F09222000000000000000018 /* RewardedAdSession.swift in Sources */,
 				F09222000000000000000016 /* LocalAdRewardPendingStore.swift in Sources */,
 				F09222000000000000000014 /* AdRewardUseCase.swift in Sources */,
+				5EC8FC34947D4845944E46EF /* MoreAccountsUseCase.swift in Sources */,
 				F09222000000000000000012 /* AdRewardClaim.swift in Sources */,
 				D0A100082FF0000000000003 /* ExchangeMarketDataProvider.swift in Sources */,
 				C1246B632ED979D400B24D3D /* ViewControllerExtension.swift in Sources */,
@@ -1826,10 +1840,12 @@
 				F09223000000000000000008 /* FuturesPositionRepositoryTests.swift in Sources */,
 				F09223000000000000000006 /* FuturesCalculatorTests.swift in Sources */,
 				F10112000000000000000004 /* TradingRulesTests.swift in Sources */,
+				F10114000000000000000003 /* MobitToastTests.swift in Sources */,
 				F09228000000000000000018 /* FuturesHistoryCheckTests.swift in Sources */,
 				F09228000000000000000008 /* BinanceFuturesMarketRepositoryTests.swift in Sources */,
 				F09329000000000000000006 /* DomesticFuturesMarketRepositoryTests.swift in Sources */,
 				F09222000000000000000020 /* AdRewardTests.swift in Sources */,
+				FFAADEE71F8742D5BD6EF3D7 /* MoreScreenTests.swift in Sources */,
 				C0D1000B2EF6000000000011 /* SocketServiceTests.swift in Sources */,
 				D0A1000E2FF0000000000006 /* StringExtensionTests.swift in Sources */,
 				D0A100062FF0000000000002 /* ExchangeMarketCodeConverterTests.swift in Sources */,

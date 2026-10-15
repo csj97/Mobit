@@ -4,23 +4,32 @@ final class AdRewardUseCase {
   static let shared = AdRewardUseCase(store: LocalAdRewardPendingStore())
   private static let lock = NSRecursiveLock()
   private let store: AdRewardPendingStore
+  // 광고를 시작할 선물 계좌를 기존 저장소에 준비한다.
+  private let prepareFuturesAccount: (TradingAccountID) throws -> Void
   private let apply: (AdRewardClaim) throws -> Void
   private var unsavedClaims: [UUID: AdRewardClaim] = [:]
 
-  init(store: AdRewardPendingStore, apply: @escaping (AdRewardClaim) throws -> Void = { claim in
-    switch claim.account.product {
-    case .spot: try UserDataManager.applyAdvertisementReward(claim)
-    case .perpetual: try LocalFuturesAccountRepository.applicationStore().applyAdvertisementReward(claim)
+  init(
+    store: AdRewardPendingStore,
+    prepareFuturesAccount: @escaping (TradingAccountID) throws -> Void = {
+      try LocalFuturesAccountRepository.applicationStore().ensureAccount($0)
+    },
+    apply: @escaping (AdRewardClaim) throws -> Void = { claim in
+      switch claim.account.product {
+      case .spot: try UserDataManager.applyAdvertisementReward(claim)
+      case .perpetual: try LocalFuturesAccountRepository.applicationStore().applyAdvertisementReward(claim)
+      }
     }
-  }) {
+  ) {
     self.store = store
+    self.prepareFuturesAccount = prepareFuturesAccount
     self.apply = apply
   }
 
   func prepareAccount(_ account: TradingAccountID) throws {
 	guard account.availability == .available else { throw AdRewardError.invalidClaim }
 	if account.product == .perpetual {
-	  try LocalFuturesAccountRepository.applicationStore().ensureAccount(account)
+      try prepareFuturesAccount(account)
 	}
   }
 

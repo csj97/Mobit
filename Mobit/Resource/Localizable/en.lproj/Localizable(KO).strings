@@ -68,12 +68,12 @@
 "futures_margin_exceeds_balance" = "입력한 증거금이 주문가능 잔액을 초과했습니다. 증거금을 줄이거나 광고 시청으로 충전해 주세요.";
 "futures_position_closed" = "이미 종료되거나 청산된 포지션입니다. 목록에서 다시 진입해 주세요.";
 "futures_same_conditions" = "기존 포지션과 같은 방향·레버리지만 추가 진입할 수 있습니다.";
-"futures_retry_order" = "시세 또는 청산 검증을 완료하지 못했습니다. 내역을 확인한 후 다시 시도해 주세요.";
+"futures_retry_order" = "거래를 완료하지 못했습니다. 내역을 확인한 후 다시 시도해 주세요.";
 "futures_socket_wait" = "실시간 시세 연결을 기다리고 있습니다. 가격이 수신되면 다시 주문해 주세요.";
 "futures_storage_error" = "저장된 자산을 확인하지 못했습니다. 데이터를 초기화하지 말고 다시 시도해 주세요.";
 "futures_minimum" = "레버리지를 적용한 주문금액은 500원 이상이어야 합니다.";
 "futures_leverage_error" = "종목별 허용 레버리지 범위를 확인해 주세요.";
-"futures_input_error" = "0보다 큰 유효한 원화 증거금을 입력해 주세요.";
+"futures_input_error" = "주문 금액을 입력해 주세요.";
 "futures_submitting" = "주문 처리 중…";
 "futures_verifying" = "미접속 기간의 청산 조건을 확인하고 있습니다.";
 "futures_paused" = "앱이 활성화되면 청산 검증을 다시 진행합니다.";
@@ -120,6 +120,8 @@
 "futures_addition" = "추가 진입";
 "futures_closing" = "수동 종료";
 "futures_liquidation" = "청산";
+"futures_pnl_closed" = "포지션 종료";
+"futures_pnl_liquidated" = "강제 청산";
 "futures_price" = "가격";
 "futures_occurrence" = "발생 구간";
 "futures_entry_price" = "진입 가격";
@@ -145,6 +147,12 @@
 "futures_market_order" = "시장가 주문";
 
 "futures_empty_history" = "거래내역이 없습니다.";
+"futures_history_open" = "%@ 진입";
+"futures_history_close" = "%@ 종료";
+"futures_history_liquidation" = "%@ 강제 청산";
+"futures_history_price" = "체결가격";
+"futures_history_quantity" = "체결수량";
+"futures_history_amount" = "체결금액";
 
 "futures_enter_long" = "롱 진입";
 
@@ -177,10 +185,9 @@
 "futures_close_amount" = "종료 원금 (원)";
 "futures_close_quantity" = "종료 수량";
 "futures_close_percent" = "종료 비율";
-"futures_close_return" = "예상 반환금액";
-"futures_close_remaining" = "남은 수량";
+"futures_close_return" = "종료 후 받을 예상 금액";
 "futures_close_invalid" = "종료 가능한 수량 범위 안에서 금액 또는 수량을 입력해 주세요.";
-"futures_close_note" = "종료 금액은 선택한 수량의 원금(증거금)입니다. 예상 반환금액은 이 원금과 실시간 손익의 합계이며, 제출 시 시세를 다시 확인합니다.";
+"futures_close_note" = "선택한 수량의 원금(증거금)과 손익을 합친 예상 금액이에요. 실제 금액은 체결 가격에 따라 달라질 수 있어요.";
 "futures_trade_loading" = "종목과 시세 정보를 준비하고 있습니다. 잠시 후 다시 선택해 주세요.";
 "futures_trade_load_failed" = "종목과 시세 정보를 불러오지 못해 거래 화면을 열 수 없습니다. 다시 불러온 후 종목을 선택해 주세요.";
 "futures_trade_unavailable" = "현재 이 종목의 유효한 시세 정보를 확인할 수 없어 거래 화면을 열 수 없습니다.";
@@ -188,3 +195,70 @@
 
 "currency_krw_unit" = "원";
 "futures_held_position" = "보유 포지션";
+
+// 데이터 준비 상태와 재시도 안내
+"futures_data_offline" = "오프라인 · 최근 확인값";
+"futures_data_held" = "자산 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.";
+"data_retry" = "재시도";
+"market_data_error" = "시세를 불러오지 못했습니다. 다시 시도해 주세요.";
+"network_lost" = "네트워크가 유실되었습니다.\n네트워크 연결 후 다시 시도해 주세요.";
+
+"futures_close_estimated_pnl" = "예상 손익";
+"futures_order_not_ready" = "자산 정보를 확인하고 있어요. 잠시 후 다시 주문해 주세요.";
+
+"spot_order_missing_price" = "현재가를 불러온 뒤 다시 시도해 주세요.";
+"spot_order_invalid_quantity" = "0보다 큰 주문 수량을 입력해 주세요.";
+"spot_order_minimum" = "%1$@ %2$@ 이상 매수/매도 가능합니다.";
+"spot_order_insufficient_btc" = "보유한 BTC가 부족합니다. 원화 마켓에서 BTC를 먼저 매수해 주세요.";
+"spot_order_insufficient_balance" = "주문 가능 금액이 부족합니다.";
+"spot_order_insufficient_holding" = "보유 수량이 부족합니다.";
+"spot_order_unsupported_market" = "지원하지 않는 마켓입니다.";
+"spot_order_storage_error" = "저장된 투자내역을 읽을 수 없어 주문할 수 없습니다.";
+"spot_order_missing_cost" = "기존 보유분의 매수원가를 확인할 수 없어 주문할 수 없습니다.";
+"spot_order_missing_rate" = "BTC 시세를 불러온 뒤 다시 시도해 주세요.";
+
+"futures_close_holding" = "보유 수량";
+"futures_close_maximum" = "최대 %@ %@";
+"futures_close_return_detail" = "원금 + 예상 손익";
+
+// 더보기 계좌 목록과 모의투자 안내
+"more_account_group_title" = "%@ (사용 가능 잔액)";
+"more_accounts_read_error" = "잔고를 확인하지 못한 계좌가 있어요. 다시 불러와 주세요.";
+"more_current_account" = "현재 사용";
+"more_reward_title" = "광고 보고 모의투자금 충전";
+"more_reward_description" = "광고 시청 완료 시 선택한 계좌에 %@원\n각 계좌의 충전 버튼에서 시작하세요.";
+"more_investment_title" = "투자 관리";
+"more_community_title" = "커뮤니티 & 안내";
+"more_reset_description" = "현물 보유자산과 거래내역 초기화";
+"more_settings_title" = "앱 설정";
+"more_settings_description" = "라이트·다크 테마와 시세 색상 설정";
+"more_community_description" = "투자 이야기를 나누는 MOBIT 커뮤니티";
+"more_notice_description" = "모의투자 이용 안내와 유의사항";
+"more_caution" = "주의";
+"more_charge_account_title" = "%@ 충전";
+"more_charge_account_note" = "광고 시청을 완료하면 %@ 계좌에 모의투자금 %@원이 추가돼요. 다른 계좌의 잔고는 바뀌지 않아요.";
+"more_notice_content" = "이 앱에서는 실제 금전적인 자산을 입금하거나 출금할 수 없으며 모든 거래와 손익은 가상의 수치입니다. 현실의 자산에는 영향을 미치지 않습니다.\n\n앱의 정보와 결과는 학습 또는 참고 목적으로 제공되며, 실제 투자 판단의 근거로 삼을 수 없습니다. 그로 인해 발생한 손실에 대해서도 본 앱은 책임지지 않습니다.";
+"more_app_version" = "앱 버전 %@";
+
+// 앱 테마와 시세 색상 설정
+"settings_title" = "설정";
+"settings_description" = "화면 테마 및 차트 환경을 맞춤 설정하세요";
+"settings_app_theme" = "앱 테마";
+"settings_theme_system" = "시스템";
+"settings_theme_light" = "라이트";
+"settings_theme_dark" = "다크";
+"settings_theme_automatic" = "기기 설정을 따릅니다";
+"settings_candle_color" = "캔들 색상";
+"settings_candle_hint" = "차트 상승 / 하락 기준";
+"settings_palette_korean" = "한국형";
+"settings_palette_global" = "글로벌";
+"settings_palette_recommended" = "추천";
+"settings_palette_description" = "상승 %@ / 하락 %@";
+"settings_color_red" = "빨강";
+"settings_color_blue" = "파랑";
+"settings_color_green" = "초록";
+"settings_price_tint" = "시세 배경 색상 표시";
+"settings_price_tint_description" = "시세 목록의 등락에 따른 배경 색상 강조";
+"settings_apply" = "변경하기";
+"settings_cancel" = "취소";
+"settings_close" = "닫기";

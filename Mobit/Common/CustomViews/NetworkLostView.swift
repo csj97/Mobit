@@ -16,8 +16,19 @@ class NetworkLostView: UIView {
   }
   
   let label = UILabel().then { label in
-	label.text = "네트워크가 유실되었습니다.\n네트워크 연결 후 다시 시도해 주세요."
+	// 공통 뷰는 화면 계층에 의존하지 않고 기존 언어 테이블을 직접 읽는다.
+    let table = Locale.preferredLanguages.first?.hasPrefix("ko") == true ? "Localizable(KO)" : "Localizable(EN)"
+    label.text = NSLocalizedString(
+      "network_lost",
+      tableName: table,
+      bundle: .main,
+      value: "network_lost",
+      comment: ""
+    )
 	label.font = UIFont(name: "esamanruOTFMedium", size: 18)
+	label.numberOfLines = 0
+    label.adjustsFontForContentSizeCategory = true
+    label.accessibilityIdentifier = "network.lost.message"
 	label.textAlignment = .center
 	label.textColor = .mobitColors(.textSecondary)
   }
@@ -49,7 +60,7 @@ class NetworkLostView: UIView {
 	}
 	
 	imageView.snp.makeConstraints { make in
-	  make.top.equalToSuperview().offset(300)
+	  make.centerY.equalToSuperview().offset(-60)
 	  make.centerX.equalToSuperview()
 	  make.width.equalTo(100)
 	  make.height.equalTo(100)

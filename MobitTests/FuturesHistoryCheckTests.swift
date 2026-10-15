@@ -1,5 +1,8 @@
 import XCTest
+import UIKit
 import RxSwift
+import Moya
+import Alamofire
 @testable import Mobit
 
 final class FuturesHistoryCheckTests: XCTestCase {
@@ -10,6 +13,625 @@ final class FuturesHistoryCheckTests: XCTestCase {
     get throws { try FuturesCalculator.open(futuresOrder(date: Date(timeIntervalSince1970: 60))) }
   }
   private let settledAt = Date(timeIntervalSince1970: 300)
+
+  func testLaunchModeAndForegroundRequestsCoalesceAndStayStoppedInBackground() throws {
+    // 진입 경로가 달라도 같은 저장 포지션을 검증한다.
+    let repository = store
+    // 검증 대기 중에도 보존할 원본 포지션이다.
+    let order = domesticFuturesOrder(margin: 100, price: 100)
+    try repository.applyAdvertisementReward(AdRewardClaim(account: order.account))
+    // 취소된 응답이 저장 자산을 바꾸지 않았는지 비교한다.
+    let before = try repository.openTestPosition(order, expectedRevision: repository.snapshot().revision)
+    // 요청을 끝내지 않고 여러 진입 이벤트를 겹친다.
+    let response = PublishSubject<FuturesMarkQuote>()
+    // 실제 구독과 취소 횟수로 동시 요청 여부를 확인한다.
+    let requests = FuturesRequestCounter()
+    // 백그라운드에서 진행 중인 요청도 취소됐는지 확인한다.
+    let cancellations = FuturesRequestCounter()
+    // 최초 앱 시작과 실제 복귀에서만 요청을 허용한다.
+    let started = expectation(description: "Launch request starts once")
+    // 화면 갱신으로 재개하지 않고 Scene 활성화에서 재개한다.
+    let resumed = expectation(description: "Active scene resumes once")
+    // 검증 응답은 모든 진입 이벤트를 보낸 다음 반환한다.
+    var provider = DetailReplayProvider(instrument: order.instrument, timestamp: 65_123, adverse: 100)
+    provider.quoteOverride = {
+      response.take(1).asSingle().do(onSubscribe: {
+        requests.increment()
+        if requests.count == 1 { started.fulfill() }
+        if requests.count == 2 { resumed.fulfill() }
+      }, onDispose: { cancellations.increment() })
+    }
+    // 네트워크 복구와 소켓 이벤트도 앱 중단 상태를 존중해야 한다.
+    let availability = BehaviorSubject(value: true)
+    // 최초 소켓 연결은 이미 시작한 REST 요청에 합쳐진다.
+    let monitor = FuturesMonitorFixture()
+    // 모든 진입 경로가 공유하는 실제 서비스다.
+    let service = FuturesHistoryCheckService(
+      store: { repository },
+      provider: { _ in provider },
+      now: { Date(timeIntervalSince1970: 66) },
+      monitor: monitor,
+      networkAvailability: availability
+    )
+    defer { service.suspend() }
+    // 앱 시작의 로컬 준비 구독 수명을 유지한다.
+    let disposeBag = DisposeBag()
+    service.prepareLaunch().subscribe().disposed(by: disposeBag)
+    for _ in 0..<10 { service.resume(); service.refresh() }
+    monitor.subject.onNext(.connection(.upbit, true))
+    wait(for: [started], timeout: 3)
+    // 대기 중 요청을 앱 비활성화로 취소한다.
+    let paused = expectation(description: "Scene suspends outstanding work")
+    service.status.filter { if case .paused = $0 { return true }; return false }.take(1)
+      .subscribe(onNext: { _ in paused.fulfill() }).disposed(by: disposeBag)
+    service.suspend()
+    wait(for: [paused], timeout: 3)
+    XCTAssertEqual(requests.count, 1)
+    XCTAssertEqual(cancellations.count, 1)
+    for _ in 0..<10 { service.refresh() }
+    service.prepareLaunch().subscribe().disposed(by: disposeBag)
+    availability.onNext(false)
+    availability.onNext(true)
+    availability.onNext(true)
+    monitor.subject.onNext(.connection(.upbit, true))
+    response.onNext(.init(instrument: order.instrument, price: 80, timestamp: 65_123))
+    // 지연된 화면 준비·복구·응답이 모두 처리될 시간을 준다.
+    let quiet = expectation(description: "Background requests stay cancelled")
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { quiet.fulfill() }
+    wait(for: [quiet], timeout: 2)
+    XCTAssertEqual(requests.count, 1)
+    XCTAssertEqual(try repository.snapshot(), before)
+    for _ in 0..<10 { service.resume(); service.refresh() }
+    wait(for: [resumed], timeout: 3)
+    // 복귀 검증 완료도 한 번만 전달돼야 한다.
+    let completed = expectation(description: "One resumed verification completes")
+    service.status.filter {
+      if case .finished(let results) = $0 { return results.first?.positionID == order.requestID && results.first?.hold == nil }
+      return false
+    }.take(1).subscribe(onNext: { _ in completed.fulfill() }).disposed(by: disposeBag)
+    response.onNext(.init(instrument: order.instrument, price: 100, timestamp: 65_123))
+    wait(for: [completed], timeout: 3)
+    XCTAssertEqual(requests.count, 2)
+  }
+
+  func testOfflineLaunchAutomaticallyRecoversWithoutAnAccountScreen() throws {
+    // 화면 구독 없이도 공통 서비스가 복구해야 한다.
+    let repository = store
+    // 최초 네트워크 연결 전에 로컬 자산은 읽을 수 있다.
+    let order = domesticFuturesOrder(margin: 100, price: 100)
+    try repository.applyAdvertisementReward(AdRewardClaim(account: order.account))
+    try repository.openTestPosition(order, expectedRevision: repository.snapshot().revision)
+    // 오프라인 시작과 복구 알림을 제어한다.
+    let availability = BehaviorSubject(value: false)
+    // 연결 복구 전후 실제 원격 요청 횟수를 확인한다.
+    let requests = FuturesRequestCounter()
+    // 최초 정상 연결에서 준비된 이력을 반환한다.
+    var provider = DetailReplayProvider(instrument: order.instrument, timestamp: 65_123, adverse: 100)
+    provider.quoteOverride = {
+      requests.increment()
+      return .just(.init(instrument: order.instrument, price: 100, timestamp: 65_123))
+    }
+    // 네트워크 복구를 맡은 서비스에는 화면을 연결하지 않는다.
+    let service = FuturesHistoryCheckService(
+      store: { repository },
+      provider: { _ in provider },
+      now: { Date(timeIntervalSince1970: 66) },
+      networkAvailability: availability
+    )
+    defer { service.suspend() }
+    // 로컬 준비와 네트워크 검증은 별도로 끝난다.
+    let ready = expectation(description: "Offline launch reads local account")
+    // 테스트 이벤트 구독을 함께 해제한다.
+    let disposeBag = DisposeBag()
+    service.prepareLaunch().subscribe(onNext: { ready.fulfill() }).disposed(by: disposeBag)
+    service.resume()
+    service.refresh()
+    wait(for: [ready], timeout: 3)
+    XCTAssertEqual(requests.count, 0)
+    // 화면과 무관하게 도메인 주문 준비도 오프라인에서는 막는다.
+    let blocked = expectation(description: "Offline order is blocked")
+    service.prepareOrder(account: order.account, instrument: order.instrument, price: socketPrice(order.instrument, at: 66_000))
+      .subscribe(onSuccess: { _ in XCTFail("Offline order must stay blocked"); blocked.fulfill() }, onFailure: {
+        XCTAssertEqual($0 as? FuturesOrderCheckError, .historyCheckInProgress)
+        blocked.fulfill()
+      }).disposed(by: disposeBag)
+    wait(for: [blocked], timeout: 3)
+    // 화면 이동 없이 연결 알림만으로 실제 검증을 완료한다.
+    let completed = expectation(description: "Network restoration completes verification")
+    service.status.filter {
+      if case .finished(let results) = $0 { return results.first?.positionID == order.requestID && results.first?.hold == nil }
+      return false
+    }.take(1).subscribe(onNext: { _ in completed.fulfill() }).disposed(by: disposeBag)
+    availability.onNext(true)
+    availability.onNext(true)
+    wait(for: [completed], timeout: 3)
+    XCTAssertEqual(requests.count, 1)
+  }
+
+  func testReconnectRejectsOldResponseAndUnlocksAssetsAndOrdersOnlyAfterNewHistoryCompletes() throws {
+    try verifyConnectionRecovery(networkLoss: true)
+  }
+
+  func testSocketDisconnectInvalidatesExistingAndRecreatedScreenUntilNewHistoryCompletes() throws {
+    try verifyConnectionRecovery(networkLoss: false)
+  }
+
+  private func verifyConnectionRecovery(networkLoss: Bool) throws {
+    // 실제 자산 저장·검증·화면 표시를 함께 연결한다.
+    let repository = store
+    // 검증 가격과 실시간 가격이 다른 포지션이다.
+    let order = domesticFuturesOrder(margin: 100, price: 100)
+    try repository.applyAdvertisementReward(AdRewardClaim(account: order.account))
+    try repository.openTestPosition(order, expectedRevision: repository.snapshot().revision)
+    // 첫 검증 이후 시간 경과를 재현한다.
+    var now = Date(timeIntervalSince1970: 66)
+    // 취소된 이전 연결의 응답을 복구 이후 반환한다.
+    let oldResponse = PublishSubject<FuturesMarkQuote>()
+    // 복구 후 현재가 수신과 과거 검증 완료 시점을 분리한다.
+    let historyPrice = PublishSubject<Decimal>()
+    // 실제 검증 시도만 계수하고 화면 평가 요청은 제외한다.
+    let requests = FuturesRequestCounter()
+    // 기존 연결에서 진행 중이던 요청을 확인한다.
+    let oldStarted = expectation(description: "Old connection request is pending")
+    // 새 연결의 과거 검증이 아직 끝나지 않은 시점을 확인한다.
+    let historyStarted = expectation(description: "New history is pending after reconnect")
+    // 최초 검증은 완료하고 다음 요청은 이전·현재 연결로 분리한다.
+    var provider = DetailReplayProvider(instrument: order.instrument, timestamp: 65_123, adverse: 100)
+    provider.quoteOverride = {
+      requests.increment()
+      if requests.count == 2 {
+        return oldResponse.take(1).asSingle().do(onSubscribe: { oldStarted.fulfill() })
+      }
+      return .just(.init(instrument: order.instrument, price: 105, timestamp: requests.count == 1 ? 65_123 : 66_123))
+    }
+    provider.boundaryOverride = { start, end in
+      // 첫 검증은 105원, 복구 검증은 별도의 과거 이력 응답을 기다린다.
+      let prices: Single<Decimal> = requests.count == 1
+        ? .just(105)
+        : historyPrice.take(1).asSingle().do(onSubscribe: { historyStarted.fulfill() })
+      return prices.map { price in
+        .init(
+          instrument: order.instrument,
+          start: start,
+          endExclusive: end,
+          candles: [.init(openTime: start, closeTime: end - 1, open: price, high: price, low: price, close: price)],
+          funding: [],
+          detailed: true
+        )
+      }
+    }
+    // 실제 소켓 감시 조건까지 주문 준비에 적용한다.
+    let monitor = FuturesMonitorFixture()
+    // 동일한 네트워크 이벤트를 서비스와 화면에 전달한다.
+    let availability = BehaviorSubject(value: true)
+    // 네트워크 세션을 구분하는 실제 검증 서비스다.
+    let service = FuturesHistoryCheckService(
+      store: { repository },
+      provider: { _ in provider },
+      now: { now },
+      monitor: monitor,
+      networkAvailability: availability
+    )
+    defer { service.suspend() }
+    // 자산 화면 REST는 105원을 유지하고 소켓에서만 새 가격을 보낸다.
+    var display = DetailReplayProvider(instrument: order.instrument, timestamp: 65_123, adverse: 100)
+    display.quoteOverride = { .just(.init(instrument: order.instrument, price: 105, timestamp: 65_123)) }
+    func makeReactor() -> FuturesAccountReactor {
+      FuturesAccountReactor(
+        account: order.account,
+        useCase: FuturesTradingUseCase(store: { repository }, historyCheck: service),
+        historyCheck: service,
+        provider: display,
+        networkAvailability: availability
+      )
+    }
+    // 연결 유실을 직접 경험하는 기존 화면이다.
+    let reactor = makeReactor()
+    // 모든 화면·서비스 구독을 테스트 종료까지 유지한다.
+    let disposeBag = DisposeBag()
+    // 최초 검증 완료 가격을 확보한다.
+    let initial = expectation(description: "Initial verified account is ready")
+    reactor.state.filter { _ in reactor.canSubmit && reactor.valuationQuotes[order.instrument]?.price == 105 }.take(1)
+      .subscribe(onNext: { _ in initial.fulfill() }).disposed(by: disposeBag)
+    monitor.subject.onNext(.connection(.upbit, true))
+    wait(for: [initial], timeout: 3)
+    now = Date(timeIntervalSince1970: 67)
+    service.refresh()
+    wait(for: [oldStarted], timeout: 3)
+    // 재연결 이후에도 이 저장 경계를 건너뛰면 안 된다.
+    let before = try repository.snapshot()
+    // 연결 유실은 기존 화면의 완료 상태도 폐기한다.
+    let paused = expectation(description: "Network loss invalidates verified state")
+    reactor.state.filter {
+      if case .paused = $0.status { return !reactor.canSubmit }
+      return false
+    }.take(1).subscribe(onNext: { _ in paused.fulfill() }).disposed(by: disposeBag)
+    if networkLoss { availability.onNext(false) }
+    else { monitor.subject.onNext(.connection(.upbit, false)) }
+    wait(for: [paused], timeout: 3)
+    if networkLoss {
+      availability.onNext(true)
+      availability.onNext(true)
+    }
+    wait(for: [historyStarted], timeout: 3)
+    // 복구 중 모드 전환으로 생성된 화면도 이전 완료 결과를 재사용하면 안 된다.
+    let next = makeReactor()
+    // 화면의 로컬 포지션 구독이 준비된 뒤 소켓 가격을 전달한다.
+    let nextLoaded = expectation(description: "Recreated screen receives invalidated verification")
+    next.state.filter {
+      guard case .refreshing = $0.status else { return false }
+      return $0.snapshot != nil && $0.lastCompletedVerification?.first?.hold != nil
+    }.take(1).subscribe(onNext: { _ in
+      XCTAssertFalse(next.canSubmit)
+      nextLoaded.fulfill()
+    }).disposed(by: disposeBag)
+    wait(for: [nextLoaded], timeout: 3)
+    // 새 화면과 기존 화면이 같은 실시간 가격을 수신한다.
+    let received = expectation(description: "Both screens receive unverified live quote")
+    received.expectedFulfillmentCount = 2
+    for screen in [reactor, next] {
+      screen.state.filter { $0.snapshot != nil && $0.quotes[order.instrument]?.price == 110 }.take(1)
+        .subscribe(onNext: { _ in
+          XCTAssertFalse(screen.canSubmit)
+          XCTAssertEqual(screen.valuationQuotes[order.instrument]?.price, 105)
+          received.fulfill()
+        }).disposed(by: disposeBag)
+    }
+    monitor.subject.onNext(.connection(.upbit, true))
+    monitor.subject.onNext(.quote(.init(instrument: order.instrument, price: 110, timestamp: 66_999)))
+    oldResponse.onNext(.init(instrument: order.instrument, price: 80, timestamp: 66_123))
+    wait(for: [received], timeout: 3)
+    // 화면 버튼뿐 아니라 실제 주문 검증도 완료 전까지 거부한다.
+    let blocked = expectation(description: "New connection alone cannot unlock orders")
+    service.prepareOrder(account: order.account, instrument: order.instrument, price: socketPrice(order.instrument, at: 67_000))
+      .subscribe(onSuccess: { _ in XCTFail("History is not complete"); blocked.fulfill() }, onFailure: {
+        XCTAssertEqual($0 as? FuturesOrderCheckError, .historyCheckInProgress)
+        blocked.fulfill()
+      }).disposed(by: disposeBag)
+    wait(for: [blocked], timeout: 3)
+    XCTAssertEqual(try repository.snapshot(), before)
+    XCTAssertEqual(requests.count, 3)
+    // 새로운 과거 이력 검증이 끝나야 두 화면의 평가와 거래 가능 상태가 함께 바뀐다.
+    let recovered = expectation(description: "Verified recovery updates both accounts")
+    recovered.expectedFulfillmentCount = 2
+    for screen in [reactor, next] {
+      screen.state.filter { _ in screen.canSubmit && screen.valuationQuotes[order.instrument]?.price == 110 }.take(1)
+        .subscribe(onNext: { _ in recovered.fulfill() }).disposed(by: disposeBag)
+    }
+    historyPrice.onNext(110)
+    wait(for: [recovered], timeout: 3)
+    // 완료 이벤트 뒤 도메인 주문 준비도 같은 기준으로 허용한다.
+    let prepared = expectation(description: "Verified connection unlocks domain orders")
+    service.prepareOrder(account: order.account, instrument: order.instrument, price: socketPrice(order.instrument, at: 67_000))
+      .subscribe(onSuccess: { _ in prepared.fulfill() }, onFailure: {
+        XCTFail("Verified order failed: \($0)"); prepared.fulfill()
+      }).disposed(by: disposeBag)
+    wait(for: [prepared], timeout: 3)
+    XCTAssertEqual(requests.count, 3)
+  }
+
+  func testManualRetryInvalidatesOldTimerAndNetworkLossStopsRetryLoop() throws {
+    // 요청 실패 후 자동 예약이 남아 있는 상황을 재현한다.
+    let repository = store
+    // 재시도 대상인 실제 미검증 포지션이다.
+    let order = domesticFuturesOrder(margin: 100, price: 100)
+    try repository.applyAdvertisementReward(AdRewardClaim(account: order.account))
+    try repository.openTestPosition(order, expectedRevision: repository.snapshot().revision)
+    // 재시도와 중복 연결 알림을 실제 요청 횟수로 비교한다.
+    let requests = FuturesRequestCounter()
+    // 첫 실패 이후 모든 요청은 응답을 대기시킨다.
+    let response = PublishSubject<FuturesMarkQuote>()
+    // 수동 재시도가 기존 자동 예약을 무효화해야 한다.
+    let retried = expectation(description: "Manual retry starts once")
+    // 오프라인 중단 뒤 연결 복구만 새 요청을 허용한다.
+    let restored = expectation(description: "Restoration starts one new request")
+    // 요청 생성 시점과 구독을 함께 확인한다.
+    var provider = DetailReplayProvider(instrument: order.instrument, timestamp: 65_123, adverse: 100)
+    provider.quoteOverride = {
+      requests.increment()
+      if requests.count == 1 { return .error(URLError(.timedOut)) }
+      return response.take(1).asSingle().do(onSubscribe: {
+        if requests.count == 2 { retried.fulfill() }
+        if requests.count == 3 { restored.fulfill() }
+      })
+    }
+    // 최초 연결 상태는 자동 검증을 별도로 시작하지 않는다.
+    let availability = BehaviorSubject(value: true)
+    // 예약 기한을 짧게 해 이전 예약의 무효화를 실제 확인한다.
+    let service = FuturesHistoryCheckService(
+      store: { repository },
+      provider: { _ in provider },
+      now: { Date(timeIntervalSince1970: 66) },
+      networkAvailability: availability,
+      failureRetryDelay: { _ in 0.15 }
+    )
+    defer { service.suspend() }
+    refreshAndWait(service)
+    for _ in 0..<10 { service.refresh() }
+    wait(for: [retried], timeout: 3)
+    // 예약 시각이 지나도 수동 재시도와 병렬 요청을 만들지 않는다.
+    let timerElapsed = expectation(description: "Old retry timer has expired")
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { timerElapsed.fulfill() }
+    wait(for: [timerElapsed], timeout: 2)
+    XCTAssertEqual(requests.count, 2)
+    availability.onNext(false)
+    for _ in 0..<10 { service.refresh() }
+    // 오프라인에서는 앱이 활성 상태여도 요청을 반복하지 않는다.
+    let offlineElapsed = expectation(description: "Offline stays idle beyond retry interval")
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { offlineElapsed.fulfill() }
+    wait(for: [offlineElapsed], timeout: 2)
+    XCTAssertEqual(requests.count, 2)
+    for _ in 0..<10 { availability.onNext(true) }
+    wait(for: [restored], timeout: 3)
+    XCTAssertEqual(requests.count, 3)
+  }
+
+  func testLaunchAutomaticallyRetriesTransientFailuresWithoutSkippingHistoryOrShowingError() throws {
+    // 실패와 복구를 같은 저장 계좌에서 검증한다.
+    let repository = store
+    // 검증 이전 상태를 유지해야 하는 실제 보유 포지션이다.
+    let order = domesticFuturesOrder(margin: 100, price: 100)
+    try repository.applyAdvertisementReward(AdRewardClaim(account: order.account))
+    // 실패 중 자산과 검증 경계가 변경되지 않았는지 비교한다.
+    let before = try repository.openTestPosition(order, expectedRevision: repository.snapshot().revision)
+    // 실패한 검증 경계를 다음 요청에서도 재사용하는지 기록한다.
+    var starts: [Int64] = []
+    // 첫 두 번만 실패하고 세 번째 자동 요청에서 정상 이력을 반환한다.
+    var provider = DetailReplayProvider(instrument: order.instrument, timestamp: 65_123, adverse: 100)
+    provider.boundaryOverride = { start, end in
+      starts.append(start)
+      if starts.count < 3 { return .error(URLError(.timedOut)) }
+      return .just(.init(
+        instrument: order.instrument,
+        start: start,
+        endExclusive: end,
+        candles: [.init(openTime: start, closeTime: end - 1, open: 100, high: 100, low: 100, close: 100)],
+        funding: [],
+        detailed: true
+      ))
+    }
+    // 테스트에서는 실제 자동 재시도 예약만 짧게 실행한다.
+    let service = FuturesHistoryCheckService(
+      store: { repository },
+      provider: { _ in provider },
+      now: { Date(timeIntervalSince1970: 66) },
+      failureRetryDelay: { _ in 0.05 }
+    )
+    defer { service.suspend() }
+    // 앱 화면 구독 없이도 서비스가 자동 검증을 끝내야 한다.
+    let recovered = expectation(description: "Automatic launch recovery")
+    // 사용자에게 공개된 모든 오류 상태를 관찰한다.
+    var notified = false
+    // 짧은 검증 구간은 저장 체크포인트 간격과 별도로 완료 결과에서 확인한다.
+    var verifiedThrough: Int64?
+    // 초기 빈 결과와 실제 보유 포지션 검증을 구분한다.
+    let status = service.status.subscribe(onNext: { status in
+      guard case .finished(let results) = status, let result = results.first else { return }
+      if result.hold == nil {
+        verifiedThrough = result.verifiedThrough
+        recovered.fulfill()
+      } else { XCTAssertEqual(try? repository.snapshot(), before) }
+    })
+    // 일시 실패는 사용자 안내 대상으로 승격되면 안 된다.
+    let failures = service.dataFailure(for: order.account).subscribe(onNext: { notified = notified || $0?.shouldNotify == true })
+    // 인트로의 로컬 준비 경로가 자동 재시도를 시작한다.
+    let launch = service.prepareLaunch().subscribe()
+    wait(for: [recovered], timeout: 3)
+    XCTAssertEqual(starts.count, 3)
+    XCTAssertEqual(Set(starts).count, 1)
+    XCTAssertFalse(notified)
+    XCTAssertGreaterThan(try XCTUnwrap(verifiedThrough), before.historyCheckStates[0].verifiedThrough)
+    status.dispose(); failures.dispose(); launch.dispose()
+  }
+
+  func testFailureEpisodeSurvivesRetryModeRecreationAndForegroundUntilSuccessfulVerification() throws {
+    // 모드 전환 전후 같은 저장 계좌를 사용한다.
+    let repository = store
+    // 상세 이력이 필요한 실제 포지션이다.
+    let order = domesticFuturesOrder(margin: 100, price: 100)
+    try repository.applyAdvertisementReward(AdRewardClaim(account: order.account))
+    try repository.openTestPosition(order, expectedRevision: repository.snapshot().revision)
+    // 서비스 큐에서만 변경하는 요청 횟수다.
+    var requests = 0
+    // 세 번의 실패 다음 요청은 복구 응답을 직접 제어한다.
+    let response = PublishSubject<FuturesMarkQuote>()
+    // HTTP 제한 오류를 반복한 후 새 검증 요청을 대기시킨다.
+    var provider = DetailReplayProvider(instrument: order.instrument, timestamp: 65_123, adverse: 100)
+    provider.quoteOverride = {
+      requests += 1
+      if requests <= 3 { return .error(FuturesMarketDataError.httpStatus(429)) }
+      return response.take(1).asSingle()
+    }
+    // 공통 서비스가 안내 소유권과 자동 재시도를 함께 유지한다.
+    let service = FuturesHistoryCheckService(
+      store: { repository },
+      provider: { _ in provider },
+      now: { Date(timeIntervalSince1970: 66) },
+      failureRetryDelay: { $0 < 3 ? 0.03 : 60 }
+    )
+    defer { service.suspend() }
+    // 정상 표시용 가격 조회와 실패 검증을 분리한다.
+    let display = DetailReplayProvider(instrument: order.instrument, timestamp: 65_123, adverse: 100)
+    func makeReactor() -> FuturesAccountReactor {
+      FuturesAccountReactor(
+        account: order.account,
+        useCase: FuturesTradingUseCase(store: { repository }, historyCheck: service),
+        historyCheck: service,
+        provider: display,
+        networkAvailability: .just(true)
+      )
+    }
+    // 최초 화면에서 지속 실패를 한 번만 알린다.
+    let first = makeReactor()
+    // 세 번 실제 실패 후에만 안내를 허용한다.
+    let failed = expectation(description: "Persistent validation failure")
+    // 화면 소유의 구독 수명과 서비스의 오류 수명을 분리한다.
+    let firstSubscription = first.state.filter { $0.dataFailure?.shouldNotify == true }.take(1)
+      .subscribe(onNext: { _ in failed.fulfill() })
+    service.refresh()
+    wait(for: [failed], timeout: 3)
+    XCTAssertTrue(first.claimDataFailureNotice())
+    XCTAssertFalse(first.canSubmit)
+    // 같은 검증 수동 재시도는 기존 안내 식별자를 유지한다.
+    let failureID = first.currentState.dataFailure?.id
+    first.action.onNext(.reload)
+    service.suspend()
+    service.resume()
+    // 선물 모드 재진입으로 새 Reactor를 만들어도 안내를 반복하지 않는다.
+    let next = makeReactor()
+    // 직전 오류와 복귀 검증이 모두 전달될 때까지 기다린다.
+    let resumed = expectation(description: "Recreated account receives same failure")
+    // 새 화면의 검증·거래 상태를 실제 서비스와 연결한다.
+    let nextSubscription = next.state.filter {
+      guard case .refreshing = $0.status else { return false }
+      return $0.dataFailure?.id == failureID && $0.snapshot != nil
+    }.take(1).subscribe(onNext: { _ in resumed.fulfill() })
+    wait(for: [resumed], timeout: 3)
+    XCTAssertFalse(next.claimDataFailureNotice())
+    XCTAssertFalse(next.canSubmit)
+    // 자동 복구가 오류를 지우고 실제 검증 완료에만 거래를 허용한다.
+    let recovered = expectation(description: "Recovery clears failure")
+    // 시작 시 기본 finished([])를 복구로 오인하지 않는다.
+    let recovery = next.state.filter { _ in next.canSubmit && next.currentState.dataFailure == nil }.take(1)
+      .subscribe(onNext: { _ in recovered.fulfill() })
+    response.onNext(.init(instrument: order.instrument, price: 100, timestamp: 65_123))
+    wait(for: [recovered], timeout: 3)
+    XCTAssertFalse(next.needsDataRetry)
+    firstSubscription.dispose(); nextSubscription.dispose(); recovery.dispose()
+  }
+
+  func testFailurePolicySeparatesAccountsAndResetsNoticeOnlyAfterVerification() throws {
+    // 오류를 한 계좌에 국한하고 진행 보류를 실패 횟수에 포함하지 않는다.
+    let position = try FuturesCalculator.open(domesticFuturesOrder())
+    // 다른 거래소의 검증 완료 계좌가 함께 있어도 오류는 전파하지 않는다.
+    let other = try FuturesCalculator.open(domesticFuturesOrder(exchange: .bithumb))
+    // 정상 계좌는 실패한 계좌와 별도로 준비 상태를 유지한다.
+    let healthy = FuturesRefreshResult(positionID: other.id, verifiedThrough: nil, liquidated: false, hold: nil)
+    // 화면이 재생성돼도 공유할 안내 정책이다.
+    var policy = FuturesDataFailurePolicy()
+    // 첫 요청 실패를 재사용해 동일 오류 구간을 재현한다.
+    let failed = FuturesRefreshResult(positionID: position.id, verifiedThrough: nil, liquidated: false, hold: .requestFailed)
+    policy.complete([failed, healthy], positions: [position, other])
+    XCTAssertFalse(try XCTUnwrap(policy.failures.first).shouldNotify)
+    policy.complete([.init(positionID: position.id, verifiedThrough: nil, liquidated: false, hold: .workLimit), healthy], positions: [position, other])
+    XCTAssertEqual(policy.failures.first?.attempts, 1)
+    policy.complete([failed, healthy], positions: [position, other])
+    XCTAssertFalse(try XCTUnwrap(policy.failures.first).shouldNotify)
+    policy.complete([failed, healthy], positions: [position, other])
+    // 같은 안내는 계좌 화면 수명과 무관하게 한 번만 소비한다.
+    let failure = try XCTUnwrap(policy.failures.first)
+    XCTAssertTrue(failure.shouldNotify)
+    XCTAssertEqual(failure.account, position.order.account)
+    XCTAssertFalse(policy.failures.contains { $0.account == other.order.account })
+    XCTAssertTrue(policy.claimNotice(failure.id))
+    XCTAssertFalse(policy.claimNotice(failure.id))
+    policy.complete([.init(positionID: position.id, verifiedThrough: nil, liquidated: false, hold: nil), healthy], positions: [position, other])
+    XCTAssertTrue(policy.failures.isEmpty)
+    policy.complete([failed, healthy], positions: [position, other])
+    XCTAssertNotEqual(policy.failures.first?.id, failure.id)
+    policy.recordStorageFailure()
+    XCTAssertTrue(policy.failures.contains { $0.account == nil && $0.shouldNotify })
+  }
+
+  func testBackgroundCancelsScheduledRetryAndForegroundResumesSameFailure() throws {
+    // 예약된 재시도를 중단할 실제 로컬 계좌다.
+    let repository = store
+    // 미검증 구간을 가진 포지션을 유지한다.
+    let order = domesticFuturesOrder(margin: 100, price: 100)
+    try repository.applyAdvertisementReward(AdRewardClaim(account: order.account))
+    try repository.openTestPosition(order, expectedRevision: repository.snapshot().revision)
+    // 백그라운드 중 추가 요청이 없는지 안전하게 계수한다.
+    let counter = FuturesRequestCounter()
+    // 복귀 전후 동일한 일시적 HTTP 오류를 재현한다.
+    var provider = DetailReplayProvider(instrument: order.instrument, timestamp: 65_123, adverse: 100)
+    provider.quoteOverride = { counter.increment(); return .error(FuturesMarketDataError.httpStatus(503)) }
+    // 시간 경과와 명시적 refresh를 구분한다.
+    let service = FuturesHistoryCheckService(
+      store: { repository },
+      provider: { _ in provider },
+      now: { Date(timeIntervalSince1970: 66) },
+      failureRetryDelay: { _ in 0.15 }
+    )
+    defer { service.suspend() }
+    // 처음 실패한 직후 실제 앱처럼 서비스를 중단한다.
+    let paused = expectation(description: "Background cancels retry")
+    // suspend 처리 완료를 확인한 뒤 자동 재시도 시간을 넘긴다.
+    let status = service.status.subscribe(onNext: { status in
+      if case .finished(let results) = status, !results.isEmpty { service.suspend() }
+      if case .paused = status { paused.fulfill() }
+    })
+    service.refresh()
+    wait(for: [paused], timeout: 3)
+    status.dispose()
+    // 실제 예약 기한이 지나도 inactive 서비스는 요청하지 않는다.
+    let deadline = expectation(description: "Retry deadline elapsed")
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { deadline.fulfill() }
+    wait(for: [deadline], timeout: 2)
+    XCTAssertEqual(counter.count, 1)
+    // 실제 포그라운드 진입에서만 다음 실패 횟수를 이어간다.
+    let resumed = expectation(description: "Foreground resumes failure episode")
+    // 두 번째 실패는 여전히 조용히 복구하는 단계다.
+    let failures = service.dataFailure(for: order.account).filter { $0?.attempts == 2 }.take(1)
+      .subscribe(onNext: { failure in
+        XCTAssertFalse(failure?.shouldNotify ?? true)
+        resumed.fulfill()
+      })
+    service.resume()
+    wait(for: [resumed], timeout: 3)
+    XCTAssertEqual(counter.count, 2)
+    failures.dispose()
+  }
+
+  func testLaunchStorageFailureIsAnnouncedAndAutomaticallyClearsAfterReadRecovery() {
+    // 최초 인트로 읽기만 실패하도록 조회 횟수를 기록한다.
+    var reads = 0
+    // 실제 로컬 읽기 복구가 오류 구간을 종료한다.
+    let service = FuturesHistoryCheckService(
+      store: {
+        reads += 1
+        if reads == 1 { throw LocalFuturesAccountRepository.StoreError.invalidStoredData }
+        return self.store
+      },
+      provider: { _ in nil },
+      failureRetryDelay: { _ in 0.03 }
+    )
+    defer { service.suspend() }
+    // 저장 실패는 일시적 네트워크 오류와 달리 즉시 안내한다.
+    var sawStorageFailure = false
+    // 자동 읽기 복구 뒤 오류가 제거될 때까지 기다린다.
+    let recovered = expectation(description: "Storage read recovered automatically")
+    // 계좌를 읽기 전에 발생한 전역 오류도 선물 화면에서 구독할 수 있다.
+    let account = domesticFuturesOrder().account
+    // initial nil과 실제 복구 nil을 구분한다.
+    let failures = service.dataFailure(for: account).subscribe(onNext: { failure in
+      if let failure {
+        sawStorageFailure = true
+        XCTAssertTrue(failure.shouldNotify)
+        XCTAssertEqual(failure.hold, .storageFailed)
+      } else if sawStorageFailure { recovered.fulfill() }
+    })
+    // 실패해도 인트로 준비는 완료되고 자동 복구는 서비스가 계속 수행한다.
+    let launch = service.prepareLaunch().subscribe()
+    wait(for: [recovered], timeout: 3)
+    XCTAssertGreaterThanOrEqual(reads, 2)
+    failures.dispose(); launch.dispose()
+  }
+
+  func testValidationDiagnosticsRetainFailureCodesWithoutSensitiveDescriptions() {
+    XCTAssertEqual(FuturesHistoryCheckService.diagnosticCode(URLError(.timedOut)), "url.-1001")
+    XCTAssertEqual(FuturesHistoryCheckService.diagnosticCode(FuturesMarketDataError.httpStatus(429)), "market.httpStatus(429)")
+    XCTAssertEqual(FuturesHistoryCheckService.diagnosticCode(FuturesMarketDataError.incompleteHistory), "market.incompleteHistory")
+    XCTAssertEqual(FuturesHistoryCheckService.diagnosticCode(RxError.timeout), "request.timeout")
+    XCTAssertEqual(DomesticFuturesMarketRepository.networkFailureCode(
+      MoyaError.underlying(AFError.sessionTaskFailed(error: URLError(.notConnectedToInternet)), nil)
+    ), "url.-1009")
+    XCTAssertEqual(DomesticFuturesMarketRepository.networkFailureCode(
+      MoyaError.statusCode(Response(statusCode: 503, data: Data("private response".utf8)))
+    ), "http.503")
+    // NSError에 포함된 경로·응답 본문은 진단 문자열에 포함하지 않는다.
+    let sensitive = NSError(domain: "test", code: 7, userInfo: [NSLocalizedDescriptionKey: "private-account-file-and-response"])
+    XCTAssertFalse(FuturesHistoryCheckService.diagnosticCode(sensitive).contains("private-account"))
+  }
 
   func testFreshRestResponseVerifiesIdleHistoryButRejectsStaleResponseAndFutureTrade() throws {
     // 마지막 체결 이후 무체결 구간까지 확인할 정상 보유 포지션이다.
@@ -68,7 +690,7 @@ final class FuturesHistoryCheckTests: XCTestCase {
       let ready = expectation(description: "Launch preparation finished")
       // 최초 완료가 인트로를 여러 번 전환하지 않는지 확인한다.
       var completionCount = 0
-      // 실제 앱과 같은 최소 표시 시간이 지켜지는지 측정한다.
+      // 로컬 읽기 뒤 추가 대기를 하지 않는지 측정한다.
       let startedAt = Date()
       // 화면 대기를 종료해도 서비스 수명은 독립적으로 유지한다.
       let subscription = service.prepareLaunch().subscribe(
@@ -79,126 +701,60 @@ final class FuturesHistoryCheckTests: XCTestCase {
       )
       wait(for: [ready], timeout: 3)
       XCTAssertEqual(completionCount, 1)
-      XCTAssertGreaterThanOrEqual(Date().timeIntervalSince(startedAt), 1.45)
+      XCTAssertLessThan(Date().timeIntervalSince(startedAt), 1.4)
       XCTAssertLessThan(Date().timeIntervalSince(startedAt), 3)
       subscription.dispose()
       service.suspend()
     }
   }
 
-  func testLaunchHeldHistoryWaitsUntilFiveSecondDeadline() throws {
-    // 빠르게 실패한 이력 조회를 완료로 오인하던 진입 조건이다.
+  func testLaunchDoesNotWaitForMissingHistoryAndManualRetryVerifiesWithoutSkipping() throws {
+    // 검증이 보류돼도 로컬 계좌가 준비되면 화면을 탐색할 수 있다.
     let order = domesticFuturesOrder(margin: 100, price: 100)
-    // 검증 보류 중 포지션이 임의로 바뀌지 않는지 확인한다.
+    // 검증 경계와 포지션 원본을 비교할 저장소다.
     let repository = store
     try repository.applyAdvertisementReward(AdRewardClaim(account: order.account))
-    // 미검증 상태에서 그대로 유지해야 할 저장 데이터다.
+    // 실패한 구간을 건너뛰지 않는지 확인한다.
     let before = try repository.openTestPosition(order, expectedRevision: repository.snapshot().revision)
-    // 현재가는 받았으나 과거 자료는 누락된 실제 보류 흐름이다.
-    var provider = DetailReplayProvider(instrument: order.instrument, timestamp: 65_123, adverse: 100)
-    provider.boundaryOverride = { _, _ in .error(FuturesMarketDataError.incompleteHistory) }
-    // 앱의 기본 1.5초·5초 설정을 그대로 검증한다.
-    let service = FuturesHistoryCheckService(
-      store: { repository },
-      provider: { _ in provider },
-      now: { Date(timeIntervalSince1970: 66) }
-    )
-    defer { service.suspend() }
-    // 응답은 즉시 도착했지만 검증이 완료되지 않은 시점이다.
-    let held = expectation(description: "History check returned a hold")
-    // 보류 응답이 인트로를 조기 종료하지 않아야 한다.
-    let status = service.status.filter {
-      if case .finished(let results) = $0 { return results.first?.hold == .missingHistory }
-      return false
-    }.take(1).subscribe(onNext: { _ in held.fulfill() })
-    // 제한 시간까지 기다린 후 한 번만 메인 진입을 허용한다.
-    let ready = expectation(description: "Launch reaches its five second deadline")
-    // 실제 인트로 대기 시간을 재는 기준 시각이다.
-    let startedAt = Date()
-    // 타임아웃 전 화면 전환 여부를 확인한다.
-    var launchFinished = false
-    // 인트로 구독과 검증 구독의 수명을 분리한다.
-    let launch = service.prepareLaunch().subscribe(
-      onNext: {
-        launchFinished = true
-        ready.fulfill()
-      }
-    )
-    wait(for: [held], timeout: 3)
-    XCTAssertFalse(launchFinished)
-    wait(for: [ready], timeout: 7)
-    XCTAssertGreaterThanOrEqual(Date().timeIntervalSince(startedAt), 4.9)
-    XCTAssertLessThan(Date().timeIntervalSince(startedAt), 7)
-    XCTAssertEqual(try repository.snapshot(), before)
-    launch.dispose()
-    status.dispose()
-  }
-
-  func testLaunchHeldHistoryCanFinishOnSuccessfulRetryBeforeDeadline() throws {
-    // 첫 조회 보류 뒤 다음 조회에서 복구되는 포지션이다.
-    let order = domesticFuturesOrder(margin: 100, price: 100)
-    // 실제 검증 체크포인트를 저장할 계좌다.
-    let repository = store
-    try repository.applyAdvertisementReward(AdRewardClaim(account: order.account))
-    _ = try repository.openTestPosition(order, expectedRevision: repository.snapshot().revision)
-    // 첫 상세 조회만 실패하도록 호출 횟수를 구분한다.
+    // 첫 상세 요청만 실패시켜 재시도 결과를 확인한다.
     var requests = 0
-    // 자동 재시도에서 정상 응답이 도착할 시점을 제어한다.
-    let response = PublishSubject<FuturesMarkQuote>()
-    // 최초 현재가와 지연된 두 번째 현재가를 구분한다.
-    var quoteRequests = 0
-    // 재조회에서는 안전한 과거 범위를 정상 응답한다.
+    // 현재가 복구와 무관하게 과거 자료부터 재검증한다.
     var provider = DetailReplayProvider(instrument: order.instrument, timestamp: 65_123, adverse: 100)
-    provider.quoteOverride = {
-      quoteRequests += 1
-      return quoteRequests == 1
-        ? .just(.init(instrument: order.instrument, price: 100, timestamp: 65_123))
-        : response.take(1).asSingle()
-    }
     provider.boundaryOverride = { start, end in
       requests += 1
-      if requests == 1 { return .error(FuturesMarketDataError.incompleteHistory) }
-      return .just(
-        .init(
-          instrument: order.instrument,
-          start: start,
-          endExclusive: end,
-          candles: [.init(openTime: start, closeTime: end - 1, open: 100, high: 100, low: 100, close: 100)],
-          funding: [],
-          detailed: true
-        )
-      )
+      if requests == 1 { return .error(URLError(.notConnectedToInternet)) }
+      return .just(.init(instrument: order.instrument, start: start, endExclusive: end,
+        candles: [.init(openTime: start, closeTime: end - 1, open: 100, high: 100, low: 100, close: 100)], funding: [], detailed: true))
     }
-    // 기본 대기 제한 안에서 검증 결과가 바뀌는지 확인한다.
-    let service = FuturesHistoryCheckService(
-      store: { repository },
-      provider: { _ in provider },
-      now: { Date(timeIntervalSince1970: 66) }
-    )
+    // 화면 준비와 과거 검증 수명이 다른 실제 서비스를 사용한다.
+    let service = FuturesHistoryCheckService(store: { repository }, provider: { _ in provider }, now: { Date(timeIntervalSince1970: 66) })
     defer { service.suspend() }
-    // 첫 보류로 종료되면 이 값이 재조회 전에 바뀐다.
-    var launchFinished = false
-    // 성공 결과를 받은 시점에 실제 화면 대기를 끝낸다.
-    let ready = expectation(description: "Launch finishes on successful retry")
-    // 최소 표시 시간 이후에도 보류 중에는 기다리는지 측정한다.
+    // 네트워크 오류가 발생한 보류 결과다.
+    let held = expectation(description: "History held")
+    // 준비는 검증 완료로 오인되지 않아야 한다.
+    let first = service.status.filter { if case .finished(let results) = $0 { return results.first?.hold != nil }; return false }
+      .take(1).subscribe(onNext: { _ in held.fulfill() })
+    // 로컬 결과로만 메인 진입한다.
+    let ready = expectation(description: "Local launch ready")
+    // 인위적인 최소 표시 시간도 적용하지 않는다.
     let startedAt = Date()
-    // 준비 완료 신호는 재조회 성공 후 한 번만 전달한다.
-    let launch = service.prepareLaunch().subscribe(
-      onNext: {
-        launchFinished = true
-        ready.fulfill()
-      }
-    )
-    DispatchQueue.main.asyncAfter(deadline: .now() + 1.7) {
-      XCTAssertFalse(launchFinished)
-      response.onNext(.init(instrument: order.instrument, price: 100, timestamp: 65_123))
-    }
-    wait(for: [ready], timeout: 4)
-    XCTAssertGreaterThanOrEqual(Date().timeIntervalSince(startedAt), 1.65)
-    XCTAssertLessThan(Date().timeIntervalSince(startedAt), 4)
-    XCTAssertEqual(requests, 2)
-    XCTAssertEqual(quoteRequests, 2)
+    // 검증 구독과 독립된 화면 준비 신호다.
+    let launch = service.prepareLaunch().subscribe(onNext: { ready.fulfill() })
+    wait(for: [ready, held], timeout: 3)
+    XCTAssertLessThan(Date().timeIntervalSince(startedAt), 1.4)
+    XCTAssertEqual(try repository.snapshot(), before)
     launch.dispose()
+    first.dispose()
+    // 사용자가 선택한 재시도는 실제 검증 완료 이후에만 거래 준비가 된다.
+    let verified = expectation(description: "Retry verified")
+    // 최초 기본 finished([])나 보류 결과를 성공으로 처리하지 않는다.
+    let retry = service.status.filter { if case .finished(let results) = $0 { return results.first?.hold == nil && !results.isEmpty }; return false }
+      .take(1).subscribe(onNext: { _ in verified.fulfill() })
+    service.refresh()
+    wait(for: [verified], timeout: 3)
+    retry.dispose()
+    XCTAssertGreaterThan(requests, 1)
+    XCTAssertGreaterThanOrEqual(try repository.snapshot().historyCheckStates[0].verifiedThrough, before.historyCheckStates[0].verifiedThrough)
   }
 
   func testLateAccountReactorRetainsCompletedVerificationDuringNextRefresh() throws {
@@ -254,11 +810,15 @@ final class FuturesHistoryCheckTests: XCTestCase {
     // 거래소·상품을 연속 전환해도 진행 중인 검증의 REST 요청은 하나다.
     for _ in 0..<10 { service.refresh() }
     // 메인은 새 검증을 기다리지 않고 앞선 완료 결과를 표시 준비에 사용한다.
+    // 화면 REST 재조회 횟수와 과거 검증 중복을 혼동하지 않도록 평가 제공자를 분리한다.
+    var displayProvider = provider
+    displayProvider.quoteOverride = { .error(FuturesMarketDataError.invalidResponse) }
     let reactor = FuturesAccountReactor(
       account: order.account,
       useCase: FuturesTradingUseCase(store: { repository }, historyCheck: service),
       historyCheck: service,
-      provider: provider
+      provider: displayProvider,
+      networkAvailability: .empty()
     )
     // 초기 스냅샷과 인트로에서 완료한 검증이 함께 반영된 시점이다.
     let loaded = expectation(description: "Late main reactor can display its verified position")
@@ -276,8 +836,8 @@ final class FuturesHistoryCheckTests: XCTestCase {
       }
     )
     wait(for: [loaded], timeout: 3)
-    // 새 Reactor 자체의 평가 시세 조회를 제외하고 검증 요청은 두 번째에서 합쳐진다.
-    XCTAssertEqual(requests, 3)
+    // 반복된 refresh는 과거 검증 요청을 추가하지 않는다.
+    XCTAssertEqual(requests, 2)
     subscription.dispose()
     // 재조회 실패가 완료한 검증 가격까지 삭제해서는 안 된다.
     let held = expectation(description: "Failed refresh retains previously verified price")
@@ -295,7 +855,7 @@ final class FuturesHistoryCheckTests: XCTestCase {
     wait(for: [held], timeout: 3)
   }
 
-  func testLaunchTimeoutDoesNotCancelHistoricalLiquidation() throws {
+  func testLocalLaunchDoesNotCancelDelayedHistoricalLiquidation() throws {
     // 인트로 제한 시간을 넘겨 응답하는 과거 청산 포지션이다.
     let order = domesticFuturesOrder(margin: 100, price: 100)
     // 지연 중에도 저장 상태를 비교할 독립 계좌다.
@@ -316,13 +876,13 @@ final class FuturesHistoryCheckTests: XCTestCase {
     )
     defer { service.suspend() }
     // 네트워크가 늦더라도 인트로 종료 신호를 전달해야 한다.
-    let ready = expectation(description: "Launch waiting timed out")
-    // 실제 앱의 기본 5초 제한 이후에도 검증 작업이 유지돼야 한다.
+    let ready = expectation(description: "Launch local read completed")
+    // 화면 진입 이후에도 검증 작업이 유지돼야 한다.
     let startedAt = Date()
     // 화면 대기 구독만 종료하고 서비스 소유 작업은 유지한다.
     let launch = service.prepareLaunch().subscribe(onNext: { ready.fulfill() })
     wait(for: [ready], timeout: 7)
-    XCTAssertGreaterThanOrEqual(Date().timeIntervalSince(startedAt), 4.9)
+    XCTAssertLessThan(Date().timeIntervalSince(startedAt), 1.4)
     XCTAssertLessThan(Date().timeIntervalSince(startedAt), 7)
     launch.dispose()
     XCTAssertEqual(try repository.snapshot(), before)
@@ -347,7 +907,7 @@ final class FuturesHistoryCheckTests: XCTestCase {
     })
     defer { accountSubscription.dispose() }
     // 화면 대기 구독 해제가 검증을 취소하지 않았는지 확인한다.
-    let liquidated = expectation(description: "Historical liquidation continues after launch timeout")
+    let liquidated = expectation(description: "Historical liquidation continues after local launch")
     // 청산 결과는 반드시 저장 후 메인 안내로 전달된다.
     let notices = service.liquidationEvents.take(1).subscribe(
       onNext: { positions in
@@ -473,7 +1033,7 @@ final class FuturesHistoryCheckTests: XCTestCase {
     }
     // 최초 연결의 false·true 알림과 중복 연결 알림을 재현한다.
     let monitor = FuturesMonitorFixture()
-    // SceneDelegate와 동일하게 suspend 후 refresh로 복귀한다.
+    // SceneDelegate와 동일하게 suspend 후 resume으로 복귀한다.
     let service = FuturesHistoryCheckService(store: { repository }, provider: { _ in provider }, now: { now }, monitor: monitor)
     defer { service.suspend() }
     // 연결 자체가 최초 검증을 시작하므로 추가 refresh로 완료 직후 다음 검증을 만들지 않는다.
@@ -524,7 +1084,7 @@ final class FuturesHistoryCheckTests: XCTestCase {
         XCTAssertEqual(try? FuturesText.valuation(reactor.positions[0], quotes: reactor.valuationQuotes)?.displayedPnL, 50)
         received.fulfill()
       }).disposed(by: disposeBag)
-    service.refresh()
+    service.resume()
     monitor.subject.onNext(.connection(.upbit, false))
     monitor.subject.onNext(.connection(.upbit, true))
     monitor.subject.onNext(.connection(.upbit, true))
@@ -1109,22 +1669,23 @@ final class FuturesHistoryCheckTests: XCTestCase {
     // 청산 정산을 기다리는 동안에도 화면 손익용 시세는 전달해야 한다.
     let live = expectation(description: "Unverified socket price remains visible")
     let subscription = service.liveQuotes.take(1).subscribe(onNext: { _ in live.fulfill() })
-    // 인트로는 현재가 수신이 아닌 청산 저장 완료를 기다린다.
-    let launchReady = expectation(description: "Launch waits for saved historical liquidation")
-    // 초기 finished([])를 준비 완료로 처리하면 이 값이 너무 일찍 바뀐다.
+    // 인트로 종료가 청산 저장 완료를 의미하지 않는지 확인한다.
+    let launchReady = expectation(description: "Launch completes before historical liquidation")
+    // 로컬 화면 준비와 거래 검증 완료 신호를 구분한다.
     var ready = false
-    // 안내를 유실하지 않고 메인 진입 전에 저장되는지도 확인한다.
+    // 메인 진입 시점에는 아직 과거 검증을 기다리는지 확인한다.
     let launch = service.prepareLaunch().subscribe(
       onNext: {
         ready = true
-        XCTAssertNotNil(try? repository.snapshot().historyCheckStates[0].liquidation)
+        XCTAssertNil(try? repository.snapshot().historyCheckStates[0].liquidation)
         launchReady.fulfill()
       }
     )
     service.observe(.init(instrument: order.instrument, price: 80, timestamp: 65_999))
     wait(for: [live], timeout: 3)
     subscription.dispose()
-    XCTAssertFalse(ready)
+    wait(for: [launchReady], timeout: 3)
+    XCTAssertTrue(ready)
     XCTAssertEqual(try repository.snapshot(), before)
     XCTAssertThrowsError(
       try awaitValue(
@@ -1143,7 +1704,7 @@ final class FuturesHistoryCheckTests: XCTestCase {
       if case .finished(let results) = status, results.contains(where: { $0.liquidated }) { finished.fulfill() }
     })
     response.onNext(.init(instrument: order.instrument, price: 80, timestamp: 65_123))
-    wait(for: [finished, launchReady], timeout: 3)
+    wait(for: [finished], timeout: 3)
     completion.dispose()
     launch.dispose()
     XCTAssertEqual(try repository.snapshot().historyCheckStates[0].liquidation?.intervalStart, 65_123)
@@ -1951,8 +2512,8 @@ final class FuturesHistoryCheckTests: XCTestCase {
     let second = service.status.subscribe(onNext: { status in
       if case .finished(let results) = status, results.first?.hold == .currentInterval { finished.fulfill() }
     })
-    defer { second.dispose() }
-    service.refresh()
+    defer { second.dispose(); service.suspend() }
+    service.resume()
     wait(for: [finished], timeout: 3)
     XCTAssertEqual(try store.snapshot().historyCheckStates[0].verifiedThrough, 30_060_000)
   }
@@ -2087,6 +2648,159 @@ final class FuturesPreUIIntegrationTests: XCTestCase {
     defer { disposable.dispose() }
     wait(for: [finished], timeout: 5)
     return try XCTUnwrap(result).get()
+  }
+
+  @MainActor
+  func testEntryFormRecoversAfterInputNetworkAndStoreFailuresAndCommitsOnce() throws {
+    for side in [FuturesSide.long, .short] { try verifyFormRecovery(closing: false, side: side) }
+  }
+
+  @MainActor
+  func testCloseFormRecoversAfterInputNetworkAndStoreFailuresAndCommitsOnce() throws {
+    for side in [FuturesSide.long, .short] { try verifyFormRecovery(closing: true, side: side) }
+  }
+
+  @MainActor
+  private func verifyFormRecovery(closing: Bool, side: FuturesSide) throws {
+    // 각 폼·방향의 실제 저장 결과를 독립된 파일로 확인한다.
+    let repository = LocalFuturesAccountRepository(fileURL: directory.appendingPathComponent(UUID().uuidString + ".json"))
+    // 가격을 고정해 주문 건수와 잔액 변화만 비교한다.
+    let order = domesticFuturesOrder(side: side, margin: 1_000, price: 100, date: Date().addingTimeInterval(-2))
+    try repository.applyAdvertisementReward(AdRewardClaim(account: order.account))
+    try repository.openTestPosition(order, expectedRevision: repository.snapshot().revision)
+    // 재연결과 실제 이력 검증 완료를 서로 다른 시점으로 만든다.
+    let availability = BehaviorSubject(value: true)
+    // 통신 복구 직후 검증 응답을 대기시킬 수 있다.
+    let historyAvailable = BehaviorSubject(value: true)
+    // 과거 가격 조회만 제어하고 검증·저장·Reactor는 실제 구현을 사용한다.
+    var provider = DetailReplayProvider(instrument: order.instrument, timestamp: 1, adverse: 100)
+    provider.quoteOverride = {
+      historyAvailable.filter { $0 }.take(1).map { _ in
+        .init(instrument: order.instrument, price: 100, timestamp: try FuturesHistoryCheckState.milliseconds(Date()))
+      }.asSingle()
+    }
+    // 같은 연결 상태를 공유하는 실제 검증 서비스다.
+    let service = FuturesHistoryCheckService(store: { repository }, provider: { _ in provider }, networkAvailability: availability)
+    defer { service.suspend() }
+    // 제출 후 저장소 접근 실패를 한 번만 주입한다.
+    let failureLock = NSLock()
+    // 조회 시점과 테스트 스레드 사이에서 실패 주입을 보호한다.
+    var failNextAccess = false
+    // 계좌 조회와 주문 저장은 같은 실제 저장소를 사용한다.
+    let useCase = FuturesTradingUseCase(
+      store: {
+        failureLock.lock()
+        defer { failureLock.unlock() }
+        if failNextAccess {
+          failNextAccess = false
+          throw LocalFuturesAccountRepository.StoreError.invalidStoredData
+        }
+        return repository
+      },
+      historyCheck: service
+    )
+    // UI의 미검증 제한과 실패 후 submitting 해제를 실제 상태 전이로 검사한다.
+    let reactor = FuturesAccountReactor(account: order.account, useCase: useCase, historyCheck: service, provider: provider, networkAvailability: availability)
+    // 버튼 탭 시점마다 최신 주문 시각을 사용한다.
+    let capture: () -> FuturesOrderPrice? = {
+      guard let timestamp = try? FuturesHistoryCheckState.milliseconds(Date()) else { return nil }
+      return .init(quote: .init(instrument: order.instrument, price: 100, timestamp: timestamp), requestedAt: timestamp)
+    }
+    // 성공 콜백도 중복 탭으로 여러 번 호출되면 안 된다.
+    var completions = 0
+    // 진입과 종료에 같은 실패·복구 순서를 적용한다.
+    let controller: UIViewController
+    if closing {
+      // 실제 시트 해제까지 확인한다.
+      let sheet = FuturesCloseViewController(reactor: reactor, positionID: order.requestID, captureOrderPrice: capture)
+      sheet.tradeCompletedCallBack = { completions += 1 }
+      controller = sheet
+    } else {
+      // 롱과 숏 모두 같은 제출 경로를 사용한다.
+      let entry = FuturesOrderViewController(reactor: reactor, instrument: order.instrument)
+      entry.captureOrderPrice = capture
+      entry.tradeCompletedCallBack = { completions += 1 }
+      entry.selectTab(side == .long ? 0 : 1)
+      controller = entry
+    }
+    // 알럿을 닫은 뒤 동일한 화면에 다시 주문한다.
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 667))
+    window.rootViewController = closing ? UIViewController() : controller
+    window.makeKeyAndVisible()
+    if closing { window.rootViewController?.present(controller, animated: false) }
+    defer { window.rootViewController?.dismiss(animated: false); window.isHidden = true; window.rootViewController = nil }
+    service.refresh()
+    waitForForm { reactor.canSubmit && reactor.currentState.quotes[order.instrument] != nil }
+    // 현재 화면에서 수량 또는 증거금을 수정한다.
+    let input = try XCTUnwrap(findFormView(controller.view, id: closing ? "futuresCloseQuantity" : "futuresMargin") as? UITextField)
+    // 실제 UIKit 버튼으로 중복 제출까지 검사한다.
+    let button = try XCTUnwrap(findFormView(controller.view, id: closing ? "futuresCloseSubmit" : "futuresSubmit") as? UIButton)
+    func setInput(_ text: String) { input.text = text; input.sendActions(for: .editingChanged) }
+    func dismissAlert(_ key: String) throws {
+      waitForForm { controller.presentedViewController is UIAlertController && !reactor.currentState.submitting }
+      // 표시 애니메이션이 끝나야 실제 확인 이후의 상태와 같아진다.
+      let alert = try XCTUnwrap(controller.presentedViewController as? UIAlertController)
+      waitForForm { !alert.isBeingPresented }
+      XCTAssertEqual(alert.message, FuturesText.text(key))
+      XCTAssertTrue(button.isEnabled)
+      controller.dismiss(animated: false)
+      waitForForm { controller.presentedViewController == nil }
+    }
+    setInput("0")
+    button.sendActions(for: .touchUpInside)
+    try dismissAlert(closing ? "futures_close_invalid" : "futures_input_error")
+    setInput(closing ? "10" : "100")
+    historyAvailable.onNext(false)
+    availability.onNext(false)
+    waitForForm { reactor.currentState.networkAvailable == false && !reactor.canSubmit }
+    button.sendActions(for: .touchUpInside)
+    try dismissAlert("network_lost")
+    availability.onNext(true)
+    waitForForm { reactor.currentState.networkAvailable == true && !reactor.canSubmit }
+    button.sendActions(for: .touchUpInside)
+    try dismissAlert("futures_order_not_ready")
+    historyAvailable.onNext(true)
+    waitForForm { reactor.canSubmit }
+    // 연결 복구는 주문을 자동 체결하지 않는다.
+    XCTAssertEqual(try repository.snapshot().positions[0].executions.count, 1)
+    XCTAssertTrue(try repository.snapshot().positions[0].partialClosings?.isEmpty != false)
+    failureLock.lock(); failNextAccess = true; failureLock.unlock()
+    button.sendActions(for: .touchUpInside)
+    for _ in 0..<10 { button.sendActions(for: .touchUpInside) }
+    try dismissAlert("futures_storage_error")
+    XCTAssertEqual(input.text, closing ? "10" : "100")
+    XCTAssertTrue(input.isEnabled)
+    XCTAssertFalse(controller.isModalInPresentation)
+    XCTAssertEqual(try repository.snapshot().positions[0].executions.count, 1)
+    XCTAssertTrue(try repository.snapshot().positions[0].partialClosings?.isEmpty != false)
+    button.sendActions(for: .touchUpInside)
+    for _ in 0..<10 { button.sendActions(for: .touchUpInside) }
+    waitForForm { completions == 1 && !reactor.currentState.submitting }
+    // 화면 상태가 아닌 디스크의 체결 건수·수량·잔액을 최종 비교한다.
+    let saved = try repository.snapshot()
+    XCTAssertEqual(saved.positions[0].executions.count, closing ? 1 : 2)
+    XCTAssertEqual(saved.positions[0].partialClosings?.count ?? 0, closing ? 1 : 0)
+    XCTAssertEqual(saved.positions[0].quantity, closing ? 90 : 110)
+    XCTAssertEqual(saved.accounts.first?.availableBalance, closing ? 9_999_100 : 9_998_900)
+    if closing { XCTAssertNil(window.rootViewController?.presentedViewController) }
+    else { XCTAssertTrue(button.isEnabled); XCTAssertTrue(input.isEnabled) }
+  }
+
+  @MainActor
+  private func waitForForm(_ condition: @escaping () -> Bool) {
+    // 임의의 긴 대기 대신 실제 UI·저장 완료 조건을 기다린다.
+    let completed = expectation(description: "Form state transition")
+    // UIKit 상태는 메인 스레드에서만 확인한다.
+    let subscription = Observable<Int>.interval(.milliseconds(10), scheduler: MainScheduler.instance)
+      .filter { _ in condition() }.take(1).subscribe(onNext: { _ in completed.fulfill() })
+    defer { subscription.dispose() }
+    wait(for: [completed], timeout: 5)
+  }
+
+  @MainActor
+  private func findFormView(_ view: UIView, id: String) -> UIView? {
+    if view.accessibilityIdentifier == id { return view }
+    return view.subviews.lazy.compactMap { self.findFormView($0, id: id) }.first
   }
 
   func testUIAccountPreparationStartsAtZeroAndPreservesRewardOnRevisit() throws {

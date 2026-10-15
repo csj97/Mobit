@@ -103,7 +103,6 @@ class InvestmentViewController: MobitBaseViewController {
 	self.view.backgroundColor = .mobitColors(.investmentBackground)
 	self.transactionTableview.backgroundColor = .mobitColors(.investmentBackground)
 	self.noResultView.backgroundColor = .mobitColors(.investmentBackground)
-	self.transactionTableview.superview?.backgroundColor = .mobitColors(.investmentBackground)
 	self.dimView.backgroundColor = UIColor.black.withAlphaComponent(0.35)
 	self.sortLabel.textColor = .mobitColors(.investmentTextPrimary)
 	[
@@ -116,7 +115,6 @@ class InvestmentViewController: MobitBaseViewController {
 
   private func applyInvestmentPanelTheme() {
 	self.transactionTableview.backgroundColor = .mobitColors(.investmentBackground)
-	self.transactionTableview.superview?.backgroundColor = .mobitColors(.investmentBackground)
 	self.noResultView.backgroundColor = .mobitColors(.investmentBackground)
 	self.dimView.backgroundColor = UIColor.black.withAlphaComponent(0.35)
 	self.sortLabel.textColor = .mobitColors(.investmentTextSecondary)

@@ -41,9 +41,6 @@ class PNLTableViewCell: UITableViewCell {
   private func updateThemeColors() {
 	self.backgroundColor = .mobitColors(.backgroundPrimary)
 	self.contentView.backgroundColor = .mobitColors(.backgroundPrimary)
-	if let containerView = self.contentView.subviews.first {
-	  containerView.backgroundColor = .mobitColors(.investmentSurface)
-	}
 	if let currentPNL {
 	  self.pnlLabel.textColor = MarketColorPalette.color(forSignedValue: currentPNL)
 	}
@@ -55,16 +52,10 @@ class PNLTableViewCell: UITableViewCell {
   }
   
   func configure(pnlHistory: UserPNLHistoryModel) {
-    if let dateRow = transactionDateLabel.superview as? UIStackView, dateRow.superview === metricsStackView,
-       let priceRow = exitPriceLabel.superview?.superview as? UIStackView {
-      metricsStackView.removeArrangedSubview(dateRow)
-      priceRow.addArrangedSubview(dateRow)
-      priceRow.distribution = .fillEqually
-      metricsStackView.distribution = .fillEqually
-      dateRow.axis = .horizontal
-    }
     transactionDateLabel.numberOfLines = 1
     marketNameLabel.numberOfLines = 1
+    marketNameLabel.adjustsFontSizeToFitWidth = false
+    marketNameLabel.minimumScaleFactor = 1
     dateTitle.text = FuturesText.text("investment_execution_time") + " :"
     entryTitle.text = FuturesText.text("investment_entry_price") + " :"
     exitTitle.text = FuturesText.text("investment_exit_price") + " :"
@@ -90,8 +81,18 @@ class PNLTableViewCell: UITableViewCell {
   }
   
   func configure(record: FuturesTransactionRecord, position: FuturesPosition) {
-    marketNameLabel.text = "\(FuturesText.symbol(record.instrument)) · \(FuturesText.side(record.side)) \(record.leverage)× · \(FuturesText.text("futures_" + record.kind.rawValue))"
-    marketNameLabel.numberOfLines = 0
+    // 실현손익의 종료 결과 문구를 주문 동작·일반 거래내역 문구와 구분한다.
+    let statusKey: String
+    switch record.kind {
+    case .closing: statusKey = "futures_pnl_closed"
+    case .liquidation: statusKey = "futures_pnl_liquidated"
+    default: statusKey = "futures_" + record.kind.rawValue
+    }
+    marketNameLabel.text = "\(FuturesText.symbol(record.instrument)) · \(FuturesText.side(record.side)) \(record.leverage)× · \(FuturesText.text(statusKey))"
+    // 종료 유형을 포함한 제목을 한 줄 안에서 원래 글자 크기의 55%까지 축소한다.
+    marketNameLabel.numberOfLines = 1
+    marketNameLabel.adjustsFontSizeToFitWidth = true
+    marketNameLabel.minimumScaleFactor = 0.55
     entryTitle.text = FuturesText.text("futures_entry_price") + " :"
     exitTitle.text = FuturesText.text(record.kind == .liquidation ? "futures_liquidation_exit_price" : "futures_exit_price") + " :"
     quantityLabel.text = FuturesText.number(record.quantity)

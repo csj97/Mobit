@@ -37,8 +37,8 @@ final class MobitChargeButton: UIButton {
     super.updateConfiguration()
     // 진한 버튼 배경에서도 충전 문구를 또렷하게 표시한다.
     let foregroundColor = UIColor.mobitColors(.investmentChargeButtonText).resolvedColor(with: traitCollection)
-    // 라이트·다크 모드 모두 앱의 채움 버튼용 포인트 컬러를 따른다.
-    let fillColor = UIColor.mobitColors(.accentButton).resolvedColor(with: traitCollection)
+    // 더보기와 같은 계좌 충전용 포인트 컬러를 따른다.
+    let fillColor = UIColor.mobitColors(.accountAction).resolvedColor(with: traitCollection)
     // 버튼 높이와 문구 너비를 글자 크기에 맞춰 함께 늘린다.
     let font = UIFontMetrics(forTextStyle: .subheadline).scaledFont(for: .systemFont(ofSize: 15, weight: .semibold))
     // 현물과 선물의 충전 버튼에 같은 문구와 모서리 형태를 적용한다.

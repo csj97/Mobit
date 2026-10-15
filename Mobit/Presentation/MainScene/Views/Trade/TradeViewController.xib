@@ -164,11 +164,11 @@
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="om4-Hj-cJa" userLabel="Container View">
-                    <rect key="frame" x="0.0" y="287" width="393" height="485"/>
+                    <rect key="frame" x="0.0" y="287" width="393" height="447"/>
                     <color key="backgroundColor" name="trade_background"/>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="tyi-4Y-wRR" userLabel="Banner AD View">
-                    <rect key="frame" x="0.0" y="772" width="393" height="80"/>
+                    <rect key="frame" x="0.0" y="734" width="393" height="50"/>
                     <color key="backgroundColor" systemColor="secondarySystemBackgroundColor"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="50" id="XRL-N0-cnv"/>

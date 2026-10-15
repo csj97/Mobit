@@ -60,10 +60,26 @@ enum FuturesText {
   }
 
   static func status(_ reactor: FuturesAccountReactor) -> String {
-	if reactor.currentState.loadFailed { return text("futures_storage_error") }
-	if reactor.currentState.submitting { return text("futures_submitting") }
-	if case .storageFailed = reactor.currentState.status { return text("futures_storage_error") }
-	return ""
+    if reactor.currentState.loadFailed || reactor.currentState.dataFailure?.hold == .storageFailed { return text("futures_storage_error") }
+    if reactor.currentState.submitting { return text("futures_submitting") }
+    if case .storageFailed = reactor.currentState.status { return text("futures_storage_error") }
+    if reactor.currentState.networkAvailable == false { return text("futures_data_offline") }
+    if reactor.needsDataRetry { return text("futures_data_held") }
+    return ""
+  }
+
+  // 평상시 갱신은 조용히 처리하고 사용자가 주문을 탭했을 때만 차단 이유를 알린다.
+  static func orderError(
+    _ reactor: FuturesAccountReactor,
+    instrument: TradingInstrumentID,
+    price: FuturesOrderPrice?
+  ) -> String? {
+    if reactor.currentState.networkAvailable == false { return text("network_lost") }
+    if reactor.needsDataRetry { return status(reactor) }
+    guard reactor.canSubmit else { return text("futures_order_not_ready") }
+    guard price?.quote.instrument == instrument, reactor.canExecuteOrder(price: price)
+    else { return text("futures_socket_wait") }
+    return nil
   }
 
   static func shareUnit(_ record: FuturesTransactionRecord, position: FuturesPosition) throws -> PNLShareUnit {
@@ -135,5 +151,54 @@ enum FuturesText {
 	button.addAction(UIAction { _ in action() }, for: .touchUpInside)
 	button.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
 	return button
+  }
+}
+
+// 메인·투자·주문의 동일한 데이터 상태를 콘텐츠 영역에 표시한다.
+final class FuturesDataStatusView: UIStackView {
+  // 실제 오류와 사용자가 요청한 주문의 처리 상태만 전달한다.
+  private let statusLabel = FuturesText.label(style: .caption1)
+  // 실패한 데이터 읽기와 과거 검증을 다시 요청한다.
+  private let retryButton = UIButton(type: .system)
+
+  init(retry: @escaping () -> Void) {
+    super.init(frame: .zero)
+    axis = .horizontal
+    alignment = .center
+    spacing = 8
+    statusLabel.textColor = .mobitColors(.textSecondary)
+    statusLabel.accessibilityIdentifier = "futures.data.status"
+    retryButton.setTitle(FuturesText.text("data_retry"), for: .normal)
+    retryButton.accessibilityIdentifier = "futures.data.retry"
+    retryButton.titleLabel?.font = .preferredFont(forTextStyle: .caption1)
+    retryButton.titleLabel?.adjustsFontForContentSizeCategory = true
+    retryButton.setContentCompressionResistancePriority(.required, for: .horizontal)
+    retryButton.setContentHuggingPriority(.required, for: .horizontal)
+    statusLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
+    retryButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+    retryButton.addAction(UIAction { _ in retry() }, for: .touchUpInside)
+    [statusLabel, retryButton].forEach { addArrangedSubview($0) }
+  }
+
+  required init(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+  @discardableResult
+  func render(_ reactor: FuturesAccountReactor) -> Bool {
+    render(
+      message: FuturesText.status(reactor),
+      retry: reactor.needsDataRetry && reactor.currentState.networkAvailable != false && !reactor.currentState.submitting
+    )
+  }
+
+  @discardableResult
+  func render(message: String, retry: Bool) -> Bool {
+    // 동일한 시세 tick이 상태 영역과 메인 목록의 전체 레이아웃을 반복 갱신하지 않게 한다.
+    let hidden = message.isEmpty
+    guard statusLabel.text != message || isHidden != hidden
+      || retryButton.isHidden != !retry else { return false }
+    statusLabel.text = message
+    isHidden = hidden
+    retryButton.isHidden = !retry
+    return true
   }
 }

@@ -62,6 +62,7 @@ class AppTabBarCoordinator: BaseCoordinator {
   }
   
   private func configureTabs(selectedIndex: Int) {
+	mobitTabBarController.bindForegroundVerification(nil)
 	futuresCoordinator = nil
 	mobitTabBarController.setProduct(ExchangeSelectionStore.currentProduct)
 	mobitTabBarController.setTradingChromeHidden(false)
@@ -92,6 +93,7 @@ class AppTabBarCoordinator: BaseCoordinator {
 	  futures.delegate = self
 	  futures.start()
 	  futuresCoordinator = futures
+      mobitTabBarController.bindForegroundVerification(futures.reactor)
 	  mainCoordinator.futuresReactor = futures.reactor
 	  mainCoordinator.start()
 	  self.investmentCoordinator = nil
@@ -141,5 +143,9 @@ extension AppTabBarCoordinator: MainCoordinatorDelegate {
   
   func mainCoordinatorDidRequestExchangeSwitch(to exchange: Exchange) {
 	self.switchExchange(to: exchange)
+  }
+
+  func mainCoordinatorDidRequestFinishForegroundIndicator() {
+    mobitTabBarController.finishForegroundIndicator()
   }
 }

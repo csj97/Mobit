@@ -60,8 +60,14 @@ class TradeHistoryView: UIView, ViewRule {
 
   override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
 	super.traitCollectionDidChange(previousTraitCollection)
-	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
-	setUI()
+	// 초기 XIB 연결이 끝난 뒤에만 기존 테이블 높이를 다시 계산한다.
+	guard let previousTraitCollection else { return }
+	guard previousTraitCollection.hasDifferentColorAppearance(comparedTo: traitCollection) ||
+	  previousTraitCollection.preferredContentSizeCategory != traitCollection.preferredContentSizeCategory
+	else { return }
+	if previousTraitCollection.hasDifferentColorAppearance(comparedTo: traitCollection) {
+	  setUI()
+	}
 	historyTableView.reloadData()
   }
 

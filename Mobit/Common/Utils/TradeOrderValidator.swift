@@ -23,35 +23,21 @@ enum TradeOrderValidator {
 
     var message: String {
       switch self {
-      case .missingPrice:
-        return "현재가를 불러온 뒤 다시 시도해 주세요."
-      case .invalidQuantity:
-        return "주문 수량을 입력해 주세요."
+      case .missingPrice: return FuturesText.text("spot_order_missing_price")
+      case .invalidQuantity: return FuturesText.text("spot_order_invalid_quantity")
       case .belowMinimumOrderAmount(let minimum, let currency):
-        switch currency {
-        case .krw:
-          return "\(minimum.formatSignificantDigits())원 이상 매수/매도 가능합니다."
-        case .btc:
-          return "\(minimum.formatSignificantDigits()) BTC 이상 매수/매도 가능합니다."
-        }
+        return String(
+          format: FuturesText.text("spot_order_minimum"),
+          minimum.formatSignificantDigits(),
+          currency == .krw ? FuturesText.text("currency_krw_unit") : currency.rawValue
+        )
       case .insufficientBalance(let currency):
-        switch currency {
-        case .krw:
-          return "주문 가능 금액이 부족합니다."
-        case .btc:
-          // BTC 마켓은 원화가 아니라 보유 BTC로 결제하므로 확보 방법까지 안내한다.
-          return "보유한 BTC가 부족합니다. 원화 마켓에서 BTC를 먼저 매수해 주세요."
-        }
-      case .insufficientHolding:
-        return "보유 수량이 부족합니다."
-      case .unsupportedMarket:
-        return "지원하지 않는 마켓입니다."
-      case .invalidStoredData:
-        return "저장된 투자내역을 읽을 수 없어 주문할 수 없습니다."
-      case .missingCostBasis:
-        return "기존 보유분의 매수원가를 확인할 수 없어 주문할 수 없습니다."
-      case .missingSettlementRate:
-        return "BTC 시세를 불러온 뒤 다시 시도해 주세요."
+        return FuturesText.text(currency == .btc ? "spot_order_insufficient_btc" : "spot_order_insufficient_balance")
+      case .insufficientHolding: return FuturesText.text("spot_order_insufficient_holding")
+      case .unsupportedMarket: return FuturesText.text("spot_order_unsupported_market")
+      case .invalidStoredData: return FuturesText.text("spot_order_storage_error")
+      case .missingCostBasis: return FuturesText.text("spot_order_missing_cost")
+      case .missingSettlementRate: return FuturesText.text("spot_order_missing_rate")
       }
     }
   }

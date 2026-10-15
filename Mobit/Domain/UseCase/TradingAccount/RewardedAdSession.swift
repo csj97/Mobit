@@ -12,8 +12,9 @@ final class RewardedAdSession {
     offer = try AdRewardClaim(account: account)
   }
 
-  func earned(using useCase: AdRewardUseCase, at date: Date = Date()) {
-    guard earnedClaim == nil else { return }
+  @discardableResult
+  func earned(using useCase: AdRewardUseCase, at date: Date = Date()) -> Bool {
+    guard earnedClaim == nil else { return false }
     do {
       let claim = try AdRewardClaim(id: offer.id, account: offer.account, earnedAt: date)
       earnedClaim = claim
@@ -22,6 +23,7 @@ final class RewardedAdSession {
     } catch {
       result = .failure(error)
     }
+    return true
   }
 
   func dismissed() { isDismissed = true }

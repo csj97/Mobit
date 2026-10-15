@@ -29,6 +29,12 @@ extension UIColor {
 	  return UIColor(named: "accent_primary")!
 	case .accentButton:
 	  return UIColor(named: "primary_blue")!
+	case .accountAction:
+	  return UIColor { traits in
+		traits.userInterfaceStyle == .dark
+		  ? UIColor(hex: "#1E50FF")
+		  : UIColor.mobitColors(.accentButton).resolvedColor(with: traits)
+	  }
 	case .chartBackground:
 	  return UIColor(named: "chart_background")!
 	case .chartGrid:
@@ -121,6 +127,8 @@ extension UIColor {
 	case accentPrimary
 	// 흰색 문구를 쓰는 채움 버튼의 대비를 유지하는 포인트 배경색이다.
 	case accentButton
+	// 계좌 충전과 현물·선물 선택에 같은 포인트 배경색을 적용한다.
+	case accountAction
 	case chartBackground
 	case chartGrid
 	case segmentSelected

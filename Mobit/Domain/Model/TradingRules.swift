@@ -251,12 +251,5 @@ enum TradingRules {
       )
     }
 
-    // 과거 검증은 저장 경계부터 재개하고, 완료 전에는 마지막 검증 가격만 평가에 사용한다.
-    enum HistoryCheck {
-      // 포지션이 없거나 검증이 빨리 끝나도 유지하는 최소 인트로 표시 시간이다.
-      static let minimumIntroMilliseconds = 1_500
-      // 화면 대기만 제한하며 시간이 지나도 실제 과거 검증을 취소하지 않는다.
-      static let maximumIntroSeconds = 5
-    }
   }
 }

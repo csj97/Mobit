@@ -11,6 +11,7 @@ protocol MainCoordinatorDelegate: AnyObject {
   func mainCoordinatorDidRequestHideTabBar()
   func mainCoordinatorDidRequestShowTabBar()
   func mainCoordinatorDidRequestExchangeSwitch(to exchange: Exchange)
+  func mainCoordinatorDidRequestFinishForegroundIndicator()
 }
 
 /// optional로 사용할 수 있게 처리
@@ -18,6 +19,7 @@ extension MainCoordinatorDelegate {
   func mainCoordinatorDidRequestHideTabBar() { }
   func mainCoordinatorDidRequestShowTabBar() { }
   func mainCoordinatorDidRequestExchangeSwitch(to exchange: Exchange) { }
+  func mainCoordinatorDidRequestFinishForegroundIndicator() { }
 }
 
 class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate {
@@ -108,6 +110,10 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
 
   func switchExchange(to exchange: Exchange) {
 	self.delegate?.mainCoordinatorDidRequestExchangeSwitch(to: exchange)
+  }
+
+  func finishForegroundIndicator() {
+    delegate?.mainCoordinatorDidRequestFinishForegroundIndicator()
   }
   
   /// 다른 탭(투자내역 등)에서 상세로 진입할 때, 메인 소켓을 메인 경로와 동일하게 제어한다.

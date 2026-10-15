@@ -4,254 +4,233 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24504"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="MoreViewController" customModule="Mobit" customModuleProvider="target">
             <connections>
-                <outlet property="chargeMoneyButton" destination="LmI-xJ-5oP" id="eRj-E2-XF5"/>
-                <outlet property="investInitButton" destination="bME-qa-wuz" id="WEX-3X-EaM"/>
-                <outlet property="naviBar" destination="Of0-zp-4hq" id="3y1-Am-NZ3"/>
-                <outlet property="settingsButton" destination="jZr-Hs-Y0i" id="kk0-DN-fb7"/>
-                <outlet property="userNoticeButton" destination="PIX-eV-2no" id="rPA-bg-bf7"/>
-                <outlet property="versionLabel" destination="sRb-9r-BlS" id="7H0-jE-1fK"/>
-                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+                <outlet property="accountsErrorLabel" destination="MOR-ER-LBL" id="MOR-UI-008"/>
+                <outlet property="accountsErrorView" destination="MOR-ER-STK" id="MOR-UI-007"/>
+                <outlet property="accountsRetryButton" destination="MOR-ER-BTN" id="MOR-UI-009"/>
+                <outlet property="accountsStackView" destination="MOR-AC-STK" id="MOR-UI-006"/>
+                <outlet property="communityButton" destination="MOR-CM-COM" id="MOR-UI-015"/>
+                <outlet property="communityTitleLabel" destination="MOR-CM-TTL" id="MOR-UI-012"/>
+                <outlet property="headerSettingsButton" destination="MOR-HD-GER" id="MOR-UI-003"/>
+                <outlet property="headerTitleLabel" destination="MOR-HD-TTL" id="MOR-UI-002"/>
+                <outlet property="investInitButton" destination="MOR-IN-RST" id="MOR-UI-013"/>
+                <outlet property="investmentTitleLabel" destination="MOR-IN-TTL" id="MOR-UI-011"/>
+                <outlet property="rewardBanner" destination="MOR-RW-CRD" id="MOR-UI-010"/>
+                <outlet property="settingsButton" destination="MOR-IN-SET" id="MOR-UI-014"/>
+                <outlet property="userNoticeButton" destination="MOR-CM-NOT" id="MOR-UI-016"/>
+                <outlet property="versionLabel" destination="MOR-VR-LBL" id="MOR-UI-017"/>
+                <outlet property="view" destination="MOR-RT-VIW" id="MOR-UI-001"/>
             </connections>
         </placeholder>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
-        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+        <view contentMode="scaleToFill" id="MOR-RT-VIW">
             <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Of0-zp-4hq" userLabel="Navi Bar">
-                    <rect key="frame" x="0.0" y="0.0" width="393" height="174"/>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-HD-VIW" userLabel="More Header">
+                    <rect key="frame" x="0.0" y="118" width="393" height="68.666666666666686"/>
                     <subviews>
-                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="더보기" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4EK-3N-Sdd">
-                            <rect key="frame" x="170.66666666666666" y="134" width="52" height="24"/>
-                            <fontDescription key="fontDescription" type="boldSystem" pointSize="20"/>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="더보기" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-HD-TTL">
+                            <rect key="frame" x="23.999999999999993" y="11.999999999999996" width="88.333333333333314" height="40.666666666666657"/>
+                            <fontDescription key="fontDescription" type="boldSystem" pointSize="34"/>
                             <color key="textColor" name="text_primary"/>
                             <nil key="highlightedColor"/>
                         </label>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-HD-GER">
+                            <rect key="frame" x="329" y="10.333333333333343" width="44" height="44"/>
+                            <color key="tintColor" name="text_secondary"/>
+                            <state key="normal" image="gearshape" catalog="system"/>
+                            <connections>
+                                <action selector="tapOnSettingsButton:" destination="-1" eventType="touchUpInside" id="MOR-UI-018"/>
+                            </connections>
+                        </button>
                     </subviews>
-                    <color key="backgroundColor" name="surface_primary"/>
                     <constraints>
-                        <constraint firstAttribute="bottom" secondItem="4EK-3N-Sdd" secondAttribute="bottom" constant="16" id="eHW-su-GRZ"/>
-                        <constraint firstItem="4EK-3N-Sdd" firstAttribute="centerX" secondItem="Of0-zp-4hq" secondAttribute="centerX" id="vJF-xQ-Esb"/>
+                        <constraint firstItem="MOR-HD-TTL" firstAttribute="top" secondItem="MOR-HD-VIW" secondAttribute="top" constant="12" id="MOR-UI-019"/>
+                        <constraint firstItem="MOR-HD-TTL" firstAttribute="leading" secondItem="MOR-HD-VIW" secondAttribute="leading" constant="24" id="MOR-UI-020"/>
+                        <constraint firstAttribute="bottom" secondItem="MOR-HD-TTL" secondAttribute="bottom" constant="16" id="MOR-UI-021"/>
+                        <constraint firstItem="MOR-HD-GER" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="MOR-HD-TTL" secondAttribute="trailing" constant="16" id="MOR-UI-022"/>
+                        <constraint firstAttribute="trailing" secondItem="MOR-HD-GER" secondAttribute="trailing" constant="20" id="MOR-UI-023"/>
+                        <constraint firstItem="MOR-HD-GER" firstAttribute="centerY" secondItem="MOR-HD-TTL" secondAttribute="centerY" id="MOR-UI-024"/>
+                        <constraint firstItem="MOR-HD-GER" firstAttribute="width" constant="44" id="MOR-UI-025"/>
+                        <constraint firstItem="MOR-HD-GER" firstAttribute="height" constant="44" id="MOR-UI-026"/>
+                        <constraint firstItem="MOR-HD-GER" firstAttribute="top" relation="greaterThanOrEqual" secondItem="MOR-HD-VIW" secondAttribute="top" constant="8" id="MOR-UI-027"/>
+                        <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="MOR-HD-GER" secondAttribute="bottom" constant="8" id="MOR-UI-028"/>
                     </constraints>
                 </view>
-                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="앱 버전 v.1.2.0" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="sRb-9r-BlS">
-                    <rect key="frame" x="20" y="667" width="353" height="17"/>
-                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                    <color key="textColor" name="text_tertiary"/>
-                    <nil key="highlightedColor"/>
-                </label>
-                <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="QOk-eo-dGP">
-                    <rect key="frame" x="20" y="206" width="373" height="302"/>
+                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" showsHorizontalScrollIndicator="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-SC-VIW">
+                    <rect key="frame" x="0.0" y="196.66666666666666" width="393" height="507.33333333333337"/>
                     <subviews>
-                        <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="lHc-sd-TeI">
-                            <rect key="frame" x="0.0" y="0.0" width="373" height="54"/>
+                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-CT-STK">
+                            <rect key="frame" x="20" y="16" width="353" height="1081.6666666666667"/>
                             <subviews>
-                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="leading" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="LmI-xJ-5oP">
-                                    <rect key="frame" x="0.0" y="0.0" width="319" height="54"/>
-                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <stackView opaque="NO" contentMode="scaleToFill" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="400" axis="vertical" spacing="14" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-AC-STK">
+                                    <rect key="frame" x="0.0" y="0.0" width="353" height="400"/>
+                                </stackView>
+                                <stackView hidden="YES" opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-ER-STK">
+                                    <rect key="frame" x="0.0" y="410" width="353" height="48"/>
+                                    <subviews>
+                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="계좌 잔고를 확인하지 못했습니다." lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-ER-LBL">
+                                            <rect key="frame" x="0.0" y="0.0" width="353" height="0.0"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                            <color key="textColor" name="text_secondary"/>
+                                            <nil key="highlightedColor"/>
+                                        </label>
+                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-ER-BTN">
+                                            <rect key="frame" x="0.0" y="4" width="353" height="44"/>
+                                            <constraints>
+                                                <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="44" id="MOR-UI-030"/>
+                                            </constraints>
+                                            <state key="normal" title="다시 불러오기"/>
+                                            <connections>
+                                                <action selector="tapOnAccountsRetry:" destination="-1" eventType="touchUpInside" id="MOR-UI-029"/>
+                                            </connections>
+                                        </button>
+                                    </subviews>
+                                </stackView>
+                                <view contentMode="scaleToFill" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="126" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-RW-CRD" customClass="MoreRewardView" customModule="Mobit" customModuleProvider="target">
+                                    <rect key="frame" x="0.0" y="420" width="353" height="126"/>
+                                </view>
+                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-IN-CRD" customClass="MoreCardView" customModule="Mobit" customModuleProvider="target">
+                                    <rect key="frame" x="0.0" y="566" width="353" height="230"/>
+                                    <subviews>
+                                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-IN-CRD-S">
+                                            <rect key="frame" x="18" y="20" width="317" height="206"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="투자 관리" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-IN-TTL">
+                                                    <rect key="frame" x="0.0" y="0.0" width="317" height="17"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                    <color key="textColor" name="text_secondary"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <button opaque="NO" contentMode="scaleToFill" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="82" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-IN-RST" customClass="MoreMenuButton" customModule="Mobit" customModuleProvider="target">
+                                                    <rect key="frame" x="0.0" y="17" width="317" height="106"/>
+                                                    <connections>
+                                                        <action selector="tapOnInvestInitButton:" destination="-1" eventType="touchUpInside" id="MOR-UI-031"/>
+                                                    </connections>
+                                                </button>
+                                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-IN-CRD-D">
+                                                    <rect key="frame" x="0.0" y="123" width="317" height="1"/>
+                                                    <color key="backgroundColor" name="border_primary"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="1" id="MOR-UI-032"/>
+                                                    </constraints>
+                                                </view>
+                                                <button opaque="NO" contentMode="scaleToFill" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="82" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-IN-SET" customClass="MoreMenuButton" customModule="Mobit" customModuleProvider="target">
+                                                    <rect key="frame" x="0.0" y="124" width="317" height="82"/>
+                                                    <connections>
+                                                        <action selector="tapOnSettingsButton:" destination="-1" eventType="touchUpInside" id="MOR-UI-033"/>
+                                                    </connections>
+                                                </button>
+                                            </subviews>
+                                        </stackView>
+                                    </subviews>
+                                    <color key="backgroundColor" name="surface_primary"/>
                                     <constraints>
-                                        <constraint firstAttribute="height" constant="54" id="0WS-LH-fAa"/>
+                                        <constraint firstItem="MOR-IN-CRD-S" firstAttribute="top" secondItem="MOR-IN-CRD" secondAttribute="top" constant="20" id="MOR-UI-034"/>
+                                        <constraint firstItem="MOR-IN-CRD-S" firstAttribute="leading" secondItem="MOR-IN-CRD" secondAttribute="leading" constant="18" id="MOR-UI-035"/>
+                                        <constraint firstAttribute="trailing" secondItem="MOR-IN-CRD-S" secondAttribute="trailing" constant="18" id="MOR-UI-036"/>
+                                        <constraint firstAttribute="bottom" secondItem="MOR-IN-CRD-S" secondAttribute="bottom" constant="4" id="MOR-UI-037"/>
                                     </constraints>
-                                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="16"/>
-                                    <color key="tintColor" name="text_primary"/>
-                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                    <state key="normal" title="투자금 충전하기"/>
-                                    <connections>
-                                        <action selector="tapOnChargeMoney:" destination="-1" eventType="touchUpInside" id="g3Y-3N-SiM"/>
-                                    </connections>
-                                </button>
-                                <button opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="6Up-kJ-bYQ">
-                                    <rect key="frame" x="319" y="0.0" width="54" height="54"/>
-                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </view>
+                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-CM-CRD" customClass="MoreCardView" customModule="Mobit" customModuleProvider="target">
+                                    <rect key="frame" x="0.0" y="816.00000000000011" width="353" height="229.99999999999989"/>
+                                    <subviews>
+                                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-CM-CRD-S">
+                                            <rect key="frame" x="18" y="20" width="317" height="206"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="커뮤니티 &amp; 안내" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-CM-TTL">
+                                                    <rect key="frame" x="0.0" y="0.0" width="317" height="17"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                    <color key="textColor" name="text_secondary"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <button opaque="NO" contentMode="scaleToFill" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="82" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-CM-COM" customClass="MoreMenuButton" customModule="Mobit" customModuleProvider="target">
+                                                    <rect key="frame" x="0.0" y="17" width="317" height="106"/>
+                                                    <connections>
+                                                        <action selector="tapOnCommunity:" destination="-1" eventType="touchUpInside" id="MOR-UI-038"/>
+                                                    </connections>
+                                                </button>
+                                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-CM-CRD-D">
+                                                    <rect key="frame" x="0.0" y="123" width="317" height="1"/>
+                                                    <color key="backgroundColor" name="border_primary"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="1" id="MOR-UI-039"/>
+                                                    </constraints>
+                                                </view>
+                                                <button opaque="NO" contentMode="scaleToFill" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="82" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-CM-NOT" customClass="MoreMenuButton" customModule="Mobit" customModuleProvider="target">
+                                                    <rect key="frame" x="0.0" y="124" width="317" height="82"/>
+                                                    <connections>
+                                                        <action selector="tapOnUserNoticeButton:" destination="-1" eventType="touchUpInside" id="MOR-UI-040"/>
+                                                    </connections>
+                                                </button>
+                                            </subviews>
+                                        </stackView>
+                                    </subviews>
+                                    <color key="backgroundColor" name="surface_primary"/>
                                     <constraints>
-                                        <constraint firstAttribute="width" secondItem="6Up-kJ-bYQ" secondAttribute="height" multiplier="1:1" id="0uu-A7-haS"/>
+                                        <constraint firstItem="MOR-CM-CRD-S" firstAttribute="top" secondItem="MOR-CM-CRD" secondAttribute="top" constant="20" id="MOR-UI-041"/>
+                                        <constraint firstItem="MOR-CM-CRD-S" firstAttribute="leading" secondItem="MOR-CM-CRD" secondAttribute="leading" constant="18" id="MOR-UI-042"/>
+                                        <constraint firstAttribute="trailing" secondItem="MOR-CM-CRD-S" secondAttribute="trailing" constant="18" id="MOR-UI-043"/>
+                                        <constraint firstAttribute="bottom" secondItem="MOR-CM-CRD-S" secondAttribute="bottom" constant="4" id="MOR-UI-044"/>
                                     </constraints>
-                                    <color key="tintColor" name="text_primary"/>
-                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                    <state key="normal" image="chevron.right" catalog="system"/>
-                                    <connections>
-                                        <action selector="tapOnChargeMoney:" destination="-1" eventType="touchUpInside" id="ENW-Ra-Rjg"/>
-                                    </connections>
-                                </button>
+                                </view>
+                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="앱 버전" textAlignment="center" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-VR-LBL">
+                                    <rect key="frame" x="0.0" y="1066" width="353" height="15.666666666666742"/>
+                                    <fontDescription key="fontDescription" type="system" pointSize="13"/>
+                                    <color key="textColor" name="text_secondary"/>
+                                    <nil key="highlightedColor"/>
+                                </label>
                             </subviews>
-                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                        </stackView>
-                        <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="bIL-GG-aGK">
-                            <rect key="frame" x="0.0" y="62" width="373" height="54"/>
-                            <subviews>
-                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="leading" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PIX-eV-2no">
-                                    <rect key="frame" x="0.0" y="0.0" width="319" height="54"/>
-                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    <constraints>
-                                        <constraint firstAttribute="height" constant="54" id="cE6-IF-28R"/>
-                                    </constraints>
-                                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="16"/>
-                                    <color key="tintColor" name="text_primary"/>
-                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                    <state key="normal" title="사용자 고지사항"/>
-                                    <connections>
-                                        <action selector="tapOnUserNoticeButton:" destination="-1" eventType="touchUpInside" id="xtp-0c-knN"/>
-                                    </connections>
-                                </button>
-                                <button opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="CDW-1o-UGY">
-                                    <rect key="frame" x="319" y="0.0" width="54" height="54"/>
-                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    <constraints>
-                                        <constraint firstAttribute="width" secondItem="CDW-1o-UGY" secondAttribute="height" multiplier="1:1" id="Tuz-jI-TMd"/>
-                                    </constraints>
-                                    <color key="tintColor" name="text_primary"/>
-                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                    <state key="normal" image="chevron.right" catalog="system"/>
-                                    <connections>
-                                        <action selector="tapOnUserNoticeButton:" destination="-1" eventType="touchUpInside" id="8Hc-lx-PB4"/>
-                                    </connections>
-                                </button>
-                            </subviews>
-                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                        </stackView>
-                        <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="nGl-ll-Ee2">
-                            <rect key="frame" x="0.0" y="124" width="373" height="54"/>
-                            <subviews>
-                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="leading" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="bME-qa-wuz">
-                                    <rect key="frame" x="0.0" y="0.0" width="319" height="54"/>
-                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    <constraints>
-                                        <constraint firstAttribute="height" constant="54" id="lEr-8z-W8D"/>
-                                    </constraints>
-                                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="16"/>
-                                    <color key="tintColor" name="text_primary"/>
-                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                    <state key="normal" title="투자 내역 초기화"/>
-                                    <connections>
-                                        <action selector="tapOnInvestInitButton:" destination="-1" eventType="touchUpInside" id="P4s-Ji-pgg"/>
-                                    </connections>
-                                </button>
-                                <button opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="m5M-wU-K40">
-                                    <rect key="frame" x="319" y="0.0" width="54" height="54"/>
-                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    <constraints>
-                                        <constraint firstAttribute="width" secondItem="m5M-wU-K40" secondAttribute="height" multiplier="1:1" id="0kZ-gb-Olm"/>
-                                        <constraint firstAttribute="width" secondItem="m5M-wU-K40" secondAttribute="height" multiplier="1:1" id="yYm-oC-Xwd"/>
-                                    </constraints>
-                                    <color key="tintColor" name="text_primary"/>
-                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                    <state key="normal" image="chevron.right" catalog="system"/>
-                                    <connections>
-                                        <action selector="tapOnInvestInitButton:" destination="-1" eventType="touchUpInside" id="YDf-W1-fjC"/>
-                                    </connections>
-                                </button>
-                            </subviews>
-                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                        </stackView>
-                        <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Qmt-bt-HZC">
-                            <rect key="frame" x="0.0" y="186" width="373" height="54"/>
-                            <subviews>
-                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="leading" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="JqY-uf-HDI">
-                                    <rect key="frame" x="0.0" y="0.0" width="319" height="54"/>
-                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    <constraints>
-                                        <constraint firstAttribute="height" constant="54" id="FYf-y4-lgX"/>
-                                    </constraints>
-                                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="16"/>
-                                    <color key="tintColor" name="text_primary"/>
-                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                    <state key="normal" title="MOBIT 이용자 커뮤니티"/>
-                                    <connections>
-                                        <action selector="tapOnCommunity:" destination="-1" eventType="touchUpInside" id="XMA-hy-6ij"/>
-                                    </connections>
-                                </button>
-                                <button opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2MK-6v-Zfe">
-                                    <rect key="frame" x="319" y="0.0" width="54" height="54"/>
-                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    <constraints>
-                                        <constraint firstAttribute="width" secondItem="2MK-6v-Zfe" secondAttribute="height" multiplier="1:1" id="Vem-j8-xUB"/>
-                                        <constraint firstAttribute="width" secondItem="2MK-6v-Zfe" secondAttribute="height" multiplier="1:1" id="ame-Lm-KJA"/>
-                                    </constraints>
-                                    <color key="tintColor" name="text_primary"/>
-                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                    <state key="normal" image="chevron.right" catalog="system"/>
-                                    <connections>
-                                        <action selector="tapOnCommunity:" destination="-1" eventType="touchUpInside" id="wrF-ig-4A8"/>
-                                    </connections>
-                                </button>
-                            </subviews>
-                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                        </stackView>
-                        <stackView opaque="NO" contentMode="scaleToFill" alignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="xV8-jm-MfA">
-                            <rect key="frame" x="0.0" y="248" width="373" height="54"/>
-                            <subviews>
-                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="leading" contentVerticalAlignment="center" buttonType="system" lineBreakMode="tailTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jZr-Hs-Y0i">
-                                    <rect key="frame" x="0.0" y="0.0" width="319" height="54"/>
-                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    <constraints>
-                                        <constraint firstAttribute="height" constant="54" id="41x-yT-67W"/>
-                                    </constraints>
-                                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="16"/>
-                                    <color key="tintColor" name="text_primary"/>
-                                    <state key="normal" title="설정"/>
-                                    <connections>
-                                        <action selector="tapOnSettingsButton:" destination="-1" eventType="touchUpInside" id="Y47-Oh-ewn"/>
-                                    </connections>
-                                </button>
-                                <button opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wUV-Mn-YSr">
-                                    <rect key="frame" x="319" y="16" width="54" height="22"/>
-                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    <constraints>
-                                        <constraint firstAttribute="width" constant="54" id="xGj-8J-9nE"/>
-                                    </constraints>
-                                    <color key="tintColor" name="text_primary"/>
-                                    <state key="normal" image="chevron.right" catalog="system"/>
-                                    <connections>
-                                        <action selector="tapOnSettingsButton:" destination="-1" eventType="touchUpInside" id="Cf1-cn-Mpv"/>
-                                    </connections>
-                                </button>
-                            </subviews>
-                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         </stackView>
                     </subviews>
-                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                </stackView>
+                    <constraints>
+                        <constraint firstItem="MOR-CT-STK" firstAttribute="top" secondItem="MOR-SC-CNT" secondAttribute="top" constant="16" id="MOR-UI-045"/>
+                        <constraint firstItem="MOR-CT-STK" firstAttribute="leading" secondItem="MOR-SC-CNT" secondAttribute="leading" constant="20" id="MOR-UI-046"/>
+                        <constraint firstItem="MOR-SC-CNT" firstAttribute="trailing" secondItem="MOR-CT-STK" secondAttribute="trailing" constant="20" id="MOR-UI-047"/>
+                        <constraint firstItem="MOR-SC-CNT" firstAttribute="bottom" secondItem="MOR-CT-STK" secondAttribute="bottom" constant="28" id="MOR-UI-048"/>
+                        <constraint firstItem="MOR-SC-FRM" firstAttribute="width" secondItem="MOR-CT-STK" secondAttribute="width" constant="40" id="MOR-UI-049"/>
+                    </constraints>
+                    <viewLayoutGuide key="contentLayoutGuide" id="MOR-SC-CNT"/>
+                    <viewLayoutGuide key="frameLayoutGuide" id="MOR-SC-FRM"/>
+                </scrollView>
             </subviews>
-            <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
+            <viewLayoutGuide key="safeArea" id="MOR-RT-SAF"/>
             <color key="backgroundColor" name="background_primary"/>
             <constraints>
-                <constraint firstItem="sRb-9r-BlS" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="20" id="6Hf-dg-A8V"/>
-                <constraint firstItem="fnl-2z-Ty3" firstAttribute="bottom" secondItem="sRb-9r-BlS" secondAttribute="bottom" constant="100" id="858-WP-sch"/>
-                <constraint firstItem="QOk-eo-dGP" firstAttribute="top" secondItem="Of0-zp-4hq" secondAttribute="bottom" constant="32" id="AaN-op-6AO"/>
-                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="Of0-zp-4hq" secondAttribute="trailing" id="Ipr-AD-BrT"/>
-                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="sRb-9r-BlS" secondAttribute="trailing" constant="20" id="cjp-7C-meN"/>
-                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="QOk-eo-dGP" secondAttribute="trailing" id="kcL-qI-4NW"/>
-                <constraint firstItem="4EK-3N-Sdd" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" constant="16" id="nUf-mt-cg5"/>
-                <constraint firstItem="Of0-zp-4hq" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="pPi-gU-n0L"/>
-                <constraint firstItem="QOk-eo-dGP" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="20" id="uxJ-bZ-zWN"/>
-                <constraint firstItem="Of0-zp-4hq" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="veW-Gd-hAQ"/>
+                <constraint firstItem="MOR-HD-VIW" firstAttribute="top" secondItem="MOR-RT-SAF" secondAttribute="top" id="MOR-UI-050"/>
+                <constraint firstItem="MOR-HD-VIW" firstAttribute="leading" secondItem="MOR-RT-SAF" secondAttribute="leading" id="MOR-UI-051"/>
+                <constraint firstItem="MOR-HD-VIW" firstAttribute="trailing" secondItem="MOR-RT-SAF" secondAttribute="trailing" id="MOR-UI-052"/>
+                <constraint firstItem="MOR-SC-VIW" firstAttribute="leading" secondItem="MOR-RT-SAF" secondAttribute="leading" id="MOR-UI-054"/>
+                <constraint firstItem="MOR-SC-VIW" firstAttribute="trailing" secondItem="MOR-RT-SAF" secondAttribute="trailing" id="MOR-UI-055"/>
+                <constraint firstItem="MOR-SC-VIW" firstAttribute="bottom" secondItem="MOR-RT-SAF" secondAttribute="bottom" constant="-80" id="MOR-UI-056" userLabel="Custom tab bar and content spacing"/>
+                <constraint firstItem="MOR-SC-VIW" firstAttribute="top" secondItem="MOR-HD-VIW" secondAttribute="bottom" constant="10" id="YZu-wZ-VQC"/>
             </constraints>
-            <point key="canvasLocation" x="132" y="-11"/>
+            <point key="canvasLocation" x="138.1679389312977" y="69.718309859154928"/>
         </view>
     </objects>
     <resources>
-        <image name="chevron.right" catalog="system" width="97" height="128"/>
+        <image name="gearshape" catalog="system" width="128" height="123"/>
         <namedColor name="background_primary">
             <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="border_primary">
+            <color red="0.79607843137254897" green="0.81176470588235294" blue="0.83137254901960789" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
         <namedColor name="surface_primary">
             <color red="0.98431372549019602" green="0.98431372549019602" blue="0.98431372549019602" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
         <namedColor name="text_primary">
-            <color red="0" green="0" blue="0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
         <namedColor name="text_secondary">
             <color red="0.33333333333333331" green="0.33333333333333331" blue="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-        </namedColor>
-        <namedColor name="text_tertiary">
-            <color red="0.50196078431372548" green="0.50196078431372548" blue="0.50196078431372548" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
     </resources>
 </document>

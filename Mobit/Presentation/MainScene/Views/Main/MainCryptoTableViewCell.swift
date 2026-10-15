@@ -27,9 +27,6 @@ class MainCryptoTableViewCell: UITableViewCell {
 	// 현재가·전일대비는 regular라 다소 연해 보여 medium으로 강조
 	self.cryptoPrice.font = .systemFont(ofSize: 13, weight: .medium)
 	self.cryptoChangeRate.font = .systemFont(ofSize: 13, weight: .medium)
-	// 셀 배경 틴트가 보이도록 내부 스택뷰의 흰 배경을 비움
-	self.priceBox.superview?.backgroundColor = .clear
-	self.cryptoName.superview?.backgroundColor = .clear
   }
   
   override func setSelected(_ selected: Bool, animated: Bool) {

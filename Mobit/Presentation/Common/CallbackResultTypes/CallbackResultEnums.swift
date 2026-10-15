@@ -11,7 +11,7 @@ enum OrderResult {
   case updateHistory
   case alert(title: String, message: String)
   case settlementRateUnavailable
-  case successLottie
+  case tradeCompleted
   case calcuator(cryptoInvestData: CryptoTransactionDataModel)
 }
 

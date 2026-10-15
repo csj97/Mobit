@@ -7,13 +7,18 @@ final class FuturesOrderViewController: MobitBaseViewController {
   let reactor: FuturesAccountReactor
   let instrument: TradingInstrumentID
   var captureOrderPrice: (() -> FuturesOrderPrice?)?
+  // 실제 체결 완료 안내를 주문 패널 밖의 전체 화면으로 전달한다.
+  var tradeCompletedCallBack: (() -> Void)?
+  // 이 화면에서 요청한 진입 결과만 한 번 안내한다.
+  private var didSubmitOpening = false
   // 종료 시트 계산도 주문 화면이 표시하는 소켓 시세 갱신을 따른다.
   var orderPriceUpdates: Observable<Void> = .empty()
   private var expectedPositionID: UUID?
   // 화면이 해제될 때 Rx 구독을 함께 정리한다.
   private let disposeBag = DisposeBag()
   private lazy var positionCard = FuturesPositionSummaryView(closeButton: closeButton)
-  private let status = FuturesText.label(style: .footnote)
+  // 주문 전 확인 실패도 자산 요약과 같은 재시도 경로로 처리한다.
+  private lazy var dataStatusView = FuturesDataStatusView { [weak self] in self?.reactor.action.onNext(.reload) }
   private let estimate = FuturesText.label(style: .footnote)
   // 진입할 포지션의 롱·숏 방향을 선택한다.
   private let sideSegmentedControl = UISegmentedControl(items: [FuturesText.text("futures_long"), FuturesText.text("futures_short")])
@@ -47,9 +52,10 @@ final class FuturesOrderViewController: MobitBaseViewController {
 
   override func viewDidLoad() {
 	super.viewDidLoad()
-	view.backgroundColor = .mobitColors(.tradeBackground)
+	view.backgroundColor = .clear
 	let scroll = UIScrollView()
 	scroll.keyboardDismissMode = .interactive
+	scroll.contentInsetAdjustmentBehavior = .never
 	marketOrderLabel.text = FuturesText.text("futures_market_order")
 	marketOrderLabel.textAlignment = .center
 	marketOrderLabel.backgroundColor = .mobitColors(.tradeControlSurface)
@@ -120,12 +126,12 @@ final class FuturesOrderViewController: MobitBaseViewController {
 	  )
 	  percentages.addArrangedSubview(button)
 	}
-	[sideSegmentedControl, marketOrderLabel, availableRow, leverageRow, marginTextField, percentages, estimate, orderButton, positionCard, status]
+	[sideSegmentedControl, marketOrderLabel, availableRow, leverageRow, marginTextField, percentages, estimate, orderButton, positionCard, dataStatusView]
 	  .forEach { orderStack.addArrangedSubview($0) }
 	orderStack.axis = .vertical
 	orderStack.spacing = 12
 	historyStack.axis = .vertical
-	historyStack.spacing = 12
+	historyStack.spacing = 0
 	historyStack.isHidden = true
 	let stack = UIStackView(arrangedSubviews: [orderStack, historyStack])
 	stack.axis = .vertical
@@ -135,10 +141,11 @@ final class FuturesOrderViewController: MobitBaseViewController {
 	  $0.top.leading.trailing.equalToSuperview(); $0.bottom.equalTo(view.keyboardLayoutGuide.snp.top)
 	}
 	stack.snp.makeConstraints {
-	  $0.edges.equalTo(scroll.contentLayoutGuide).inset(10)
+	  $0.top.equalTo(scroll.contentLayoutGuide).offset(20)
+	  $0.leading.trailing.bottom.equalTo(scroll.contentLayoutGuide).inset(10)
 	  $0.width.equalTo(scroll.frameLayoutGuide).offset(-20)
 	}
-	[leverageLabel, estimate, status].forEach {
+	[leverageLabel, estimate].forEach {
 	  $0.font = .preferredFont(forTextStyle: .caption1)
 	  $0.textColor = .mobitColors(.tradeTextSecondary)
 	}
@@ -190,7 +197,22 @@ final class FuturesOrderViewController: MobitBaseViewController {
 	  self?.formatMarginInput()
 	  self?.updateEstimate()
 	}).disposed(by: disposeBag)
-	reactor.state.observe(on: MainScheduler.instance).subscribe(onNext: { [weak self] _ in self?.render() }).disposed(
+    Observable.merge(
+      orderPriceUpdates,
+      Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
+        .filter { [weak self] _ in self?.viewIfLoaded?.window != nil }.map { _ in () }
+    )
+      .observe(on: MainScheduler.instance)
+      .subscribe(onNext: { [weak self] _ in self?.updateOrderAvailability() }).disposed(by: disposeBag)
+	reactor.state.observe(on: MainScheduler.instance).subscribe(onNext: { [weak self] state in
+      guard let self else { return }
+      render()
+      if didSubmitOpening, !state.submitting, let message = state.message {
+        didSubmitOpening = false
+        if message == FuturesText.text("futures_order_done") { tradeCompletedCallBack?() }
+        else { showOrderError(message) }
+      }
+    }).disposed(
 	  by: disposeBag
 	)
 	let historyChanges: Observable<(snapshot: FuturesAccountSnapshot?, status: String)> = reactor.state.map {
@@ -256,37 +278,19 @@ final class FuturesOrderViewController: MobitBaseViewController {
 		historyStack.addArrangedSubview(label)
 	  }
 	  for record in records {
-		let title = FuturesText.label(style: .subheadline)
-		title.text =
-		  "\(FuturesText.side(record.side)) · \(record.leverage)× · \(FuturesText.text("futures_" + record.kind.rawValue))"
-		title.textColor = record.side == .long ? MarketColorPalette.riseColor : MarketColorPalette.fallColor
-		let detail = FuturesText.label(style: .caption1)
-		var lines = [
-		  FuturesText.occurrenceDate(record),
-		  "\(FuturesText.text("futures_price")) \(FuturesText.number(record.price)) \(FuturesText.text("currency_krw_unit"))",
-		  "\(FuturesText.text("futures_quantity")) \(FuturesText.number(record.quantity))"
-		]
-		if let end = record.intervalEndExclusive, record.kind != .liquidation {
-		  lines.append("~ \(FuturesText.date(Date(timeIntervalSince1970: Double(end) / 1000)))")
-		  lines.append("\(FuturesText.text("futures_settled")) \(FuturesText.date(record.recordedAt))")
-		}
-		if let pnl = record.realizedPnL {
-		  lines.append("\(FuturesText.text("futures_realized")) \(FuturesText.number(pnl)) \(FuturesText.text("currency_krw_unit"))")
-		}
-		detail.text = lines.joined(separator: "\n")
-		detail.textColor = .mobitColors(.tradeTextSecondary)
-		let entry = UIStackView(arrangedSubviews: [title, detail])
-		entry.axis = .vertical
-		entry.spacing = 6
-		historyStack.addArrangedSubview(entry)
+		historyStack.addArrangedSubview(try FuturesHistoryEntryView(record: record))
 		let divider = UIView()
-		divider.backgroundColor = .mobitColors(.borderPrimary)
+		divider.backgroundColor = .mobitColors(.tradeSeparator)
 		divider.snp.makeConstraints { $0.height.equalTo(1) }
 		historyStack.addArrangedSubview(divider)
 	  }
 	} catch {
 	  let label = FuturesText.label(style: .footnote)
 	  label.text = FuturesText.text("futures_storage_error")
+	  // 일부 내역 뒤에 나오는 오류 안내도 구분선과 간격을 유지한다.
+	  if let lastHistoryView = historyStack.arrangedSubviews.last {
+		historyStack.setCustomSpacing(TradeHistoryCellLayout.verticalPadding, after: lastHistoryView)
+	  }
 	  historyStack.addArrangedSubview(label)
 	}
   }
@@ -296,7 +300,6 @@ final class FuturesOrderViewController: MobitBaseViewController {
   private func render() {
 	let position = reactor.position(for: instrument)
 	let selectedSide: FuturesSide = sideSegmentedControl.selectedSegmentIndex == 0 ? .long : .short
-	let directionMatches = position == nil || position?.order.side == selectedSide
 	let cash = reactor.currentState.snapshot?.accounts.first { $0.id == reactor.account }?.availableBalance
 	availableAmountLabel.text = "\(FuturesText.number(cash)) \(FuturesText.text("currency_krw_unit"))"
 	if expectedPositionID == nil { expectedPositionID = position?.id }
@@ -306,13 +309,7 @@ final class FuturesOrderViewController: MobitBaseViewController {
 	  leverageControl.value = Double(position.order.leverage)
 	}
 	positionCard.isHidden = position == nil
-	if closed {
-	  status.text = FuturesText.text("futures_position_closed")
-	} else if !directionMatches {
-	  status.text = FuturesText.text("futures_same_conditions")
-	} else {
-	  status.text = reactor.currentState.message ?? FuturesText.status(reactor)
-	}
+
 	sideSegmentedControl.isEnabled = !reactor.currentState.submitting
 	leverageControl.isEnabled = position == nil && !closed && !reactor.currentState.submitting
 	marginTextField.isEnabled = !reactor.currentState.submitting && !closed
@@ -323,10 +320,17 @@ final class FuturesOrderViewController: MobitBaseViewController {
 	orderButton.configuration?.baseBackgroundColor =
 	  selectedSide == .long ? MarketColorPalette.riseColor : MarketColorPalette.fallColor
 	orderButton.configuration?.baseForegroundColor = .white
-	orderButton.isEnabled = reactor.canRequestOrder && !closed && directionMatches
-	closeButton.isHidden = position == nil
-	closeButton.isEnabled = reactor.canRequestOrder && !closed
+    closeButton.isHidden = position == nil
+    updateOrderAvailability()
+	dataStatusView.render(reactor)
 	updateEstimate()
+  }
+
+  private func updateOrderAvailability() {
+    // 준비 상태나 입력값은 탭할 때 안내하고 실제 제출 중에만 중복 요청을 막는다.
+    let enabled = !reactor.currentState.submitting
+    if orderButton.isEnabled != enabled { orderButton.isEnabled = enabled }
+    if closeButton.isEnabled != enabled { closeButton.isEnabled = enabled }
   }
 
   private var marginAmount: Decimal? {
@@ -387,56 +391,64 @@ final class FuturesOrderViewController: MobitBaseViewController {
   }
 
   private func open() {
-	guard let amount = marginAmount,
-	  !amount.isNaN, amount > 0
-	else {
-	  status.text = FuturesText.text("futures_input_error")
-	  return
-	}
-	guard
-	  let cash = reactor.currentState.snapshot?.accounts.first(where: { $0.id == reactor.account })?.availableBalance
-	else {
-	  status.text = FuturesText.text("futures_wait")
-	  return
-	}
-	guard amount <= cash else {
-	  view.endEditing(true)
-	  status.text = FuturesText.text("futures_insufficient")
-	  guard presentedViewController == nil else { return }
-	  let alert = UIAlertController(
-		title: nil,
-		message: FuturesText.text("futures_margin_exceeds_balance"),
-		preferredStyle: .alert
-	  )
-	  alert.addAction(UIAlertAction(title: FuturesText.text("common_confirm"), style: .default))
-	  present(alert, animated: true)
-	  return
-	}
-	view.endEditing(true)
-	let current = reactor.position(for: instrument)
-	let selectedSide: FuturesSide = sideSegmentedControl.selectedSegmentIndex == 0 ? .long : .short
-	guard current == nil || current?.order.side == selectedSide else {
-	  status.text = FuturesText.text("futures_same_conditions")
-	  return
-	}
-	guard let price = captureOrderPrice?() else {
-	  status.text = FuturesText.text("futures_socket_wait")
-	  return
-	}
-	reactor.action.onNext(
-	  .open(
-		instrument,
-		selectedSide,
-		amount,
-		current?.order.leverage ?? Int(leverageControl.value),
-		expectedPositionID ?? current?.id,
-		price
-	  )
-	)
+    guard !didSubmitOpening, !reactor.currentState.submitting, presentedViewController == nil else { return }
+    guard let amount = marginAmount, !amount.isNaN, amount > 0 else {
+      showOrderError(FuturesText.text("futures_input_error"))
+      return
+    }
+    // 현재 화면이 추적하던 포지션이 사라져도 새 포지션을 실수로 열지 않는다.
+    let current = reactor.position(for: instrument)
+    guard expectedPositionID == nil || current?.id == expectedPositionID else {
+      showOrderError(FuturesText.text("futures_position_closed"))
+      return
+    }
+    // 기존 포지션과 반대 방향으로 추가 진입할 수 없는 이유도 탭 시 안내한다.
+    let selectedSide: FuturesSide = sideSegmentedControl.selectedSegmentIndex == 0 ? .long : .short
+    guard current == nil || current?.order.side == selectedSide else {
+      showOrderError(FuturesText.text("futures_same_conditions"))
+      return
+    }
+    if let cash = reactor.currentState.snapshot?.accounts.first(where: { $0.id == reactor.account })?.availableBalance,
+      amount > cash {
+      showOrderError(FuturesText.text("futures_margin_exceeds_balance"))
+      return
+    }
+    // 탭 순간의 표시 가격을 한 번만 캡처해 검사와 주문에 같이 사용한다.
+    let price = captureOrderPrice?()
+    if let message = FuturesText.orderError(reactor, instrument: instrument, price: price) {
+      showOrderError(message)
+      return
+    }
+    view.endEditing(true)
+    reactor.action.onNext(.clearMessage)
+    didSubmitOpening = true
+    reactor.action.onNext(
+      .open(
+        instrument,
+        selectedSide,
+        amount,
+        current?.order.leverage ?? Int(leverageControl.value),
+        expectedPositionID ?? current?.id,
+        price
+      )
+    )
+  }
+
+  private func showOrderError(_ message: String) {
+    guard presentedViewController == nil, viewIfLoaded?.window != nil else { return }
+    view.endEditing(true)
+    // 주문 오류는 알럿으로만 안내해 폼 아래에 같은 문구를 남기지 않는다.
+    let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+    alert.addAction(UIAlertAction(title: FuturesText.text("common_confirm"), style: .default))
+    present(alert, animated: true)
   }
 
   private func confirmClose() {
-    guard let position = reactor.position(for: instrument), presentedViewController == nil else { return }
+    guard !reactor.currentState.submitting, presentedViewController == nil else { return }
+    guard let position = reactor.position(for: instrument) else {
+      showOrderError(FuturesText.text("futures_position_closed"))
+      return
+    }
     // 부분 종료 입력과 실시간 시세를 함께 보여줄 바텀 시트다.
     let controller = FuturesCloseViewController(
       reactor: reactor,
@@ -444,13 +456,180 @@ final class FuturesOrderViewController: MobitBaseViewController {
       captureOrderPrice: { [weak self] in self?.captureOrderPrice?() },
       orderPriceUpdates: orderPriceUpdates
     )
+    controller.tradeCompletedCallBack = { [weak self] in self?.tradeCompletedCallBack?() }
     controller.modalPresentationStyle = .pageSheet
     controller.sheetPresentationController?.detents = [.medium(), .large()]
-    controller.sheetPresentationController?.selectedDetentIdentifier = .medium
+    controller.sheetPresentationController?.selectedDetentIdentifier = .large
     controller.sheetPresentationController?.prefersGrabberVisible = true
     present(controller, animated: true)
   }
 
+}
+
+private final class FuturesHistoryEntryView: UIView {
+  // 체결 방향과 시각은 일반 크기에서 같은 줄에 표시한다.
+  private let headerStack = UIStackView()
+  // 접근성 글자 크기에서는 각 항목을 세로로 전환한다.
+  private var detailRows: [UIStackView] = []
+
+  init(record: FuturesTransactionRecord) throws {
+    super.init(frame: .zero)
+    accessibilityIdentifier = "futuresHistoryEntry.\(record.id)"
+    // 추가 진입도 최초 진입과 같은 문구로 묶고 원본 체결 종류는 보존한다.
+    let isOpening = record.kind == .opening || record.kind == .addition
+    // 체결 방향 대신 포지션의 진입·종료·강제 청산을 제목으로 구분한다.
+    let titleKey: String
+    switch record.kind {
+    case .opening, .addition: titleKey = "futures_history_open"
+    case .closing: titleKey = "futures_history_close"
+    case .liquidation: titleKey = "futures_history_liquidation"
+    }
+    // 롱·숏 방향과 거래 유형을 함께 표시한다.
+    let orderType = FuturesText.label(style: .subheadline)
+    orderType.font = UIFontMetrics(forTextStyle: .subheadline).scaledFont(for: .systemFont(ofSize: 14, weight: .bold))
+    orderType.textColor = .mobitColors(.tradeTextPrimary)
+    // 거래 유형은 테마에 맞는 기본 글자색으로 표시한다.
+    let title = NSMutableAttributedString(
+      string: String(format: FuturesText.text(titleKey), FuturesText.side(record.side)),
+      attributes: [.foregroundColor: UIColor.mobitColors(.tradeTextPrimary)]
+    )
+    // 번역에 따라 방향 단어의 위치가 달라도 롱·숏에만 강조색을 적용한다.
+    let directionRange = (title.string as NSString).range(of: FuturesText.side(record.side))
+    if directionRange.location != NSNotFound {
+      title.addAttribute(
+        .foregroundColor,
+        value: record.side == .long ? MarketColorPalette.riseColor : MarketColorPalette.fallColor,
+        range: directionRange
+      )
+    }
+    orderType.attributedText = title
+    orderType.accessibilityIdentifier = "futuresHistory.orderType"
+    orderType.setContentHuggingPriority(.required, for: .horizontal)
+    orderType.setContentCompressionResistancePriority(.required, for: .horizontal)
+    // 정산 저장 시각 대신 기존 체결·청산 발생 시각을 유지한다.
+    let date = FuturesText.label(style: .caption2)
+    date.text = FuturesText.occurrenceDate(record)
+    date.font = UIFontMetrics(forTextStyle: .caption2).scaledFont(for: .monospacedDigitSystemFont(ofSize: 11, weight: .regular))
+    date.textColor = .mobitColors(.tradeTextSecondary)
+    date.textAlignment = .right
+    date.accessibilityIdentifier = "futuresHistory.date"
+    date.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+    headerStack.addArrangedSubview(orderType)
+    headerStack.addArrangedSubview(date)
+    // 가격과 금액은 기록된 결제 통화를 함께 표시한다.
+    let currency = record.instrument.settlementCurrency.rawValue
+    addField(
+      "futures_positions",
+      value: "\(FuturesText.side(record.side)) · \(record.leverage)×",
+      identifier: "position",
+      emphasized: true
+    )
+    addField("futures_history_price", value: "\(FuturesText.number(record.price)) \(currency)", identifier: "price")
+    addField(
+      "futures_history_quantity",
+      value: "\(FuturesText.number(record.quantity)) \(FuturesText.symbol(record.instrument).marketSymbol)",
+      identifier: "quantity"
+    )
+    if isOpening {
+      // 수량 내림이 반영된 실제 체결금액을 원본 Decimal로 계산한다.
+      let tradeAmount = try FuturesDecimal.multiply(record.price, record.quantity)
+      addField(
+        "futures_history_amount",
+        value: "\(FuturesText.number(tradeAmount)) \(currency)",
+        identifier: "amount",
+        emphasized: true
+      )
+    } else {
+      // 종료 내역에는 정산된 실현손익을 부호와 함께 표시한다.
+      let pnl = record.realizedPnL
+      // 손익의 부호는 롱·숏 방향과 별도로 강조한다.
+      let amountLabel = addField(
+        "futures_realized",
+        value: (pnl.map { $0 > 0 ? "+" : "" } ?? "") + "\(FuturesText.number(pnl)) \(currency)",
+        identifier: "amount",
+        emphasized: true
+      )
+      if let pnl {
+        amountLabel.textColor = pnl == 0
+          ? .mobitColors(.tradeTextPrimary)
+          : (pnl > 0 ? MarketColorPalette.riseColor : MarketColorPalette.fallColor)
+      }
+    }
+    if let end = record.intervalEndExclusive, record.kind != .liquidation {
+      addField(
+        "futures_occurrence",
+        value: "~ \(FuturesText.date(Date(timeIntervalSince1970: Double(end) / 1000)))",
+        identifier: "interval"
+      )
+      addField("futures_settled", value: FuturesText.date(record.recordedAt), identifier: "settled")
+    }
+    // 항목명과 오른쪽 값을 일정한 간격으로 묶는다.
+    let detailsStack = UIStackView(arrangedSubviews: detailRows)
+    detailsStack.axis = .vertical
+    detailsStack.spacing = TradeHistoryCellLayout.rowSpacing
+    // 헤더와 본문 사이에만 여유를 주고 셀 높이는 콘텐츠로 결정한다.
+    let content = UIStackView(arrangedSubviews: [headerStack, detailsStack])
+    content.axis = .vertical
+    content.spacing = TradeHistoryCellLayout.headerSpacing
+    addSubview(content)
+    content.snp.makeConstraints {
+      $0.horizontalEdges.equalToSuperview()
+      $0.verticalEdges.equalToSuperview().inset(TradeHistoryCellLayout.verticalPadding)
+    }
+    isAccessibilityElement = true
+    accessibilityLabel = ([orderType.text, date.text].compactMap { $0 } + detailRows.flatMap { row in
+      row.arrangedSubviews.compactMap { ($0 as? UILabel)?.text }
+    }).joined(separator: ", ")
+    updateTextLayout()
+  }
+
+  required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    updateTextLayout()
+  }
+
+  @discardableResult
+  private func addField(
+    _ key: String,
+    value: String,
+    identifier: String,
+    emphasized: Bool = false
+  ) -> UILabel {
+    // 설명은 보조 색상으로 표시해 실제 체결값을 먼저 읽게 한다.
+    let title = FuturesText.label(style: .subheadline)
+    title.text = FuturesText.text(key)
+    title.font = UIFontMetrics(forTextStyle: .subheadline).scaledFont(for: .systemFont(ofSize: 14, weight: .regular))
+    title.textColor = .mobitColors(.tradeTextSecondary)
+    title.accessibilityIdentifier = "futuresHistory.\(identifier)Title"
+    title.setContentHuggingPriority(.required, for: .horizontal)
+    title.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+    // 값은 오른쪽에 정렬하고 긴 숫자는 생략 없이 줄바꿈한다.
+    let valueLabel = FuturesText.label(style: .footnote)
+    valueLabel.text = value
+    valueLabel.font = UIFontMetrics(forTextStyle: .footnote).scaledFont(
+      for: .monospacedDigitSystemFont(ofSize: 13, weight: emphasized ? .semibold : .regular)
+    )
+    valueLabel.textColor = .mobitColors(.tradeTextPrimary)
+    valueLabel.textAlignment = .right
+    valueLabel.accessibilityIdentifier = "futuresHistory.\(identifier)"
+    valueLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+    // 좁은 주문 패널에서도 항목명이 값의 영역을 넘지 않도록 배치한다.
+    let row = UIStackView(arrangedSubviews: [title, valueLabel])
+    detailRows.append(row)
+    return valueLabel
+  }
+
+  private func updateTextLayout() {
+    // 큰 글자에서는 한 항목씩 세로로 읽으며 모든 값을 유지한다.
+    let vertical = traitCollection.preferredContentSizeCategory.isAccessibilityCategory
+    for row in [headerStack] + detailRows {
+      row.axis = vertical ? .vertical : .horizontal
+      row.alignment = vertical ? .fill : .firstBaseline
+      row.spacing = vertical ? 4 : 8
+    }
+  }
 }
 
 private final class FuturesPositionSummaryView: UIView {

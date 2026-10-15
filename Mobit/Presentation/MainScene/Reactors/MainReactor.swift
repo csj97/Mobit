@@ -21,6 +21,10 @@ class MainReactor: Reactor {
   private let mainUseCase: MainUseCase
   private let disposeBag = DisposeBag()
   private let tickerSocketService: TickerSocketServiceProtocol
+  // 목록 요청 제한과 메인의 최대 연속 화면 잠금 시간을 같은 기준으로 사용한다.
+  static let marketRequestTimeout: RxTimeInterval = .seconds(20)
+  // 제한 시간 경계와 늦은 응답을 실제 대기 없이 검증할 수 있게 한다.
+  private let requestScheduler: SchedulerType
   private var isBTCKRWRefreshInFlight = false
   private var nextBTCKRWRefreshAllowedAt = Date.distantPast
   private var isSocketMonitoringEnabled = false
@@ -41,10 +45,12 @@ class MainReactor: Reactor {
   
   init(
     mainUseCase: MainUseCase,
-    tickerSocketService: TickerSocketServiceProtocol = TickerSocketService()
+    tickerSocketService: TickerSocketServiceProtocol = TickerSocketService(),
+    requestScheduler: SchedulerType = MainScheduler.instance
   ) {
 	self.mainUseCase = mainUseCase
     self.tickerSocketService = tickerSocketService
+    self.requestScheduler = requestScheduler
 	
 	UserDataManager.userCryptoListObservable
       .observe(on: MainScheduler.asyncInstance)
@@ -294,7 +300,7 @@ extension MainReactor {
 	return Observable.concat([
 	  .just(.setErrorMessage(message: nil)),
 	  .just(.setLoading(isLoading: true)),
-	  request,
+	  request.timeout(Self.marketRequestTimeout, scheduler: requestScheduler),
 	  .just(.setLoading(isLoading: false))
 	])
 	.catch { error in

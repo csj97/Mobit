@@ -13,6 +13,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   var window: UIWindow?
   var appCoordinator: AppCoordinator?
   private let disposeBag = DisposeBag()
+  // 첫 화면이 깜빡이지 않도록 로컬 준비와 동시에 기다리는 최소 인트로 표시 시간이다.
+  private static let minimumIntroSeconds = 2
   // 인트로가 아니라 메인 화면이 실제 표시됐는지 확인한다.
   private var mainScreenShown = false
   // 청산 정산과 별개로 화면 준비·활성 상태에 맞춰 안내를 표시한다.
@@ -49,7 +51,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 	AppDataManager.shared.refreshCMCData()
 
-	FuturesHistoryCheckService.shared.prepareLaunch().subscribe(
+    Observable.combineLatest(
+      Observable<Int>.timer(.seconds(Self.minimumIntroSeconds), scheduler: MainScheduler.instance),
+      FuturesHistoryCheckService.shared.prepareLaunch()
+    ).take(1).subscribe(
 	  onNext: { [weak self] _ in
 		guard let self else { return }
 		self.window?.rootViewController = navigationController
@@ -81,7 +86,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 	if TradingRules.Futures.HistoryCheck.shouldRefresh(
 	  on: .appForeground,
 	  selectedProduct: ExchangeSelectionStore.currentProduct
-	) { FuturesHistoryCheckService.shared.refresh() }
+	) { FuturesHistoryCheckService.shared.resume() }
 	// Called when the scene has moved from an inactive state to an active state.
 	// Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
   }
@@ -108,6 +113,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 // 청산 저장은 서비스에서 완료하고, 이 객체는 안내의 표시 순서와 수명만 관리한다.
 final class FuturesLiquidationNoticePresenter: NSObject {
+  // 실제 화면에 표시된 뒤 사용자가 안내를 읽을 수 있는 시간이다.
+  private static let displayDuration: TimeInterval = 4
   // 안내를 올릴 Scene의 창이며 창의 수명을 연장하지 않는다.
   private weak var window: UIWindow?
   // 메인 화면·Scene 활성 상태와 현재 선택한 거래 계좌를 함께 확인한다.
@@ -125,6 +132,18 @@ final class FuturesLiquidationNoticePresenter: NSObject {
 	self.window = window
 	self.canShow = canShow
 	super.init()
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(loadingIndicatorVisibilityDidChange(_:)),
+      name: .loadingIndicatorVisibilityDidChange,
+      object: nil
+    )
+  }
+
+  @objc private func loadingIndicatorVisibilityDidChange(_ notification: Notification) {
+    // 다른 Scene의 인디케이터 때문에 이 창의 안내 수명이 바뀌지 않도록 한다.
+    guard let window, let changedWindow = notification.object as? UIWindow, changedWindow === window else { return }
+    showPendingNotices()
   }
 
   func receive(_ positions: [FuturesPosition]) {
@@ -141,9 +160,15 @@ final class FuturesLiquidationNoticePresenter: NSObject {
   }
 
   func showPendingNotices() {
+    guard let window else { return }
+    // 먼저 보이던 안내도 타이머와 함께 보관해 가려진 시간을 표시 시간에 포함하지 않는다.
+    if MobitBaseViewController.isLoadingIndicatorVisible(in: window) {
+      suspend()
+      return
+    }
 	if let index = displayedNoticeIndex, let account = pendingNotices[index].first?.order.account,
 	   !canShow(account) { suspend() }
-	guard let window, banner == nil,
+	guard banner == nil,
 	  let index = pendingNotices.firstIndex(where: { notice in
 		guard let account = notice.first?.order.account else { return false }
 		return canShow(account)
@@ -151,15 +176,7 @@ final class FuturesLiquidationNoticePresenter: NSObject {
 	// 현재 화면에 해당하는 계좌의 안내만 표시한다.
 	let positions = pendingNotices[index]
 	// 사용자에게 아직 전달되지 않은 첫 번째 청산 안내다.
-	let notice = UILabel()
-	notice.numberOfLines = 0
-	notice.font = .preferredFont(forTextStyle: .subheadline)
-	notice.adjustsFontForContentSizeCategory = true
-	notice.textAlignment = .center
-	notice.textColor = .mobitColors(.textPrimary)
-	notice.backgroundColor = .mobitColors(.surfacePrimary)
-	notice.layer.cornerRadius = 12
-	notice.clipsToBounds = true
+	let notice = FuturesLiquidationNoticeView()
 	notice.text = positions.map { position in
 	  String(
 		format: FuturesText.text("futures_liquidation_notice"),
@@ -194,13 +211,13 @@ final class FuturesLiquidationNoticePresenter: NSObject {
 	banner = notice
 	displayedNoticeIndex = index
 	UIAccessibility.post(notification: .announcement, argument: notice.text)
-	// 대기 시간이 아닌 실제 화면에 표시한 시점부터 3초를 센다.
+	// 대기 시간이 아닌 실제 화면에 표시한 시점부터 4초를 센다.
 	let dismiss = DispatchWorkItem { [weak self, weak notice] in
 	  guard let self, let notice, self.banner === notice else { return }
 	  self.dismissNotice()
 	}
 	dismissWorkItem = dismiss
-	DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: dismiss)
+	DispatchQueue.main.asyncAfter(deadline: .now() + Self.displayDuration, execute: dismiss)
   }
 
   @objc func dismissNotice() {
@@ -243,5 +260,63 @@ final class FuturesLiquidationNoticePresenter: NSObject {
 	displayedNoticeIndex = nil
 	notice?.layer.removeAllAnimations()
 	notice?.removeFromSuperview()
+  }
+}
+
+
+// 청산 안내의 여백과 테마별 경계를 표시 수명과 분리한다.
+private final class FuturesLiquidationNoticeView: UILabel {
+  // 여러 줄 안내가 카드 가장자리에 붙지 않도록 확보하는 내부 여백이다.
+  private let contentInsets = UIEdgeInsets(top: 16, left: 18, bottom: 16, right: 18)
+
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    numberOfLines = 0
+    font = .preferredFont(forTextStyle: .subheadline)
+    adjustsFontForContentSizeCategory = true
+    textAlignment = .center
+    textColor = .mobitColors(.textPrimary)
+    backgroundColor = .clear
+    layer.cornerRadius = 16
+    layer.cornerCurve = .continuous
+    layer.borderWidth = 1
+    layer.shadowOffset = CGSize(width: 0, height: 4)
+    layer.shadowRadius = 12
+    updateAppearance()
+  }
+
+  required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+  override func textRect(forBounds bounds: CGRect, limitedToNumberOfLines numberOfLines: Int) -> CGRect {
+    // intrinsic size에도 여백을 반영해 작은 화면과 큰 글씨에서 높이를 자동으로 늘린다.
+    let textBounds = super.textRect(forBounds: bounds.inset(by: contentInsets), limitedToNumberOfLines: numberOfLines)
+    return CGRect(
+      x: textBounds.minX - contentInsets.left,
+      y: textBounds.minY - contentInsets.top,
+      width: textBounds.width + contentInsets.left + contentInsets.right,
+      height: textBounds.height + contentInsets.top + contentInsets.bottom
+    )
+  }
+
+  override func drawText(in rect: CGRect) {
+    super.drawText(in: rect.inset(by: contentInsets))
+  }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius).cgPath
+  }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) { updateAppearance() }
+  }
+
+  private func updateAppearance() {
+    // CALayer의 CGColor는 테마를 자동 갱신하지 않으므로 현재 trait에서 다시 해석한다.
+    layer.backgroundColor = UIColor.mobitColors(.surfaceElevated).resolvedColor(with: traitCollection).cgColor
+    layer.borderColor = UIColor.mobitColors(.accentPrimary).withAlphaComponent(0.65).resolvedColor(with: traitCollection).cgColor
+    layer.shadowColor = UIColor.black.cgColor
+    layer.shadowOpacity = traitCollection.userInterfaceStyle == .dark ? 0.45 : 0.18
   }
 }

@@ -101,7 +101,7 @@ private extension FearGreedInfoViewController {
   func makeTitleLabel(_ text: String) -> UILabel {
     let label = UILabel()
     label.text = text
-    label.font = UIFont(name: "SUIT-Bold", size: 20) ?? .systemFont(ofSize: 20, weight: .bold)
+    label.font = .systemFont(ofSize: 20, weight: .bold)
     label.textColor = .mobitColors(.textPrimary)
     label.numberOfLines = 0
     return label
@@ -110,7 +110,7 @@ private extension FearGreedInfoViewController {
   func makeSectionLabel(_ text: String) -> UILabel {
     let label = UILabel()
     label.text = text
-    label.font = UIFont(name: "SUIT-Bold", size: 16) ?? .systemFont(ofSize: 16, weight: .bold)
+    label.font = .systemFont(ofSize: 16, weight: .bold)
     label.textColor = .mobitColors(.textPrimary)
     return label
   }
@@ -118,7 +118,7 @@ private extension FearGreedInfoViewController {
   func makeBodyLabel(_ text: String) -> UILabel {
     let label = UILabel()
     label.text = text
-    label.font = UIFont(name: "SUIT-Medium", size: 14) ?? .systemFont(ofSize: 14)
+    label.font = .systemFont(ofSize: 14, weight: .medium)
     label.textColor = .mobitColors(.textSecondary)
     label.numberOfLines = 0
     return label
@@ -127,7 +127,7 @@ private extension FearGreedInfoViewController {
   func makeCaptionLabel(_ text: String) -> UILabel {
     let label = UILabel()
     label.text = text
-    label.font = UIFont(name: "SUIT-Medium", size: 12) ?? .systemFont(ofSize: 12)
+    label.font = .systemFont(ofSize: 12, weight: .medium)
     label.textColor = .mobitColors(.textTertiary)
     return label
   }
@@ -147,12 +147,12 @@ private extension FearGreedInfoViewController {
 
     let nameLabel = UILabel()
     nameLabel.text = "\(level.title)  (\(level.range))"
-    nameLabel.font = UIFont(name: "SUIT-Bold", size: 14) ?? .systemFont(ofSize: 14, weight: .bold)
+    nameLabel.font = .systemFont(ofSize: 14, weight: .bold)
     nameLabel.textColor = .mobitColors(.textPrimary)
 
     let descLabel = UILabel()
     descLabel.text = level.summary
-    descLabel.font = UIFont(name: "SUIT-Medium", size: 13) ?? .systemFont(ofSize: 13)
+    descLabel.font = .systemFont(ofSize: 13, weight: .medium)
     descLabel.textColor = .mobitColors(.textSecondary)
     descLabel.numberOfLines = 0
 

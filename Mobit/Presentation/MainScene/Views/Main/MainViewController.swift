@@ -60,6 +60,20 @@ class MainViewController: MobitBaseViewController {
   var disposeBag = DisposeBag()
   var reactor: MainReactor
   private let futuresReactor: FuturesAccountReactor?
+  // 늦게 열린 화면도 현재 경로 상태와 이후 유실 알림을 함께 받는다.
+  private let networkAvailability: Observable<Bool>
+  // 숨겨진 메인 화면의 구독이 다른 탭 위에 로딩을 띄우지 않도록 한다.
+  private var isMainVisible = false
+  // 대기 상한 이후 같은 검증의 이벤트가 화면을 다시 잠그지 않도록 한다.
+  private var loadingIndicatorTimedOut = false
+  // 화면 잠금의 연속 대기 시간을 재설정하지 않고 한 번만 측정한다.
+  private var loadingIndicatorTimeout: Disposable?
+  // 화면 잠금 상한과 취소 시점을 실제 대기 없이 검증할 수 있게 한다.
+  private let loadingIndicatorScheduler: SchedulerType
+  // 같은 보류 결과의 자동 재시도가 오류 안내를 반복하지 않도록 한다.
+  private var lastPresentedDataError: String?
+  // 자동 복구 때 이 화면이 띄운 오류 알럿만 닫는다.
+  private weak var dataErrorAlert: UIAlertController?
   var isSocketUpdating = false
   var prevSortedButton: UIButton?
   let defaultTitles = ["현재가 ↑↓", "전일대비 ↑↓", "거래대금 ↑↓"]
@@ -81,13 +95,21 @@ class MainViewController: MobitBaseViewController {
   
   init(
 	reactor: MainReactor,
-	futuresReactor: FuturesAccountReactor? = nil
+	futuresReactor: FuturesAccountReactor? = nil,
+    networkAvailability: Observable<Bool> = NetworkMonitor.shared.availability,
+    loadingIndicatorScheduler: SchedulerType = MainScheduler.instance
   ) {
 	self.reactor = reactor
 	self.futuresReactor = futuresReactor
+    self.networkAvailability = networkAvailability
+    self.loadingIndicatorScheduler = loadingIndicatorScheduler
 	super.init(nibName: nil, bundle: nil)
   }
   
+  deinit {
+    loadingIndicatorTimeout?.dispose()
+  }
+
   required init?(coder: NSCoder) {
 	fatalError("init(coder:) has not been implemented")
   }
@@ -102,13 +124,13 @@ class MainViewController: MobitBaseViewController {
 
   private let totalBalanceTitleLabel: UILabel = UILabel().then {
 	$0.text = "총 매수"
-	$0.font = UIFont(name: "SUIT-Medium", size: 12)
+	$0.font = .systemFont(ofSize: 12, weight: .medium)
 	$0.textColor = .mobitColors(.textSecondary)
   }
 
   private let totalBalanceLabel: UILabel = UILabel().then {
 	$0.text = "0"
-	$0.font = UIFont(name: "SUIT-SemiBold", size: 12)
+	$0.font = .systemFont(ofSize: 12, weight: .semibold)
 	$0.textColor = .mobitColors(.textPrimary)
 	$0.textAlignment = .right
 	$0.adjustsFontSizeToFitWidth = true
@@ -121,13 +143,13 @@ class MainViewController: MobitBaseViewController {
 
   private let profitLossTitleLabel: UILabel = UILabel().then {
 	$0.text = "평가손익"
-	$0.font = UIFont(name: "SUIT-Medium", size: 12)
+	$0.font = .systemFont(ofSize: 12, weight: .medium)
 	$0.textColor = .mobitColors(.textSecondary)
   }
 
   private let profitLossValueLabel: UILabel = UILabel().then {
 	$0.text = "0"
-	$0.font = UIFont(name: "SUIT-SemiBold", size: 12)
+	$0.font = .systemFont(ofSize: 12, weight: .semibold)
 	$0.textColor = .mobitColors(.textPrimary)
 	$0.textAlignment = .right
 	$0.adjustsFontSizeToFitWidth = true
@@ -136,13 +158,13 @@ class MainViewController: MobitBaseViewController {
 
   private let evaluationPriceTitleLabel: UILabel = UILabel().then {
 	$0.text = "총 평가"
-	$0.font = UIFont(name: "SUIT-Medium", size: 12)
+	$0.font = .systemFont(ofSize: 12, weight: .medium)
 	$0.textColor = .mobitColors(.textSecondary)
   }
 
   private let evaluationPriceValueLabel: UILabel = UILabel().then {
 	$0.text = "0"
-	$0.font = UIFont(name: "SUIT-SemiBold", size: 12)
+	$0.font = .systemFont(ofSize: 12, weight: .semibold)
 	$0.textColor = .mobitColors(.textPrimary)
 	$0.textAlignment = .right
 	$0.adjustsFontSizeToFitWidth = true
@@ -151,13 +173,13 @@ class MainViewController: MobitBaseViewController {
 
   private let profitRateTitleLabel: UILabel = UILabel().then {
 	$0.text = "수익률"
-	$0.font = UIFont(name: "SUIT-Medium", size: 12)
+	$0.font = .systemFont(ofSize: 12, weight: .medium)
 	$0.textColor = .mobitColors(.textSecondary)
   }
 
   private let profitRateValueLabel: UILabel = UILabel().then {
 	$0.text = "0 %"
-	$0.font = UIFont(name: "SUIT-SemiBold", size: 12)
+	$0.font = .systemFont(ofSize: 12, weight: .semibold)
 	$0.textColor = .mobitColors(.textPrimary)
 	$0.textAlignment = .right
 	$0.adjustsFontSizeToFitWidth = true
@@ -221,7 +243,7 @@ class MainViewController: MobitBaseViewController {
   // 현재가 기준 정렬 버튼
   let currentPriceButton: UIButton = UIButton().then {
 	$0.setTitle("현재가↓↑", for: .normal)
-	$0.titleLabel?.font = UIFont(name: "SUIT-SemiBold", size: 12)
+	$0.titleLabel?.font = .systemFont(ofSize: 12, weight: .semibold)
 	$0.setTitleColor(.mobitColors(.textTertiary), for: .normal)
 	$0.setTitleColor(.mobitColors(.accentPrimary), for: .selected)
 	$0.tag = 0
@@ -230,7 +252,7 @@ class MainViewController: MobitBaseViewController {
   // 전일대비
   let previousDayButton: UIButton = UIButton().then {
 	$0.setTitle("전일대비↓↑", for: .normal)
-	$0.titleLabel?.font = UIFont(name: "SUIT-SemiBold", size: 12)
+	$0.titleLabel?.font = .systemFont(ofSize: 12, weight: .semibold)
 	$0.setTitleColor(.mobitColors(.textTertiary), for: .normal)
 	$0.setTitleColor(.mobitColors(.accentPrimary), for: .selected)
 	$0.tag = 1
@@ -239,7 +261,7 @@ class MainViewController: MobitBaseViewController {
   // 거래대금
   let tradingVolumeButton: UIButton = UIButton().then {
 	$0.setTitle("거래대금↓↑", for: .normal)
-	$0.titleLabel?.font = UIFont(name: "SUIT-SemiBold", size: 12)
+	$0.titleLabel?.font = .systemFont(ofSize: 12, weight: .semibold)
 	$0.setTitleColor(.mobitColors(.textTertiary), for: .normal)
 	$0.setTitleColor(.mobitColors(.accentPrimary), for: .selected)
 	$0.tag = 2
@@ -248,11 +270,12 @@ class MainViewController: MobitBaseViewController {
   // 우측 하단 플로팅 버튼: 탭하면 공포·탐욕 지수 바텀시트를 띄운다
   private let fearGreedFloatingButton: UIButton = UIButton().then {
 	$0.backgroundColor = .mobitColors(.surfaceElevated)
-	$0.layer.cornerRadius = 28
+	$0.layer.cornerRadius = TradingControlsLayout.accessorySize / 2
+	$0.accessibilityIdentifier = "fearGreedFloatingButton"
 	// 떠 있는 듯한 입체 음영
 	$0.layer.applyShadow(color: .black, alpha: 0.25, x: 0, y: 4, blur: 12)
 
-	let font = UIFont(name: "SUIT-Bold", size: 12) ?? .systemFont(ofSize: 12, weight: .bold)
+	let font = UIFont.systemFont(ofSize: 12, weight: .bold)
 	let paragraph = NSMutableParagraphStyle()
 	paragraph.alignment = .center
 	// 공포=파랑 / 탐욕=빨강 (앱 관례, 게이지와 동일)
@@ -282,7 +305,7 @@ class MainViewController: MobitBaseViewController {
   
   let noHoldLabel: UILabel = UILabel().then {
 	$0.text = "보유중인 코인이 없습니다."
-	$0.font = UIFont(name: "SUIT-Medium", size: 14)
+	$0.font = .systemFont(ofSize: 14, weight: .medium)
 	$0.textAlignment = .center
 	$0.textColor = .mobitColors(.textPrimary)
   }
@@ -294,7 +317,7 @@ class MainViewController: MobitBaseViewController {
   
   let noFavoriteLabel: UILabel = UILabel().then {
 	$0.text = "즐겨찾기 설정된 코인이 없습니다."
-	$0.font = UIFont(name: "SUIT-Medium", size: 14)
+	$0.font = .systemFont(ofSize: 14, weight: .medium)
 	$0.textAlignment = .center
 	$0.textColor = .mobitColors(.textPrimary)
   }
@@ -307,6 +330,9 @@ class MainViewController: MobitBaseViewController {
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
+    isMainVisible = true
+    resetLoadingIndicatorWait()
+    updateLoadingIndicator()
 	
 	// 필요할 때 주석 해제 후, 배포
 	// self.reactor.action.onNext(.checkNewVersion)
@@ -320,8 +346,6 @@ class MainViewController: MobitBaseViewController {
   override func viewDidLoad() {
 	super.viewDidLoad()
 	self.view.backgroundColor = .mobitColors(.backgroundPrimary)
-	
-	self.checkNetworkStatus()
 	
 	// DiffableDataSource 사용을 위해 Hashable하게 데이터 모델이 수정됨에 따라 데이터 안정화를 위한 덮어쓰기 (구버전 사용자 에러 방지)
 	let list = UserDataManager.userCryptoList
@@ -337,9 +361,9 @@ class MainViewController: MobitBaseViewController {
 	self.setUpFlexItems()
 	self.setFearGreedFloatingButton()
 
-	self.showLoadingIndicator()
-	
 	self.bind(reactor: self.reactor)
+    // 이미 오프라인이면 준비한 콘텐츠 위에 유실 안내를 올린다.
+    self.checkNetworkStatus()
 
 	// 공포·탐욕 지수는 하루 단위 갱신이므로 진입 시 1회만 조회
 	self.reactor.action.onNext(.loadFearGreedIndex)
@@ -347,12 +371,20 @@ class MainViewController: MobitBaseViewController {
 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    updateLoadingIndicator()
     self.requestMainNativeAdIfNeeded()
     if !reactor.currentState.totalCryptoList.isEmpty {
       presentLegacyBTCSettlementAlertIfNeeded()
     }
   }
   
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    isMainVisible = false
+    stopLoadingIndicatorWait()
+    hideLoadingIndicator()
+  }
+
   override func viewDidLayoutSubviews() {
 	super.viewDidLayoutSubviews()
 	
@@ -426,7 +458,7 @@ class MainViewController: MobitBaseViewController {
 	contentStack.snp.makeConstraints { make in
 	  make.top.equalToSuperview().offset(10)
 	  make.leading.equalToSuperview().inset(14)
-	  // FlexLayout이 폭을 정하기 전(초기 width 0) 순간 충돌 로그를 피하려 trailing만 양보 가능하게 둔다.
+	  // FlexLayout이 초기 폭을 정하기 전의 순간 충돌을 피한다.
 	  make.trailing.equalToSuperview().inset(14).priority(999)
 	  make.bottom.equalToSuperview().offset(-10)
 	}
@@ -554,8 +586,8 @@ class MainViewController: MobitBaseViewController {
 
   // 금액 뒤에 작은 '원' 단위를 붙인다. 숫자는 라벨 기본 색/폰트 유지, '원'만 작게 회색 처리
   private func attributedKRWAmount(_ amountText: String) -> NSAttributedString {
-	let numberFont = UIFont(name: "SUIT-SemiBold", size: 12) ?? .systemFont(ofSize: 12, weight: .semibold)
-	let unitFont = UIFont(name: "SUIT-Medium", size: 9) ?? .systemFont(ofSize: 9)
+	let numberFont = UIFont.systemFont(ofSize: 12, weight: .semibold)
+	let unitFont = UIFont.systemFont(ofSize: 9, weight: .medium)
 	let result = NSMutableAttributedString(string: amountText, attributes: [.font: numberFont])
 	result.append(NSAttributedString(
 	  string: " 원",
@@ -889,10 +921,10 @@ class MainViewController: MobitBaseViewController {
   private func setFearGreedFloatingButton() {
 	self.view.addSubview(self.fearGreedFloatingButton)
 	self.fearGreedFloatingButton.snp.makeConstraints { make in
-	  make.trailing.equalTo(self.view.safeAreaLayoutGuide).offset(-16)
+	  make.trailing.equalTo(self.view.safeAreaLayoutGuide).offset(-TradingControlsLayout.horizontalInset)
 	  // 하단 탭바(65pt) 위에 띄운다
 	  make.bottom.equalTo(self.view.safeAreaLayoutGuide).offset(-(CGFloat(65) + 16))
-	  make.width.height.equalTo(56)
+	  make.width.height.equalTo(TradingControlsLayout.accessorySize)
 	}
 	self.fearGreedFloatingButton.addTarget(
 	  self, action: #selector(didTapFearGreedButton), for: .touchUpInside
@@ -1236,32 +1268,30 @@ extension MainViewController: View {
 	  })
 	  .disposed(by: self.disposeBag)
 	
-	reactor.state
-	  .map { $0.isLoading }
-	  .distinctUntilChanged()
-	  .observe(on: MainScheduler.instance)
-	  .subscribe(onNext: { [weak self] isLoading in
-		guard let self = self else { return }
-		isLoading ? self.showLoadingIndicator() : self.hideLoadingIndicator()
-	  })
-	  .disposed(by: self.disposeBag)
-	
-	reactor.state
-	  .map { $0.errorMessage }
-	  .distinctUntilChanged { $0 == $1 }
-	  .compactMap { $0 }
-	  .observe(on: MainScheduler.instance)
-	  .subscribe(onNext: { [weak self] message in
-		guard let self = self else { return }
-		self.show(
-		  alertType: .onlyConfirm,
-		  title: "안내",
-		  content: message,
-		  callBack: nil
-		)
-		self.reactor.action.onNext(.clearErrorMessage)
-	  })
-	  .disposed(by: self.disposeBag)
+    // 상태 캐시가 반영된 다음 두 조회의 진행 여부를 함께 판단한다.
+    Observable.merge(
+      reactor.state.map { _ in () },
+      futuresReactor?.state.map { _ in () } ?? .empty()
+    )
+      .observe(on: MainScheduler.asyncInstance)
+      .subscribe(onNext: { [weak self] in self?.updateLoadingIndicator() })
+      .disposed(by: disposeBag)
+
+    NotificationCenter.default.rx.notification(UIApplication.willResignActiveNotification)
+      .observe(on: MainScheduler.instance)
+      .subscribe(onNext: { [weak self] _ in
+        // 실제 applicationState 전환 전 도착한 상태 이벤트도 표시를 재개하지 못하게 한다.
+        self?.loadingIndicatorTimedOut = true
+        self?.stopLoadingIndicatorWait()
+        self?.hideLoadingIndicator()
+      })
+      .disposed(by: disposeBag)
+    NotificationCenter.default.rx.notification(UIApplication.didBecomeActiveNotification)
+      .observe(on: MainScheduler.asyncInstance)
+      .subscribe(onNext: { [weak self] _ in
+        self?.resetLoadingIndicatorWait()
+        self?.updateLoadingIndicator()
+      }).disposed(by: disposeBag)
 
 	reactor.state
 	  .map { $0.userCryptos }
@@ -1285,14 +1315,14 @@ extension MainViewController: View {
         case .idle:
           break
         case .loading:
-          self.showLoadingIndicator()
+          self.updateLoadingIndicator()
         case .completed:
-          self.hideLoadingIndicator()
+          self.updateLoadingIndicator()
           self.reactor.action.onNext(.loadUserCryptos)
           self.updatePortfolioSummary()
           if self.selectedTab == .hold { self.refreshDisplayedList() }
         case .failed(let message):
-          self.hideLoadingIndicator()
+          self.updateLoadingIndicator()
           self.show(
             alertType: .onlyConfirm,
             title: "안내",
@@ -1319,7 +1349,104 @@ extension MainViewController: View {
 	  })
 	  .disposed(by: self.disposeBag)
   }
-  
+
+  private func updateLoadingIndicator() {
+    // 하나의 요청이 실패하면 전체 화면 잠금보다 오류·재시도 안내를 우선한다.
+    let errorMessage = reactor.currentState.errorMessage != nil ? FuturesText.text("market_data_error")
+      : futuresReactor.flatMap { reactor -> String? in
+        guard reactor.needsDataRetry else { return nil }
+        if reactor.currentState.loadFailed || reactor.currentState.dataFailure?.hold == .storageFailed {
+          return FuturesText.text("futures_storage_error")
+        }
+        if case .storageFailed = reactor.currentState.status { return FuturesText.text("futures_storage_error") }
+        return FuturesText.text("futures_data_held")
+      }
+    if let alert = dataErrorAlert, alert.message != errorMessage || networkLostView != nil {
+      // 표시 전환 중의 닫기는 UIKit이 무시할 수 있어 표시 완료에서 다시 확인한다.
+      guard !alert.isBeingPresented, !alert.isBeingDismissed else { return }
+      if alert.presentingViewController != nil {
+        alert.dismiss(animated: false) { [weak self, weak alert] in
+          guard let self else { return }
+          if self.dataErrorAlert === alert { self.dataErrorAlert = nil }
+          self.updateLoadingIndicator()
+        }
+        return
+      }
+      dataErrorAlert = nil
+    }
+    // 복귀 검증은 공통 탭 컨테이너가 표시하고 메인은 최초 빈 목록 조회만 담당한다.
+    let updating = reactor.currentState.isLoading && reactor.currentState.totalCryptoList.isEmpty
+    if !updating { resetLoadingIndicatorWait() }
+    guard isMainVisible else { return }
+    guard viewIfLoaded?.window != nil,
+      UIApplication.shared.applicationState == .active, networkLostView == nil else {
+      stopLoadingIndicatorWait()
+      hideLoadingIndicator()
+      return
+    }
+    if errorMessage != nil {
+      coordinator?.finishForegroundIndicator()
+    }
+    if reactor.currentState.legacyBTCSettlementState == .loading {
+      stopLoadingIndicatorWait()
+      showLoadingIndicator()
+    } else if updating && errorMessage == nil && !loadingIndicatorTimedOut && lastPresentedDataError == nil {
+      showLoadingIndicator()
+      if loadingIndicatorTimeout == nil {
+        loadingIndicatorTimeout = Observable<Int>.timer(
+          MainReactor.marketRequestTimeout,
+          scheduler: loadingIndicatorScheduler
+        )
+          .observe(on: MainScheduler.instance)
+          .subscribe(onNext: { [weak self] _ in
+            self?.loadingIndicatorTimedOut = true
+            self?.updateLoadingIndicator()
+          })
+      }
+    } else {
+      stopLoadingIndicatorWait()
+      hideLoadingIndicator()
+    }
+    guard let errorMessage else {
+      lastPresentedDataError = nil
+      return
+    }
+    guard presentedViewController == nil,
+      reactor.currentState.legacyBTCSettlementState != .loading else { return }
+    if reactor.currentState.errorMessage != nil {
+      guard errorMessage != lastPresentedDataError else { return }
+    } else {
+      guard futuresReactor?.claimDataFailureNotice() == true else { return }
+    }
+    lastPresentedDataError = errorMessage
+    // 요약 아래 상태 행 대신 실패 시에만 표시하는 재시도 안내다.
+    let alert = UIAlertController(title: nil, message: errorMessage, preferredStyle: .alert)
+    dataErrorAlert = alert
+    alert.view.accessibilityIdentifier = "main.data.error"
+    alert.addAction(UIAlertAction(title: FuturesText.text("common_confirm"), style: .cancel))
+    alert.addAction(UIAlertAction(title: FuturesText.text("data_retry"), style: .default) { [weak self] _ in
+      self?.retryMainData()
+    })
+    present(alert, animated: true) { [weak self] in self?.updateLoadingIndicator() }
+  }
+
+  private func stopLoadingIndicatorWait() {
+    loadingIndicatorTimeout?.dispose()
+    loadingIndicatorTimeout = nil
+  }
+
+  private func resetLoadingIndicatorWait() {
+    stopLoadingIndicatorWait()
+    loadingIndicatorTimedOut = false
+  }
+
+  func retryMainData() {
+    resetLoadingIndicatorWait()
+    lastPresentedDataError = nil
+    if reactor.currentState.errorMessage != nil { reactor.action.onNext(.loadCryptoList) }
+    if futuresReactor?.hasVerificationFailure == true { futuresReactor?.action.onNext(.reload) }
+  }
+
   /// 현재 탭 + 검색어에 따라 리스트 필터링
   private func filterListForCurrentTab(totalList: [CryptoCellInfo]) -> [CryptoCellInfo] {
 	let searchText = self.searchBar.text?.lowercased() ?? ""
@@ -1680,7 +1807,8 @@ extension MainViewController: SocketControllable {
   }
   
   func resumeSocket() {
-    self.reactor.action.onNext(.resumeSocket)
+    // 비활성 중 연결이 복구됐어도 실제 복귀 시 실패한 초기 목록을 다시 준비한다.
+    self.reactor.action.onNext(reactor.currentState.totalCryptoList.isEmpty || reactor.currentState.errorMessage != nil ? .loadCryptoList : .resumeSocket)
   }
 }
 
@@ -1713,28 +1841,29 @@ extension MainViewController: AdLoaderDelegate, NativeAdLoaderDelegate, NativeAd
 extension MainViewController {
   
   func checkNetworkStatus() {
-	NotificationCenter.default.addObserver(
-	  self,
-	  selector: #selector(networkStatusChanged(_:)),
-	  name: .networkStatusChanged,
-	  object: nil
-	)
+    networkAvailability.distinctUntilChanged().observe(on: MainScheduler.instance)
+      .subscribe(onNext: { [weak self] isConnected in
+        guard let self else { return }
+        if !isConnected {
+          self.showNetworkLostView()
+          self.stopLoadingIndicatorWait()
+          self.hideLoadingIndicator()
+          if let alert = self.presentedViewController as? UIAlertController,
+            alert.view.accessibilityIdentifier == "main.data.error" {
+            alert.dismiss(animated: false)
+          }
+        } else {
+          // 초기 실패한 목록도 재연결 때 다시 읽고 기존 목록은 소켓 연결을 복구한다.
+          self.hideNetworkLostView()
+          self.resetLoadingIndicatorWait()
+          self.updateLoadingIndicator()
+          if self.view.window != nil && UIApplication.shared.applicationState == .active {
+            self.reactor.action.onNext(self.reactor.currentState.totalCryptoList.isEmpty || self.reactor.currentState.errorMessage != nil ? .loadCryptoList : .resumeSocket)
+          }
+        }
+      }).disposed(by: disposeBag)
   }
-  
-  /// 네트워크 상태 점검
-  @objc private func networkStatusChanged(_ notification: Notification) {
-	guard let userInfo = notification.userInfo,
-		  let isConnected = userInfo["isConnected"] as? Bool else { return }
-	
-	if !isConnected {
-	  // 네트워크 완전 유실 상태
-	  showNetworkLostView()
-	} else {
-	  // 네트워크 복구됨
-	  hideNetworkLostView()
-	}
-  }
-  
+
   /// 네트워크 유실 화면 노출
   private func showNetworkLostView() {
 	

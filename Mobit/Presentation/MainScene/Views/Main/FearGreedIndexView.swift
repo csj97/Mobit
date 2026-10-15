@@ -18,7 +18,7 @@ final class FearGreedIndexView: UIView {
 
   private let titleLabel = UILabel().then {
     $0.text = "시장 공포·탐욕 지수"
-    $0.font = UIFont(name: "SUIT-SemiBold", size: 15) ?? .systemFont(ofSize: 15, weight: .semibold)
+    $0.font = .systemFont(ofSize: 15, weight: .semibold)
     $0.textColor = .mobitColors(.textPrimary)
   }
 
@@ -34,7 +34,7 @@ final class FearGreedIndexView: UIView {
   }
 
   private let badgeLabel = UILabel().then {
-    $0.font = UIFont(name: "SUIT-Bold", size: 13) ?? .systemFont(ofSize: 13, weight: .bold)
+    $0.font = .systemFont(ofSize: 13, weight: .bold)
     $0.textColor = .white
     $0.textAlignment = .center
   }
@@ -147,7 +147,7 @@ final class FearGreedIndexView: UIView {
   private static func captionLabel(text: String) -> UILabel {
     let label = UILabel()
     label.text = text
-    label.font = UIFont(name: "SUIT-Medium", size: 11) ?? .systemFont(ofSize: 11, weight: .medium)
+    label.font = .systemFont(ofSize: 11, weight: .medium)
     label.textColor = .mobitColors(.textTertiary)
     return label
   }

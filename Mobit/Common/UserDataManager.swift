@@ -608,6 +608,14 @@ class UserDataManager: NSObject {
     }
   }
 
+  // 미충전 계좌의 0원과 저장 실패를 구분해 계좌 목록에 잘못된 잔고를 표시하지 않는다.
+  static func getAvailableBalance(for exchange: Exchange) throws -> Double {
+    try synchronized {
+      guard let store = userInformationStore else { throw InvestmentStateError.invalidStoredData }
+      return store[exchange.rawValue]?.userAvailableBalance ?? TradingRules.Funding.unfundedAccountBalance
+    }
+  }
+
   static func updateUserInformation(_ information: MobitUserInformation, for exchange: Exchange) {
     synchronized {
       guard var store = userInformationStore else { return }

@@ -37,6 +37,10 @@ class TradeOrderView: UIView, ViewRule {
   var askView: TradeAskView? = nil
   var historyView: TradeHistoryView? = nil
   private weak var futuresOrderController: FuturesOrderViewController?
+  // XIB에서 현물 주문 폼과 보유자산을 함께 감싸는 스크롤 영역이다.
+  @IBOutlet private weak var spotOrderScrollView: UIScrollView!
+  // 자체 스크롤을 가진 선물 주문 화면을 현물 스크롤과 분리해 배치한다.
+  @IBOutlet private weak var futuresOrderContainerView: UIView!
   
   private let cellIndentifier = "OrderBookCell"
   private var askMaxSize: Double? = 0
@@ -96,10 +100,11 @@ class TradeOrderView: UIView, ViewRule {
 	guard let reactor = self.reactor else { return }
 	self.applyThemeColors()
     if let controller = futuresOrderController {
-      segmentedContainerStackView.addArrangedSubview(controller.view)
+      spotOrderScrollView.isHidden = true
+      futuresOrderContainerView.isHidden = false
+      futuresOrderContainerView.addSubview(controller.view)
+      controller.view.snp.makeConstraints { $0.edges.equalToSuperview() }
       investLiveView.isHidden = true
-      // 스크롤 주문 영역은 intrinsic height가 없어 하단까지 명시적으로 채운다.
-      segmentedContainerStackView.superview?.snp.makeConstraints { $0.bottom.equalTo(segmentedContainerView) }
       segmentedControl.segments = ["futures_long", "futures_short", "futures_history"].map(FuturesText.text)
       segmentedControl.onSegmentChanged = { [weak controller] index in controller?.selectTab(index) }
       segmentedControl.selectedIndex = 0
@@ -156,9 +161,12 @@ class TradeOrderView: UIView, ViewRule {
 	  case .alert(let title, let message):
 		MobitAnalyticsUtil.sendClickEvent(event: .trade_order_buy_fail)
 		self.callBack?(.alert(title: title, message: message))
-	  case .successLottie:
+	  case .settlementRateUnavailable:
+		// BTC 환산 시세 실패도 상위 화면의 확인·재조회 알럿으로 전달한다.
+		self.callBack?(.settlementRateUnavailable)
+	  case .tradeCompleted:
 		MobitAnalyticsUtil.sendClickEvent(event: .trade_order_buy_complete)
-		self.callBack?(.successLottie)
+		self.callBack?(.tradeCompleted)
 	  default:
 		break
 	  }
@@ -175,9 +183,12 @@ class TradeOrderView: UIView, ViewRule {
 	  case .alert(let title, let message):
 		MobitAnalyticsUtil.sendClickEvent(event: .trade_order_sell_fail)
 		self.callBack?(.alert(title: title, message: message))
-	  case .successLottie:
+	  case .settlementRateUnavailable:
+		// BTC 환산 시세 실패도 상위 화면의 확인·재조회 알럿으로 전달한다.
+		self.callBack?(.settlementRateUnavailable)
+	  case .tradeCompleted:
 		MobitAnalyticsUtil.sendClickEvent(event: .trade_order_sell_complete)
-		self.callBack?(.successLottie)
+		self.callBack?(.tradeCompleted)
 	  default:
 		break
 	  }
@@ -188,13 +199,17 @@ class TradeOrderView: UIView, ViewRule {
 	self.segmentedContainerStackView.addArrangedSubview(bidView)
 	self.segmentedContainerStackView.addArrangedSubview(askView)
 	self.segmentedContainerStackView.addArrangedSubview(historyView)
+	configureSpotOrderScrollView()
 	
 	bidView.isHidden = true
 	askView.isHidden = true
 	historyView.isHidden = true
 	
 	self.segmentedControl.segments = ["매수", "매도", "거래내역"]
-	self.segmentedControl.onSegmentChanged = { index in
+	self.segmentedControl.onSegmentChanged = { [weak self] index in
+      guard let self else { return }
+      self.endEditing(true)
+      self.spotOrderScrollView?.setContentOffset(.zero, animated: false)
 	  switch index {
 	  case 0:
 		bidView.isHidden = false
@@ -225,6 +240,36 @@ class TradeOrderView: UIView, ViewRule {
 	self.orderbookTableView.backgroundColor = .clear
 	self.segmentedControl.selectedIndex = 0
 	self.segmentedControl.onSegmentChanged?(0)
+  }
+
+  private func configureSpotOrderScrollView() {
+    // 기본 레이아웃은 XIB에 두고 시스템 키보드 경계만 코드에서 연결한다.
+    spotOrderScrollView.snp.makeConstraints {
+      $0.bottom.lessThanOrEqualTo(keyboardLayoutGuide.snp.top)
+    }
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(revealSpotOrderInput),
+      name: UITextField.textDidBeginEditingNotification,
+      object: nil
+    )
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(revealSpotOrderInput),
+      name: UIResponder.keyboardDidChangeFrameNotification,
+      object: nil
+    )
+  }
+
+  @objc private func revealSpotOrderInput() {
+    // 다른 화면의 입력 이벤트는 무시하고 현재 편집하는 입력란만 보이게 이동한다.
+    guard let scroll = spotOrderScrollView,
+          let field = [bidView?.inputTradeAmount, bidView?.totalPriceTextField,
+                       askView?.inputTradeAmount, askView?.totalPriceTextField]
+            .compactMap({ $0 }).first(where: { $0.isFirstResponder }),
+          field.isDescendant(of: scroll) else { return }
+    layoutIfNeeded()
+    scroll.scrollRectToVisible(field.convert(field.bounds, to: scroll).insetBy(dx: 0, dy: -8), animated: false)
   }
 
   

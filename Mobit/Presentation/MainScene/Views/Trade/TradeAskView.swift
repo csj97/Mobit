@@ -264,12 +264,6 @@ class TradeAskView: UIView, ViewRule {
 
   @IBAction func tapOnAskButton(_ sender: UIButton) {
 	guard !isOrderSubmissionLocked else { return }
-	isOrderSubmissionLocked = true
-	updateOrderValidationState()
-	DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-	  self?.isOrderSubmissionLocked = false
-	  self?.updateOrderValidationState()
-	}
 	self.endEditing(true)
 
 	let vibrator = UIImpactFeedbackGenerator(style: .medium)
@@ -281,14 +275,17 @@ class TradeAskView: UIView, ViewRule {
               fromDisplayMarket: $0.selectCrypto.market,
               exchange: $0.exchange
             )
-          }),
-		  let crypto = UserDataManager.userCryptoList?.compactMap({ $0 }).first(
-			where: { $0.staticData.exchangePairID == targetPairID }
-		  )
+          })
 	else {
-	  self.callBack?(.alert(title: "알림", message: TradeOrderValidator.ValidationError.missingPrice.message))
+	  self.callBack?(.alert(title: FuturesText.text("common_notice"), message: TradeOrderValidator.ValidationError.missingPrice.message))
 	  return
 	}
+
+    // 보유분이 사라진 경우는 시세 오류와 구분해 사용자가 수량을 확인하도록 안내한다.
+    guard let crypto = UserDataManager.userCryptoList?.first(where: { $0.staticData.exchangePairID == targetPairID }) else {
+      callBack?(.alert(title: FuturesText.text("common_notice"), message: TradeOrderValidator.ValidationError.insufficientHolding.message))
+      return
+    }
 
 	let validation = TradeOrderValidator.validateAsk(
 	  price: currentPrice,
@@ -299,11 +296,12 @@ class TradeAskView: UIView, ViewRule {
 
 	guard case .success = validation else {
 	  if case .failure(let error) = validation {
-		self.callBack?(.alert(title: "알림", message: error.message))
+		self.callBack?(.alert(title: FuturesText.text("common_notice"), message: error.message))
 	  }
 	  return
 	}
 
+    lockOrderSubmission()
 	let result = TradeOrderService.executeAsk(
 	  marketName: crypto.staticData.marketName,
       currentPrice: currentPrice,
@@ -314,7 +312,7 @@ class TradeAskView: UIView, ViewRule {
 
 	switch result {
 	case .success:
-	  self.callBack?(.successLottie)
+	  self.callBack?(.tradeCompleted)
 	  self.initTextFieldValue()
 	  self.currentInvestData = UserDataManager.userCryptoList?.first(where: {
 		$0.staticData.exchangePairID == targetPairID
@@ -325,7 +323,7 @@ class TradeAskView: UIView, ViewRule {
 	  if error == .missingSettlementRate {
 		self.callBack?(.settlementRateUnavailable)
 	  } else {
-		self.callBack?(.alert(title: "알림", message: error.message))
+		self.callBack?(.alert(title: FuturesText.text("common_notice"), message: error.message))
 	  }
 	}
   }
@@ -346,45 +344,21 @@ class TradeAskView: UIView, ViewRule {
 	}
   }
 
-  private func updateOrderValidationState() {
-	guard !isOrderSubmissionLocked else {
-	  applyOrderButtonState(isEnabled: false, notice: defaultOrderNotice, isError: false)
-	  return
-	}
-	guard inputAmount > 0 else {
-	  applyOrderButtonState(isEnabled: false, notice: defaultOrderNotice, isError: false)
-	  return
-	}
-
-	let validation = TradeOrderValidator.validateAsk(
-	  price: cryptoInfo?.tradePrice?.formatDigits(digits: 8),
-	  quantity: inputAmount,
-	  holdingQuantity: currentInvestData?.staticData.holdingQuantity ?? 0,
-	  currency: self.settlementCurrency
-	)
-
-	switch validation {
-	case .success:
-	  if settlementCurrency == .btc,
-         reactor.map({ AppDataManager.shared.freshBTCKRWPrice(for: $0.exchange) }) == nil {
-		applyOrderButtonState(
-		  isEnabled: true,
-		  notice: TradeOrderValidator.ValidationError.missingSettlementRate.message,
-		  isError: true
-		)
-	  } else {
-		applyOrderButtonState(isEnabled: true, notice: defaultOrderNotice, isError: false)
-	  }
-	case .failure(let error):
-	  applyOrderButtonState(isEnabled: false, notice: error.message, isError: true)
-	}
+  private func lockOrderSubmission() {
+    isOrderSubmissionLocked = true
+    updateOrderValidationState()
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+      self?.isOrderSubmissionLocked = false
+      self?.updateOrderValidationState()
+    }
   }
 
-  private func applyOrderButtonState(isEnabled: Bool, notice: String, isError: Bool) {
-	orderButton?.isEnabled = isEnabled
-	orderButton?.alpha = isEnabled ? 1 : 0.45
-	orderNoticeLabel?.text = notice
-	orderNoticeLabel?.textColor = isError ? MarketColorPalette.fallColor : .mobitColors(.accentPrimary)
+  private func updateOrderValidationState() {
+    // 입력·잔액·시세 오류는 탭 시 안내하고 실제 주문의 중복 제출만 막는다.
+    if orderButton?.isEnabled != !isOrderSubmissionLocked { orderButton?.isEnabled = !isOrderSubmissionLocked }
+    orderButton?.alpha = isOrderSubmissionLocked ? 0.45 : 1
+    orderNoticeLabel?.text = defaultOrderNotice
+    orderNoticeLabel?.textColor = .mobitColors(.accentPrimary)
   }
 
   func bind(reactor: TradeReactor) {
@@ -413,7 +387,7 @@ class TradeAskView: UIView, ViewRule {
 	  })
 	  .disposed(by: self.disposeBag)
 
-	// BTC/KRW 시세가 뒤늦게 도착하면 잠겨 있던 주문 버튼을 풀어야 한다.
+	// 시세 갱신에도 제출 중 중복 방지 상태를 유지한다.
 	reactor.state.map { $0.settlementRatePrice }
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)

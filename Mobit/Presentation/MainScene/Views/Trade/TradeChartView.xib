@@ -19,34 +19,34 @@
                     <rect key="frame" x="0.0" y="118" width="393" height="666"/>
                     <subviews>
                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="SyQ-yP-M9M">
-                            <rect key="frame" x="0.0" y="0.0" width="393" height="108"/>
+                            <rect key="frame" x="0.0" y="0.0" width="393" height="106.66666666666667"/>
                             <subviews>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="차트 설정" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="u4u-6t-dtv">
-                                    <rect key="frame" x="20" y="14" width="60" height="18"/>
+                                    <rect key="frame" x="19.999999999999996" y="14" width="55.666666666666657" height="18"/>
                                     <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                     <color key="textColor" name="trade_text_primary"/>
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="여기서 선택한 차트 설정은 앱을 종료했다가 다시 들어와도 그대로 유지돼요." lineBreakMode="wordWrap" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="S3G-JQ-zHe">
-                                    <rect key="frame" x="20" y="36" width="353" height="30"/>
+                                    <rect key="frame" x="20" y="36" width="353" height="28.666666666666671"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                     <color key="textColor" name="trade_text_secondary"/>
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="7P6-nB-b5r">
-                                    <rect key="frame" x="20" y="74" width="353" height="20"/>
+                                    <rect key="frame" x="20" y="72.666666666666657" width="353" height="20"/>
                                     <subviews>
                                         <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="Cz2-ng-KgL">
                                             <rect key="frame" x="0.0" y="0.0" width="353" height="20"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="간격" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="NOg-xX-03U">
-                                                    <rect key="frame" x="0.0" y="1" width="26" height="17"/>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" horizontalCompressionResistancePriority="751" text="간격" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="NOg-xX-03U">
+                                                    <rect key="frame" x="0.0" y="1.6666666666666856" width="24.333333333333332" height="17"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                                     <color key="textColor" name="trade_text_primary"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <segmentedControl opaque="NO" contentMode="scaleToFill" selectedSegmentIndex="1" translatesAutoresizingMaskIntoConstraints="NO" id="lXZ-QQ-p27">
-                                                    <rect key="frame" x="38" y="0.0" width="164" height="20"/>
+                                                    <rect key="frame" x="36.333333333333343" y="0.0" width="316.66666666666663" height="21"/>
                                                     <segments>
                                                         <segment title="15m"/>
                                                         <segment title="1h"/>
@@ -81,10 +81,10 @@
                             </constraints>
                         </view>
                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="pA0-hL-ZvP" userLabel="Chart ContainerView">
-                            <rect key="frame" x="0.0" y="0.0" width="393" height="666"/>
+                            <rect key="frame" x="0.0" y="106.66666666666669" width="393" height="559.33333333333326"/>
                             <subviews>
                                 <wkWebView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="cdq-g9-sAC">
-                                    <rect key="frame" x="0.0" y="0.0" width="393" height="666"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="393" height="559.33333333333337"/>
                                     <color key="backgroundColor" name="chart_background"/>
                                     <wkWebViewConfiguration key="configuration">
                                         <audiovisualMediaTypes key="mediaTypesRequiringUserActionForPlayback" none="YES"/>
@@ -92,7 +92,7 @@
                                     </wkWebViewConfiguration>
                                 </wkWebView>
                                 <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="drx-qS-2eg">
-                                    <rect key="frame" x="0.0" y="0.0" width="393" height="666"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="393" height="559.33333333333337"/>
                                     <color key="backgroundColor" name="trade_background"/>
                                 </view>
                             </subviews>

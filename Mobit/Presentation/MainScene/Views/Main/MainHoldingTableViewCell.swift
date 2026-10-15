@@ -23,12 +23,12 @@ final class MainHoldingTableViewCell: UITableViewCell {
 	$0.textColor = .mobitColors(.textTertiary)
   }
 
-  private let evaluationPriceLabel = valueLabel(size: 12, weight: .medium)
+  private let evaluationPriceLabel = valueLabel(size: 12, weight: .semibold)
   private let holdingQuantityLabel = subLabel()
 
-  private let averageBuyPriceLabel = valueLabel(size: 11, weight: .medium)
+  private let averageBuyPriceLabel = valueLabel(size: 11, weight: .semibold)
 
-  private let profitRateLabel = valueLabel(size: 12, weight: .medium)
+  private let profitRateLabel = valueLabel(size: 12, weight: .semibold)
   private let profitLossLabel = subLabel()
 
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -135,7 +135,7 @@ final class MainHoldingTableViewCell: UITableViewCell {
 
   private static func valueLabel(size: CGFloat, weight: UIFont.Weight) -> UILabel {
     let label = UILabel()
-    label.font = UIFont(name: "SUIT-SemiBold", size: size) ?? .systemFont(ofSize: size, weight: weight)
+    label.font = .systemFont(ofSize: size, weight: weight)
     label.textColor = .mobitColors(.textPrimary)
     label.textAlignment = .right
     label.adjustsFontSizeToFitWidth = true
@@ -145,7 +145,7 @@ final class MainHoldingTableViewCell: UITableViewCell {
 
   private static func subLabel() -> UILabel {
     let label = UILabel()
-    label.font = UIFont(name: "SUIT-Medium", size: 11) ?? .systemFont(ofSize: 11)
+    label.font = .systemFont(ofSize: 11, weight: .medium)
     label.textColor = .mobitColors(.textSecondary)
     label.textAlignment = .right
     label.adjustsFontSizeToFitWidth = true

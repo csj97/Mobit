@@ -86,11 +86,6 @@ final class TradingRulesTests: XCTestCase {
     XCTAssertFalse(TradingRules.canCombine(domesticFuturesOrder(leverage: 20), with: existing))
   }
 
-  func testIntroPolicyKeepsMinimumAndMaximumDisplayWaitSeparate() {
-    XCTAssertEqual(TradingRules.DomesticFutures.HistoryCheck.minimumIntroMilliseconds, 1_500)
-    XCTAssertEqual(TradingRules.DomesticFutures.HistoryCheck.maximumIntroSeconds, 5)
-  }
-
   func testFundingAndAccountRestorePoliciesPreserveAllExistingCombinations() throws {
     for exchange in Exchange.allCases {
       for product in [TradingProduct.spot, .perpetual] {
