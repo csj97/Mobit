@@ -72,7 +72,7 @@
                                                     <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="lsZ-O8-swA">
                                                         <rect key="frame" x="0.0" y="0.0" width="129" height="17"/>
                                                         <subviews>
-                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="252" verticalHuggingPriority="251" horizontalCompressionResistancePriority="751" text="주문 수량 :" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qKk-gF-bm4">
+                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="252" verticalHuggingPriority="251" horizontalCompressionResistancePriority="751" text="체결 수량 :" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qKk-gF-bm4">
                                                                 <rect key="frame" x="0.0" y="0.0" width="60.333333333333336" height="17"/>
                                                                 <fontDescription key="fontDescription" type="system" weight="medium" pointSize="14"/>
                                                                 <color key="textColor" name="text_secondary"/>
@@ -206,6 +206,7 @@
                 <outlet property="marketNameLabel" destination="30p-gu-c5M" id="pD0-7g-Fbf"/>
                 <outlet property="pnlLabel" destination="G6a-cT-hqQ" id="Gwn-i1-Lbi"/>
                 <outlet property="quantityLabel" destination="TsR-UF-xVi" id="Vxd-Ih-kKW"/>
+                <outlet property="quantityTitle" destination="qKk-gF-bm4" id="fn-pnl-quantity"/>
                 <outlet property="transactionDateLabel" destination="1xG-Yd-HXq" id="kXh-jp-YdI"/>
             </connections>
             <point key="canvasLocation" x="13.740458015267174" y="101.7605633802817"/>

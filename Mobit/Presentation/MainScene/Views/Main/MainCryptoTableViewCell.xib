@@ -37,6 +37,9 @@
                                     </label>
                                 </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="boolean" keyPath="isSkeletonable" value="YES"/>
+                                </userDefinedRuntimeAttributes>
                             </stackView>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="NXH-jd-ehB">
                                 <rect key="frame" x="75" y="0.0" width="75" height="40"/>
@@ -53,6 +56,9 @@
                                     <constraint firstItem="jwN-Ag-FRa" firstAttribute="centerX" secondItem="NXH-jd-ehB" secondAttribute="centerX" id="Qdd-PT-rfw"/>
                                     <constraint firstItem="jwN-Ag-FRa" firstAttribute="centerY" secondItem="NXH-jd-ehB" secondAttribute="centerY" id="taj-rf-IgS"/>
                                 </constraints>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="boolean" keyPath="isSkeletonable" value="YES"/>
+                                </userDefinedRuntimeAttributes>
                             </view>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="0" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="33d-Ip-P43">
                                 <rect key="frame" x="150" y="0.0" width="75" height="40"/>
@@ -68,6 +74,9 @@
                             </label>
                         </subviews>
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <userDefinedRuntimeAttributes>
+                            <userDefinedRuntimeAttribute type="boolean" keyPath="isSkeletonable" value="YES"/>
+                        </userDefinedRuntimeAttributes>
                     </stackView>
                 </subviews>
                 <color key="backgroundColor" name="background_primary"/>

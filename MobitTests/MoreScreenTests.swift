@@ -1,4 +1,5 @@
 import XCTest
+import GoogleMobileAds
 import UIKit
 import RxSwift
 @testable import Mobit
@@ -82,6 +83,110 @@ final class MoreScreenTests: XCTestCase {
   }
 
   @MainActor
+  func testMoreBannerUsesAvailableWidthAndPreservesAccountChargeButtons() throws {
+    // 레이아웃 갱신이 광고 요청을 반복하지 않는지 실제 요청 크기를 수집한다.
+    var requestedSizes: [AdSize] = []
+    // 보상형 광고와 배너 광고를 각각 외부 요청 없이 검사한다.
+    let controller = MoreViewController(
+      accountsUseCase: fixture(),
+      presentRewardedAd: { _, _ in XCTFail("Banner must not start a rewarded ad") },
+      loadBannerAd: { requestedSizes.append($0.adSize) }
+    )
+    // 최초 가용 폭이 기본 배너와 같은 320pt여도 광고 요청을 생략하지 않는다.
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 360, height: 568))
+    window.rootViewController = controller
+    controller.view.frame = window.bounds
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true; window.rootViewController = nil }
+    // 중앙 영역이 SDK 배너를 직접 담으며 충전 안내 카드로 남지 않아야 한다.
+    let container = try XCTUnwrap(find(controller.view, "more.banner.container"))
+    // 네트워크 응답과 무관하게 실제 SDK 배너 설정을 확인한다.
+    let banner = try XCTUnwrap(container.subviews.first as? BannerView)
+    // 광고와 로딩 콘텐츠도 계좌·메뉴 카드와 동일한 모서리 안에 표시한다.
+    let accountCard = try XCTUnwrap(descendants(controller.view).compactMap { $0 as? MoreCardView }.first { $0 !== container })
+    XCTAssertEqual(container.layer.cornerRadius, accountCard.layer.cornerRadius)
+    XCTAssertEqual(container.layer.cornerCurve, accountCard.layer.cornerCurve)
+    XCTAssertTrue(container.clipsToBounds)
+    XCTAssertEqual(banner.adUnitID, MobitConstants.bannerAdType)
+    XCTAssertTrue(banner.rootViewController === controller)
+    XCTAssertTrue(banner.delegate === controller)
+    for width: CGFloat in [360, 320, 393] {
+      window.frame.size.width = width
+      window.setNeedsLayout()
+      window.layoutIfNeeded()
+      controller.view.layoutIfNeeded()
+      waitUntil { requestedSizes.last?.size.width == floor(container.bounds.width) }
+      // 현재 콘텐츠 폭과 SDK의 inline adaptive 요청 폭이 같아야 한다.
+      let expectedSize = inlineAdaptiveBanner(width: floor(container.bounds.width), maxHeight: AdSizeLargeBanner.size.height)
+      XCTAssertTrue(isAdSizeEqualToSize(size1: banner.adSize, size2: expectedSize))
+      XCTAssertEqual(banner.bounds.width, container.bounds.width, accuracy: 0.5)
+      XCTAssertLessThanOrEqual(banner.convert(banner.bounds, to: controller.view).maxX, width)
+      XCTAssertGreaterThanOrEqual(banner.convert(banner.bounds, to: controller.view).minX, 0)
+      // 잔고 갱신이나 동일 폭의 반복 레이아웃은 추가 광고 요청을 만들지 않는다.
+      let requestCount = requestedSizes.count
+      controller.view.setNeedsLayout()
+      controller.view.layoutIfNeeded()
+      // 다음 메인 큐에서 측정하는 광고 요청까지 끝난 뒤 중복 여부를 확인한다.
+      let settled = expectation(description: "Banner layout settled")
+      DispatchQueue.main.async { settled.fulfill() }
+      wait(for: [settled], timeout: 3)
+      XCTAssertEqual(requestedSizes.count, requestCount)
+      for account in MoreAccountsUseCase.accounts {
+        XCTAssertNotNil(find(controller.view, "more.charge.\(account.exchange.rawValue).\(account.product.rawValue)") as? UIButton)
+      }
+      XCTAssertFalse(banner.hasAmbiguousLayout)
+      XCTAssertFalse(container.hasAmbiguousLayout)
+      XCTAssertNil(controller.presentedViewController)
+      XCTAssertFalse(MobitBaseViewController.isLoadingIndicatorVisible(in: window))
+    }
+    XCTAssertEqual(requestedSizes.map(\.size.width), [320, 280, 353])
+  }
+
+  @MainActor
+  func testResetMenuOffersFourAccountsWithoutChangingSelectionOrStartingAds() throws {
+    // 계좌 선택을 여는 동안 앱의 현재 거래 모드는 유지한다.
+    let previousExchange = ExchangeSelectionStore.currentExchange
+    // 현물·선물 초기화 대상을 앱의 현재 상품 선택과 분리한다.
+    let previousProduct = ExchangeSelectionStore.currentProduct
+    defer {
+      ExchangeSelectionStore.currentExchange = previousExchange
+      ExchangeSelectionStore.currentProduct = previousProduct
+    }
+    ExchangeSelectionStore.currentExchange = .bithumb
+    ExchangeSelectionStore.currentProduct = .perpetual
+    // 초기화 진입에는 보상형 광고가 시작되면 안 된다.
+    let controller = MoreViewController(
+      accountsUseCase: fixture(),
+      presentRewardedAd: { _, _ in XCTFail("Reset selection must not start an ad") },
+      loadBannerAd: { _ in }
+    )
+    // 실제 메뉴 액션과 시스템 시트를 같은 창에서 확인한다.
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 568))
+    window.rootViewController = controller
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true; window.rootViewController = nil }
+    // 메뉴를 두 번 눌러도 하나의 계좌 선택창만 표시한다.
+    let resetButton = try XCTUnwrap(find(controller.view, "more.reset") as? UIButton)
+    resetButton.sendActions(for: .touchUpInside)
+    // 거래소와 상품이 모두 명시된 네 선택지를 확인한다.
+    let picker = try XCTUnwrap(controller.presentedViewController as? MoreAccountResetViewController)
+    resetButton.sendActions(for: .touchUpInside)
+    XCTAssertTrue(controller.presentedViewController === picker)
+    XCTAssertEqual(picker.modalPresentationStyle, .pageSheet)
+    XCTAssertEqual(picker.sheetPresentationController?.prefersGrabberVisible, true)
+    for account in MoreAccountsUseCase.accounts {
+      XCTAssertNotNil(find(picker.view, "reset.account.\(account.exchange.rawValue).\(account.product.rawValue)") as? UIControl)
+    }
+    XCTAssertNotNil(find(picker.view, "reset.cancel") as? UIButton)
+    XCTAssertNotNil(find(picker.view, "reset.confirm") as? UIButton)
+    XCTAssertEqual(ExchangeSelectionStore.currentExchange, .bithumb)
+    XCTAssertEqual(ExchangeSelectionStore.currentProduct, .perpetual)
+    waitUntil { !picker.isBeingPresented }
+    picker.dismiss(animated: false)
+    waitUntil { controller.presentedViewController == nil }
+  }
+
+  @MainActor
   func testMoreLayoutScrollsInSmallScreensBothThemesAndLargeText() throws {
     // 계좌 선택을 테스트 전 상태로 복구한다.
     let previousExchange = ExchangeSelectionStore.currentExchange
@@ -96,7 +201,7 @@ final class MoreScreenTests: XCTestCase {
     for width: CGFloat in [320, 393] {
       for style in [UIUserInterfaceStyle.light, .dark] {
         // 실제 XIB와 메뉴·계좌 뷰를 외부 광고 요청 없이 렌더링한다.
-        let controller = MoreViewController(accountsUseCase: fixture(), presentRewardedAd: { _, _ in XCTFail("Layout must not start an ad") })
+        let controller = MoreViewController(accountsUseCase: fixture(), presentRewardedAd: { _, _ in XCTFail("Layout must not start an ad") }, loadBannerAd: { _ in })
         // 작은 화면에서도 모든 카드가 세로 스크롤로 이어져야 한다.
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: width == 320 ? 568 : 852))
         // 앱과 같은 커스텀 탭바에서도 마지막 메뉴가 가려지지 않아야 한다.
@@ -204,7 +309,7 @@ final class MoreScreenTests: XCTestCase {
       // 선택한 앱 테마와 별개로 두 표시 테마의 색상과 배치를 확인한다.
       for style in [UIUserInterfaceStyle.light, .dark] {
         // 외부 광고 없이 실제 더보기 화면에서 설정을 연다.
-        let controller = MoreViewController(accountsUseCase: fixture(), presentRewardedAd: { _, _ in XCTFail("Settings must not start an ad") })
+        let controller = MoreViewController(accountsUseCase: fixture(), presentRewardedAd: { _, _ in XCTFail("Settings must not start an ad") }, loadBannerAd: { _ in })
         // 하단 시트가 작은 화면의 상하 경계를 넘지 않는지 검사한다.
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: width == 320 ? 568 : 852))
         window.rootViewController = controller
@@ -315,7 +420,7 @@ final class MoreScreenTests: XCTestCase {
     // 앱 테마 적용이 실제 연결된 창까지 전달되는지 검사한다.
     let windowScene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
     // 다른 설정과 분리된 실제 더보기 진입 화면이다.
-    let controller = MoreViewController(accountsUseCase: fixture(), presentRewardedAd: { _, _ in XCTFail("Settings must not start an ad") })
+    let controller = MoreViewController(accountsUseCase: fixture(), presentRewardedAd: { _, _ in XCTFail("Settings must not start an ad") }, loadBannerAd: { _ in })
     // 적용 시 connectedScenes의 창 목록에 포함될 테스트 창이다.
     let window = UIWindow(windowScene: windowScene)
     window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
@@ -395,7 +500,7 @@ final class MoreScreenTests: XCTestCase {
     // 광고 SDK 대신 최종 계좌 전달만 검사한다.
     var requested: [TradingAccountID] = []
     // 실제 확인창과 UIButton 액션을 사용한다.
-    let controller = MoreViewController(accountsUseCase: fixture(), presentRewardedAd: { _, account in requested.append(account) })
+    let controller = MoreViewController(accountsUseCase: fixture(), presentRewardedAd: { _, account in requested.append(account) }, loadBannerAd: { _ in })
     // 확인창을 실제로 표시할 호스트 창이다.
     let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
     window.rootViewController = controller
@@ -424,7 +529,7 @@ final class MoreScreenTests: XCTestCase {
     // 확인창을 취소하면 어떤 계좌도 충전 요청을 받지 않아야 한다.
     var requests = 0
     // 실제 행의 연속 탭을 확인한다.
-    let controller = MoreViewController(accountsUseCase: fixture(), presentRewardedAd: { _, _ in requests += 1 })
+    let controller = MoreViewController(accountsUseCase: fixture(), presentRewardedAd: { _, _ in requests += 1 }, loadBannerAd: { _ in })
     // 버튼·알럿을 실제 창에 배치한다.
     let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 568))
     window.rootViewController = controller
@@ -461,7 +566,7 @@ final class MoreScreenTests: XCTestCase {
       scheduler: CurrentThreadScheduler.instance
     )
     // 데이터 오류가 거래 기능이나 전체 화면 인디케이터를 만들지 않아야 한다.
-    let controller = MoreViewController(accountsUseCase: useCase, presentRewardedAd: { _, _ in })
+    let controller = MoreViewController(accountsUseCase: useCase, presentRewardedAd: { _, _ in }, loadBannerAd: { _ in })
     // 실제 알림을 받을 보이는 창이다.
     let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 568))
     window.rootViewController = controller

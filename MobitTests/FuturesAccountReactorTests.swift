@@ -4,6 +4,7 @@ import ReactorKit
 import RxSwift
 import SnapKit
 import GoogleMobileAds
+import SkeletonView
 @testable import Mobit
 
 final class FuturesAccountReactorTests: XCTestCase {
@@ -40,6 +41,71 @@ final class FuturesAccountReactorTests: XCTestCase {
     XCTAssertEqual(detail.pauses, 1)
     XCTAssertEqual(detail.resumes, 1)
   }
+
+  #if DEBUG
+  @MainActor
+  func testLiquidationNoticeAnalyticsRecordsOnlyVisibleOriginalAccountOnce() throws {
+    // 기존 분석 수집 경로를 테스트 종료 시 복구한다.
+    let previousEventCallBack = MobitAnalyticsUtil.eventCallBack
+    // 안내의 원본 계좌와 전역 선택을 다르게 두고 기존 선택은 복구한다.
+    let previousExchange = ExchangeSelectionStore.currentExchange
+    // 현물 선택 중에도 표시 이벤트가 원본 선물 계좌를 사용해야 한다.
+    let previousProduct = ExchangeSelectionStore.currentProduct
+    defer {
+      MobitAnalyticsUtil.eventCallBack = previousEventCallBack
+      ExchangeSelectionStore.currentExchange = previousExchange
+      ExchangeSelectionStore.currentProduct = previousProduct
+    }
+    ExchangeSelectionStore.currentExchange = .upbit
+    ExchangeSelectionStore.currentProduct = .spot
+    // 실제 분석 전송 경계에서 안내 노출 이벤트만 수집한다.
+    var events: [(name: String, parameters: [String: Any])] = []
+    MobitAnalyticsUtil.eventCallBack = { name, parameters in
+      if parameters["Step_depth_02"] as? String == "선물_청산안내_노출" {
+        events.append((name, parameters))
+      }
+    }
+    // 최초에는 화면·계좌 표시 조건이 아직 준비되지 않은 상태다.
+    var ready = false
+    // 실제 창에 안내가 추가되는 순간과 대기 상태를 구분한다.
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 375, height: 667))
+    window.rootViewController = UIViewController()
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true; window.rootViewController = nil }
+    // 전역 선택 대신 서비스에서 전달한 청산 포지션의 원본 계좌다.
+    let position = try FuturesCalculator.open(domesticFuturesOrder(exchange: .bithumb))
+    // 기존 표시 조건과 배너 중복 방지 경계를 그대로 사용한다.
+    let presenter = FuturesLiquidationNoticePresenter(window: window, canShow: { _ in ready })
+    defer { presenter.suspend() }
+    presenter.receive([position])
+    presenter.showPendingNotices()
+    XCTAssertTrue(events.isEmpty)
+    XCTAssertNil(window.subviews.first { $0.accessibilityIdentifier == "futuresLiquidationNotice" })
+
+    ready = true
+    presenter.showPendingNotices()
+    XCTAssertNotNil(window.subviews.first { $0.accessibilityIdentifier == "futuresLiquidationNotice" })
+    XCTAssertEqual(events.count, 1)
+    XCTAssertEqual(events.first?.name, "mobit_screen_event")
+    XCTAssertEqual(events.first?.parameters["exchange"] as? String, position.order.account.exchange.rawValue)
+    XCTAssertEqual(events.first?.parameters["product"] as? String, position.order.account.product.rawValue)
+    XCTAssertEqual(events.first?.parameters["account_name"] as? String, "빗썸_선물")
+    // 노출 이벤트에는 계좌 구분과 행동 경로 외의 거래 데이터가 없어야 한다.
+    let allowedKeys: Set<String> = [
+      "location", "Step_depth_01", "Step_depth_02", "exchange", "exchange_name",
+      "product", "product_name", "account_name", "currency"
+    ]
+    XCTAssertEqual(Set(events.first?.parameters.keys.map { $0 } ?? []), allowedKeys)
+
+    presenter.receive([position])
+    presenter.showPendingNotices()
+    XCTAssertEqual(events.count, 1)
+    // 같은 청산이 발생했다는 통계와 달리 다시 보이는 안내는 별도 노출로 기록한다.
+    presenter.suspend()
+    presenter.showPendingNotices()
+    XCTAssertEqual(events.count, 2)
+  }
+  #endif
 
   @MainActor
   func testLiquidationNoticeWaitsForMainAppearanceAndStartsFourSecondsOnDisplay() throws {
@@ -3197,7 +3263,7 @@ final class FuturesAccountReactorTests: XCTestCase {
     // 화면 진입이 실제 네트워크나 저장소를 수정하지 않도록 목록을 고정한다.
     let market = MainReactor(mainUseCase: try FuturesMainFixtureUseCase(), tickerSocketService: FuturesMainFixtureSocket())
     market.isStubEnabled = true
-    // 목록 조회와 검증 중에는 기존 전체 화면 진행 표시를 사용한다.
+    // 첫 목록은 셀 자리만 표시하고 자산 검증과 탐색을 분리한다.
     var marketState = market.initialState
     marketState.isLoading = true
     market.stub.state.value = marketState
@@ -3205,9 +3271,9 @@ final class FuturesAccountReactorTests: XCTestCase {
     let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
     // 앱의 원래 key window를 변경하지 않는다.
     let window = UIWindow(windowScene: scene)
-    // 연속 화면 잠금 상한을 가상 시계로 확인한다.
+    // 목록 자리 표시의 연속 대기 상한을 가상 시계로 확인한다.
     let scheduler = HistoricalScheduler(initialClock: Date(timeIntervalSince1970: 0))
-    // 경로 이벤트와 화면 잠금 시간을 직접 주입한다.
+    // 경로 이벤트와 목록 대기 시간을 직접 주입한다.
     let main = MainViewController(
       reactor: market,
       futuresReactor: futures,
@@ -3252,18 +3318,21 @@ final class FuturesAccountReactorTests: XCTestCase {
     XCTAssertTrue(submit.isEnabled)
     XCTAssertTrue(input.isEnabled)
     XCTAssertTrue(main.searchBar.isUserInteractionEnabled)
-    XCTAssertNotNil(window.viewWithTag(999999) as? MobitLottieView)
+    XCTAssertTrue(main.tableView.sk.isSkeletonActive)
+    XCTAssertNil(window.viewWithTag(999999))
     XCTAssertFalse(descendants(main.view).contains { $0.accessibilityIdentifier == "futures.main.dataStatus" || $0.accessibilityIdentifier == "market.dataStatus" })
-    // 자산 확인만 끝나도 아직 남은 목록 조회 때문에 전체 화면 표시를 유지한다.
+    // 자산 확인이 끝나도 아직 남은 첫 목록의 자리 표시는 유지한다.
     let verified = FuturesRefreshResult(positionID: position.id, verifiedThrough: timestamp - 1_000, liquidated: false, hold: nil)
     send(.status(.finished([verified])))
-    XCTAssertNotNil(window.viewWithTag(999999))
+    XCTAssertTrue(main.tableView.sk.isSkeletonActive)
+    XCTAssertNil(window.viewWithTag(999999))
     send(.status(.paused))
     send(.status(.refreshing))
-    XCTAssertNotNil(window.viewWithTag(999999))
-    // 전체 화면 기존 Lottie와 요약 행 제거를 시각적으로 검토할 자료다.
+    XCTAssertTrue(main.tableView.sk.isSkeletonActive)
+    XCTAssertNil(window.viewWithTag(999999))
+    // 셀 자리 표시와 검색·탐색 영역을 함께 검토할 자료다.
     let attachment = XCTAttachment(image: UIGraphicsImageRenderer(bounds: window.bounds).image { window.layer.render(in: $0.cgContext) })
-    attachment.name = "Main full screen indicator"
+    attachment.name = "Main coin list skeleton"
     attachment.lifetime = .keepAlways
     add(attachment)
     XCTAssertFalse(descendants(window).contains { $0.accessibilityIdentifier == "loading.dismiss" })
@@ -3272,9 +3341,11 @@ final class FuturesAccountReactorTests: XCTestCase {
     send(.quote(previous))
     scheduler.advanceTo(Date(timeIntervalSince1970: 19.999))
     flush()
-    XCTAssertNotNil(window.viewWithTag(999999))
+    XCTAssertTrue(main.tableView.sk.isSkeletonActive)
+    XCTAssertNil(window.viewWithTag(999999))
     scheduler.advanceTo(Date(timeIntervalSince1970: 20))
     flush()
+    XCTAssertFalse(main.tableView.sk.isSkeletonActive)
     XCTAssertNil(window.viewWithTag(999999))
     XCTAssertTrue(submit.isEnabled)
     XCTAssertFalse(futures.canSubmit)
@@ -3284,6 +3355,7 @@ final class FuturesAccountReactorTests: XCTestCase {
     send(.quote(previous))
     scheduler.advanceTo(Date(timeIntervalSince1970: 60))
     flush()
+    XCTAssertFalse(main.tableView.sk.isSkeletonActive)
     XCTAssertNil(window.viewWithTag(999999))
     XCTAssertTrue(FuturesText.status(futures).isEmpty)
     // 목록 완료 후 같은 검증이 남아 있어도 재진입·복귀가 화면을 다시 잠그지 않는다.
@@ -3294,6 +3366,7 @@ final class FuturesAccountReactorTests: XCTestCase {
     NotificationCenter.default.post(name: UIApplication.willResignActiveNotification, object: nil)
     NotificationCenter.default.post(name: UIApplication.didBecomeActiveNotification, object: nil)
     flush()
+    XCTAssertFalse(main.tableView.sk.isSkeletonActive)
     XCTAssertNil(window.viewWithTag(999999))
     XCTAssertTrue(submit.isEnabled)
     XCTAssertTrue(input.isEnabled)
@@ -3306,6 +3379,7 @@ final class FuturesAccountReactorTests: XCTestCase {
     main.viewWillDisappear(false)
     main.viewWillAppear(false)
     flush()
+    XCTAssertFalse(main.tableView.sk.isSkeletonActive)
     XCTAssertNil(window.viewWithTag(999999))
     send(.status(.refreshing))
     XCTAssertTrue(submit.isEnabled)
@@ -3317,15 +3391,18 @@ final class FuturesAccountReactorTests: XCTestCase {
     XCTAssertTrue(submit.isEnabled)
     XCTAssertTrue(input.isEnabled)
     XCTAssertEqual(futures.valuationQuotes[previous.instrument], previous)
+    XCTAssertFalse(main.tableView.sk.isSkeletonActive)
     XCTAssertNil(window.viewWithTag(999999))
     // 지속 실패로 승격된 오류만 사용자 재시도를 제공한다.
     send(.dataFailure(.init(id: UUID(), account: account, attempts: 3, hold: .missingHistory)))
     send(.status(.finished([.init(positionID: position.id, verifiedThrough: timestamp, liquidated: false, hold: .missingHistory)])))
     XCTAssertTrue(futures.needsDataRetry)
     XCTAssertFalse(FuturesText.status(futures).isEmpty)
+    XCTAssertFalse(main.tableView.sk.isSkeletonActive)
     XCTAssertNil(window.viewWithTag(999999))
     // 같은 보류의 자동 재시도는 화면을 반복해서 잠그지 않는다.
     send(.status(.refreshing))
+    XCTAssertFalse(main.tableView.sk.isSkeletonActive)
     XCTAssertNil(window.viewWithTag(999999))
     send(.status(.finished([.init(positionID: position.id, verifiedThrough: timestamp, liquidated: false, hold: .missingHistory)])))
     // 요약 아래 상태 행 없이 오류 재시도의 데이터 경로를 확인한다.
@@ -3359,12 +3436,70 @@ final class FuturesAccountReactorTests: XCTestCase {
     flush()
     main.retryMainData()
     XCTAssertTrue(market.stub.actions.contains { if case .loadCryptoList = $0 { return true }; return false })
+    XCTAssertFalse(main.tableView.sk.isSkeletonActive)
     XCTAssertNil(window.viewWithTag(999999))
     // 숨겨진 메인의 늦은 갱신은 다른 탭을 덮지 않아야 한다.
     main.viewWillDisappear(false)
     marketState.isLoading = true
     market.stub.state.value = marketState
     flush()
+    XCTAssertFalse(main.tableView.sk.isSkeletonActive)
+    XCTAssertNil(window.viewWithTag(999999))
+  }
+
+  @MainActor
+  func testMainCoinListSkeletonOnlyUsesMarketTabsAndEndsWhenRequestCompletes() throws {
+    // BTC 탭이 제공되는 현물 화면을 확인한 뒤 기존 상품 선택을 복구한다.
+    let previousProduct = ExchangeSelectionStore.currentProduct
+    ExchangeSelectionStore.currentProduct = .spot
+    defer { ExchangeSelectionStore.currentProduct = previousProduct }
+    // 빈 기본 목록과 사용자별 빈 목록을 같은 요청 상태에서 비교한다.
+    let market = MainReactor(mainUseCase: try FuturesMainFixtureUseCase(), tickerSocketService: FuturesMainFixtureSocket())
+    market.isStubEnabled = true
+    // 탭 전환만으로 조회 완료 상태가 바뀌지 않도록 유지한다.
+    var state = market.initialState
+    state.isLoading = true
+    market.stub.state.value = state
+    // 실제 테이블의 자리 표시와 탐색 영역을 함께 확인한다.
+    let main = MainViewController(reactor: market, networkAvailability: .empty())
+    main.loadViewIfNeeded()
+    // 다른 테스트의 key window와 데이터 소스에는 영향을 주지 않는다.
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 640))
+    window.addSubview(main.view)
+    main.view.frame = window.bounds
+    window.isHidden = false
+    main.view.layoutIfNeeded()
+    main.viewWillAppear(false)
+    defer { main.viewWillDisappear(false); main.view.removeFromSuperview(); window.isHidden = true }
+    func flush() {
+      // 탭·로딩 상태의 비동기 구독이 반영된 뒤 표시를 검사한다.
+      let rendered = expectation(description: "Coin list skeleton rendered")
+      DispatchQueue.main.async { DispatchQueue.main.async { rendered.fulfill() } }
+      wait(for: [rendered], timeout: 2)
+    }
+    flush()
+    // 실제 탭 입력으로 빈 안내 화면과 목록의 표시 상태를 함께 전환한다.
+    for (tab, button) in [(SelectedTab.krw, main.krwButton), (.favorite, main.favoriteButton), (.btc, main.btcButton), (.hold, main.holdButton)] {
+      button.sendActions(for: .touchUpInside)
+      state.selectedTab = tab
+      market.stub.state.value = state
+      flush()
+      XCTAssertEqual(main.tableView.sk.isSkeletonActive, tab == .krw || tab == .btc)
+      XCTAssertEqual(main.tableView.isHidden, tab == .favorite || tab == .hold)
+      XCTAssertEqual(main.noHoldView.isHidden, tab != .hold)
+      XCTAssertEqual(main.noFavoriteView.isHidden, tab != .favorite)
+      XCTAssertTrue(main.searchBar.isUserInteractionEnabled)
+      XCTAssertNil(window.viewWithTag(999999))
+    }
+    main.krwButton.sendActions(for: .touchUpInside)
+    state.selectedTab = .krw
+    market.stub.state.value = state
+    flush()
+    XCTAssertTrue(main.tableView.sk.isSkeletonActive)
+    state.isLoading = false
+    market.stub.state.value = state
+    flush()
+    XCTAssertFalse(main.tableView.sk.isSkeletonActive)
     XCTAssertNil(window.viewWithTag(999999))
   }
 
@@ -3677,7 +3812,7 @@ final class FuturesAccountReactorTests: XCTestCase {
 
   @MainActor
   func testMainLoadingDeadlineIsCanceledAcrossBackgroundNetworkLossAndScreenExit() throws {
-    // 이전 잠금의 타이머가 복귀 후 새 잠금을 조기에 종료하지 않아야 한다.
+    // 이전 목록 대기의 타이머가 복귀 후 새 대기를 조기에 종료하지 않아야 한다.
     let scheduler = HistoricalScheduler(initialClock: Date(timeIntervalSince1970: 0))
     // 오래 진행되는 목록 요청과 연결 상태를 직접 제어한다.
     let market = MainReactor(mainUseCase: try FuturesMainFixtureUseCase(), tickerSocketService: FuturesMainFixtureSocket())
@@ -3694,10 +3829,13 @@ final class FuturesAccountReactorTests: XCTestCase {
     // 다른 테스트의 key window를 변경하지 않는다.
     let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 640))
     window.addSubview(main.view)
+    main.view.frame = window.bounds
+    window.isHidden = false
+    main.view.layoutIfNeeded()
     main.viewWillAppear(false)
-    defer { main.viewWillDisappear(false); main.view.removeFromSuperview() }
+    defer { main.viewWillDisappear(false); main.view.removeFromSuperview(); window.isHidden = true }
     func flush() {
-      // 창의 오버레이 추가·제거까지 처리한 뒤 확인한다.
+      // 목록 자리 표시의 시작·종료까지 처리한 뒤 확인한다.
       let rendered = expectation(description: "Loading deadline rendered")
       DispatchQueue.main.async { DispatchQueue.main.async { rendered.fulfill() } }
       wait(for: [rendered], timeout: 2)
@@ -3706,56 +3844,68 @@ final class FuturesAccountReactorTests: XCTestCase {
     // 생성 시 예약된 이벤트를 처리한 뒤 지연 요청을 주입한다.
     var state = market.currentState
     state.isLoading = true
-    state.selectedTab = .favorite
+    state.selectedTab = .krw
     market.stub.state.value = state
     flush()
-    XCTAssertNotNil(window.viewWithTag(999999))
+    XCTAssertTrue(main.tableView.sk.isSkeletonActive)
+    XCTAssertNil(window.viewWithTag(999999))
     scheduler.advanceTo(Date(timeIntervalSince1970: 10))
     NotificationCenter.default.post(name: UIApplication.willResignActiveNotification, object: nil)
     // 시스템 active 값이 바뀌기 전 늦은 화면 상태가 도착해도 다시 표시하지 않는다.
     market.stub.state.value = state
     flush()
+    XCTAssertFalse(main.tableView.sk.isSkeletonActive)
     XCTAssertNil(window.viewWithTag(999999))
     NotificationCenter.default.post(name: UIApplication.didBecomeActiveNotification, object: nil)
     flush()
-    XCTAssertNotNil(window.viewWithTag(999999))
+    XCTAssertTrue(main.tableView.sk.isSkeletonActive)
+    XCTAssertNil(window.viewWithTag(999999))
     scheduler.advanceTo(Date(timeIntervalSince1970: 20))
     flush()
-    XCTAssertNotNil(window.viewWithTag(999999))
+    XCTAssertTrue(main.tableView.sk.isSkeletonActive)
+    XCTAssertNil(window.viewWithTag(999999))
     scheduler.advanceTo(Date(timeIntervalSince1970: 25))
     availability.onNext(false)
     flush()
+    XCTAssertFalse(main.tableView.sk.isSkeletonActive)
     XCTAssertNil(window.viewWithTag(999999))
     XCTAssertNotNil(main.networkLostView)
     availability.onNext(true)
     flush()
-    XCTAssertNotNil(window.viewWithTag(999999))
+    XCTAssertTrue(main.tableView.sk.isSkeletonActive)
+    XCTAssertNil(window.viewWithTag(999999))
     XCTAssertNil(main.networkLostView)
     scheduler.advanceTo(Date(timeIntervalSince1970: 30))
     availability.onNext(true)
     flush()
-    XCTAssertNotNil(window.viewWithTag(999999))
+    XCTAssertTrue(main.tableView.sk.isSkeletonActive)
+    XCTAssertNil(window.viewWithTag(999999))
     scheduler.advanceTo(Date(timeIntervalSince1970: 45))
     flush()
+    XCTAssertFalse(main.tableView.sk.isSkeletonActive)
     XCTAssertNil(window.viewWithTag(999999))
-    XCTAssertEqual(market.currentState.selectedTab, .favorite)
+    XCTAssertEqual(market.currentState.selectedTab, .krw)
     // 화면 재진입은 새 상한을 적용하되 이탈 뒤 이전 타이머는 취소한다.
     main.viewWillDisappear(false)
     main.viewWillAppear(false)
     flush()
-    XCTAssertNotNil(window.viewWithTag(999999))
+    XCTAssertTrue(main.tableView.sk.isSkeletonActive)
+    XCTAssertNil(window.viewWithTag(999999))
     scheduler.advanceTo(Date(timeIntervalSince1970: 50))
     main.viewWillDisappear(false)
     flush()
+    XCTAssertFalse(main.tableView.sk.isSkeletonActive)
     XCTAssertNil(window.viewWithTag(999999))
     scheduler.advanceTo(Date(timeIntervalSince1970: 60))
     main.viewWillAppear(false)
     flush()
     scheduler.advanceTo(Date(timeIntervalSince1970: 65))
     flush()
-    XCTAssertNotNil(window.viewWithTag(999999))
+    XCTAssertTrue(main.tableView.sk.isSkeletonActive)
+    XCTAssertNil(window.viewWithTag(999999))
     scheduler.advanceTo(Date(timeIntervalSince1970: 80))
     flush()
+    XCTAssertFalse(main.tableView.sk.isSkeletonActive)
     XCTAssertNil(window.viewWithTag(999999))
   }
 
@@ -3809,10 +3959,16 @@ final class FuturesAccountReactorTests: XCTestCase {
       wait(for: [rendered], timeout: 2)
     }
     flush()
+    // 실제 표시 크기를 확정한 뒤 첫 목록의 skeleton 행을 계산한다.
+    window.setNeedsLayout()
+    window.layoutIfNeeded()
+    main.view.setNeedsLayout()
+    main.view.layoutIfNeeded()
     market.action.onNext(.loadCryptoList)
     flush()
     XCTAssertTrue(market.currentState.isLoading)
-    XCTAssertNotNil(window.viewWithTag(999999))
+    XCTAssertTrue(main.tableView.sk.isSkeletonActive)
+    XCTAssertNil(window.viewWithTag(999999))
     NotificationCenter.default.post(name: UIApplication.willResignActiveNotification, object: nil)
     NotificationCenter.default.post(name: UIApplication.didEnterBackgroundNotification, object: nil)
     NotificationCenter.default.post(name: UIApplication.didBecomeActiveNotification, object: nil)
@@ -3823,6 +3979,7 @@ final class FuturesAccountReactorTests: XCTestCase {
     flush()
     XCTAssertFalse(market.currentState.isLoading)
     XCTAssertNotNil(market.currentState.errorMessage)
+    XCTAssertFalse(main.tableView.sk.isSkeletonActive)
     XCTAssertNil(window.viewWithTag(999999))
     XCTAssertFalse(futures.canSubmit)
     XCTAssertGreaterThan(delegate.finishCount, 0)
@@ -3845,7 +4002,8 @@ final class FuturesAccountReactorTests: XCTestCase {
     XCTAssertEqual(useCase.marketRequests, 2)
     XCTAssertTrue(market.currentState.isLoading)
     XCTAssertNil(market.currentState.errorMessage)
-    XCTAssertNotNil(window.viewWithTag(999999))
+    XCTAssertTrue(main.tableView.sk.isSkeletonActive)
+    XCTAssertNil(window.viewWithTag(999999))
   }
 
   @MainActor
@@ -3874,6 +4032,7 @@ final class FuturesAccountReactorTests: XCTestCase {
     main.viewWillAppear(false)
     defer { main.viewWillDisappear(false); main.view.removeFromSuperview() }
     flush()
+    XCTAssertFalse(main.tableView.sk.isSkeletonActive)
     XCTAssertNil(window.viewWithTag(999999))
     XCTAssertEqual(descendants(main.view).filter { $0 is NetworkLostView }.count, 1)
     XCTAssertEqual(main.networkLostView?.label.text, FuturesText.text("network_lost"))
@@ -3894,14 +4053,16 @@ final class FuturesAccountReactorTests: XCTestCase {
     XCTAssertNil(main.networkLostView)
     XCTAssertEqual(descendants(main.view).filter { $0 is NetworkLostView }.count, 0)
     XCTAssertTrue(market.stub.actions.contains { if case .loadCryptoList = $0 { return true }; return false })
-    // 복구 후 진행 중인 조회를 실제 전역 오버레이로 표시한다.
+    // 복구 후 진행 중인 첫 조회는 목록에만 자리 표시를 적용한다.
     var loading = market.currentState
     loading.isLoading = true
     market.stub.state.value = loading
     flush()
-    XCTAssertNotNil(window.viewWithTag(999999))
+    XCTAssertTrue(main.tableView.sk.isSkeletonActive)
+    XCTAssertNil(window.viewWithTag(999999))
     NotificationCenter.default.post(name: .networkStatusChanged, object: nil, userInfo: ["isConnected": false])
     flush()
+    XCTAssertFalse(main.tableView.sk.isSkeletonActive)
     XCTAssertNil(window.viewWithTag(999999))
     XCTAssertEqual(descendants(main.view).filter { $0 is NetworkLostView }.count, 1)
     // 안내는 작은 화면에서도 화면 안에 배치된다.
@@ -5269,6 +5430,10 @@ extension FuturesAccountReactorTests {
 
   @MainActor
   func testSpotOrderScrollPreservesFormAndHoldingRowsAcrossSmallScreens() throws {
+    // 업비트 보유 fixture와 거래 화면의 계좌를 맞추고 원래 선택을 복구한다.
+    let previousExchange = ExchangeSelectionStore.currentExchange
+    ExchangeSelectionStore.currentExchange = .upbit
+    defer { ExchangeSelectionStore.currentExchange = previousExchange }
     // 기기별 논리 크기와 안전영역을 맞춰 높이 압축을 재현한다.
     let sizes: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
       (320, 568, 20, 0), (375, 667, 20, 0), (375, 812, 44, 34), (393, 852, 59, 34), (430, 932, 59, 34)
@@ -5366,6 +5531,10 @@ extension FuturesAccountReactorTests {
 
   @MainActor
   func testSpotOrderScrollKeepsInputsAndActionsReachableWithRealKeyboard() throws {
+    // 업비트 보유 fixture와 거래 화면의 계좌를 맞추고 원래 선택을 복구한다.
+    let previousExchange = ExchangeSelectionStore.currentExchange
+    ExchangeSelectionStore.currentExchange = .upbit
+    defer { ExchangeSelectionStore.currentExchange = previousExchange }
     // 실제 Scene의 소프트웨어 키보드와 layout guide를 사용한다.
     let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
     // 테스트가 끝나면 원래 앱 창의 입력 상태로 돌아간다.
@@ -5776,7 +5945,7 @@ extension FuturesAccountReactorTests {
   }
 
   @MainActor
-  func testFuturesCloseCompletionArrivesOnceAfterSuccessfulSheetDismissal() throws {
+  func testFuturesCloseCompletionArrivesOnceAndAllowsReentryWithoutLeavingScreen() throws {
     // 전량 종료로 포지션이 사라져도 시트 완료 콜백은 한 번만 발생해야 한다.
     let futures = reactor()
     // 종료 시트에 표시하고 실제 입력 계산에 사용할 보유 포지션이다.
@@ -5829,11 +5998,33 @@ extension FuturesAccountReactorTests {
     wait(for: [completed], timeout: 3)
     XCTAssertEqual(completionCount, 1)
     XCTAssertNil(sheet.presentingViewController)
+    // 전량 종료 직후 화면과 탭을 유지해도 증거금과 레버리지를 다시 입력할 수 있어야 한다.
+    let margin = try XCTUnwrap(descendants(order.view).first { $0.accessibilityIdentifier == "futuresMargin" } as? UITextField)
+    // 새 포지션은 이전 포지션의 레버리지 잠금을 이어받지 않는다.
+    let leverage = try XCTUnwrap(descendants(order.view).compactMap { $0 as? FuturesLeverageControl }.first)
+    XCTAssertTrue(margin.isEnabled)
+    XCTAssertTrue(leverage.isEnabled)
+    XCTAssertTrue(openSheet.isHidden)
+    // 주문 비율도 종료 전 잔액 대신 정산 후 가용 잔액을 사용한다.
+    let all = try XCTUnwrap(descendants(order.view).first { $0.accessibilityIdentifier == "futuresOrderPercent100" } as? UIButton)
+    all.sendActions(for: .touchUpInside)
+    XCTAssertEqual(margin.text, "1,150")
+    margin.text = "100"
+    margin.sendActions(for: .editingChanged)
     for _ in 0..<3 { futures.stub.state.value = state }
-    order.selectTab(2)
-    order.selectTab(0)
     waitForNoticeUpdates(0.1)
     XCTAssertEqual(completionCount, 1)
+    // 과거 포지션의 추가 진입 ID가 신규 주문에 남지 않아야 한다.
+    let open = try XCTUnwrap(descendants(order.view).first { $0.accessibilityIdentifier == "futuresSubmit" } as? UIButton)
+    open.sendActions(for: .touchUpInside)
+    // 이 화면에서 다시 누른 신규 진입 Action만 검사한다.
+    let opening = try XCTUnwrap(futures.stub.actions.last { if case .open = $0 { return true }; return false })
+    if case let .open(_, _, amount, _, positionID, _) = opening {
+      XCTAssertEqual(amount, 100)
+      XCTAssertNil(positionID)
+    } else {
+      XCTFail("Expected a new position opening")
+    }
   }
 
   @MainActor

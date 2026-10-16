@@ -1,0 +1,31 @@
+MOBIT search result asset — Esamanru OTF Medium
+
+Input: /Users/chosungjae/Downloads/screen 2.png
+Input resolution: 1264 × 848 px
+Final resolution: 3840 × 2560 px
+Final format: 8-bit RGB PNG, no alpha channel
+Font file: /Users/chosungjae/Library/Fonts/esamanru-OTF-Medium.otf
+Verified CoreText PostScript name: esamanruOTFMedium
+
+Outputs:
+- mobit-search-result-esamanru-medium-3840x2560.png: All external typography uses supplied OTF Medium.
+- mobit-search-result-esamanru-medium-original-wordmark-3840x2560.png: Original upper brand wordmark retained; title and subtitle use supplied OTF Medium.
+
+Rendering:
+Built-in image_gen restored the background under the old external lettering. Only original letter masks were composited back, with boundary color correction; all other original image pixels remained unchanged at source resolution. The supplied OTF was loaded directly using CoreText and rendered at final pixel resolution. No model-generated lettering was used.
+Uniform scaling preserves the original phone, symbol, decorations and image proportions. Approximately 12.08 px of background edge is extended on each side to fit the exact supported 3:2 canvas without cropping.
+
+Source-coordinate typography:
+Upper MOBIT: 66pt at visible top-left (212, 233), color #1C1A25
+코인 모의투자,: 86pt at visible top-left (95, 341), color #0B1224
+Main MOBIT: 86pt at visible top-left (95, 441), color #0B1224
+시세 확인부터 매수·매도 연습까지: 40pt at visible top-left (95, 547), color #464D5D
+
+Validation:
+Pixels changed outside the original lettering masks during background restoration: 0
+Both PNG files reopened successfully with dimensions 3840 × 2560 and no alpha channel.
+PNG headers independently verified as 8-bit RGB.
+
+Exact built-in image_gen edit prompt:
+Use case: precise-object-edit. Input image is the edit target. Remove ONLY the external poster typography on the LEFT: the small upper word MOBIT (roughly x205-440 y230-288), the two-line main title '코인 모의투자,' / 'MOBIT' (roughly x90-620 y335-515), and the small subtitle '시세 확인부터 매수·매도 연습까지' (roughly x90-665 y540-590). Seamlessly reconstruct the existing very pale white/lavender smooth gradient behind the removed letters. Do not add any text. Keep the purple M icon and its floating small purple dot, every purple sphere, the abstract background shapes, lighting, geometry, and the single phone with ALL of its screen contents and text exactly unchanged. Preserve original composition and framing on the 1264x848 canvas. This is text removal only, to prepare a background for exact OTF font-file typesetting. Do not retouch, reinterpret, redraw, resize, or move the phone, logo symbol, decorations or background.
+

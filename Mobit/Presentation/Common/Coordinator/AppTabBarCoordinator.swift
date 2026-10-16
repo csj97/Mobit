@@ -29,6 +29,14 @@ class AppTabBarCoordinator: BaseCoordinator {
 	mobitTabBarController.didAppearCallBack = mainScreenShownCallBack
 	mobitTabBarController.onProductSelected = { [weak self] product in
 	  guard let self, product != ExchangeSelectionStore.currentProduct else { return }
+      MobitAnalyticsUtil.sendClickEvent(
+        location: "거래소_화면",
+        stepDepth01: "투자모드_선택",
+        stepDepth02: "투자모드_변경",
+        stepDepth03: MobitAnalyticsUtil.productName(product),
+        account: TradingAccountID(exchange: ExchangeSelectionStore.currentExchange, product: product, currency: .krw),
+        extraParameters: ["previous_product": MobitAnalyticsUtil.productName(ExchangeSelectionStore.currentProduct)]
+      )
 	  mainCoordinator?.disconnectSocket()
 	  futuresCoordinator?.disconnectSocket()
 	  ExchangeSelectionStore.currentProduct = product

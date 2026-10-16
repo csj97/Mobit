@@ -65,6 +65,16 @@ class InvestmentViewController: MobitBaseViewController {
 	fatalError("init(coder:) has not been implemented")
   }
   
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    MobitAnalyticsUtil.sendScreenEvent(
+      location: "투자내역_화면",
+      stepDepth01: "투자내역_탭",
+      stepDepth02: "보유자산_조회",
+      account: .spot(for: ExchangeSelectionStore.currentExchange)
+    )
+  }
+
   override func viewWillAppear(_ animated: Bool) {
 	super.viewWillAppear(animated)
 	
@@ -138,7 +148,8 @@ class InvestmentViewController: MobitBaseViewController {
 	
 	self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoTransactionDataModel>(
 	  tableView: self.transactionTableview,
-	  cellProvider: { tableView, indexPath, cryptoTransacDataModel in
+	  cellProvider: { [weak self] tableView, indexPath, cryptoTransacDataModel in
+		guard let self else { return nil }
 		
 		guard let cell = self.transactionTableview.dequeueReusableCell(
 		  withIdentifier: "InvestmentTableViewCell",
@@ -317,26 +328,26 @@ class InvestmentViewController: MobitBaseViewController {
     
   /// 충전하기 버튼 클릭
   @IBAction func tapOnChargeButton(_ sender: MobitChargeButton) {
-	MobitAnalyticsUtil.sendClickEvent(event: .investment_charge)
-	
+    // 광고 안내 중 모드가 바뀌어도 버튼을 누른 현물 계좌를 유지한다.
     let account = TradingAccountID.spot(for: ExchangeSelectionStore.currentExchange)
+    MobitAnalyticsUtil.sendClickEvent(event: .investment_charge, account: account)
 	self.show(
 	  alertType: .canCancel,
 	  title: "안내",
 	  content: "본 광고를 시청하시면 모의투자 금액\n10,000,000원이 보유 금액으로 추가됩니다."
 	) { isOk in
 	  if isOk {
-		MobitAnalyticsUtil.sendClickEvent(event: .ad_click_confirm)
+		MobitAnalyticsUtil.sendClickEvent(event: .ad_click_confirm, account: account, extraParameters: ["entry_point": "투자내역_충전"])
         RewardedAdManager.shared.showAd(from: self, account: account)
 	  } else {
-		MobitAnalyticsUtil.sendClickEvent(event: .ad_click_cancel)
+		MobitAnalyticsUtil.sendClickEvent(event: .ad_click_cancel, account: account, extraParameters: ["entry_point": "투자내역_충전"])
 	  }
 	}
   }
   
   /// P&L 버튼 클릭
   @IBAction func tapOnPnlButton(_ sender: UIButton) {
-	MobitAnalyticsUtil.sendClickEvent(event: .investment_pnl)
+	MobitAnalyticsUtil.sendClickEvent(event: .investment_pnl, account: .spot(for: ExchangeSelectionStore.currentExchange))
 	self.coordinator?.pushPnlVC()
   }
     
@@ -358,6 +369,7 @@ class InvestmentViewController: MobitBaseViewController {
 		stepDepth01: "투자내역_탭",
 		stepDepth02: "정렬_변경",
 		stepDepth03: sortTypes[index].rawValue,
+        account: .spot(for: ExchangeSelectionStore.currentExchange),
 		extraParameters: ["selected_sort": sortTypes[index].rawValue]
 	  )
 	}

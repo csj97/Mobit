@@ -104,6 +104,56 @@ final class AdRewardTests: XCTestCase {
     XCTAssertEqual(UserDataManager.userInformation?.userAvailableBalance, 10_000_000)
   }
 
+  func testSelectedResetBlocksOnlyPendingRewardsForTheSelectedAccount() throws {
+    // 미지급 보상은 원래 계좌의 초기화만 막아야 한다.
+    let pending = PendingStoreDouble()
+    // 초기화에 전달된 계좌만 기록해 다른 저장소에 접근하지 않는다.
+    var resetAccounts: [TradingAccountID] = []
+    // 네 계좌 중 업비트 현물의 미지급 보상이다.
+    let claim = try AdRewardClaim(account: .spot(for: .upbit))
+    pending.claims = [claim]
+    // 실제 대기 보상 확인과 계좌 검증을 사용한다.
+    let useCase = AdRewardUseCase(store: pending, resetAccount: { resetAccounts.append($0) })
+    XCTAssertThrowsError(try useCase.resetInvestment(for: claim.account)) {
+      guard case AdRewardError.pendingReward = $0 else { return XCTFail("Expected pending reward error") }
+    }
+    for account in MoreAccountsUseCase.accounts where account != claim.account {
+      try useCase.resetInvestment(for: account)
+    }
+    XCTAssertEqual(resetAccounts, MoreAccountsUseCase.accounts.filter { $0 != claim.account })
+    XCTAssertEqual(pending.claims, [claim])
+  }
+
+  func testSelectedResetBlocksUnsavedRewardAndPropagatesStorageFailure() throws {
+    // 최초 큐 저장 실패로 메모리에만 남은 지급 권리도 초기화로 잃으면 안 된다.
+    let pending = PendingStoreDouble()
+    pending.failSave = true
+    // 저장 실패 뒤 초기화 요청이 실제 저장소에 도달하는지 확인한다.
+    var resetAccounts: [TradingAccountID] = []
+    // 지급 큐 쓰기만 실패시키고 지급·초기화 대상은 주입한다.
+    let useCase = AdRewardUseCase(
+      store: pending,
+      apply: { _ in },
+      resetAccount: { resetAccounts.append($0) }
+    )
+    // 초기화 대상과 다른 거래소의 보상이다.
+    let claim = try AdRewardClaim(account: .spot(for: .bithumb))
+    XCTAssertThrowsError(try useCase.receive(claim))
+    XCTAssertThrowsError(try useCase.resetInvestment(for: claim.account))
+    try useCase.resetInvestment(for: .spot(for: .upbit))
+    XCTAssertEqual(resetAccounts, [.spot(for: .upbit)])
+    pending.failSave = false
+    XCTAssertEqual(try useCase.retryPendingRewards(), [claim])
+    try useCase.resetInvestment(for: claim.account)
+    XCTAssertEqual(resetAccounts, [.spot(for: .upbit), claim.account])
+    XCTAssertThrowsError(try useCase.resetInvestment(for: futuresAccount))
+    // 저장소 오류는 성공으로 처리하지 않고 호출자에게 전달한다.
+    let failing = AdRewardUseCase(store: pending, resetAccount: { _ in throw AdRewardError.invalidStoredData })
+    XCTAssertThrowsError(try failing.resetInvestment(for: claim.account)) {
+      guard case AdRewardError.invalidStoredData = $0 else { return XCTFail("Expected storage error") }
+    }
+  }
+
   func testCleanupFailureAfterCreditDoesNotCreditAgain() throws {
     let store = PendingStoreDouble()
     store.failEmptySave = true
@@ -142,6 +192,7 @@ final class AdRewardTests: XCTestCase {
     try bytes.write(to: url)
     let useCase = AdRewardUseCase(store: LocalAdRewardPendingStore(fileURL: url))
     XCTAssertThrowsError(try useCase.receive(AdRewardClaim(account: .spot(for: .upbit))))
+    XCTAssertThrowsError(try useCase.resetInvestment(for: .spot(for: .upbit)))
     XCTAssertEqual(try Data(contentsOf: url), bytes)
     XCTAssertEqual(UserDataManager.userInformation?.userAvailableBalance, 0)
   }
@@ -387,6 +438,40 @@ final class AdRewardTests: XCTestCase {
   }
 
   @MainActor
+  func testManagerBlocksSelectedResetDuringAdAndAllowsItAfterSettlement() throws {
+    // 광고 준비·표시·종료와 선택 계좌 초기화를 같은 manager에서 실행한다.
+    let fixture = try RewardedManagerFixture(directory: directory)
+    defer { fixture.close() }
+    UserDataManager.updateUserInformation(MobitUserInformation(userAvailableBalance: 123), for: .upbit)
+    fixture.manager.showAd(from: fixture.controller, account: .spot(for: .upbit))
+    fixture.waitUntil { fixture.loader.requests.count == 1 }
+    fixture.manager.resetInvestment(for: .spot(for: .upbit), from: fixture.controller)
+    fixture.waitUntil { fixture.controller.presentedViewController is MobitAlertViewController }
+    XCTAssertEqual((fixture.controller.presentedViewController as? MobitAlertViewController)?.content, FuturesText.text("ad_reward_reset_pending"))
+    XCTAssertEqual(try UserDataManager.getAvailableBalance(for: .upbit), 123)
+    fixture.dismissMessage()
+    // 광고 준비가 끝나도 재생 중에는 잔고를 비울 수 없어야 한다.
+    let ad = RewardedAdDouble()
+    fixture.loader.requests[0].resume(returning: ad)
+    fixture.waitUntil { ad.presentations == 1 }
+    ad.show()
+    fixture.manager.resetInvestment(for: .spot(for: .upbit), from: fixture.controller)
+    fixture.waitUntil { fixture.controller.presentedViewController is MobitAlertViewController }
+    XCTAssertEqual(try UserDataManager.getAvailableBalance(for: .upbit), 123)
+    fixture.dismissMessage()
+    ad.earn()
+    ad.dismiss()
+    fixture.waitUntil { fixture.controller.presentedViewController is MobitAlertViewController }
+    XCTAssertEqual(try UserDataManager.getAvailableBalance(for: .upbit), 10_000_123)
+    fixture.dismissMessage()
+    fixture.manager.resetInvestment(for: .spot(for: .upbit), from: fixture.controller)
+    fixture.waitUntil { fixture.controller.presentedViewController is MobitAlertViewController }
+    XCTAssertEqual((fixture.controller.presentedViewController as? MobitAlertViewController)?.content, FuturesText.text("ad_reward_reset_complete"))
+    XCTAssertEqual(try UserDataManager.getAvailableBalance(for: .upbit), 0)
+    fixture.dismissMessage()
+  }
+
+  @MainActor
   func testManagerPreparationTimeoutRejectsLateAdAndDoesNotHideNextIndicator() throws {
     // 실제 20초를 기다리지 않고 동일한 timer를 가상 시간으로 진행한다.
     let fixture = try RewardedManagerFixture(directory: directory)
@@ -482,6 +567,140 @@ final class AdRewardTests: XCTestCase {
     fixture.dismissMessage()
   }
 
+  #if DEBUG
+  @MainActor
+  func testManagerAnalyticsUsesCapturedAccountAndSettlesDuplicateCallbacksOnce() throws {
+    // SDK 업로드를 대체해 실제 manager 이벤트의 계좌와 횟수를 확인한다.
+    let analytics = RewardedAnalyticsSpy()
+    defer { analytics.restore() }
+    // 현재 선택과 다른 선물 계좌를 광고 완료까지 유지하는 시나리오다.
+    let account = TradingAccountID(exchange: .bithumb, product: .perpetual, currency: .krw)
+    // 지급과 SDK 콜백은 기존 회귀와 동일한 실제 manager를 사용한다.
+    let fixture = try RewardedManagerFixture(directory: directory)
+    defer { fixture.close() }
+    fixture.manager.showAd(from: fixture.controller, account: account)
+    fixture.waitUntil { fixture.loader.requests.count == 1 }
+    // 동일한 광고의 표시·보상·닫힘 콜백을 반복한다.
+    let ad = RewardedAdDouble()
+    fixture.loader.requests[0].resume(returning: ad)
+    fixture.waitUntil { ad.presentations == 1 }
+    ad.show()
+    ad.show()
+    ad.earn()
+    ad.earn()
+    fixture.waitUntil { analytics.matching(step: "광고_시청_완료").count == 1 }
+    XCTAssertTrue(analytics.matching(step: "광고_충전_지급_완료").isEmpty)
+    ad.dismiss()
+    ad.dismiss()
+    fixture.waitUntil { analytics.matching(step: "광고_충전_지급_완료").count == 1 }
+    XCTAssertEqual(try fixture.repository.snapshot().accounts.first { $0.id == account }?.availableBalance, 10_000_000)
+    for step in ["광고_시청_시작", "광고_시청_완료", "광고_닫기_버튼", "광고_충전_지급_완료"] {
+      // 현재 업비트 현물 선택이 아닌 빗썸 선물 계좌가 모든 완료 단계에 붙어야 한다.
+      let events = analytics.matching(step: step)
+      XCTAssertEqual(events.count, 1, step)
+      XCTAssertEqual(events.first?["exchange"] as? String, "bithumb", step)
+      XCTAssertEqual(events.first?["product"] as? String, "perpetual", step)
+      XCTAssertEqual(events.first?["currency"] as? String, "KRW", step)
+      XCTAssertNil(events.first?["amount"])
+      XCTAssertNil(events.first?["balance"])
+      XCTAssertNil(events.first?["claim_id"])
+    }
+    XCTAssertEqual(analytics.matching(name: "mobit_ad_event").count, 3)
+    XCTAssertTrue(analytics.matching(step: "광고_충전_지급_대기").isEmpty)
+    fixture.waitUntil { fixture.controller.presentedViewController is MobitAlertViewController }
+    fixture.dismissMessage()
+  }
+
+  @MainActor
+  func testManagerAnalyticsSeparatesEarnedRewardFromPendingCleanupAndRecovery() throws {
+    // 보상 콜백과 실제 지급 정리 결과를 서로 다른 이벤트로 확인한다.
+    let analytics = RewardedAnalyticsSpy()
+    defer { analytics.restore() }
+    // 재시도 버튼을 누를 때의 계좌 선택과 다른 원래 지급 대상이다.
+    let account = TradingAccountID.spot(for: .bithumb)
+    // 실제 현금 저장 후 대기 큐 제거만 실패시키는 저장소다.
+    let fixture = try RewardedManagerFixture(directory: directory)
+    defer { fixture.close() }
+    fixture.store.failEmptySave = true
+    fixture.manager.showAd(from: fixture.controller, account: account)
+    fixture.waitUntil { fixture.loader.requests.count == 1 }
+    // 닫힘 뒤 늦은 중복 보상도 최종 결과를 한 번만 기록해야 한다.
+    let ad = RewardedAdDouble()
+    fixture.loader.requests[0].resume(returning: ad)
+    fixture.waitUntil { ad.presentations == 1 }
+    ad.show()
+    ad.dismiss()
+    ad.earn()
+    ad.earn()
+    fixture.waitUntil { analytics.matching(step: "광고_충전_지급_대기").count == 1 }
+    XCTAssertEqual(try UserDataManager.getAvailableBalance(for: .bithumb), 10_000_000)
+    XCTAssertEqual(analytics.matching(step: "광고_시청_완료").count, 1)
+    XCTAssertTrue(analytics.matching(step: "광고_충전_지급_완료").isEmpty)
+    XCTAssertEqual(analytics.matching(step: "광고_충전_지급_대기").first?["exchange"] as? String, "bithumb")
+    fixture.waitUntil { fixture.controller.presentedViewController is MobitAlertViewController }
+    fixture.dismissMessage()
+    fixture.store.failEmptySave = false
+    fixture.manager.showAd(from: fixture.controller, account: .spot(for: .upbit))
+    fixture.waitUntil { analytics.matching(step: "광고_충전_보상_복구").count == 1 }
+    fixture.manager.retryPendingRewards()
+    fixture.manager.retryPendingRewards()
+    XCTAssertEqual(analytics.matching(step: "광고_충전_보상_복구").count, 1)
+    XCTAssertEqual(analytics.matching(step: "광고_충전_보상_복구").first?["exchange"] as? String, "bithumb")
+    XCTAssertEqual(try UserDataManager.getAvailableBalance(for: .bithumb), 10_000_000)
+    XCTAssertEqual(try UserDataManager.getAvailableBalance(for: .upbit), 0)
+    XCTAssertEqual(fixture.loader.requests.count, 1)
+    fixture.waitUntil { fixture.controller.presentedViewController is MobitAlertViewController }
+    fixture.dismissMessage()
+  }
+
+  @MainActor
+  func testManagerAnalyticsDistinguishesResetBlocksStorageFailureAndSuccess() throws {
+    // 초기화 요청의 결과는 실제 저장 경계별로 수집한다.
+    let analytics = RewardedAnalyticsSpy()
+    defer { analytics.restore() }
+    // 현재 업비트 선택과 다른 초기화 대상 현물 계좌다.
+    let account = TradingAccountID.spot(for: .bithumb)
+    // 진행 중 광고와 원자적 초기화가 같은 manager를 통과한다.
+    let fixture = try RewardedManagerFixture(directory: directory)
+    defer { fixture.close() }
+    fixture.manager.showAd(from: fixture.controller, account: .spot(for: .upbit))
+    fixture.waitUntil { fixture.loader.requests.count == 1 }
+    fixture.manager.resetInvestment(for: account, from: fixture.controller)
+    XCTAssertEqual(analytics.matching(step: "더보기_초기화_차단").first?["failure_reason"] as? String, "광고_진행중")
+    fixture.waitUntil { fixture.controller.presentedViewController is MobitAlertViewController }
+    fixture.dismissMessage()
+    // 미보상 종료 뒤에는 지급 대기 권리만 선택 계좌 초기화를 막는다.
+    let ad = RewardedAdDouble()
+    fixture.loader.requests[0].resume(returning: ad)
+    fixture.waitUntil { ad.presentations == 1 }
+    ad.show()
+    ad.dismiss()
+    fixture.store.claims = [try AdRewardClaim(account: account)]
+    fixture.manager.resetInvestment(for: account, from: fixture.controller)
+    XCTAssertEqual(analytics.matching(step: "더보기_초기화_차단").last?["failure_reason"] as? String, "보상_정산_대기")
+    XCTAssertTrue(analytics.matching(step: "더보기_초기화_성공").isEmpty)
+    fixture.waitUntil { fixture.controller.presentedViewController is MobitAlertViewController }
+    fixture.dismissMessage()
+    fixture.store.claims = []
+    // 손상된 선물 저장소는 초기화 성공 이벤트를 만들면 안 된다.
+    let futuresAccount = TradingAccountID(exchange: .bithumb, product: .perpetual, currency: .krw)
+    try Data("invalid".utf8).write(to: directory.appendingPathComponent("manager-futures.json"))
+    fixture.manager.resetInvestment(for: futuresAccount, from: fixture.controller)
+    XCTAssertEqual(analytics.matching(step: "더보기_초기화_실패").count, 1)
+    XCTAssertEqual(analytics.matching(step: "더보기_초기화_실패").first?["product"] as? String, "perpetual")
+    XCTAssertTrue(analytics.matching(step: "더보기_초기화_성공").isEmpty)
+    fixture.waitUntil { fixture.controller.presentedViewController is MobitAlertViewController }
+    fixture.dismissMessage()
+    fixture.manager.resetInvestment(for: account, from: fixture.controller)
+    XCTAssertEqual(analytics.matching(step: "더보기_초기화_성공").count, 1)
+    XCTAssertEqual(analytics.matching(step: "더보기_초기화_성공").first?["exchange"] as? String, "bithumb")
+    XCTAssertEqual(analytics.matching(step: "더보기_초기화_성공").first?["product"] as? String, "spot")
+    XCTAssertEqual(analytics.matching(step: "더보기_초기화_차단").count, 2)
+    fixture.waitUntil { fixture.controller.presentedViewController is MobitAlertViewController }
+    fixture.dismissMessage()
+  }
+  #endif
+
   private func clearDefaults() {
     [UserDataManager.Keys.pendingInvestmentState,
      UserDataManager.Keys.userInformation, UserDataManager.Keys.userInformationByExchange,
@@ -490,6 +709,36 @@ final class AdRewardTests: XCTestCase {
      UserDataManager.Keys.isFirstLaunch].forEach { UserDefaults.standard.removeObject(forKey: $0) }
   }
 }
+
+#if DEBUG
+private final class RewardedAnalyticsSpy {
+  // 다른 회귀 검사의 전송 대체 콜백을 종료 시 그대로 복구한다.
+  private let previousCallBack = MobitAnalyticsUtil.eventCallBack
+  // 다른 큐의 기존 앱 이벤트와 테스트의 결과 조회가 충돌하지 않게 한다.
+  private let lock = NSLock()
+  // 실제 공개 계측 API가 만든 이벤트 이름과 파라미터만 수집한다.
+  private var events: [(name: String, parameters: [String: Any])] = []
+
+  init() {
+    MobitAnalyticsUtil.eventCallBack = { [weak self] name, parameters in
+      guard let self else { return }
+      self.lock.lock()
+      defer { self.lock.unlock() }
+      self.events.append((name, parameters))
+    }
+  }
+
+  func restore() { MobitAnalyticsUtil.eventCallBack = previousCallBack }
+
+  func matching(name: String? = nil, step: String? = nil) -> [[String: Any]] {
+    lock.lock()
+    defer { lock.unlock() }
+    return events.filter {
+      (name == nil || $0.name == name) && (step == nil || $0.parameters["Step_depth_02"] as? String == step)
+    }.map(\.parameters)
+  }
+}
+#endif
 
 private final class PendingStoreDouble: AdRewardPendingStore {
   var claims: [AdRewardClaim] = []
@@ -563,6 +812,10 @@ private final class RewardedManagerFixture {
       apply: { claim in
         if claim.account.product == .spot { try UserDataManager.applyAdvertisementReward(claim) }
         else { try repository.applyAdvertisementReward(claim) }
+      },
+      resetAccount: { account in
+        if account.product == .spot { try UserDataManager.resetInvestmentData(for: account.exchange) }
+        else { try repository.resetInvestment(for: account) }
       }
     )
     // SDK 비동기 로드만 대체한 실제 manager다.

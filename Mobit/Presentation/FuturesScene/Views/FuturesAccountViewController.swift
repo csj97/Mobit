@@ -101,12 +101,14 @@ final class FuturesAccountViewController: MobitBaseViewController, UITableViewDa
 	tableView.verticalScrollIndicatorInsets.bottom = 80
 	tableView.refreshControl = UIRefreshControl()
 	tableView.refreshControl?.rx.controlEvent(.valueChanged).subscribe(onNext: { [weak self] in
+	  self?.sendRetryEvent()
 	  self?.reactor.action.onNext(.reload)
 	  self?.marketReactor.action.onNext(.loadCryptoList)
 	}).disposed(by: disposeBag)
 	segmentedControl.rx.selectedSegmentIndex.changed.subscribe(onNext: { [weak self] index in
-	  guard let self, let section = Section(rawValue: index) else { return }
+	  guard let self, let section = Section(rawValue: index), section != self.section else { return }
 	  self.section = section
+      sendSectionScreen()
 	  marketTools.isHidden = section != .market
 	  render()
 	}).disposed(by: disposeBag)
@@ -134,6 +136,11 @@ final class FuturesAccountViewController: MobitBaseViewController, UITableViewDa
   override func viewWillDisappear(_ animated: Bool) {
 	super.viewWillDisappear(animated)
 	pauseSocket()
+  }
+
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    sendSectionScreen()
   }
   func resumeSocket() {
 	marketReactor.action.onNext(marketReactor.currentState.totalCryptoList.isEmpty ? .loadCryptoList : .resumeSocket)
@@ -293,7 +300,9 @@ final class FuturesAccountViewController: MobitBaseViewController, UITableViewDa
 
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 	switch indexPath.row {
-	case 1: reactor.action.onNext(.reload)
+	case 1:
+      sendRetryEvent()
+      reactor.action.onNext(.reload)
 	case 2:
 	  guard !reactor.currentState.submitting else { return }
 	  show(
@@ -313,6 +322,34 @@ final class FuturesAccountViewController: MobitBaseViewController, UITableViewDa
 	  }
 	default: break
 	}
+  }
+
+  private var sectionAnalyticsName: String {
+    switch section {
+    case .market: return "선물_마켓_조회"
+    case .positions: return "선물_투자내역_조회"
+    case .history: return "선물_거래내역_조회"
+    case .pnl: return "선물_실현손익_조회"
+    }
+  }
+
+  private func sendSectionScreen() {
+    MobitAnalyticsUtil.sendScreenEvent(
+      location: "투자내역_화면",
+      stepDepth01: "선물_모의투자",
+      stepDepth02: sectionAnalyticsName,
+      account: reactor.account
+    )
+  }
+
+  private func sendRetryEvent() {
+    MobitAnalyticsUtil.sendClickEvent(
+      location: "투자내역_화면",
+      stepDepth01: "선물_모의투자",
+      stepDepth02: "선물_데이터_재시도",
+      stepDepth03: sectionAnalyticsName,
+      account: reactor.account
+    )
   }
 
   private func chooseExchange() {

@@ -217,77 +217,197 @@ enum MobitAnalyticsClickEventType: Int, MobitAnalyticsEventRule {
 }
 
 class MobitAnalyticsUtil {
-  /// 화면 이벤트
-  static func sendScreenEvent(event: MobitAnalyticsScreenEventType) {
-	self.sendBaseLegacyEvent(eventName: "mobit_screen_event", type: event)
+  #if DEBUG
+  // 테스트가 비동기 주문 결과를 관찰할 때 전송 대체 콜백을 안전하게 교체한다.
+  private static let eventLock = NSLock()
+  // 테스트에서만 Firebase 전송을 대체하고 실제 이벤트 파라미터를 수집한다.
+  private static var storedEventCallBack: ((String, [String: Any]) -> Void)?
+  // 계측 회귀 검사는 SDK 업로드 없이 실제 호출 경계와 중복 횟수를 확인한다.
+  static var eventCallBack: ((String, [String: Any]) -> Void)? {
+    get {
+      eventLock.lock()
+      defer { eventLock.unlock() }
+      return storedEventCallBack
+    }
+    set {
+      eventLock.lock()
+      defer { eventLock.unlock() }
+      storedEventCallBack = newValue
+    }
   }
-  
-  /// 광고 이벤트
-  static func sendAdEvent(event: MobitAnalyticsRewardEventType) {
-	self.sendBaseLegacyEvent(eventName: "mobit_ad_event", type: event)
+  #endif
+
+  static func sendScreenEvent(
+    event: MobitAnalyticsScreenEventType,
+    account: TradingAccountID? = nil,
+    instrument: TradingInstrumentID? = nil,
+    extraParameters: [String: Any] = [:]
+  ) {
+    sendBaseLegacyEvent(eventName: "mobit_screen_event", type: event, account: account, instrument: instrument, extraParameters: extraParameters)
   }
-  
-  static func sendClickEvent(event: MobitAnalyticsClickEventType) {
-	self.sendBaseLegacyEvent(eventName: "mobit_click_event", type: event)
+
+  static func sendScreenEvent(
+    location: String,
+    stepDepth01: String,
+    stepDepth02: String,
+    stepDepth03: String? = nil,
+    account: TradingAccountID? = nil,
+    instrument: TradingInstrumentID? = nil,
+    extraParameters: [String: Any] = [:]
+  ) {
+    sendLegacyEvent(
+      eventName: "mobit_screen_event",
+      location: location,
+      stepDepth01: stepDepth01,
+      stepDepth02: stepDepth02,
+      stepDepth03: stepDepth03,
+      account: account,
+      instrument: instrument,
+      extraParameters: extraParameters
+    )
+  }
+
+  static func sendAdEvent(
+    event: MobitAnalyticsRewardEventType,
+    account: TradingAccountID? = nil,
+    instrument: TradingInstrumentID? = nil,
+    extraParameters: [String: Any] = [:]
+  ) {
+    sendBaseLegacyEvent(eventName: "mobit_ad_event", type: event, account: account, instrument: instrument, extraParameters: extraParameters)
   }
 
   static func sendClickEvent(
-	location: String,
-	stepDepth01: String,
-	stepDepth02: String,
-	stepDepth03: String? = nil,
-	extraParameters: [String: Any] = [:]
+    event: MobitAnalyticsClickEventType,
+    account: TradingAccountID? = nil,
+    instrument: TradingInstrumentID? = nil,
+    extraParameters: [String: Any] = [:]
   ) {
-	self.sendLegacyEvent(
-	  eventName: "mobit_click_event",
-	  location: location,
-	  stepDepth01: stepDepth01,
-	  stepDepth02: stepDepth02,
-	  stepDepth03: stepDepth03,
-	  extraParameters: extraParameters
-	)
+    sendBaseLegacyEvent(eventName: "mobit_click_event", type: event, account: account, instrument: instrument, extraParameters: extraParameters)
   }
-  
-  static func sendBaseLegacyEvent<T: MobitAnalyticsEventRule>(eventName: String, type: T) {
-	self.sendLegacyEvent(
-	  eventName: eventName,
-	  location: type.location,
-	  stepDepth01: type.stepDepth01,
-	  stepDepth02: type.stepDepth02
-	)
+
+  static func sendClickEvent(
+    location: String,
+    stepDepth01: String,
+    stepDepth02: String,
+    stepDepth03: String? = nil,
+    account: TradingAccountID? = nil,
+    instrument: TradingInstrumentID? = nil,
+    extraParameters: [String: Any] = [:]
+  ) {
+    sendLegacyEvent(
+      eventName: "mobit_click_event",
+      location: location,
+      stepDepth01: stepDepth01,
+      stepDepth02: stepDepth02,
+      stepDepth03: stepDepth03,
+      account: account,
+      instrument: instrument,
+      extraParameters: extraParameters
+    )
+  }
+
+  static func sendBaseLegacyEvent<T: MobitAnalyticsEventRule>(
+    eventName: String,
+    type: T,
+    account: TradingAccountID? = nil,
+    instrument: TradingInstrumentID? = nil,
+    extraParameters: [String: Any] = [:]
+  ) {
+    sendLegacyEvent(
+      eventName: eventName,
+      location: type.location,
+      stepDepth01: type.stepDepth01,
+      stepDepth02: type.stepDepth02,
+      account: account,
+      instrument: instrument,
+      extraParameters: extraParameters
+    )
+  }
+
+  static func exchangeName(_ exchange: Exchange) -> String {
+    switch exchange {
+    case .upbit: return "업비트"
+    case .bithumb: return "빗썸"
+    case .binance: return "바이낸스"
+    case .okx: return "오케이엑스"
+    }
+  }
+
+  static func productName(_ product: TradingProduct) -> String {
+    product == .spot ? "현물" : "선물"
+  }
+
+  static func accountParameters(
+    _ account: TradingAccountID?,
+    instrument: TradingInstrumentID? = nil
+  ) -> [String: Any] {
+    // BTC 마켓도 거래소의 단일 현물 계좌에 속하므로 계좌 통화와 결제 마켓을 구분한다.
+    let eventAccount = account ?? instrument.map {
+      TradingAccountID(exchange: $0.exchange, product: $0.product, currency: $0.product == .spot ? .krw : $0.settlementCurrency)
+    }
+    guard let eventAccount else { return [:] }
+    // 영문 식별자는 분석 조건으로, 한글 이름은 콘솔에서 계좌를 바로 구분하는 데 쓴다.
+    var parameters: [String: Any] = [
+      "exchange": eventAccount.exchange.rawValue,
+      "exchange_name": exchangeName(eventAccount.exchange),
+      "product": eventAccount.product.rawValue,
+      "product_name": productName(eventAccount.product),
+      "account_name": "\(exchangeName(eventAccount.exchange))_\(productName(eventAccount.product))",
+      "currency": eventAccount.currency.rawValue
+    ]
+    if let instrument, instrument.exchange == eventAccount.exchange, instrument.product == eventAccount.product {
+      parameters["market"] = instrument.rawSymbol
+      parameters["market_currency"] = instrument.settlementCurrency.rawValue
+    }
+    return parameters
+  }
+
+  static func eventParameters(
+    location: String,
+    stepDepth01: String,
+    stepDepth02: String,
+    stepDepth03: String? = nil,
+    account: TradingAccountID? = nil,
+    instrument: TradingInstrumentID? = nil,
+    extraParameters: [String: Any] = [:]
+  ) -> [String: Any] {
+    // 호출부의 부가 정보가 실제 주문 계좌나 기존 행동 경로를 덮어쓰지 못하게 한다.
+    var parameters = extraParameters.merging(accountParameters(account, instrument: instrument), uniquingKeysWith: { _, accountValue in accountValue })
+    parameters["location"] = location
+    parameters["Step_depth_01"] = stepDepth01
+    parameters["Step_depth_02"] = stepDepth02
+    if let stepDepth03 { parameters["Step_depth_03"] = stepDepth03 }
+    return parameters
   }
 
   private static func sendLegacyEvent(
-	eventName: String,
-	location: String,
-	stepDepth01: String,
-	stepDepth02: String,
-	stepDepth03: String? = nil,
-	extraParameters: [String: Any] = [:]
+    eventName: String,
+    location: String,
+    stepDepth01: String,
+    stepDepth02: String,
+    stepDepth03: String? = nil,
+    account: TradingAccountID? = nil,
+    instrument: TradingInstrumentID? = nil,
+    extraParameters: [String: Any] = [:]
   ) {
-	let requestParameters: [String: Any] = [
-	  "location": location,
-	  "Step_depth_01": stepDepth01,
-	  "Step_depth_02": stepDepth02
-	].merging(
-	  stepDepth03.map { ["Step_depth_03": $0] } ?? [:],
-	  uniquingKeysWith: { _, new in new }
-	).merging(
-	  extraParameters,
-	  uniquingKeysWith: { _, new in new }
-	)
-	
-	Analytics.logEvent(eventName, parameters: requestParameters)
-	
-	Log.info("MOBIT Analytics [Event Name] - \(eventName)")
-	Log.info("MOBIT Analytics [Event Location] - \(location)")
-	Log.info("MOBIT Analytics [Event Depth 01] - \(stepDepth01)")
-	Log.info("MOBIT Analytics [Event Depth 02] - \(stepDepth02)")
-	if let stepDepth03 {
-	  Log.info("MOBIT Analytics [Event Depth 03] - \(stepDepth03)")
-	}
-	if !extraParameters.isEmpty {
-	  Log.info("MOBIT Analytics [Extra Parameters] - \(extraParameters)")
-	}
+    // 저장 당시 계좌를 포함한 동일 파라미터를 Firebase와 계측 테스트에 전달한다.
+    let requestParameters = eventParameters(
+      location: location,
+      stepDepth01: stepDepth01,
+      stepDepth02: stepDepth02,
+      stepDepth03: stepDepth03,
+      account: account,
+      instrument: instrument,
+      extraParameters: extraParameters
+    )
+    #if DEBUG
+    if let eventCallBack {
+      eventCallBack(eventName, requestParameters)
+      return
+    }
+    #endif
+    Analytics.logEvent(eventName, parameters: requestParameters)
+    Log.info("MOBIT Analytics [Event Name] - \(eventName)")
+    Log.info("MOBIT Analytics [Parameters] - \(requestParameters)")
   }
 }

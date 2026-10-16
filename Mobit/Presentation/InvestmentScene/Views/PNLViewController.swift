@@ -30,6 +30,16 @@ class PNLViewController: MobitBaseViewController {
 	self.setData()
   }
 
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    MobitAnalyticsUtil.sendScreenEvent(
+      location: "실현손익_내역_화면",
+      stepDepth01: "실현손익_내역",
+      stepDepth02: "실현손익_조회",
+      account: futuresReactor?.account ?? .spot(for: ExchangeSelectionStore.currentExchange)
+    )
+  }
+
   override func viewWillAppear(_ animated: Bool) {
 	super.viewWillAppear(animated)
 	applyThemeColors()
@@ -136,7 +146,8 @@ extension PNLViewController: UITableViewDelegate, UITableViewDataSource {
 		entryPrice: entryPrice,
 		exitPrice: exitPrice,
 		transactionDate: pnlHistory.transactionDate,
-        currency: currency
+        currency: currency,
+        exchange: pnlHistory.exchange
 	  )
 	  
       self.showShare(pnlShareUnit)
@@ -210,6 +221,12 @@ extension PNLViewController: UITableViewDelegate, UITableViewDataSource {
 		  self.present(activityVC, animated: true, completion: nil)
 		}
 	  }
+    MobitAnalyticsUtil.sendScreenEvent(
+      location: "실현손익_내역_화면",
+      stepDepth01: "실현손익_공유",
+      stepDepth02: "공유_미리보기_열기",
+      account: pnlShareUnit.exchange.map { TradingAccountID(exchange: $0, product: pnlShareUnit.product, currency: .krw) }
+    )
 	  self.showPNLShareView(shareView: shareView)
   }
 

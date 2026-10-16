@@ -225,6 +225,75 @@ final class UserDataManagerTests: XCTestCase {
     XCTAssertEqual(UserDataManager.userInformation(for: .upbit)?.userAvailableBalance, 10_000)
   }
 
+  func testSelectedSpotResetPreservesOtherExchangeAndConsumedRewards() throws {
+    for exchange in [Exchange.upbit, .bithumb] {
+      XCTAssertTrue(UserDataManager.resetInvestmentData())
+      // 초기화 이후 다시 전달되는 광고 보상이 잔고를 복구하면 안 된다.
+      let claim = try AdRewardClaim(account: .spot(for: exchange))
+      try UserDataManager.applyAdvertisementReward(claim)
+      // 선택 대상과 다른 현물 계좌의 모든 저장 데이터를 비교한다.
+      let otherExchange: Exchange = exchange == .upbit ? .bithumb : .upbit
+      try UserDataManager.applyAdvertisementReward(AdRewardClaim(account: .spot(for: otherExchange)))
+      for fundedExchange in [exchange, otherExchange] {
+        _ = try TradeOrderService.executeBid(
+          marketName: "ETH/KRW",
+          cryptoName: "이더리움",
+          currentPrice: 100_000,
+          quantity: 1,
+          exchange: fundedExchange
+        ).get()
+        _ = try TradeOrderService.executeAsk(
+          marketName: "ETH/KRW",
+          currentPrice: 110_000,
+          quantity: 0.5,
+          exchange: fundedExchange
+        ).get()
+      }
+      // 초기화는 화면에서 현재 선택한 거래소를 변경하지 않아야 한다.
+      ExchangeSelectionStore.currentExchange = otherExchange
+      // 선택하지 않은 계좌의 잔고와 거래·보유·실현손익 원본이다.
+      let otherBalance = try UserDataManager.getAvailableBalance(for: otherExchange)
+      // 반대 거래소의 보유 자산을 비교한다.
+      let otherHoldings = UserDataManager.userCryptoList?.filter { $0.staticData.exchange == otherExchange }
+      // 반대 거래소의 체결 이력을 비교한다.
+      let otherTransactions = UserDataManager.userTransactionList?.filter { $0.exchange == otherExchange }
+      // 반대 거래소의 유효 매수 이력을 비교한다.
+      let otherValidTransactions = UserDataManager.userValidTransactionList?.filter { $0.exchange == otherExchange }
+      // JSON 객체 키 순서 차이를 제외하고 실현손익 값을 비교한다.
+      let encoder = JSONEncoder()
+      encoder.outputFormatting = .sortedKeys
+      // Equatable이 없는 실현손익은 인코딩된 값으로 비교한다.
+      let otherPNL = try encoder.encode(UserDataManager.userPNLHistory?.filter { $0.exchange == otherExchange })
+
+      try UserDataManager.resetInvestmentData(for: exchange)
+      try UserDataManager.applyAdvertisementReward(claim)
+
+      XCTAssertEqual(try UserDataManager.getAvailableBalance(for: exchange), 0)
+      XCTAssertEqual(UserDataManager.userCryptoList?.filter { $0.staticData.exchange == exchange }, [])
+      XCTAssertEqual(UserDataManager.userTransactionList?.filter { $0.exchange == exchange }, [])
+      XCTAssertEqual(UserDataManager.userValidTransactionList?.filter { $0.exchange == exchange }, [])
+      XCTAssertEqual(UserDataManager.userPNLHistory?.filter { $0.exchange == exchange }.count, 0)
+      XCTAssertEqual(try UserDataManager.getAvailableBalance(for: otherExchange), otherBalance)
+      // 읽을 때 재생성되는 화면용 UUID를 제외하고 저장되는 모든 값을 비교한다.
+      XCTAssertEqual(try encoder.encode(UserDataManager.userCryptoList), try encoder.encode(otherHoldings))
+      XCTAssertEqual(UserDataManager.userTransactionList, otherTransactions)
+      XCTAssertEqual(UserDataManager.userValidTransactionList, otherValidTransactions)
+      XCTAssertEqual(try encoder.encode(UserDataManager.userPNLHistory), otherPNL)
+      XCTAssertEqual(ExchangeSelectionStore.currentExchange, otherExchange)
+      XCTAssertFalse(UserDataManager.seedInitialUserInformationIfNeeded())
+    }
+  }
+
+  func testSelectedSpotResetPreservesCorruptStorageInsteadOfClearingOtherAccounts() throws {
+    XCTAssertTrue(UserDataManager.resetInvestmentData(availableBalance: 123))
+    // 다른 계좌를 보존할 수 없는 저장 오류는 초기화를 중단해야 한다.
+    let broken = Data("broken-transaction-list".utf8)
+    UserDefaults.standard.set(broken, forKey: UserDataManager.Keys.userTransactionList)
+    XCTAssertThrowsError(try UserDataManager.resetInvestmentData(for: .upbit))
+    XCTAssertEqual(UserDefaults.standard.data(forKey: UserDataManager.Keys.userTransactionList), broken)
+    XCTAssertEqual(try UserDataManager.getAvailableBalance(for: .upbit), 123)
+  }
+
   func testLegacyBTCSettlementRestoresCurrentDisplayedValueAndKeepsNormalHoldings() throws {
     UserDataManager.resetInvestmentData(availableBalance: 10_000)
     UserDataManager.updateUserInformation(

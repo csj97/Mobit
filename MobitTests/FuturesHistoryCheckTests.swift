@@ -148,6 +148,115 @@ final class FuturesHistoryCheckTests: XCTestCase {
     XCTAssertEqual(requests.count, 1)
   }
 
+  func testResetCancelsLateHistoryResponseAndPreservesOtherAccountFailureAndMonitoring() throws {
+    // 두 계좌의 저장과 검증을 같은 서비스로 실행한다.
+    let repository = store
+    // 진행 중 검증이 취소되어야 하는 초기화 대상이다.
+    let order = domesticFuturesOrder(margin: 100, price: 100)
+    // 초기화 후에도 오류와 소켓 감시를 유지할 다른 계좌다.
+    let other = domesticFuturesOrder(exchange: .bithumb, margin: 100, price: 100)
+    for opening in [order, other] {
+      try repository.applyAdvertisementReward(AdRewardClaim(account: opening.account))
+      try repository.openTestPosition(opening, expectedRevision: repository.snapshot().revision)
+    }
+    // 초기화한 포지션의 과거 요청 응답을 나중에 전달한다.
+    let oldResponse = PublishSubject<FuturesMarkQuote>()
+    // 남은 계좌의 재검증을 대기시켜 기존 오류의 보존 여부를 확인한다.
+    let otherResponse = PublishSubject<FuturesMarkQuote>()
+    // 최초 실패와 초기화 전후의 실제 요청 횟수를 구분한다.
+    let requests = FuturesRequestCounter()
+    // 다른 계좌 검증이 초기화 뒤 새로 시작되는지 확인한다.
+    let otherRequests = FuturesRequestCounter()
+    // 초기화 전에 대상 포지션의 REST 요청이 시작됐음을 확인한다.
+    let oldStarted = expectation(description: "Selected account history request is pending")
+    // 네트워크 응답이 오기 전에 기존 요청이 취소되어야 한다.
+    let oldCancelled = expectation(description: "Reset cancels the previous history request")
+    // 남은 계좌를 새 검증에서 다시 읽어야 한다.
+    let remainingStarted = expectation(description: "Remaining account verification restarts")
+    // 첫 검증은 양 계좌에 실제 오류를 남기고 다음 요청부터 응답을 대기한다.
+    var provider = DetailReplayProvider(instrument: order.instrument, timestamp: 65_123, adverse: 100)
+    provider.quoteOverride = {
+      requests.increment()
+      if requests.count == 1 { return .error(URLError(.timedOut)) }
+      return oldResponse.take(1).asSingle().do(
+        onSubscribe: { oldStarted.fulfill() },
+        onDispose: { oldCancelled.fulfill() }
+      )
+    }
+    // 다른 계좌의 오류는 초기화만으로 성공 처리하면 안 된다.
+    var otherProvider = DetailReplayProvider(instrument: other.instrument, timestamp: 65_123, adverse: 100)
+    otherProvider.quoteOverride = {
+      otherRequests.increment()
+      if otherRequests.count == 1 { return .error(URLError(.timedOut)) }
+      return otherResponse.take(1).asSingle().do(onSubscribe: {
+        if otherRequests.count == 3 { remainingStarted.fulfill() }
+      })
+    }
+    // 실제로 감시하는 종목이 선택하지 않은 거래소에 남는지 확인한다.
+    let monitor = FuturesMonitorFixture()
+    // 자동 재시도 전에 초기화 이벤트와 지연 응답 순서를 직접 제어한다.
+    let service = FuturesHistoryCheckService(
+      store: { repository },
+      provider: { $0 == order.instrument ? provider : otherProvider },
+      now: { Date(timeIntervalSince1970: 66) },
+      monitor: monitor,
+      failureRetryDelay: { _ in 60 }
+    )
+    defer { service.suspend() }
+    // 구독한 오류와 검증 상태를 테스트 종료까지 유지한다.
+    let disposeBag = DisposeBag()
+    // 초기화 전후 남은 계좌의 오류 식별자와 시도 횟수를 비교한다.
+    var otherFailure: FuturesDataFailure?
+    service.dataFailure(for: other.account)
+      .subscribe(onNext: { otherFailure = $0 }).disposed(by: disposeBag)
+    // 거래소별 부분 완료와 구분해 초기화 전 양 계좌의 실패가 모두 반영됐는지 확인한다.
+    let initialFailures = expectation(description: "Both accounts record their initial failure")
+    service.status.filter {
+      if case .finished(let results) = $0 { return results.count == 2 }
+      return false
+    }.take(1).subscribe(onNext: { _ in initialFailures.fulfill() }).disposed(by: disposeBag)
+    service.refresh()
+    wait(for: [initialFailures], timeout: 3)
+    // 다른 계좌의 실패는 초기화 후에도 같은 오류 구간으로 남아야 한다.
+    let failureBeforeReset = try XCTUnwrap(otherFailure)
+    XCTAssertEqual(failureBeforeReset.hold, .requestFailed)
+    service.refresh()
+    wait(for: [oldStarted], timeout: 3)
+    // 삭제된 계좌의 오류는 새 네트워크 응답을 기다리지 않고 해제한다.
+    let selectedCleared = expectation(description: "Reset clears the selected account failure")
+    service.dataFailure(for: order.account).filter { $0 == nil }.take(1)
+      .subscribe(onNext: { _ in selectedCleared.fulfill() }).disposed(by: disposeBag)
+    try service.resetInvestment(for: order.account)
+    wait(for: [oldCancelled, remainingStarted, selectedCleared], timeout: 3)
+    XCTAssertEqual(otherFailure, failureBeforeReset)
+    XCTAssertEqual(Set(monitor.watchedInstruments), [other.instrument])
+    // 초기화 이전 응답이 삭제된 포지션의 결과나 저장 오류를 다시 발행하면 안 된다.
+    let staleResult = expectation(description: "Old history response stays discarded")
+    staleResult.isInverted = true
+    service.dataFailure(for: order.account).filter { $0 != nil }.take(1)
+      .subscribe(onNext: { _ in staleResult.fulfill() }).disposed(by: disposeBag)
+    service.status.subscribe(onNext: { status in
+      if case .storageFailed = status { staleResult.fulfill() }
+      if case .finished(let results) = status,
+        results.contains(where: { $0.positionID == order.requestID }) { staleResult.fulfill() }
+    }).disposed(by: disposeBag)
+    oldResponse.onNext(.init(instrument: order.instrument, price: 80, timestamp: 65_123))
+    wait(for: [staleResult], timeout: 0.2)
+    // 다른 계좌는 실제 검증이 완료된 뒤에만 기존 오류를 해제한다.
+    let recovered = expectation(description: "Remaining account completes verification")
+    service.status.filter {
+      if case .finished(let results) = $0 {
+        return results.count == 1 && results.first?.positionID == other.requestID && results.first?.hold == nil
+      }
+      return false
+    }.take(1).subscribe(onNext: { _ in recovered.fulfill() }).disposed(by: disposeBag)
+    otherResponse.onNext(.init(instrument: other.instrument, price: 100, timestamp: 65_123))
+    wait(for: [recovered], timeout: 3)
+    XCTAssertNil(otherFailure)
+    XCTAssertEqual(try repository.snapshot().positions.map(\.id), [other.requestID])
+    XCTAssertEqual(try repository.snapshot().accounts.first { $0.id == order.account }?.availableBalance, 0)
+  }
+
   func testReconnectRejectsOldResponseAndUnlocksAssetsAndOrdersOnlyAfterNewHistoryCompletes() throws {
     try verifyConnectionRecovery(networkLoss: true)
   }
@@ -2579,8 +2688,14 @@ private final class FuturesRequestCounter {
 
 private final class FuturesMonitorFixture: FuturesPositionMonitoring {
   let subject = PublishSubject<FuturesMonitorEvent>()
+  // 서비스 큐에서 갱신한 소켓 감시 대상을 테스트 스레드에서 안전하게 읽는다.
+  private let lock = NSLock()
+  // 마지막 감시 요청의 종목만 보관한다.
+  private var instruments: [TradingInstrumentID] = []
+  // 초기화 이후 선택하지 않은 계좌의 감시가 유지되는지 검사한다.
+  var watchedInstruments: [TradingInstrumentID] { lock.lock(); defer { lock.unlock() }; return instruments }
   var events: Observable<FuturesMonitorEvent> { subject.asObservable() }
-  func watch(_ instruments: [TradingInstrumentID]) {}
+  func watch(_ instruments: [TradingInstrumentID]) { lock.lock(); self.instruments = instruments; lock.unlock() }
   func suspend() {}
 }
 

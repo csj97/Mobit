@@ -3,6 +3,8 @@ import Foundation
 @MainActor
 final class RewardedAdSession {
   private let offer: AdRewardClaim
+  // 비동기 광고 콜백에도 요청 당시의 지급 계좌를 그대로 제공한다.
+  var account: TradingAccountID { offer.account }
   private var earnedClaim: AdRewardClaim?
   private var result: Result<Void, Error>?
   private var isDismissed = false

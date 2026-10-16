@@ -237,4 +237,83 @@ final class LocalFuturesAccountRepositoryTests: XCTestCase {
     XCTAssertEqual(snapshot.accounts.count, 1)
     XCTAssertEqual(snapshot.revision, 1)
   }
+
+  func testSelectedFuturesResetRemovesOnlyItsPositionsHistoryAndCashAndPreservesReceipts() throws {
+    for exchange in [Exchange.upbit, .bithumb] {
+      // 양 거래소 계좌를 매번 독립된 파일에 만든다.
+      let store = LocalFuturesAccountRepository(fileURL: directory.appendingPathComponent("\(exchange.rawValue).json"))
+      // 초기화 뒤 기존 보상 콜백이 잔고를 복구하지 못하게 보존할 지급 기록이다.
+      let claim = try AdRewardClaim(account: .init(exchange: exchange, product: .perpetual, currency: .krw))
+      try store.applyAdvertisementReward(claim)
+      // 선택하지 않은 계좌의 잔고·포지션·원장·종료 이력을 함께 비교한다.
+      let otherExchange: Exchange = exchange == .upbit ? .bithumb : .upbit
+      try store.applyAdvertisementReward(AdRewardClaim(account: .init(exchange: otherExchange, product: .perpetual, currency: .krw)))
+      for fundedExchange in [exchange, otherExchange] {
+        for symbol in ["KRW-BTC", "KRW-ETH"] {
+          // 한 계좌에 보유 중 포지션과 전량 종료 포지션을 모두 남긴다.
+          let opening = domesticFuturesOrder(exchange: fundedExchange, symbol: symbol)
+          // 직전 체결의 revision을 읽어 실제 주문 저장 경로를 사용한다.
+          let opened = try store.openTestPosition(opening, expectedRevision: store.snapshot().revision)
+          if symbol == "KRW-ETH" {
+            // 진입 경계에서 종료해 별도 네트워크 검증 자료 없이 종료 이력을 구성한다.
+            let closing = FuturesClosingOrder(
+              requestID: UUID(),
+              positionID: opening.requestID,
+              executionPrice: opening.executionPrice,
+              executedAt: opening.executedAt
+            )
+            // 현재 계좌·가격·revision으로 종료 주문을 검증한다.
+            let check = FuturesOrderCheck(
+              account: opening.account,
+              instrument: opening.instrument,
+              revision: opened.revision,
+              mark: .init(instrument: opening.instrument, price: opening.executionPrice, timestamp: 60_000)
+            )
+            try store.closePosition(closing, orderCheck: check, now: closing.executedAt)
+          }
+        }
+      }
+      // 초기화 전 데이터와 검증 revision을 저장해 다른 계좌 보존·이전 쓰기 거절을 확인한다.
+      let before = try store.snapshot()
+      // 초기화할 계좌에 속했던 포지션 ID는 종료·검증 기록까지 모두 제거되어야 한다.
+      let removedIDs = Set(before.positions.filter { $0.order.account == claim.account }.map(\.id))
+      // 초기화 후 재실행 시 읽게 될 확정 스냅샷이다.
+      let after = try store.resetInvestment(for: claim.account)
+      XCTAssertEqual(after.revision, before.revision + 1)
+      XCTAssertEqual(after.accounts.first { $0.id == claim.account }?.availableBalance, 0)
+      XCTAssertEqual(after.accounts.filter { $0.id != claim.account }, before.accounts.filter { $0.id != claim.account })
+      XCTAssertEqual(after.positions, before.positions.filter { $0.order.account != claim.account })
+      XCTAssertEqual(after.ledger, before.ledger.filter { $0.account != claim.account })
+      XCTAssertEqual(after.historyCheckStates, before.historyCheckStates.filter { !removedIDs.contains($0.positionID) })
+      XCTAssertEqual(after.closedPositions, before.closedPositions.filter { !removedIDs.contains($0.order.positionID) })
+      XCTAssertEqual(after.rewardClaims, before.rewardClaims)
+      try store.applyAdvertisementReward(claim)
+      XCTAssertEqual(try store.snapshot(), after)
+      XCTAssertThrowsError(try store.update(expectedRevision: before.revision) { $0[0].availableBalance = 1 }) {
+        XCTAssertEqual($0 as? LocalFuturesAccountRepository.StoreError, .revisionConflict)
+      }
+      XCTAssertEqual(try store.snapshot(), after)
+    }
+  }
+
+  func testSelectedFuturesResetWriteFailurePreservesFileAndMissingAccountCreatesNothing() throws {
+    // 새 계좌 초기화는 빈 파일이나 잔고를 생성하지 않는다.
+    let selectedAccount = TradingAccountID(exchange: .upbit, product: .perpetual, currency: .krw)
+    // 성공·실패 저장 경로가 같은 파일을 검사한다.
+    let store = LocalFuturesAccountRepository(fileURL: fileURL)
+    XCTAssertEqual(try store.resetInvestment(for: selectedAccount), .empty)
+    XCTAssertFalse(FileManager.default.fileExists(atPath: fileURL.path))
+    try store.applyAdvertisementReward(AdRewardClaim(account: selectedAccount))
+    // 저장 실패 전 현금과 지급 기록을 포함한 원본이다.
+    let before = try store.snapshot()
+    // 저장 실패가 파일 일부를 교체하지 않았는지 확인한다.
+    let bytes = try Data(contentsOf: fileURL)
+    // 파일 교체 실패를 실제 commit 경로에서 주입한다.
+    let failing = LocalFuturesAccountRepository(fileURL: fileURL) { _, _ in throw CocoaError(.fileWriteOutOfSpace) }
+    XCTAssertThrowsError(try failing.resetInvestment(for: selectedAccount))
+    XCTAssertEqual(try Data(contentsOf: fileURL), bytes)
+    XCTAssertEqual(try store.snapshot(), before)
+    XCTAssertThrowsError(try store.resetInvestment(for: .spot(for: .upbit)))
+    XCTAssertEqual(try Data(contentsOf: fileURL), bytes)
+  }
 }

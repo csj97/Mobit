@@ -61,6 +61,8 @@ class TradeViewController: MobitBaseViewController {
   private var miniChartHostingController: UIHostingController<MiniChartView>? = nil
   private var miniChartCandleEntries: [CandleEntry] = []
   private let tradeBannerSlotID = "trade_bottom"
+  // 광고 응답을 기다리는 동안 하단 배너 영역에 표시한다.
+  private let bannerLoadingView = AdBannerLoadingView(height: AdSizeBanner.size.height)
   
   init(reactor: TradeReactor) {
 	self.reactor = reactor
@@ -179,13 +181,21 @@ class TradeViewController: MobitBaseViewController {
 	  guard let self = self else { return }
 	  switch index {
 	  case 0:
-		MobitAnalyticsUtil.sendScreenEvent(event: .trade_order)
+		MobitAnalyticsUtil.sendScreenEvent(
+          event: .trade_order,
+          account: self.futuresReactor?.account ?? .spot(for: self.reactor.exchange),
+          instrument: self.reactor.analyticsInstrument(for: self.futuresReactor == nil ? .spot : .perpetual)
+        )
 		orderView.isHidden = false
 		chartView.isHidden = true
 		informationView.isHidden = true
 		self.reactor.action.onNext(.setSelectedWholeTab(selectedWholeTab: .trade))
 	  case 1:
-		MobitAnalyticsUtil.sendScreenEvent(event: .trade_chart)
+		MobitAnalyticsUtil.sendScreenEvent(
+          event: .trade_chart,
+          account: self.futuresReactor?.account ?? .spot(for: self.reactor.exchange),
+          instrument: self.reactor.analyticsInstrument(for: self.futuresReactor == nil ? .spot : .perpetual)
+        )
 		orderView.isHidden = true
 		chartView.isHidden = false
 		informationView.isHidden = true
@@ -200,7 +210,11 @@ class TradeViewController: MobitBaseViewController {
 		  return
 		}
 
-		MobitAnalyticsUtil.sendScreenEvent(event: .trade_info)
+		MobitAnalyticsUtil.sendScreenEvent(
+          event: .trade_info,
+          account: self.futuresReactor?.account ?? .spot(for: self.reactor.exchange),
+          instrument: self.reactor.analyticsInstrument(for: self.futuresReactor == nil ? .spot : .perpetual)
+        )
 		orderView.isHidden = true
 		chartView.isHidden = true
 		informationView.isHidden = false
@@ -434,6 +448,11 @@ class TradeViewController: MobitBaseViewController {
       make.edges.equalToSuperview()
     }
 
+    self.bannerContainerView.addSubview(bannerLoadingView)
+    bannerLoadingView.snp.makeConstraints { make in
+      make.edges.equalToSuperview()
+    }
+    bannerLoadingView.setLoading(true)
     bannerView.load(Request())
   }
 
@@ -596,10 +615,14 @@ extension TradeViewController {
 
 extension TradeViewController: BannerViewDelegate {
   func bannerViewDidReceiveAd(_ bannerView: BannerView) {
+    guard bannerView.superview === bannerContainerView else { return }
+    bannerLoadingView.setLoading(false)
     Log.info("하단 배너 로드 성공", tag: "TradeBanner")
   }
 
   func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
+    guard bannerView.superview === bannerContainerView else { return }
+    bannerLoadingView.setLoading(false)
     // 광고 식별자와 응답 원문 없이 SDK 오류 종류만 기록한다.
     let bannerError = error as NSError
     Log.warning("하단 배너 로드 실패: domain=\(bannerError.domain), code=\(bannerError.code)", tag: "TradeBanner")

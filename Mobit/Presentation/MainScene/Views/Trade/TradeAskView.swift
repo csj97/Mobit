@@ -264,6 +264,15 @@ class TradeAskView: UIView, ViewRule {
 
   @IBAction func tapOnAskButton(_ sender: UIButton) {
 	guard !isOrderSubmissionLocked else { return }
+    if let reactor {
+      MobitAnalyticsUtil.sendClickEvent(
+        location: "트레이딩_화면",
+        stepDepth01: "트레이딩_주문",
+        stepDepth02: "트레이딩_주문_매도_요청",
+        account: .spot(for: reactor.exchange),
+        instrument: reactor.analyticsInstrument()
+      )
+    }
 	self.endEditing(true)
 
 	let vibrator = UIImpactFeedbackGenerator(style: .medium)

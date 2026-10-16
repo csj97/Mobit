@@ -142,6 +142,8 @@ final class FuturesHistoryCheckService {
   // 화면 수명과 무관하게 네트워크 유실·복구를 한 번만 처리한다.
   private var networkSubscription: Disposable?
   private var generation: UInt64 = 0
+  // 다른 거래소의 재조회가 정상 주문의 감시 승계를 취소하지 않도록 마지막 세션 폐기 시각을 나눈다.
+  private var invalidatedMonitoringGenerations: [Exchange: UInt64] = [:]
   private var disposable: Disposable?
   private var watchedPositions: [TradingInstrumentID: FuturesPosition] = [:]
   private var watchedRevision: UInt64 = 0
@@ -173,14 +175,44 @@ final class FuturesHistoryCheckService {
     queue.async { [weak self] in
       guard let self else { return }
       updateWatchedPositions(snapshot)
-      if active, networkAvailable != false, monitoringGeneration == generation,
-        let position = watchedPositions.values.first(where: { position in
+      if active, networkAvailable != false, let monitoringGeneration,
+        let position = snapshot.positions.first(where: { position in
           (openingRequestID.map { id in position.executions.contains { $0.requestID == id } } ?? false)
             || (closingRequestID.map { id in (position.partialClosings ?? []).contains { $0.order.requestID == id } } ?? false)
-        })
+        }), watchedPositions[position.order.instrument] == position,
+        monitoringGeneration >= (invalidatedMonitoringGenerations[position.order.account.exchange] ?? 0)
       {
         readyPositions[position.id] = position.lastExecutionAt
+        // 검증된 주문의 새 포지션도 다음 주기까지 기다리지 않고 화면에 같은 준비 근거를 전달한다.
+        lastFinishedResults = (lastFinishedResults ?? []).filter { $0.positionID != position.id }
+          + [result(position.id, state: snapshot.historyCheckStates.first { $0.positionID == position.id })]
+        publishVerificationResults()
       }
+    }
+  }
+
+  func resetInvestment(for account: TradingAccountID) throws {
+    try queue.sync {
+      // 저장과 검증 취소 사이에 이전 응답이 끼어들지 않도록 같은 큐에서 처리한다.
+      let snapshot = try storeFactory().resetInvestment(for: account)
+      // 삭제된 포지션의 늦은 응답이 저장 손상으로 처리되지 않도록 이전 검증을 종료한다.
+      generation &+= 1
+      revokeMonitoring(for: account.exchange)
+      disposable?.dispose()
+      disposable = nil
+      running = false
+      updateWatchedPositions(snapshot)
+      // 최신 감시 목록을 기준으로 다른 계좌의 검증 결과와 오류는 보존한다.
+      let positions = Array(watchedPositions.values)
+      lastFinishedResults = lastFinishedResults?.filter { result in positions.contains { $0.id == result.positionID } }
+      failurePolicy.complete([], positions: positions)
+      failuresSubject.onNext(failurePolicy.failures)
+      guard active, networkAvailable != false else {
+        subject.onNext(.paused)
+        return
+      }
+      subject.onNext(.finished(lastFinishedResults ?? []))
+      startRefresh()
     }
   }
 
@@ -207,7 +239,7 @@ final class FuturesHistoryCheckService {
       receivedInstruments = receivedInstruments.filter { $0.exchange != exchange }
       // 실제 단절만 이전 세션 검증을 무효화하고 최초 연결은 진행 중인 검증에 합친다.
       if !connected {
-        invalidateVerification()
+        invalidateVerification(for: exchange)
       }
       if connected { connectedExchanges.insert(exchange) }
       startRefresh()
@@ -340,16 +372,36 @@ final class FuturesHistoryCheckService {
     }
   }
 
-  private func invalidateVerification() {
+  private func invalidateVerification(for exchange: Exchange? = nil) {
     generation &+= 1
+    revokeMonitoring(for: exchange)
     disposable?.dispose()
     disposable = nil
     running = false
-    readyPositions.removeAll()
-    pendingLiquidationQuotes.removeAll()
+    readyPositions = readyPositions.filter { id, _ in
+      exchange != nil && watchedPositions.values.contains { $0.id == id && $0.order.account.exchange != exchange }
+    }
+    pendingLiquidationQuotes = pendingLiquidationQuotes.filter { exchange != nil && $0.key.exchange != exchange }
     // 마지막 가격은 보존하지만 이전 세션의 거래 허용 상태는 화면에도 재사용하지 않는다.
-    lastFinishedResults = lastFinishedResults?.map { $0.requiringHistoryCheck() }
-    subject.onNext(.paused)
+    lastFinishedResults = lastFinishedResults?.map { result in
+      exchange != nil && watchedPositions.values.contains { $0.id == result.positionID && $0.order.account.exchange != exchange }
+        ? result : result.requiringHistoryCheck()
+    }
+    if let exchange, watchedPositions.values.contains(where: { $0.order.account.exchange != exchange }) {
+      publishVerificationResults()
+    } else { subject.onNext(.paused) }
+  }
+
+  private func publishVerificationResults() {
+    subject.onNext(.finished(lastFinishedResults ?? []))
+    if running { subject.onNext(.refreshing) }
+  }
+
+  private func revokeMonitoring(for exchange: Exchange? = nil) {
+    // 전체 네트워크·백그라운드 전환은 모든 거래소의 이전 주문 승계 권한을 폐기한다.
+    for exchange in exchange.map({ [$0] }) ?? Exchange.allCases {
+      invalidatedMonitoringGenerations[exchange] = generation
+    }
   }
 
   // Scene 활성화가 겹쳐도 한 실행으로 합친다. 네트워크 대기는 저장소 잠금 밖이다.
@@ -402,6 +454,7 @@ final class FuturesHistoryCheckService {
 
   private func failStorage(_ error: Error, stage: String) {
     generation &+= 1
+    revokeMonitoring()
     disposable?.dispose()
     disposable = nil
     running = false
@@ -436,15 +489,25 @@ final class FuturesHistoryCheckService {
       let positions = snapshot.positions.filter { position in
         snapshot.isActive(position)
       }
-      disposable = Observable.from(positions).concatMap { [self] position in
-        self.refresh(position, store: store).asObservable()
-      }.toArray().observe(on: scheduler).map { [self] results in
-        guard active, generation == currentGeneration else { return results }
-        return try settlePendingLiquidationQuotes(results, store: store)
-      }.subscribe(
-        onSuccess: { [weak self] results in
-          guard let self, active, generation == currentGeneration else { return }
-          running = false
+      lastFinishedResults = lastFinishedResults?.filter { result in positions.contains { $0.id == result.positionID } }
+      // 같은 거래소는 직렬 조회하고 다른 거래소의 지연은 정상 계좌 검증을 기다리게 하지 않는다.
+      let groups = Dictionary(grouping: positions, by: { $0.order.account.exchange }).values.map { $0 }
+      // 마지막 거래소 완료는 전체 주기 완료에서 한 번만 발행한다.
+      var remainingGroups = groups.count
+      disposable = Observable.from(groups).flatMap { [self] group in
+        Observable.from(group).concatMap { [self] position in
+          self.refresh(position, store: store).asObservable()
+        }.toArray().map { (group, $0) }.asObservable()
+      }.observe(on: scheduler).map { [self] group, results in
+        guard active, generation == currentGeneration else { return [FuturesRefreshResult]() }
+        // 검증 요청 중 추가 진입한 포지션의 새 준비 근거를 이전 응답으로 덮지 않는다.
+        let currentResults = results.filter { result in
+          guard let position = group.first(where: { $0.id == result.positionID }) else { return false }
+          return result.liquidated || watchedPositions[position.order.instrument] == position
+        }
+        return try settlePendingLiquidationQuotes(currentResults, store: store)
+      }.do(onNext: { [self] results in
+          guard active, generation == currentGeneration else { return }
           for result in results {
             guard let position = positions.first(where: { $0.id == result.positionID }) else { continue }
             if TradingRules.Futures.HistoryCheck.isPositionReady(liquidated: result.liquidated, hold: result.hold) {
@@ -467,8 +530,23 @@ final class FuturesHistoryCheckService {
             let attempts = failurePolicy.failures.first { $0.account == account }?.attempts ?? 0
             Log.warning("stage=verification cycle=\(currentGeneration) hold=\(result.hold?.rawValue ?? "unknown") attempts=\(attempts)", tag: "FuturesHistoryCheck")
           }
-          lastFinishedResults = results
-          subject.onNext(.finished(results))
+          lastFinishedResults = (lastFinishedResults ?? []).filter { previous in
+            !results.contains { $0.positionID == previous.positionID }
+          } + results
+          remainingGroups -= 1
+          if remainingGroups > 0 { publishVerificationResults() }
+        }).toArray().subscribe(
+        onSuccess: { [weak self] groups in
+          guard let self, active, generation == currentGeneration else { return }
+          running = false
+          if positions.isEmpty {
+            failurePolicy.complete([], positions: [])
+            failuresSubject.onNext(failurePolicy.failures)
+          }
+          // 완료된 계좌만 먼저 반영했던 결과를 주기 종료 시에도 함께 유지한다.
+          let results = lastFinishedResults ?? groups.flatMap { $0 }
+          if lastFinishedResults == nil { lastFinishedResults = results }
+          publishVerificationResults()
           if results.contains(where: { !$0.liquidated && $0.hold != .unsupportedInstrument }) {
             // 실패 재시도를 우선 제한해 workLimit 포지션과 섞여도 서버 요청이 폭주하지 않게 한다.
             let hasFailure = results.contains { result in
@@ -670,7 +748,7 @@ final class FuturesHistoryCheckService {
           position: position,
           state: state,
           store: store,
-          expectedRevision: snapshot.revision,
+          snapshot: snapshot,
           provider: provider
         )
       }.flatMap { [self] outcome in
@@ -695,7 +773,7 @@ final class FuturesHistoryCheckService {
     position: FuturesPosition,
     state: FuturesHistoryCheckState,
     store: LocalFuturesAccountRepository,
-    expectedRevision: UInt64,
+    snapshot: FuturesAccountSnapshot,
     provider: FuturesMarketDataProviding
   ) -> Single<FuturesReplayResult> {
     Single.deferred { [self] in
@@ -708,7 +786,7 @@ final class FuturesHistoryCheckService {
         return .just(
           try store.checkHistoryAndSettle(
             positionID: position.id,
-            expectedRevision: expectedRevision,
+            expectedRevision: fetchHistorySaveRevision(snapshot, exchange: position.order.account.exchange, store: store),
             batch: batch,
             settledAt: now()
           )
@@ -722,7 +800,7 @@ final class FuturesHistoryCheckService {
       ).timeout(.seconds(20), scheduler: scheduler).observe(on: scheduler).map { [self] detailBatch in
         try store.checkHistoryAndSettle(
           positionID: position.id,
-          expectedRevision: expectedRevision,
+          expectedRevision: fetchHistorySaveRevision(snapshot, exchange: position.order.account.exchange, store: store),
           batch: batch,
           settledAt: now(),
           detailBatch: detailBatch
@@ -733,13 +811,32 @@ final class FuturesHistoryCheckService {
         return .just(
           try store.checkHistoryAndSettle(
             positionID: position.id,
-            expectedRevision: expectedRevision,
+            expectedRevision: fetchHistorySaveRevision(snapshot, exchange: position.order.account.exchange, store: store),
             batch: batch,
             settledAt: now()
           )
         )
       }
     }
+  }
+
+  private func fetchHistorySaveRevision(
+    _ snapshot: FuturesAccountSnapshot,
+    exchange: Exchange,
+    store: LocalFuturesAccountRepository
+  ) throws -> UInt64 {
+    // 병렬 검증 중 다른 거래소만 저장했다면 현재 계좌 자료를 재확인한 뒤 최신 버전으로 정산한다.
+    let latest = try store.snapshot()
+    guard latest.revision != snapshot.revision else { return snapshot.revision }
+    // 종료·청산 자료도 비교해 같은 계좌의 정산과 초기화를 단순 버전 증가로 취급하지 않는다.
+    let positionIDs = Set(snapshot.positions.filter { $0.order.account.exchange == exchange }.map(\.id))
+    guard latest.accounts.filter({ $0.id.exchange == exchange }) == snapshot.accounts.filter({ $0.id.exchange == exchange }),
+      latest.positions.filter({ $0.order.account.exchange == exchange }) == snapshot.positions.filter({ $0.order.account.exchange == exchange }),
+      latest.historyCheckStates.filter({ positionIDs.contains($0.positionID) }) == snapshot.historyCheckStates.filter({ positionIDs.contains($0.positionID) }),
+      latest.closedPositions.filter({ positionIDs.contains($0.order.positionID) }) == snapshot.closedPositions.filter({ positionIDs.contains($0.order.positionID) }),
+      latest.ledger.filter({ $0.account.exchange == exchange }) == snapshot.ledger.filter({ $0.account.exchange == exchange })
+    else { throw LocalFuturesAccountRepository.StoreError.revisionConflict }
+    return latest.revision
   }
 
   private func result(

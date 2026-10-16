@@ -71,6 +71,34 @@ final class LocalFuturesAccountRepository {
 	return try commit(accounts, previous: current)
   }
 
+  @discardableResult
+  func resetInvestment(for account: TradingAccountID) throws -> FuturesAccountSnapshot {
+    Self.lock.lock()
+    defer { Self.lock.unlock() }
+    guard account.product == .perpetual, account.currency == .krw,
+      TradingRules.isDomesticExchange(account.exchange)
+    else { throw StoreError.invalidStoredData }
+    // 검증 중인 이전 스냅샷이 초기화 결과를 다시 덮지 않도록 같은 잠금과 revision을 쓴다.
+    let current = try fetchSnapshot()
+    // 미생성 계좌를 초기화해도 새 계좌나 자금을 만들지 않는다.
+    guard let index = current.accounts.firstIndex(where: { $0.id == account }) else { return current }
+    // 선택하지 않은 계좌의 잔고와 계좌 순서는 유지한다.
+    var accounts = current.accounts
+    accounts[index].availableBalance = Decimal(TradingRules.Funding.unfundedAccountBalance)
+    // 포지션과 연결된 검증·종료 기록을 같은 저장 단위에서 제거한다.
+    let positions = current.positions.filter { $0.order.account != account }
+    // 계좌 식별자가 없는 검증·종료 기록의 보존 대상을 결정한다.
+    let positionIDs = Set(positions.map(\.id))
+    return try commit(
+      accounts,
+      previous: current,
+      positions: positions,
+      ledger: current.ledger.filter { $0.account != account },
+      historyCheckStates: current.historyCheckStates.filter { positionIDs.contains($0.positionID) },
+      closedPositions: current.closedPositions.filter { positionIDs.contains($0.order.positionID) }
+    )
+  }
+
   // 주문 검증 자료의 시세·계좌 버전을 재확인한 뒤 진입 결과를 저장한다.
   @discardableResult
   func openPosition(_ order: FuturesOpeningOrder, orderCheck: FuturesOrderCheck, now: Date = Date()) throws

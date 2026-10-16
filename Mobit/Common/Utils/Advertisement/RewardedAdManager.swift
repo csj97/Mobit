@@ -64,6 +64,11 @@ final class RewardedAdManager: NSObject {
       .subscribe(onNext: { [weak self] _ in
         guard let self, let context = self.presentation, context.phase == .preparing else { return }
         context.phase = .cancelled
+        MobitAnalyticsUtil.sendAdEvent(
+          event: .reward_failed,
+          account: context.session.account,
+          extraParameters: ["failure_reason": "광고_준비_백그라운드취소"]
+        )
         self.finish(context)
       }).disposed(by: disposeBag)
   }
@@ -72,6 +77,11 @@ final class RewardedAdManager: NSObject {
     guard presentation == nil, viewController.viewIfLoaded?.window != nil,
       UIApplication.shared.applicationState != .background else { return }
     guard account.availability == .available else {
+      MobitAnalyticsUtil.sendAdEvent(
+        event: .reward_failed,
+        account: account,
+        extraParameters: ["failure_reason": "지원하지_않는_계좌"]
+      )
       showMessage("ad_reward_unavailable", in: viewController)
       return
     }
@@ -80,6 +90,7 @@ final class RewardedAdManager: NSObject {
       // 미완료 지급을 먼저 복구한 경우 새 광고를 시작하지 않는다.
       let recovered = try useCase.retryPendingRewards()
       if !recovered.isEmpty {
+        sendRecoveredRewardEvents(recovered)
         NotificationCenter.default.post(name: .futuresAccountDidChange, object: nil)
         showMessage("ad_reward_recovered", in: viewController)
         return
@@ -93,6 +104,11 @@ final class RewardedAdManager: NSObject {
         .subscribe(onNext: { [weak self, context] _ in
           guard let self, self.presentation === context, context.phase == .preparing else { return }
           context.phase = .cancelled
+          MobitAnalyticsUtil.sendAdEvent(
+            event: .reward_failed,
+            account: context.session.account,
+            extraParameters: ["failure_reason": "광고_준비_시간초과"]
+          )
           self.finish(context)
           if let presenter = context.viewController { self.showMessage("ad_reward_load_failed", in: presenter) }
         })
@@ -103,6 +119,11 @@ final class RewardedAdManager: NSObject {
           guard let self, self.presentation === context, context.phase == .preparing else { return }
           guard let presenter = context.viewController, presenter.viewIfLoaded?.window != nil else {
             context.phase = .cancelled
+            MobitAnalyticsUtil.sendAdEvent(
+              event: .reward_failed,
+              account: context.session.account,
+              extraParameters: ["failure_reason": "광고_표시화면_이탈"]
+            )
             self.finish(context)
             return
           }
@@ -113,18 +134,30 @@ final class RewardedAdManager: NSObject {
               guard let self, context.phase == .showing || context.phase == .dismissed,
                 context.session.earned(using: self.useCase) else { return }
               NotificationCenter.default.post(name: .futuresAccountDidChange, object: nil)
-              MobitAnalyticsUtil.sendAdEvent(event: .reward_finish)
+              MobitAnalyticsUtil.sendAdEvent(event: .reward_finish, account: context.session.account)
               self.showResultIfReady(context)
             }
           }
         } catch {
           guard let self, self.presentation === context else { return }
           context.phase = .cancelled
+          MobitAnalyticsUtil.sendAdEvent(
+            event: .reward_failed,
+            account: context.session.account,
+            extraParameters: ["failure_reason": "광고_로드_실패"]
+          )
           self.finish(context)
           if let presenter = context.viewController { self.showMessage("ad_reward_load_failed", in: presenter) }
         }
       }
     } catch {
+      MobitAnalyticsUtil.sendClickEvent(
+        location: "광고_보상",
+        stepDepth01: "광고_충전",
+        stepDepth02: "광고_충전_준비_실패",
+        account: account,
+        extraParameters: ["failure_reason": rewardFailureReason(error)]
+      )
       showMessage("ad_reward_pending", in: viewController)
     }
   }
@@ -134,6 +167,7 @@ final class RewardedAdManager: NSObject {
     do {
       // 기존 보상은 원래 계좌에만 재시도하며 새 광고 보상을 만들지 않는다.
       let recovered = try useCase.retryPendingRewards()
+      sendRecoveredRewardEvents(recovered)
       if !recovered.isEmpty { NotificationCenter.default.post(name: .futuresAccountDidChange, object: nil) }
     }
     catch { Log.info("광고 보상 정산 대기: 로컬 기록을 유지합니다.") }
@@ -148,6 +182,49 @@ final class RewardedAdManager: NSObject {
       try useCase.resetSpotInvestment()
       showMessage("ad_reward_reset_complete", in: viewController)
     } catch {
+      showMessage("ad_reward_reset_pending", in: viewController)
+    }
+  }
+
+  func resetInvestment(for account: TradingAccountID, from viewController: MobitBaseViewController) {
+    guard presentation == nil else {
+      MobitAnalyticsUtil.sendClickEvent(
+        location: "더보기_화면",
+        stepDepth01: "더보기_탭",
+        stepDepth02: "더보기_초기화_차단",
+        account: account,
+        extraParameters: ["failure_reason": "광고_진행중"]
+      )
+      showMessage("ad_reward_reset_pending", in: viewController)
+      return
+    }
+    do {
+      try useCase.resetInvestment(for: account)
+      MobitAnalyticsUtil.sendClickEvent(
+        location: "더보기_화면",
+        stepDepth01: "더보기_탭",
+        stepDepth02: "더보기_초기화_성공",
+        account: account
+      )
+      NotificationCenter.default.post(name: .futuresAccountDidChange, object: nil)
+      showMessage("ad_reward_reset_complete", in: viewController)
+    } catch AdRewardError.pendingReward {
+      MobitAnalyticsUtil.sendClickEvent(
+        location: "더보기_화면",
+        stepDepth01: "더보기_탭",
+        stepDepth02: "더보기_초기화_차단",
+        account: account,
+        extraParameters: ["failure_reason": "보상_정산_대기"]
+      )
+      showMessage("ad_reward_reset_pending", in: viewController)
+    } catch {
+      MobitAnalyticsUtil.sendClickEvent(
+        location: "더보기_화면",
+        stepDepth01: "더보기_탭",
+        stepDepth02: "더보기_초기화_실패",
+        account: account,
+        extraParameters: ["failure_reason": rewardFailureReason(error)]
+      )
       showMessage("ad_reward_reset_pending", in: viewController)
     }
   }
@@ -170,6 +247,24 @@ final class RewardedAdManager: NSObject {
 
   private func showResultIfReady(_ context: Presentation) {
     guard let result = context.session.takeResultIfReady() else { return }
+    // 보상 획득과 구분해 지급·대기 정리가 모두 끝난 1회 결과만 기록한다.
+    switch result {
+    case .success:
+      MobitAnalyticsUtil.sendClickEvent(
+        location: "광고_보상",
+        stepDepth01: "광고_충전",
+        stepDepth02: "광고_충전_지급_완료",
+        account: context.session.account
+      )
+    case .failure(let error):
+      MobitAnalyticsUtil.sendClickEvent(
+        location: "광고_보상",
+        stepDepth01: "광고_충전",
+        stepDepth02: "광고_충전_지급_대기",
+        account: context.session.account,
+        extraParameters: ["failure_reason": rewardFailureReason(error)]
+      )
+    }
     // 광고가 닫힌 뒤에도 보이는 계좌 목록이 확정 잔고를 바로 다시 읽는다.
     NotificationCenter.default.post(name: .futuresAccountDidChange, object: nil)
     guard presentation == nil, let viewController = context.viewController,
@@ -177,6 +272,28 @@ final class RewardedAdManager: NSObject {
     switch result {
     case .success: showMessage("ad_reward_complete", in: viewController)
     case .failure: showMessage("ad_reward_pending", in: viewController)
+    }
+  }
+
+  private func sendRecoveredRewardEvents(_ claims: [AdRewardClaim]) {
+    // 복구가 확정된 보상마다 현재 선택이 아닌 원래 지급 계좌를 기록한다.
+    for claim in claims {
+      MobitAnalyticsUtil.sendClickEvent(
+        location: "광고_보상",
+        stepDepth01: "광고_충전",
+        stepDepth02: "광고_충전_보상_복구",
+        account: claim.account
+      )
+    }
+  }
+
+  private func rewardFailureReason(_ error: Error) -> String {
+    switch error {
+    case AdRewardError.invalidClaim: return "지원하지_않는_보상요청"
+    case AdRewardError.conflictingClaim: return "보상_기록_충돌"
+    case AdRewardError.pendingReward: return "보상_정산_대기"
+    case AdRewardError.invalidStoredData: return "저장_확인_실패"
+    default: return "저장_처리_실패"
     }
   }
 
@@ -196,14 +313,14 @@ extension RewardedAdManager: FullScreenContentDelegate {
     guard let context = presentation, (ad as AnyObject) === rewardedAd, context.phase == .preparing else { return }
     context.phase = .showing
     stopPreparationTimer()
-    MobitAnalyticsUtil.sendAdEvent(event: .reward_present)
+    MobitAnalyticsUtil.sendAdEvent(event: .reward_present, account: context.session.account)
     context.viewController?.hideLoadingIndicator()
   }
 
   func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
     guard let context = presentation, (ad as AnyObject) === rewardedAd, context.phase == .showing else { return }
     context.phase = .dismissed
-    MobitAnalyticsUtil.sendAdEvent(event: .reward_close)
+    MobitAnalyticsUtil.sendAdEvent(event: .reward_close, account: context.session.account)
     context.session.dismissed()
     finish(context)
     showResultIfReady(context)
@@ -212,7 +329,11 @@ extension RewardedAdManager: FullScreenContentDelegate {
   func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
     guard let context = presentation, (ad as AnyObject) === rewardedAd else { return }
     context.phase = .cancelled
-    MobitAnalyticsUtil.sendAdEvent(event: .reward_failed)
+    MobitAnalyticsUtil.sendAdEvent(
+      event: .reward_failed,
+      account: context.session.account,
+      extraParameters: ["failure_reason": "광고_표시_실패"]
+    )
     finish(context)
     if let viewController = context.viewController { showMessage("ad_reward_load_failed", in: viewController) }
   }

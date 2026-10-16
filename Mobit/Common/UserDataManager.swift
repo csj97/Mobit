@@ -770,6 +770,23 @@ class UserDataManager: NSObject {
 	}
   }
 
+  static func resetInvestmentData(for exchange: Exchange) throws {
+    guard TradingRules.isDomesticExchange(exchange) else { throw InvestmentStateError.invalidStoredData }
+    try performAtomicInvestmentUpdate {
+      // 다른 거래소와 광고 지급 기록을 보존한 채 선택한 현물 계좌만 비운다.
+      guard var state = stagedInvestmentState else { throw InvestmentStateError.invalidStoredData }
+      state.cryptoList.removeAll { $0.staticData.exchange == exchange }
+      state.transactionList.removeAll { $0.exchange == exchange }
+      state.validTransactionList.removeAll { $0.exchange == exchange }
+      state.pnlHistory.removeAll { $0.exchange == exchange }
+      state.informationByExchange[exchange.rawValue] = MobitUserInformation(
+        userAvailableBalance: TradingRules.Funding.unfundedAccountBalance
+      )
+      state.initialGrantCompleted = true
+      stagedInvestmentState = state
+    }
+  }
+
   static func isFavorite(pairID: ExchangePairID) -> Bool {
     userFavoritePairs.contains { $0.pairID == pairID }
   }

@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5F54CFDA8A3D4164A6ADF922 /* MobitAnalyticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7D4EDBE4E024975BF23A56F /* MobitAnalyticsTests.swift */; };
+		8A906D4747454081993A41E5 /* ReleaseTradingScenarioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F92E78049A9D45938D42C526 /* ReleaseTradingScenarioTests.swift */; };
+		A1452F4050094CEFB328AC3E /* TradingScreenReleaseQATests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AB1E102076495CACE704FB /* TradingScreenReleaseQATests.swift */; };
+		8701DED8D6554070BA46A61A /* FuturesReleaseQATests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D17BEBCE2234E0FB945AF82 /* FuturesReleaseQATests.swift */; };
+		ABD36466B4D4440EB97EE107 /* SpotAccountIsolationQATests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8E593CDE2934BB4AE8BA120 /* SpotAccountIsolationQATests.swift */; };
+		F10116000000000000000001 /* AdBannerLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10116000000000000000002 /* AdBannerLoadingView.swift */; };
 		F10114000000000000000001 /* MobitToastPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10114000000000000000002 /* MobitToastPresenter.swift */; };
 		F10114000000000000000003 /* MobitToastTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10114000000000000000004 /* MobitToastTests.swift */; };
 		E9967D894A3D4F188F7065B2 /* FuturesInvestmentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76482DD0266E470BBE4DB2F2 /* FuturesInvestmentViewController.swift */; };
@@ -62,6 +68,7 @@
 		31E208432C46CB47000BFEBC /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 31E208422C46CB47000BFEBC /* Then */; };
 		31F33FCA2DDA1ACE003D533A /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 31F33FC92DDA1ACE003D533A /* GoogleMobileAds */; };
 		31F33FCF2DDA1C09003D533A /* MoreViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31F33FCD2DDA1C09003D533A /* MoreViewController.swift */; };
+		A3D6F0311A804D2686E0E8C1 /* MoreAccountResetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3D6F0311A804D2686E0E8C2 /* MoreAccountResetViewController.swift */; };
 		31F33FD02DDA1C09003D533A /* MoreViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31F33FCE2DDA1C09003D533A /* MoreViewController.xib */; };
 		31F33FD32DDA1D4C003D533A /* MobitAlertViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31F33FD12DDA1D4C003D533A /* MobitAlertViewController.swift */; };
 		31F33FD42DDA1D4C003D533A /* MobitAlertViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31F33FD22DDA1D4C003D533A /* MobitAlertViewController.xib */; };
@@ -266,6 +273,7 @@
 		F10007000000000000000002 /* FuturesCloseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10007000000000000000001 /* FuturesCloseViewController.swift */; };
 		5EC8FC34947D4845944E46EF /* MoreAccountsUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2F4482507D447E1AC2D7D76 /* MoreAccountsUseCase.swift */; };
 		FFAADEE71F8742D5BD6EF3D7 /* MoreScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7A1682839BC44FD85A785C7 /* MoreScreenTests.swift */; };
+		A3D6F0311A804D2686E0E8C3 /* MoreAccountResetSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3D6F0311A804D2686E0E8C4 /* MoreAccountResetSheetTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -309,6 +317,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		E7D4EDBE4E024975BF23A56F /* MobitAnalyticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitAnalyticsTests.swift; sourceTree = "<group>"; };
+		F92E78049A9D45938D42C526 /* ReleaseTradingScenarioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseTradingScenarioTests.swift; sourceTree = "<group>"; };
+		D7AB1E102076495CACE704FB /* TradingScreenReleaseQATests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradingScreenReleaseQATests.swift; sourceTree = "<group>"; };
+		0D17BEBCE2234E0FB945AF82 /* FuturesReleaseQATests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesReleaseQATests.swift; sourceTree = "<group>"; };
+		C8E593CDE2934BB4AE8BA120 /* SpotAccountIsolationQATests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotAccountIsolationQATests.swift; sourceTree = "<group>"; };
+		F10116000000000000000002 /* AdBannerLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdBannerLoadingView.swift; sourceTree = "<group>"; };
 		F10114000000000000000002 /* MobitToastPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitToastPresenter.swift; sourceTree = "<group>"; };
 		F10114000000000000000004 /* MobitToastTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitToastTests.swift; sourceTree = "<group>"; };
 		76482DD0266E470BBE4DB2F2 /* FuturesInvestmentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesInvestmentViewController.swift; sourceTree = "<group>"; };
@@ -361,6 +375,7 @@
 		31E208162C46C441000BFEBC /* MoreCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreCoordinator.swift; sourceTree = "<group>"; };
 		31E208532C46CD9F000BFEBC /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/iPhoneOS.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		31F33FCD2DDA1C09003D533A /* MoreViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreViewController.swift; sourceTree = "<group>"; };
+		A3D6F0311A804D2686E0E8C2 /* MoreAccountResetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreAccountResetViewController.swift; sourceTree = "<group>"; };
 		31F33FCE2DDA1C09003D533A /* MoreViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MoreViewController.xib; sourceTree = "<group>"; };
 		31F33FD12DDA1D4C003D533A /* MobitAlertViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitAlertViewController.swift; sourceTree = "<group>"; };
 		31F33FD22DDA1D4C003D533A /* MobitAlertViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MobitAlertViewController.xib; sourceTree = "<group>"; };
@@ -552,6 +567,7 @@
 		F10007000000000000000001 /* FuturesCloseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesCloseViewController.swift; sourceTree = "<group>"; };
 		D2F4482507D447E1AC2D7D76 /* MoreAccountsUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreAccountsUseCase.swift; sourceTree = "<group>"; };
 		A7A1682839BC44FD85A785C7 /* MoreScreenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreScreenTests.swift; sourceTree = "<group>"; };
+		A3D6F0311A804D2686E0E8C4 /* MoreAccountResetSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreAccountResetSheetTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -719,6 +735,10 @@
 		3133E23D2C3E2357000D4B1A /* MobitTests */ = {
 			isa = PBXGroup;
 			children = (
+				E7D4EDBE4E024975BF23A56F /* MobitAnalyticsTests.swift */,
+				D7AB1E102076495CACE704FB /* TradingScreenReleaseQATests.swift */,
+				0D17BEBCE2234E0FB945AF82 /* FuturesReleaseQATests.swift */,
+				C8E593CDE2934BB4AE8BA120 /* SpotAccountIsolationQATests.swift */,
 				F10112000000000000000003 /* TradingRulesTests.swift */,
 				F10114000000000000000004 /* MobitToastTests.swift */,
 				F09228000000000000000017 /* FuturesHistoryCheckTests.swift */,
@@ -728,6 +748,7 @@
 				F09223000000000000000005 /* FuturesCalculatorTests.swift */,
 				F09222000000000000000019 /* AdRewardTests.swift */,
 				A7A1682839BC44FD85A785C7 /* MoreScreenTests.swift */,
+				A3D6F0311A804D2686E0E8C4 /* MoreAccountResetSheetTests.swift */,
 				3133E23E2C3E2357000D4B1A /* MobitTests.swift */,
 				C0D100082EF6000000000011 /* PortfolioCalculatorTests.swift */,
 				C0D100092EF6000000000011 /* MarketFormatTests.swift */,
@@ -746,6 +767,7 @@
 		3133E2472C3E2357000D4B1A /* MobitUITests */ = {
 			isa = PBXGroup;
 			children = (
+				F92E78049A9D45938D42C526 /* ReleaseTradingScenarioTests.swift */,
 				3133E2482C3E2357000D4B1A /* MobitUITests.swift */,
 				3133E24A2C3E2357000D4B1A /* MobitUITestsLaunchTests.swift */,
 			);
@@ -989,6 +1011,7 @@
 			isa = PBXGroup;
 			children = (
 				31F33FCD2DDA1C09003D533A /* MoreViewController.swift */,
+				A3D6F0311A804D2686E0E8C2 /* MoreAccountResetViewController.swift */,
 				31F33FCE2DDA1C09003D533A /* MoreViewController.xib */,
 				C1CD3A602E28C3CD0049699B /* MobitCommunityViewController.swift */,
 				C1CD3A612E28C3CD0049699B /* MobitCommunityViewController.xib */,
@@ -1292,6 +1315,7 @@
 		C1B8F3BD2E27615500C46734 /* CustomViews */ = {
 			isa = PBXGroup;
 			children = (
+				F10116000000000000000002 /* AdBannerLoadingView.swift */,
 				C17BB4172E2F27A400BDAA0F /* MobitBaseViewController.swift */,
 				F10114000000000000000002 /* MobitToastPresenter.swift */,
 				C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */,
@@ -1658,6 +1682,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				31F33FCF2DDA1C09003D533A /* MoreViewController.swift in Sources */,
+				A3D6F0311A804D2686E0E8C1 /* MoreAccountResetViewController.swift in Sources */,
 				5FA880E32E1A3D0B00F22F9C /* NoticeForceUpdateViewController.swift in Sources */,
 				C17EAE382E374515006ACA44 /* Log.swift in Sources */,
 				C16FAE722E38B530003C5AD1 /* PNLTableViewCell.swift in Sources */,
@@ -1674,6 +1699,7 @@
 				3133E2702C3F7098000D4B1A /* MainUseCase.swift in Sources */,
 				C17BB4182E2F27A400BDAA0F /* MobitBaseViewController.swift in Sources */,
 				F10114000000000000000001 /* MobitToastPresenter.swift in Sources */,
+				F10116000000000000000001 /* AdBannerLoadingView.swift in Sources */,
 				99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */,
 				FEA000000000000000000051 /* MainHoldingTableViewCell.swift in Sources */,
 				FEA000000000000000000041 /* FearGreedInfoViewController.swift in Sources */,
@@ -1831,7 +1857,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1452F4050094CEFB328AC3E /* TradingScreenReleaseQATests.swift in Sources */,
+				8701DED8D6554070BA46A61A /* FuturesReleaseQATests.swift in Sources */,
+				ABD36466B4D4440EB97EE107 /* SpotAccountIsolationQATests.swift in Sources */,
 				3133E23F2C3E2357000D4B1A /* MobitTests.swift in Sources */,
+				5F54CFDA8A3D4164A6ADF922 /* MobitAnalyticsTests.swift in Sources */,
 				C0D100052EF6000000000011 /* PortfolioCalculatorTests.swift in Sources */,
 				C0D100062EF6000000000011 /* MarketFormatTests.swift in Sources */,
 				C0D100072EF6000000000011 /* UserDataManagerTests.swift in Sources */,
@@ -1846,6 +1876,7 @@
 				F09329000000000000000006 /* DomesticFuturesMarketRepositoryTests.swift in Sources */,
 				F09222000000000000000020 /* AdRewardTests.swift in Sources */,
 				FFAADEE71F8742D5BD6EF3D7 /* MoreScreenTests.swift in Sources */,
+				A3D6F0311A804D2686E0E8C3 /* MoreAccountResetSheetTests.swift in Sources */,
 				C0D1000B2EF6000000000011 /* SocketServiceTests.swift in Sources */,
 				D0A1000E2FF0000000000006 /* StringExtensionTests.swift in Sources */,
 				D0A100062FF0000000000002 /* ExchangeMarketCodeConverterTests.swift in Sources */,
@@ -1858,6 +1889,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8A906D4747454081993A41E5 /* ReleaseTradingScenarioTests.swift in Sources */,
 				3133E24B2C3E2357000D4B1A /* MobitUITestsLaunchTests.swift in Sources */,
 				3133E2492C3E2357000D4B1A /* MobitUITests.swift in Sources */,
 			);

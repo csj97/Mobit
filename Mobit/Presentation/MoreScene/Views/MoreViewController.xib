@@ -21,7 +21,7 @@
                 <outlet property="headerTitleLabel" destination="MOR-HD-TTL" id="MOR-UI-002"/>
                 <outlet property="investInitButton" destination="MOR-IN-RST" id="MOR-UI-013"/>
                 <outlet property="investmentTitleLabel" destination="MOR-IN-TTL" id="MOR-UI-011"/>
-                <outlet property="rewardBanner" destination="MOR-RW-CRD" id="MOR-UI-010"/>
+                <outlet property="bannerContainerView" destination="MOR-RW-CRD" id="MOR-UI-010"/>
                 <outlet property="settingsButton" destination="MOR-IN-SET" id="MOR-UI-014"/>
                 <outlet property="userNoticeButton" destination="MOR-CM-NOT" id="MOR-UI-016"/>
                 <outlet property="versionLabel" destination="MOR-VR-LBL" id="MOR-UI-017"/>
@@ -94,7 +94,7 @@
                                         </button>
                                     </subviews>
                                 </stackView>
-                                <view contentMode="scaleToFill" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="126" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-RW-CRD" customClass="MoreRewardView" customModule="Mobit" customModuleProvider="target">
+                                <view contentMode="scaleToFill" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="100" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-RW-CRD" customClass="MoreCardView" customModule="Mobit" customModuleProvider="target">
                                     <rect key="frame" x="0.0" y="420" width="353" height="126"/>
                                 </view>
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-IN-CRD" customClass="MoreCardView" customModule="Mobit" customModuleProvider="target">

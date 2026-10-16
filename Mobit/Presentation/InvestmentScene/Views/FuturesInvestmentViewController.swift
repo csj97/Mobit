@@ -24,7 +24,16 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
   // 화면이 해제될 때 Rx 구독을 함께 정리한다.
   private let disposeBag = DisposeBag()
   // 실제 실패에만 기존 목록 하단에서 오류·재시도를 제공한다.
-  private lazy var dataErrorView = FuturesDataStatusView { [weak self] in self?.reactor.action.onNext(.reload) }
+  private lazy var dataErrorView = FuturesDataStatusView { [weak self] in
+    guard let self else { return }
+    MobitAnalyticsUtil.sendClickEvent(
+      location: "투자내역_화면",
+      stepDepth01: "선물_모의투자",
+      stepDepth02: "선물_데이터_재시도",
+      account: reactor.account
+    )
+    reactor.action.onNext(.reload)
+  }
   private var dataSource: UITableViewDiffableDataSource<TableViewSection, UUID>?
   private var items: [(position: FuturesPosition, value: FuturesValuation?)] = []
   private var selectedSortType: InvestSortType = .name
@@ -74,6 +83,16 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
   override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
     pauseSocket()
+  }
+
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    MobitAnalyticsUtil.sendScreenEvent(
+      location: "투자내역_화면",
+      stepDepth01: "선물_모의투자",
+      stepDepth02: "선물_투자내역_조회",
+      account: reactor.account
+    )
   }
 
   override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -185,16 +204,16 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
 
   @IBAction func tapOnChargeButton(_ sender: MobitChargeButton) {
     guard !reactor.currentState.submitting else { return }
-    MobitAnalyticsUtil.sendClickEvent(event: .investment_charge)
-    show(alertType: .canCancel, title: FuturesText.text("futures_charge"), content: FuturesText.text("futures_reward_note")) { [weak self] confirmed in
-      MobitAnalyticsUtil.sendClickEvent(event: confirmed ? .ad_click_confirm : .ad_click_cancel)
+    MobitAnalyticsUtil.sendClickEvent(event: .investment_charge, account: reactor.account)
+    show(alertType: .canCancel, title: FuturesText.text("futures_charge"), content: FuturesText.text("futures_reward_note")) { [weak self, account = reactor.account] confirmed in
+      MobitAnalyticsUtil.sendClickEvent(event: confirmed ? .ad_click_confirm : .ad_click_cancel, account: account)
       guard let self, confirmed else { return }
-      RewardedAdManager.shared.showAd(from: self, account: reactor.account)
+      RewardedAdManager.shared.showAd(from: self, account: account)
     }
   }
 
   @IBAction func tapOnPnlButton(_ sender: UIButton) {
-    MobitAnalyticsUtil.sendClickEvent(event: .investment_pnl)
+    MobitAnalyticsUtil.sendClickEvent(event: .investment_pnl, account: reactor.account)
     coordinator?.openPNL()
   }
 

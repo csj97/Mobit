@@ -15,14 +15,20 @@ class SkeletonDiffableDataSource<SectionIdentifierType: Hashable, ItemIdentifier
   
   private let skeletonCellIdentifier: String
   private let skeletonRowCount: Int
+  // 실제 데이터와 섞지 않고 로딩 전용 셀의 표시만 준비한다.
+  private let prepareSkeletonCell: (UITableViewCell) -> Void
   
-  init(tableView: UITableView,
-	   skeletonCellIdentifier: String,
-	   skeletonRowCount: Int = 10,
-	   cellProvider: @escaping UITableViewDiffableDataSource<SectionIdentifierType, ItemIdentifierType>.CellProvider) {
+  init(
+    tableView: UITableView,
+    skeletonCellIdentifier: String,
+    skeletonRowCount: Int = UITableView.automaticNumberOfSkeletonRows,
+    prepareCellForSkeleton: @escaping (UITableViewCell) -> Void = { _ in },
+    cellProvider: @escaping UITableViewDiffableDataSource<SectionIdentifierType, ItemIdentifierType>.CellProvider
+  ) {
 	
 	self.skeletonCellIdentifier = skeletonCellIdentifier
 	self.skeletonRowCount = skeletonRowCount
+	self.prepareSkeletonCell = prepareCellForSkeleton
 	super.init(tableView: tableView, cellProvider: cellProvider)
   }
   
@@ -38,5 +44,13 @@ class SkeletonDiffableDataSource<SectionIdentifierType: Hashable, ItemIdentifier
   func collectionSkeletonView(_ skeletonView: UITableView,
 							  cellIdentifierForRowAt indexPath: IndexPath) -> ReusableCellIdentifier {
 	return skeletonCellIdentifier
+  }
+
+  func collectionSkeletonView(
+    _ skeletonView: UITableView,
+    prepareCellForSkeleton cell: UITableViewCell,
+    at indexPath: IndexPath
+  ) {
+    prepareSkeletonCell(cell)
   }
 }

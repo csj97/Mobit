@@ -148,6 +148,10 @@ class TradeOrderView: UIView, ViewRule {
   }
 
   private func buildOrderSubViews(reactor: TradeReactor) {
+    // 계측 때문에 하위 주문 콜백이 Reactor를 추가로 붙잡지 않도록 값만 캡처한다.
+    let analyticsAccount = TradingAccountID.spot(for: reactor.exchange)
+    // 현물 KRW·BTC 마켓의 원래 종목을 결과 이벤트까지 유지한다.
+    let analyticsInstrument = reactor.analyticsInstrument()
 	historyView = TradeHistoryView.instanceFromNib(reactor: reactor) { }
 	bidView = TradeBidView.instanceFromNib(
 	  reactor: reactor,
@@ -159,13 +163,27 @@ class TradeOrderView: UIView, ViewRule {
 		askView?.updateCryptoData()
 		historyView?.updateHistory()
 	  case .alert(let title, let message):
-		MobitAnalyticsUtil.sendClickEvent(event: .trade_order_buy_fail)
+		MobitAnalyticsUtil.sendClickEvent(
+          event: .trade_order_buy_fail,
+          account: analyticsAccount,
+          instrument: analyticsInstrument
+        )
 		self.callBack?(.alert(title: title, message: message))
 	  case .settlementRateUnavailable:
+        MobitAnalyticsUtil.sendClickEvent(
+          event: .trade_order_buy_fail,
+          account: analyticsAccount,
+          instrument: analyticsInstrument,
+          extraParameters: ["failure_reason": "BTC_환산시세_미확보"]
+        )
 		// BTC 환산 시세 실패도 상위 화면의 확인·재조회 알럿으로 전달한다.
 		self.callBack?(.settlementRateUnavailable)
 	  case .tradeCompleted:
-		MobitAnalyticsUtil.sendClickEvent(event: .trade_order_buy_complete)
+		MobitAnalyticsUtil.sendClickEvent(
+          event: .trade_order_buy_complete,
+          account: analyticsAccount,
+          instrument: analyticsInstrument
+        )
 		self.callBack?(.tradeCompleted)
 	  default:
 		break
@@ -181,13 +199,27 @@ class TradeOrderView: UIView, ViewRule {
 		bidView?.updateCryptoData()
 		historyView?.updateHistory()
 	  case .alert(let title, let message):
-		MobitAnalyticsUtil.sendClickEvent(event: .trade_order_sell_fail)
+		MobitAnalyticsUtil.sendClickEvent(
+          event: .trade_order_sell_fail,
+          account: analyticsAccount,
+          instrument: analyticsInstrument
+        )
 		self.callBack?(.alert(title: title, message: message))
 	  case .settlementRateUnavailable:
+        MobitAnalyticsUtil.sendClickEvent(
+          event: .trade_order_sell_fail,
+          account: analyticsAccount,
+          instrument: analyticsInstrument,
+          extraParameters: ["failure_reason": "BTC_환산시세_미확보"]
+        )
 		// BTC 환산 시세 실패도 상위 화면의 확인·재조회 알럿으로 전달한다.
 		self.callBack?(.settlementRateUnavailable)
 	  case .tradeCompleted:
-		MobitAnalyticsUtil.sendClickEvent(event: .trade_order_sell_complete)
+		MobitAnalyticsUtil.sendClickEvent(
+          event: .trade_order_sell_complete,
+          account: analyticsAccount,
+          instrument: analyticsInstrument
+        )
 		self.callBack?(.tradeCompleted)
 	  default:
 		break
@@ -234,6 +266,15 @@ class TradeOrderView: UIView, ViewRule {
 		break
 	  }
 	  
+      // 초기 선택과 사용자의 매수·매도·내역 전환을 현재 현물 마켓으로 구분한다.
+      let events: [MobitAnalyticsScreenEventType] = [.trade_order_buy, .trade_order_sell, .trade_order_history]
+      if events.indices.contains(index) {
+        MobitAnalyticsUtil.sendScreenEvent(
+          event: events[index],
+          account: analyticsAccount,
+          instrument: analyticsInstrument
+        )
+      }
 	  self.layoutIfNeeded()
 	  self.segmentedContainerStackView.layoutIfNeeded()
 	}
@@ -285,11 +326,12 @@ class TradeOrderView: UIView, ViewRule {
 	)
 	self.dataSource = UITableViewDiffableDataSource<TableViewSection, OrderUnit>(
 	  tableView: orderbookTableView
-	) { (
+	) { [weak self] (
 	  tableView: UITableView,
 	  indexPath: IndexPath,
 	  obUnit: OrderUnit
 	) -> UITableViewCell? in
+	  guard let self else { return nil }
 	  
 	  guard let cell = self.orderbookTableView.dequeueReusableCell(
 		withIdentifier: self.cellIndentifier,

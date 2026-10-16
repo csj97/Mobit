@@ -44,6 +44,16 @@ class TradeReactor: Reactor {
   private let settlementRateMarketCode: String?
   let exchange: Exchange
 
+  // 상세 화면의 고정 거래소와 마켓을 사용해 시세·계좌 전환 뒤에도 원래 행동 대상을 기록한다.
+  func analyticsInstrument(for product: TradingProduct = .spot) -> TradingInstrumentID {
+    TradingInstrumentID(
+      exchange: exchange,
+      product: product,
+      rawSymbol: selectedMarketCode,
+      settlementCurrency: TradingCurrency(rawValue: settlementCurrency.rawValue) ?? .krw
+    )
+  }
+
   init(
     selectCrypto: CryptoCellInfo,
 	cmcInformation: FirebaseCMCResponse?,

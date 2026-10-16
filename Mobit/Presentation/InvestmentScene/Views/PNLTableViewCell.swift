@@ -12,6 +12,8 @@ class PNLTableViewCell: UITableViewCell {
   @IBOutlet weak var marketNameLabel: UILabel!
   @IBOutlet weak var pnlLabel: UILabel!
   @IBOutlet weak var quantityLabel: UILabel!
+  // 현물·선물 손익 내역에 공통으로 표시하는 체결 수량 제목이다.
+  @IBOutlet private weak var quantityTitle: UILabel!
   @IBOutlet weak var entryPriceLabel: UILabel!
   @IBOutlet weak var exitPriceLabel: UILabel!
   @IBOutlet weak var transactionDateLabel: UILabel!
@@ -29,6 +31,7 @@ class PNLTableViewCell: UITableViewCell {
   
   override func awakeFromNib() {
 	super.awakeFromNib()
+	quantityTitle.text = FuturesText.text("trade_executed_quantity") + " :"
 	updateThemeColors()
   }
 

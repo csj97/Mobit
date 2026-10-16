@@ -45,6 +45,9 @@ class PNLShareView: UIView {
   @IBOutlet weak var entryTitle: UILabel!
   @IBOutlet weak var exitTitle: UILabel!
   
+  // 미리보기를 연 원본 계좌를 보존해 저장·공유 클릭을 다른 선택 계좌에 붙이지 않는다.
+  private var analyticsAccount: TradingAccountID?
+
   var callBack: ((PNLShareButtonType) -> ())? = nil
   
   deinit {
@@ -74,6 +77,9 @@ class PNLShareView: UIView {
   }
   
   func configure(pnlShareUnit: PNLShareUnit) {
+    analyticsAccount = pnlShareUnit.exchange.map {
+      TradingAccountID(exchange: $0, product: pnlShareUnit.product, currency: .krw)
+    }
     if pnlShareUnit.product == .perpetual {
       entryTitle.text = FuturesText.text("futures_entry")
       exitTitle.text = FuturesText.text("futures_exit_price")
@@ -116,13 +122,13 @@ class PNLShareView: UIView {
   
   @IBAction func tapOnSaveButton(_ sender: UIButton) {
 	guard let saveImg = makeShareImage() else { return }
-	MobitAnalyticsUtil.sendClickEvent(event: .pnl_click_save)
+	MobitAnalyticsUtil.sendClickEvent(event: .pnl_click_save, account: analyticsAccount)
 	self.callBack?(.save(saveImg: saveImg))
   }
   
   @IBAction func tapOnShareButton(_ sender: UIButton) {
 	guard let shareImg = makeShareImage() else { return }
-	MobitAnalyticsUtil.sendClickEvent(event: .pnl_click_share)
+	MobitAnalyticsUtil.sendClickEvent(event: .pnl_click_share, account: analyticsAccount)
 	self.callBack?(.share(shareImg: shareImg))
   }
   

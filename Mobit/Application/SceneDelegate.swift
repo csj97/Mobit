@@ -210,6 +210,15 @@ final class FuturesLiquidationNoticePresenter: NSObject {
 	])
 	banner = notice
 	displayedNoticeIndex = index
+	// 청산 발생 횟수와 구분해 실제 안내를 표시한 원본 계좌만 기록한다.
+	if let account = positions.first?.order.account {
+	  MobitAnalyticsUtil.sendScreenEvent(
+		location: "앱_화면",
+		stepDepth01: "청산_안내",
+		stepDepth02: "선물_청산안내_노출",
+		account: account
+	  )
+	}
 	UIAccessibility.post(notification: .announcement, argument: notice.text)
 	// 대기 시간이 아닌 실제 화면에 표시한 시점부터 4초를 센다.
 	let dismiss = DispatchWorkItem { [weak self, weak notice] in

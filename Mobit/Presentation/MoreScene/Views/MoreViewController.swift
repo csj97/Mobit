@@ -5,6 +5,7 @@
 //  Created by 조성재 on 5/18/25.
 //
 
+import GoogleMobileAds
 import RxCocoa
 import RxSwift
 import SnapKit
@@ -18,10 +19,10 @@ class MoreViewController: MobitBaseViewController {
   @IBOutlet private weak var accountsErrorView: UIStackView! // 저장소 읽기 실패가 있을 때만 오류·재시도를 표시한다.
   @IBOutlet private weak var accountsErrorLabel: UILabel! // 정상 갱신 안내 대신 실제 읽기 실패만 전달한다.
   @IBOutlet private weak var accountsRetryButton: UIButton! // 저장 실패 후 잔고 읽기를 사용자가 다시 요청한다.
-  @IBOutlet private weak var rewardBanner: MoreRewardView! // 기존 광고 지급 조건을 시안의 강조 카드에 표시한다.
+  @IBOutlet private weak var bannerContainerView: UIView! // 계좌 충전 버튼과 분리한 중앙 AdMob 배너 영역이다.
   @IBOutlet private weak var investmentTitleLabel: UILabel! // 초기화와 설정 메뉴를 투자 관리 그룹으로 묶는다.
   @IBOutlet private weak var communityTitleLabel: UILabel! // 커뮤니티와 모의투자 안내 메뉴의 그룹 제목이다.
-  @IBOutlet private weak var investInitButton: MoreMenuButton! // 현물 초기화의 기존 확인 흐름을 연결한다.
+  @IBOutlet private weak var investInitButton: MoreMenuButton! // 거래소별 현물·선물 계좌 선택과 초기화 확인을 연결한다.
   @IBOutlet private weak var settingsButton: MoreMenuButton! // 아이콘과 설명을 포함한 행 전체에서 설정을 연다.
   @IBOutlet private weak var communityButton: MoreMenuButton! // 기존 Coordinator의 커뮤니티 이동을 연결한다.
   @IBOutlet private weak var userNoticeButton: MoreMenuButton! // 모의투자 유의사항의 기존 안내 흐름을 연결한다.
@@ -32,6 +33,14 @@ class MoreViewController: MobitBaseViewController {
   private let accountsUseCase: MoreAccountsUseCase
   // 확인한 계좌를 광고 시작 시점까지 고정해 전달한다.
   private let presentRewardedAd: @MainActor (MobitBaseViewController, TradingAccountID) -> Void
+  // 화면 폭이 준비된 뒤 요청하며 테스트에서는 외부 광고 요청을 생략한다.
+  private let loadBannerAd: @MainActor (BannerView) -> Void
+  // SDK 콘텐츠 크기로 스크롤 영역의 광고 높이를 결정한다.
+  private let bannerView = BannerView(adSize: AdSizeLargeBanner)
+  // 광고 응답 전 중앙 배너 영역에 로딩 상태를 표시한다.
+  private let bannerLoadingView = AdBannerLoadingView(height: AdSizeLargeBanner.size.height)
+  // 중첩 레이아웃이 여러 번 끝나도 동일한 콘텐츠 폭의 광고는 한 번만 요청한다.
+  private var requestedBannerWidth: CGFloat?
   // 화면 진입·보상 정산·재시도의 읽기 요청을 한 구독으로 합친다.
   private let reloadAccounts = PublishSubject<Void>()
   // 화면 해제 시 잔고 읽기와 알림 구독을 함께 종료한다.
@@ -43,10 +52,12 @@ class MoreViewController: MobitBaseViewController {
 
   init(
     accountsUseCase: MoreAccountsUseCase = MoreAccountsUseCase(),
-    presentRewardedAd: @escaping @MainActor (MobitBaseViewController, TradingAccountID) -> Void = { RewardedAdManager.shared.showAd(from: $0, account: $1) }
+    presentRewardedAd: @escaping @MainActor (MobitBaseViewController, TradingAccountID) -> Void = { RewardedAdManager.shared.showAd(from: $0, account: $1) },
+    loadBannerAd: @escaping @MainActor (BannerView) -> Void = { $0.load(Request()) }
   ) {
     self.accountsUseCase = accountsUseCase
     self.presentRewardedAd = presentRewardedAd
+    self.loadBannerAd = loadBannerAd
     super.init(nibName: "MoreViewController", bundle: nil)
   }
 
@@ -66,7 +77,27 @@ class MoreViewController: MobitBaseViewController {
 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    MobitAnalyticsUtil.sendScreenEvent(
+      location: "더보기_화면",
+      stepDepth01: "더보기_탭",
+      stepDepth02: "더보기_화면_진입",
+      account: nil
+    )
     reloadAccounts.onNext(())
+  }
+
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    DispatchQueue.main.async { [weak self] in
+      guard let self, self.view.window != nil else { return }
+      // 스택 내부 배치가 끝나기 전 XIB 기본 폭으로 광고를 요청하지 않는다.
+      let width = floor(self.bannerContainerView.bounds.width)
+      guard width > 0, self.requestedBannerWidth != width else { return }
+      self.requestedBannerWidth = width
+      self.bannerView.adSize = inlineAdaptiveBanner(width: width, maxHeight: AdSizeLargeBanner.size.height)
+      self.bannerLoadingView.setLoading(true)
+      self.loadBannerAd(self.bannerView)
+    }
   }
 
   func setUI() {
@@ -103,8 +134,17 @@ class MoreViewController: MobitBaseViewController {
     for exchange in [Exchange.upbit, .bithumb] {
       accountsStackView.addArrangedSubview(MoreAccountGroupView(exchange: exchange, rows: accountRows.filter { $0.account.exchange == exchange }))
     }
-    rewardBanner.configure()
-    investInitButton.configure(title: "futures_spot_reset", subtitle: "more_reset_description", icon: "arrow.clockwise", color: .systemRed, badge: "more_caution")
+    bannerContainerView.accessibilityIdentifier = "more.banner.container"
+    bannerContainerView.clipsToBounds = true
+    bannerView.adUnitID = MobitConstants.bannerAdType
+    bannerView.rootViewController = self
+    bannerView.delegate = self
+    bannerContainerView.addSubview(bannerView)
+    bannerView.snp.makeConstraints { $0.edges.equalToSuperview() }
+    bannerContainerView.addSubview(bannerLoadingView)
+    bannerLoadingView.snp.makeConstraints { $0.edges.equalToSuperview() }
+    bannerLoadingView.setLoading(true)
+    investInitButton.configure(title: "investment_reset", subtitle: "more_reset_description", icon: "arrow.clockwise", color: .systemRed, badge: "more_caution")
     settingsButton.configure(title: "more_settings_title", subtitle: "more_settings_description", icon: "slider.horizontal.3", color: .systemBlue)
     communityButton.configure(title: "more_mobit_community", subtitle: "more_community_description", icon: "person.3.fill", color: .systemPurple)
     userNoticeButton.configure(title: "more_user", subtitle: "more_notice_description", icon: "info.circle", color: .systemOrange)
@@ -140,28 +180,45 @@ class MoreViewController: MobitBaseViewController {
       }).disposed(by: disposeBag)
   }
 
-  @IBAction private func tapOnAccountsRetry(_ sender: UIButton) { reloadAccounts.onNext(()) }
+  @IBAction private func tapOnAccountsRetry(_ sender: UIButton) {
+    MobitAnalyticsUtil.sendClickEvent(
+      location: "더보기_화면",
+      stepDepth01: "더보기_탭",
+      stepDepth02: "계좌_잔고_재시도",
+      account: nil,
+      extraParameters: ["retry_scope": "전체_계좌"]
+    )
+    reloadAccounts.onNext(())
+  }
 
   private func requestCharge(for account: TradingAccountID) {
     guard presentedViewController == nil, MoreAccountsUseCase.accounts.contains(account) else { return }
-    MobitAnalyticsUtil.sendClickEvent(event: .more_charge)
+    MobitAnalyticsUtil.sendClickEvent(event: .more_charge, account: account)
     // 확인창과 광고 보상은 버튼을 누른 계좌를 사용하며 모드 전환을 하지 않는다.
-    let name = "\(MoreAccountGroupView.exchangeName(account.exchange)) · \(FuturesText.text(account.product == .spot ? "futures_spot" : "futures_product"))"
+    let name = accountName(account)
     // 지급 금액은 기존 보상 정책에서 읽어 시안의 예시 금액과 혼동하지 않게 한다.
     let amount = TradingNumberFormat.string(TradingFundingPolicy.advertisementReward(for: account))
+    // 확인창의 중복 dismiss 콜백이 광고 요청과 분석 이벤트를 반복하지 않게 한다.
+    var didHandleChoice = false
     show(
       alertType: .canCancel,
       title: String(format: FuturesText.text("more_charge_account_title"), name),
       content: String(format: FuturesText.text("more_charge_account_note"), name, amount)
     ) { [weak self] confirmed in
-      guard let self else { return }
-      MobitAnalyticsUtil.sendClickEvent(event: confirmed ? .ad_click_confirm : .ad_click_cancel)
+      guard let self, !didHandleChoice else { return }
+      didHandleChoice = true
+      MobitAnalyticsUtil.sendClickEvent(
+        event: confirmed ? .ad_click_confirm : .ad_click_cancel,
+        account: account,
+        extraParameters: ["entry_point": "더보기_계좌_충전"]
+      )
       if confirmed { self.presentRewardedAd(self, account) }
     }
   }
 
   @IBAction func tapOnUserNoticeButton(_ sender: UIButton) {
-    MobitAnalyticsUtil.sendClickEvent(event: .more_notice)
+    guard presentedViewController == nil else { return }
+    MobitAnalyticsUtil.sendClickEvent(event: .more_notice, account: nil)
     show(
       alertType: .onlyConfirm,
       title: FuturesText.text("more_user"),
@@ -171,23 +228,42 @@ class MoreViewController: MobitBaseViewController {
   }
 
   @IBAction func tapOnInvestInitButton(_ sender: UIButton) {
-    MobitAnalyticsUtil.sendClickEvent(event: .more_init_data)
-    show(
-      alertType: .canCancel,
-      title: FuturesText.text("futures_spot_reset"),
-      content: FuturesText.text("futures_spot_reset_note")
-    ) { [weak self] confirmed in
-      guard let self, confirmed else { return }
-      RewardedAdManager.shared.resetSpotInvestment(from: self)
+    guard presentedViewController == nil else { return }
+    MobitAnalyticsUtil.sendClickEvent(event: .more_init_data, account: nil)
+    // 현재 계좌는 기본 선택으로만 사용하며 실제 초기화 대상은 시트에서 확정한다.
+    let picker = MoreAccountResetViewController(
+      accountsUseCase: accountsUseCase,
+      currentAccount: TradingAccountID(
+        exchange: ExchangeSelectionStore.currentExchange,
+        product: ExchangeSelectionStore.currentProduct,
+        currency: .krw
+      )
+    ) { [weak self] account in
+      guard let self else { return }
+      RewardedAdManager.shared.resetInvestment(for: account, from: self)
       self.reloadAccounts.onNext(())
     }
+    picker.prepareSheet(for: view.safeAreaLayoutGuide.layoutFrame.width)
+    present(picker, animated: true)
+  }
+
+  private func accountName(_ account: TradingAccountID) -> String {
+    "\(MoreAccountGroupView.exchangeName(account.exchange)) · \(FuturesText.text(account.product == .spot ? "futures_spot" : "futures_product"))"
   }
 
   @IBAction func tapOnSettingsButton(_ sender: UIButton) {
     guard presentedViewController == nil else { return }
-    MobitAnalyticsUtil.sendClickEvent(location: "더보기_화면", stepDepth01: "더보기_탭", stepDepth02: "설정_버튼_클릭")
+    // 동일 설정 화면에 진입하는 상단 버튼과 메뉴를 구분한다.
+    let entryPoint = sender === headerSettingsButton ? "상단_설정_버튼" : "설정_메뉴"
+    MobitAnalyticsUtil.sendClickEvent(
+      location: "더보기_화면",
+      stepDepth01: "더보기_탭",
+      stepDepth02: "설정_버튼_클릭",
+      account: nil,
+      extraParameters: ["entry_point": entryPoint]
+    )
     // 기존 설정·테마 적용 동작을 메뉴와 상단 버튼에서 공유한다.
-    let settings = AppSettingsViewController()
+    let settings = AppSettingsViewController(entryPoint: entryPoint)
     settings.modalPresentationStyle = .pageSheet
     settings.sheetPresentationController?.detents = [
       .custom(identifier: .init("settings.content")) { [weak settings] context in
@@ -204,7 +280,7 @@ class MoreViewController: MobitBaseViewController {
   }
 
   @IBAction func tapOnCommunity(_ sender: UIButton) {
-    MobitAnalyticsUtil.sendClickEvent(event: .more_community)
+    MobitAnalyticsUtil.sendClickEvent(event: .more_community, account: nil)
     coordinator?.pushMobitCommunityViewController()
   }
 
@@ -213,6 +289,19 @@ class MoreViewController: MobitBaseViewController {
     let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
     versionLabel.text = String(format: FuturesText.text("more_app_version"), version.split(separator: ".").count == 2 ? version + ".0" : version)
     versionLabel.font = .preferredFont(forTextStyle: .footnote)
+  }
+}
+
+extension MoreViewController: BannerViewDelegate {
+  func bannerViewDidReceiveAd(_ bannerView: BannerView) {
+    bannerLoadingView.setLoading(false)
+  }
+
+  func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
+    bannerLoadingView.setLoading(false)
+    // 광고 식별자나 원본 응답 없이 SDK 오류 종류만 기록한다.
+    let bannerError = error as NSError
+    Log.warning("중앙 배너 로드 실패: domain=\(bannerError.domain), code=\(bannerError.code)", tag: "MoreBanner")
   }
 }
 
@@ -591,46 +680,6 @@ final class MoreMenuButton: UIButton {
   }
 }
 
-// 시안의 보상 카드는 실제 지급 조건을 설명하며 충전 대상은 각 계좌 행에서 선택한다.
-final class MoreRewardView: UIView {
-  override class var layerClass: AnyClass { CAGradientLayer.self }
-
-  func configure() {
-    layer.cornerRadius = 24
-    layer.cornerCurve = .continuous
-    // 두 테마에서 흰 문구 대비를 유지하는 보상 카드 전용 배경이다.
-    let gradient = layer as? CAGradientLayer
-    gradient?.colors = [UIColor(hex: "#2563EB").cgColor, UIColor(hex: "#7C3AED").cgColor]
-    gradient?.startPoint = CGPoint(x: 0, y: 0)
-    gradient?.endPoint = CGPoint(x: 1, y: 1)
-    // 실제 광고 완료 조건을 함께 보여주는 시안의 강조 제목이다.
-    let title = FuturesText.label(style: .headline)
-    title.text = FuturesText.text("more_reward_title")
-    title.textColor = .white
-    // USDT 예시 대신 기존 KRW 보상 정책에서 금액을 읽는다.
-    let note = FuturesText.label(style: .footnote)
-    note.text = String(format: FuturesText.text("more_reward_description"), TradingNumberFormat.string(TradingFundingPolicy.advertisementReward(for: .spot(for: .upbit))))
-    note.textColor = .white
-    // 제목과 조건을 한 묶음으로 읽는다.
-    let text = UIStackView(arrangedSubviews: [title, note])
-    text.axis = .vertical
-    text.spacing = 8
-    // 계좌 행에서 받을 광고 보상을 나타내는 장식 아이콘이다.
-    let icon = UIImageView(image: UIImage(systemName: "gift.fill"))
-    icon.tintColor = .white
-    icon.contentMode = .scaleAspectFit
-    icon.snp.makeConstraints { $0.width.height.equalTo(44) }
-    // 강조 카드도 작은 화면·텍스트 확대에서 내용 높이를 따른다.
-    let row = UIStackView(arrangedSubviews: [text, icon])
-    row.spacing = 14
-    row.alignment = .center
-    addSubview(row)
-    row.snp.makeConstraints { $0.edges.equalToSuperview().inset(20) }
-    isAccessibilityElement = true
-    accessibilityLabel = [title.text, note.text].compactMap { $0 }.joined(separator: ". ")
-  }
-}
-
 private enum MoreSettingsColors {
   // 어두운 배경에서도 섹션 안내와 선택 테두리를 읽을 수 있게 한다.
   static let accent = UIColor { $0.userInterfaceStyle == .dark ? UIColor(hex: "#92B3FF") : UIColor(hex: "#2563EB") }
@@ -644,7 +693,7 @@ private enum MoreSettingsColors {
   static let secondaryText = UIColor { $0.userInterfaceStyle == .dark ? UIColor(hex: "#A4AFBF") : UIColor(hex: "#64748B") }
 }
 
-private final class AppSettingsViewController: UIViewController {
+private final class AppSettingsViewController: UIViewController, UIAdaptivePresentationControllerDelegate {
   private enum Layout {
     // 손잡이 아래 제목이 시작되는 여백이다.
     static let headerTop: CGFloat = 28
@@ -660,6 +709,8 @@ private final class AppSettingsViewController: UIViewController {
 
   // 적용 전에는 저장된 캔들 색상을 변경하지 않는다.
   private var pendingTheme: UserDataManager.MarketColorTheme = UserDataManager.marketColorTheme
+  // 상단 버튼과 설정 메뉴 중 실제 진입 경로를 시트가 닫힐 때까지 유지한다.
+  private let entryPoint: String
   // 취소하면 버릴 앱 테마 선택값이다.
   private var pendingAppTheme: UserDataManager.AppTheme = UserDataManager.appTheme
   // 시스템 시트 안에서 설정 콘텐츠와 고정 버튼을 배치한다.
@@ -719,7 +770,8 @@ private final class AppSettingsViewController: UIViewController {
     )
   ]
 
-  init() {
+  init(entryPoint: String) {
+    self.entryPoint = entryPoint
     super.init(nibName: nil, bundle: nil)
   }
 
@@ -731,6 +783,11 @@ private final class AppSettingsViewController: UIViewController {
     bindActions()
     updateSelectionUI()
     sendSettingsViewEvent()
+  }
+
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    presentationController?.delegate = self
   }
 
   func prepareSheet(for width: CGFloat) {
@@ -1041,8 +1098,8 @@ private final class AppSettingsViewController: UIViewController {
   }
 
   private func bindActions() {
-    closeButton.addTarget(self, action: #selector(tapOnCancelButton), for: .touchUpInside)
-    cancelButton.addTarget(self, action: #selector(tapOnCancelButton), for: .touchUpInside)
+    closeButton.addTarget(self, action: #selector(tapOnCancelButton(_:)), for: .touchUpInside)
+    cancelButton.addTarget(self, action: #selector(tapOnCancelButton(_:)), for: .touchUpInside)
     confirmButton.addTarget(self, action: #selector(tapOnConfirmButton), for: .touchUpInside)
     appThemeButtons.forEach { $0.addTarget(self, action: #selector(didChangeAppTheme(_:)), for: .touchUpInside) }
     tintSwitch.addTarget(self, action: #selector(didChangeTintSwitch(_:)), for: .valueChanged)
@@ -1054,14 +1111,45 @@ private final class AppSettingsViewController: UIViewController {
     updateThemeButtons()
   }
 
-  @objc private func tapOnCancelButton() {
+  @objc private func tapOnCancelButton(_ sender: UIButton) {
+	guard confirmButton.isEnabled, !isBeingDismissed else { return }
+	confirmButton.isEnabled = false
+	sendSettingsCancelEvent(reason: sender === closeButton ? "닫기_버튼" : "취소_버튼")
 	self.dismiss(animated: true)
+  }
+
+  func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+	guard confirmButton.isEnabled else { return }
+	confirmButton.isEnabled = false
+	sendSettingsCancelEvent(reason: "스와이프_닫기")
+  }
+
+  private func sendSettingsCancelEvent(reason: String) {
+	MobitAnalyticsUtil.sendClickEvent(
+	  location: "더보기_화면",
+	  stepDepth01: "더보기_설정",
+	  stepDepth02: "설정_취소",
+	  stepDepth03: reason,
+	  account: nil,
+	  extraParameters: [
+		"entry_point": entryPoint,
+		"selected_app_theme": analyticsAppThemeName(pendingAppTheme),
+		"selected_theme": analyticsThemeName(pendingTheme),
+		"background_tint": tintSwitch.isOn ? "켜짐" : "꺼짐"
+	  ]
+	)
   }
   
   @objc private func tapOnConfirmButton() {
+	guard confirmButton.isEnabled, !isBeingDismissed else { return }
+	confirmButton.isEnabled = false
+	// 적용 전후 캔들 팔레트의 변경 여부를 기록한다.
 	let previousTheme = UserDataManager.marketColorTheme
+	// 시세 배경 표시의 실제 저장값과 임시 선택을 비교한다.
 	let previousTintEnabled = UserDataManager.marketCellTintEnabled
+	// 앱 전역 테마의 적용 전 상태를 보존한다.
 	let previousAppTheme = UserDataManager.appTheme
+	// 실제 설정 변경 없이 적용한 행동도 구분한다.
 	let changeStatus = previousTheme == self.pendingTheme &&
 	  previousAppTheme == self.pendingAppTheme &&
 	  previousTintEnabled == self.tintSwitch.isOn
@@ -1072,7 +1160,9 @@ private final class AppSettingsViewController: UIViewController {
 	  stepDepth01: "더보기_설정",
 	  stepDepth02: "설정_적용",
 	  stepDepth03: self.analyticsThemeName(self.pendingTheme),
+	  account: nil,
 	  extraParameters: [
+		"entry_point": entryPoint,
 		"selected_app_theme": self.analyticsAppThemeName(self.pendingAppTheme),
 		"selected_theme": self.analyticsThemeName(self.pendingTheme),
 		"background_tint": self.tintSwitch.isOn ? "켜짐" : "꺼짐",
@@ -1090,7 +1180,8 @@ private final class AppSettingsViewController: UIViewController {
   }
 
   @objc private func didChangeAppTheme(_ sender: UIButton) {
-	guard self.appTheme(for: sender.tag) != self.pendingAppTheme else { return }
+	guard confirmButton.isEnabled, !isBeingDismissed,
+	  self.appTheme(for: sender.tag) != self.pendingAppTheme else { return }
 	self.pendingAppTheme = self.appTheme(for: sender.tag)
 	self.updateThemeButtons()
 	MobitAnalyticsUtil.sendClickEvent(
@@ -1098,7 +1189,9 @@ private final class AppSettingsViewController: UIViewController {
 	  stepDepth01: "더보기_설정",
 	  stepDepth02: "앱_테마_선택",
 	  stepDepth03: self.analyticsAppThemeName(self.pendingAppTheme),
+	  account: nil,
 	  extraParameters: [
+		"entry_point": entryPoint,
 		"selected_app_theme": self.analyticsAppThemeName(self.pendingAppTheme),
 		"selected_theme": self.analyticsThemeName(self.pendingTheme),
 		"background_tint": self.tintSwitch.isOn ? "켜짐" : "꺼짐"
@@ -1107,6 +1200,7 @@ private final class AppSettingsViewController: UIViewController {
   }
   
   @objc private func tapOnOptionView(_ sender: MarketColorThemeOptionView) {
+	guard confirmButton.isEnabled, !isBeingDismissed, pendingTheme != sender.theme else { return }
 	self.pendingTheme = sender.theme
 	self.updateSelectionUI()
 	MobitAnalyticsUtil.sendClickEvent(
@@ -1114,7 +1208,10 @@ private final class AppSettingsViewController: UIViewController {
 	  stepDepth01: "더보기_설정",
 	  stepDepth02: "캔들_테마_선택",
 	  stepDepth03: self.analyticsThemeName(sender.theme),
+	  account: nil,
 	  extraParameters: [
+		"entry_point": entryPoint,
+		"selected_app_theme": self.analyticsAppThemeName(self.pendingAppTheme),
 		"selected_theme": self.analyticsThemeName(sender.theme),
 		"background_tint": self.tintSwitch.isOn ? "켜짐" : "꺼짐"
 	  ]
@@ -1122,12 +1219,15 @@ private final class AppSettingsViewController: UIViewController {
   }
 
   @objc private func didChangeTintSwitch(_ sender: UISwitch) {
+	guard confirmButton.isEnabled, !isBeingDismissed else { return }
 	MobitAnalyticsUtil.sendClickEvent(
 	  location: "더보기_화면",
 	  stepDepth01: "더보기_설정",
 	  stepDepth02: "배경색_토글_변경",
 	  stepDepth03: sender.isOn ? "켜짐" : "꺼짐",
+	  account: nil,
 	  extraParameters: [
+		"entry_point": entryPoint,
 		"selected_app_theme": self.analyticsAppThemeName(self.pendingAppTheme),
 		"background_tint": sender.isOn ? "켜짐" : "꺼짐",
 		"selected_theme": self.analyticsThemeName(self.pendingTheme)
@@ -1141,7 +1241,9 @@ private final class AppSettingsViewController: UIViewController {
 	  stepDepth01: "더보기_설정",
 	  stepDepth02: "설정_화면_노출",
 	  stepDepth03: self.analyticsThemeName(self.pendingTheme),
+	  account: nil,
 	  extraParameters: [
+		"entry_point": entryPoint,
 		"selected_app_theme": self.analyticsAppThemeName(self.pendingAppTheme),
 		"selected_theme": self.analyticsThemeName(self.pendingTheme),
 		"background_tint": self.tintSwitch.isOn ? "켜짐" : "꺼짐"

@@ -15,6 +15,7 @@ import Then
 import UIKit
 import Network
 import SnapKit
+import SkeletonView
 
 enum TableViewSection: CaseIterable {
   case main
@@ -328,6 +329,11 @@ class MainViewController: MobitBaseViewController {
   
   // MARK: - Life Cycle
   
+  // 화면을 구성한 선물 계좌가 있으면 전역 선택 대신 해당 계좌로 행동을 묶는다.
+  private var analyticsAccount: TradingAccountID {
+    futuresReactor?.account ?? .spot(for: ExchangeSelectionStore.currentExchange)
+  }
+
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     isMainVisible = true
@@ -371,6 +377,12 @@ class MainViewController: MobitBaseViewController {
 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    MobitAnalyticsUtil.sendScreenEvent(
+      location: "거래소_화면",
+      stepDepth01: "거래소_탭",
+      stepDepth02: "시세목록_조회",
+      account: analyticsAccount
+    )
     updateLoadingIndicator()
     self.requestMainNativeAdIfNeeded()
     if !reactor.currentState.totalCryptoList.isEmpty {
@@ -383,6 +395,7 @@ class MainViewController: MobitBaseViewController {
     isMainVisible = false
     stopLoadingIndicatorWait()
     hideLoadingIndicator()
+    updateMarketListSkeleton()
   }
 
   override func viewDidLayoutSubviews() {
@@ -390,6 +403,7 @@ class MainViewController: MobitBaseViewController {
 	
 	rootContainer.pin.all(self.view.pin.safeArea)
 	rootContainer.flex.layout()
+    updateMarketListSkeleton()
     (navigationController?.parent as? MobitTabBarViewController)?.alignTradingAccessory(fearGreedFloatingButton)
   }
   
@@ -624,11 +638,18 @@ class MainViewController: MobitBaseViewController {
 	self.tableView.keyboardDismissMode = .onDrag
 	self.tableView.backgroundColor = .mobitColors(.backgroundPrimary)
 	self.tableView.backgroundView = nil
+    self.tableView.isSkeletonable = true
+    // XIB 높이는 추정에만 사용하고 실제 행 높이는 Auto Layout으로 측정한다.
+    self.tableView.estimatedRowHeight = 60
 	// 하단 탭바에 마지막 행이 가리지 않도록 여백 확보
 	self.tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 70, right: 0)
 	
-	self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoCellInfo>(
-	  tableView: self.tableView
+	self.dataSource = SkeletonDiffableDataSource<TableViewSection, CryptoCellInfo>(
+	  tableView: self.tableView,
+	  skeletonCellIdentifier: self.cellIndentifier,
+	  prepareCellForSkeleton: { cell in
+		(cell as? MainCryptoTableViewCell)?.prepareForSkeleton()
+	  }
 	) { [weak self] (tableView, indexPath, crypto) -> UITableViewCell? in
 	  guard let self = self else { return UITableViewCell() }
 
@@ -710,12 +731,13 @@ class MainViewController: MobitBaseViewController {
 	  self.reactor.action.onNext(.setSortType(sortBy: newSortType))
 	}
 
-	MobitAnalyticsUtil.sendClickEvent(event: .exchange_sort)
+	MobitAnalyticsUtil.sendClickEvent(event: .exchange_sort, account: analyticsAccount)
 	MobitAnalyticsUtil.sendClickEvent(
 	  location: "거래소_화면",
 	  stepDepth01: "\(self.analyticsTabName(self.selectedTab))_탭",
 	  stepDepth02: "정렬_변경",
 	  stepDepth03: "\(self.analyticsSortCriterion(forButtonTag: sender.tag, isHold: isHold))_\(self.analyticsSortDirection(for: newSortType))",
+	  account: self.analyticsAccount,
 	  extraParameters: [
 		"selected_tab": self.analyticsTabName(self.selectedTab),
 		"sort_criterion": self.analyticsSortCriterion(forButtonTag: sender.tag, isHold: isHold),
@@ -790,6 +812,7 @@ class MainViewController: MobitBaseViewController {
 	  stepDepth01: "메인_탭",
 	  stepDepth02: "탭_선택",
 	  stepDepth03: self.analyticsTabName(self.selectedTab),
+	  account: self.analyticsAccount,
 	  extraParameters: ["selected_tab": self.analyticsTabName(self.selectedTab)]
 	)
 
@@ -938,6 +961,7 @@ class MainViewController: MobitBaseViewController {
 	  stepDepth01: "메인_플로팅버튼",
 	  stepDepth02: "공포탐욕_설명_열기",
 	  stepDepth03: levelTitle,
+	  account: self.analyticsAccount,
 	  extraParameters: [
 		"fear_greed_level": levelTitle,
 		"fear_greed_value": self.reactor.currentState.fearGreedIndex?.value ?? -1
@@ -965,6 +989,7 @@ class MainViewController: MobitBaseViewController {
 		  stepDepth01: "거래소_선택",
 		  stepDepth02: "거래소_변경",
 		  stepDepth03: exchangeName,
+		  account: TradingAccountID(exchange: exchange, product: self.analyticsAccount.product, currency: .krw),
 		  extraParameters: [
 			"selected_exchange": exchangeName,
 			"previous_exchange": self.analyticsExchangeName(currentExchange),
@@ -992,6 +1017,7 @@ class MainViewController: MobitBaseViewController {
 	  stepDepth01: "거래소_선택",
 	  stepDepth02: "거래소_바텀시트_노출",
 	  stepDepth03: self.analyticsExchangeName(currentExchange),
+	  account: self.analyticsAccount,
 	  extraParameters: ["selected_exchange": self.analyticsExchangeName(currentExchange)]
 	)
 	self.present(alert, animated: true)
@@ -1284,6 +1310,7 @@ extension MainViewController: View {
         self?.loadingIndicatorTimedOut = true
         self?.stopLoadingIndicatorWait()
         self?.hideLoadingIndicator()
+        self?.updateMarketListSkeleton()
       })
       .disposed(by: disposeBag)
     NotificationCenter.default.rx.notification(UIApplication.didBecomeActiveNotification)
@@ -1351,6 +1378,7 @@ extension MainViewController: View {
   }
 
   private func updateLoadingIndicator() {
+    defer { updateMarketListSkeleton() }
     // 하나의 요청이 실패하면 전체 화면 잠금보다 오류·재시도 안내를 우선한다.
     let errorMessage = reactor.currentState.errorMessage != nil ? FuturesText.text("market_data_error")
       : futuresReactor.flatMap { reactor -> String? in
@@ -1391,7 +1419,7 @@ extension MainViewController: View {
       stopLoadingIndicatorWait()
       showLoadingIndicator()
     } else if updating && errorMessage == nil && !loadingIndicatorTimedOut && lastPresentedDataError == nil {
-      showLoadingIndicator()
+      hideLoadingIndicator()
       if loadingIndicatorTimeout == nil {
         loadingIndicatorTimeout = Observable<Int>.timer(
           MainReactor.marketRequestTimeout,
@@ -1428,6 +1456,25 @@ extension MainViewController: View {
       self?.retryMainData()
     })
     present(alert, animated: true) { [weak self] in self?.updateLoadingIndicator() }
+  }
+
+  private func updateMarketListSkeleton() {
+    // 정상적인 빈 보유·즐겨찾기 목록과 이미 받은 실시간 시세는 로딩으로 덮지 않는다.
+    let shouldShow = isMainVisible && viewIfLoaded?.window != nil
+      && tableView.bounds.width > 0 && tableView.bounds.height > 0
+      && UIApplication.shared.applicationState == .active && networkLostView == nil
+      && (selectedTab == .krw || selectedTab == .btc)
+      && reactor.currentState.isLoading && reactor.currentState.totalCryptoList.isEmpty
+      && reactor.currentState.errorMessage == nil && !loadingIndicatorTimedOut
+      && lastPresentedDataError == nil && futuresReactor?.needsDataRetry != true
+      && reactor.currentState.legacyBTCSettlementState != .loading
+    if shouldShow {
+      guard !tableView.sk.isSkeletonActive else { return }
+      tableView.showAnimatedGradientSkeleton(transition: .none)
+    } else if tableView.sk.isSkeletonActive {
+      // 가짜 행을 실데이터 datasource에 맞춘 뒤 Diffable snapshot을 적용한다.
+      tableView.hideSkeleton(reloadDataAfter: true, transition: .none)
+    }
   }
 
   private func stopLoadingIndicatorWait() {
@@ -1616,6 +1663,8 @@ extension MainViewController: View {
 	DispatchQueue.main.async { [weak self] in
 	  guard let self = self else { return }
 	  
+	  self.updateMarketListSkeleton()
+	  guard !self.tableView.sk.isSkeletonActive else { return }
 	  var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, CryptoCellInfo>()
 	  snapshot.appendSections([.main])
 	  snapshot.appendItems(cellInfos, toSection: .main)
@@ -1625,6 +1674,7 @@ extension MainViewController: View {
   }
 
   private func refreshDisplayedList() {
+    defer { updateMarketListSkeleton() }
 	let filteredList = self.filterListForCurrentTab(
 	  totalList: reactor.currentState.totalCryptoList
 	)
@@ -1727,6 +1777,19 @@ extension MainViewController: UITableViewDelegate {
 	  options: .regularExpression
 	)
 	
+    MobitAnalyticsUtil.sendClickEvent(
+      location: "거래소_화면",
+      stepDepth01: "종목_목록",
+      stepDepth02: "종목_선택",
+      stepDepth03: self.analyticsTabName(self.selectedTab),
+      account: analyticsAccount,
+      instrument: TradingInstrumentID(
+        exchange: analyticsAccount.exchange,
+        product: analyticsAccount.product,
+        rawSymbol: MarketFormat.apiMarket(fromDisplayMarket: selectedCrypto.market),
+        settlementCurrency: selectedCrypto.market.hasSuffix("/BTC") ? .btc : .krw
+      )
+    )
 	self.coordinator?.pushCryptoTradeVC(
 	  selectCrypto: selectedCrypto,
 	  cmcSymbol: symbol,
@@ -1848,6 +1911,7 @@ extension MainViewController {
           self.showNetworkLostView()
           self.stopLoadingIndicatorWait()
           self.hideLoadingIndicator()
+          self.updateMarketListSkeleton()
           if let alert = self.presentedViewController as? UIAlertController,
             alert.view.accessibilityIdentifier == "main.data.error" {
             alert.dismiss(animated: false)

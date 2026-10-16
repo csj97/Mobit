@@ -188,7 +188,13 @@ final class FuturesAccountReactor: Reactor {
 	  return .empty()
 	case .clearMessage: return .just(.message(nil))
 	case let .open(instrument, side, margin, leverage, positionID, price):
-	  guard canRequestOrder else { return .just(.message(FuturesText.text("futures_wait"))) }
+	  // 사용자 금액 없이 진입 방식·방향·배수만 원래 요청 계좌에 연결한다.
+	  let parameters: [String: Any] = [
+		"order_type": positionID != nil || position(for: instrument) != nil ? "추가_진입" : "신규_진입",
+		"position_side": side == .long ? "롱" : "숏",
+		"leverage": leverage
+	  ]
+	  guard canRequestOrder else { return blockedOrder(instrument: instrument, parameters: parameters) }
 	  let opening = Opening(
 		instrument: instrument,
 		side: side,
@@ -208,15 +214,30 @@ final class FuturesAccountReactor: Reactor {
 		  leverage: leverage,
 		  addingTo: positionID,
 		  price: price
-		)
+		),
+		instrument: instrument,
+		parameters: parameters
 	  )
 	case .close(let positionID, let price):
-	  guard canRequestOrder else { return .just(.message(FuturesText.text("futures_wait"))) }
+	  // 화면 이탈 후에도 요청한 포지션의 거래소와 종목으로 결과를 집계한다.
+	  let instrument = positions.first { $0.id == positionID }?.order.instrument ?? price?.quote.instrument
+	  // 수량을 보내지 않고 전량 종료 행동만 구분한다.
+	  let parameters = closingAnalyticsParameters(positionID: positionID, orderType: "전량_종료")
+	  guard canRequestOrder else { return blockedOrder(instrument: instrument, parameters: parameters) }
 	  if pendingClosing?.0 != positionID || pendingClosing?.1 != nil { pendingClosing = (positionID, nil, nil, UUID()) }
 	  guard let requestID = pendingClosing?.3 else { return .empty() }
-	  return execute(useCase.close(requestID: requestID, positionID: positionID, price: price))
+	  return execute(
+		useCase.close(requestID: requestID, positionID: positionID, price: price),
+		instrument: instrument,
+		parameters: parameters
+	  )
     case let .closeQuantity(positionID, quantity, expectedQuantity, price):
-      guard canRequestOrder else { return .just(.message(FuturesText.text("futures_wait"))) }
+      // 실제 종료 요청의 부분·전량 분류만 보관하고 원본 수량은 계측하지 않는다.
+      let parameters = closingAnalyticsParameters(
+        positionID: positionID,
+        orderType: quantity < expectedQuantity ? "부분_종료" : "전량_종료"
+      )
+      guard canRequestOrder else { return blockedOrder(instrument: price.quote.instrument, parameters: parameters) }
       if pendingClosing?.0 != positionID || pendingClosing?.1 != quantity || pendingClosing?.2 != expectedQuantity {
         pendingClosing = (positionID, quantity, expectedQuantity, UUID())
       }
@@ -228,22 +249,116 @@ final class FuturesAccountReactor: Reactor {
           price: price,
           quantity: quantity,
           expectedQuantity: expectedQuantity
-        )
+        ),
+        instrument: price.quote.instrument,
+        parameters: parameters
       )
 	}
   }
 
-  private func execute(_ operation: Single<FuturesAccountSnapshot>) -> Observable<Mutation> {
-	.concat(
+  private func execute(
+    _ operation: Single<FuturesAccountSnapshot>,
+    instrument: TradingInstrumentID?,
+    parameters: [String: Any]
+  ) -> Observable<Mutation> {
+	return .concat(
 	  .just(.submitting(true)),
-	  operation.asObservable().observe(on: MainScheduler.instance)
-		.flatMap { [weak self] snapshot -> Observable<Mutation> in
+	  operation.asObservable().do(onSubscribe: { [account] in
+        Self.sendOrderEvent("요청", account: account, instrument: instrument, parameters: parameters)
+      }).observe(on: MainScheduler.instance)
+		.flatMap { [weak self, account] snapshot -> Observable<Mutation> in
+          Self.sendOrderEvent("성공", account: account, instrument: instrument, parameters: parameters)
 		  self?.pendingOpening = nil
 		  self?.pendingClosing = nil
 		  return .from([.snapshot(snapshot, [:]), .message(FuturesText.text("futures_order_done"))])
-		}.catch { error in .just(.message(FuturesText.error(error))) },
+		}.catch { [account] error in
+          Self.sendOrderEvent(
+            "실패",
+            reason: Self.orderFailureReason(error),
+            account: account,
+            instrument: instrument,
+            parameters: parameters
+          )
+          return .just(.message(FuturesText.error(error)))
+        },
 	  .just(.submitting(false))
 	)
+  }
+
+  private func closingAnalyticsParameters(positionID: UUID, orderType: String) -> [String: Any] {
+    // 요청 시점의 포지션 속성만 사용하고 식별자·금액·수량은 전송하지 않는다.
+    var parameters: [String: Any] = ["order_type": orderType]
+    if let position = positions.first(where: { $0.id == positionID }) {
+      parameters["position_side"] = position.order.side == .long ? "롱" : "숏"
+      parameters["leverage"] = position.order.leverage
+    }
+    return parameters
+  }
+
+  private func blockedOrder(instrument: TradingInstrumentID?, parameters: [String: Any]) -> Observable<Mutation> {
+    Self.sendOrderEvent(
+      "차단",
+      reason: currentState.submitting ? "주문_처리중"
+        : currentState.networkAvailable == false ? "네트워크_연결끊김"
+        : currentState.loadFailed ? "저장_조회실패" : "계좌_준비중",
+      account: account,
+      instrument: instrument,
+      parameters: parameters
+    )
+    return .just(.message(FuturesText.text("futures_wait")))
+  }
+
+  private static func sendOrderEvent(
+    _ result: String,
+    reason: String? = nil,
+    account: TradingAccountID,
+    instrument: TradingInstrumentID?,
+    parameters: [String: Any]
+  ) {
+    // 고정 사유를 기존 단계와 공통 실패 집계 키에 함께 기록한다.
+    var parameters = parameters
+    if let reason { parameters["failure_reason"] = reason }
+    MobitAnalyticsUtil.sendClickEvent(
+      location: "트레이딩_화면",
+      stepDepth01: "선물_모의투자",
+      stepDepth02: "선물_주문_" + result,
+      stepDepth03: reason,
+      account: account,
+      instrument: instrument,
+      extraParameters: parameters
+    )
+  }
+
+  private static func orderFailureReason(_ error: Error) -> String {
+    if let error = error as? LocalFuturesAccountRepository.StoreError {
+      switch error {
+      case .insufficientBalance: return "잔액_부족"
+      case .positionClosed: return "포지션_종료됨"
+      case .positionAlreadyOpen, .conflictingOrder: return "진입조건_불일치"
+      case .revisionConflict: return "계좌_변경됨"
+      case .historyCheckRequired: return "과거검증_미완료"
+      default: return "저장_실패"
+      }
+    }
+    if let error = error as? FuturesCalculationError {
+      switch error {
+      case .belowMinimumOrder: return "최소주문_미달"
+      case .invalidLeverage: return "레버리지_오류"
+      case .insufficientMargin: return "증거금_부족"
+      default: return "입력값_오류"
+      }
+    }
+    if let error = error as? FuturesOrderCheckError {
+      switch error {
+      case .historyCheckInProgress: return "과거검증_미완료"
+      case .invalidTarget: return "주문대상_오류"
+      case .staleQuote: return "시세_준비안됨"
+      case .held: return "과거검증_보류"
+      }
+    }
+    if error is URLError { return "네트워크_오류" }
+    if error is CocoaError { return "저장_실패" }
+    return "기타_오류"
   }
 
   func transform(mutation: Observable<Mutation>) -> Observable<Mutation> {

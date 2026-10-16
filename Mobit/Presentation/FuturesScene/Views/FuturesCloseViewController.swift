@@ -2,13 +2,15 @@ import UIKit
 import SnapKit
 import RxSwift
 
-final class FuturesCloseViewController: UIViewController {
+final class FuturesCloseViewController: UIViewController, UIAdaptivePresentationControllerDelegate {
   // 종료 시트가 완전히 닫힌 뒤 상위 화면에서 완료 안내를 표시한다.
   var tradeCompletedCallBack: (() -> Void)?
   // 주문 처리와 실시간 시세를 제공하는 기존 화면 상태다.
   private let reactor: FuturesAccountReactor
   // 시트를 열었던 포지션만 종료하며 같은 종목의 새 포지션으로 바꾸지 않는다.
   private let positionID: UUID
+  // 종료 이후 포지션이 사라져도 시트를 열었던 종목으로 행동을 기록한다.
+  private let instrument: TradingInstrumentID?
   // 체결 순간 기존 주문 화면이 표시하는 소켓 가격을 고정한다.
   private let captureOrderPrice: () -> FuturesOrderPrice?
   // 별도 포지션 감시 소켓보다 주문 화면의 시세가 먼저 바뀌어도 즉시 다시 계산한다.
@@ -68,7 +70,10 @@ final class FuturesCloseViewController: UIViewController {
   // 현재 입력 조건으로 부분 또는 전량 종료를 요청한다.
   private lazy var closeButton = FuturesText.button("futures_close", filled: true) { [weak self] in self?.submit() }
   // 처리 중에는 취소를 막고 그 외에는 종료하지 않고 시트를 닫는다.
-  private lazy var cancelButton = FuturesText.button("futures_cancel") { [weak self] in self?.dismiss(animated: true) }
+  private lazy var cancelButton = FuturesText.button("futures_cancel") { [weak self] in
+    self?.sendCloseClick("선물_종료시트_취소", detail: "닫기_버튼")
+    self?.dismiss(animated: true)
+  }
 
   init(
     reactor: FuturesAccountReactor,
@@ -78,6 +83,7 @@ final class FuturesCloseViewController: UIViewController {
   ) {
     self.reactor = reactor
     self.positionID = positionID
+    self.instrument = reactor.positions.first { $0.id == positionID }?.order.instrument
     self.captureOrderPrice = captureOrderPrice
     self.orderPriceUpdates = orderPriceUpdates
     super.init(nibName: nil, bundle: nil)
@@ -89,6 +95,7 @@ final class FuturesCloseViewController: UIViewController {
     super.viewDidLoad()
     view.backgroundColor = .mobitColors(.tradeBackground)
     view.accessibilityIdentifier = "futuresCloseSheet"
+    presentationController?.delegate = self
     // 하단 동작은 스크롤·키보드 위치와 무관하게 접근할 수 있게 고정한다.
     closeButton.configuration?.background.cornerRadius = 16
     closeButton.configuration?.contentInsets = .init(top: 17, leading: 20, bottom: 17, trailing: 20)
@@ -127,6 +134,7 @@ final class FuturesCloseViewController: UIViewController {
     percentControl.accessibilityLabel = FuturesText.text("futures_close_percent")
     percentControl.accessibilityIdentifier = "futuresClosePercent"
     percentControl.addTarget(self, action: #selector(percentChanged), for: .valueChanged)
+    percentControl.addTarget(self, action: #selector(percentConfirmed), for: .editingDidEnd)
     // 선택 비율을 별도 배지로 표시해 입력 영역과 구분한다.
     let percentTitle = styledLabel(size: 15, weight: .semibold)
     percentTitle.text = FuturesText.text("futures_close_percent")
@@ -160,6 +168,7 @@ final class FuturesCloseViewController: UIViewController {
       button.addAction(UIAction { [weak self] _ in
         self?.view.endEditing(true)
         self?.selection = .percent(percent)
+        self?.sendCloseClick("선물_종료비율_선택", detail: "\(percent)%")
         self?.render()
       }, for: .touchUpInside)
       percentButtons.addArrangedSubview(button)
@@ -598,6 +607,14 @@ final class FuturesCloseViewController: UIViewController {
     render()
   }
 
+  @objc private func percentConfirmed() {
+    sendCloseClick("선물_종료비율_선택", detail: "\(Int(percentControl.value))%")
+  }
+
+  func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+    sendCloseClick("선물_종료시트_취소", detail: "드래그_닫기")
+  }
+
   private func currentPosition() -> FuturesPosition? {
     reactor.positions.first { $0.id == positionID }
   }
@@ -708,10 +725,12 @@ final class FuturesCloseViewController: UIViewController {
   private func submit() {
     guard !didSubmit, !reactor.currentState.submitting, presentedViewController == nil else { return }
     guard let position = currentPosition() else {
+      sendCloseClick("선물_주문_차단", detail: "포지션_종료됨")
       showCloseError(FuturesText.text("futures_position_closed"))
       return
     }
     guard let selection else {
+      sendCloseClick("선물_주문_차단", detail: "종료_입력오류")
       showCloseError(FuturesText.text("futures_close_invalid"))
       return
     }
@@ -722,6 +741,7 @@ final class FuturesCloseViewController: UIViewController {
       // 버튼 표시와 무관하게 제출 순간의 자산·연결·가격 조건을 모두 검증한다.
       let price = captureOrderPrice()
       if let message = FuturesText.orderError(reactor, instrument: position.order.instrument, price: price) {
+        sendCloseClick("선물_주문_차단", detail: orderBlockReason)
         showCloseError(message)
         return
       }
@@ -734,6 +754,7 @@ final class FuturesCloseViewController: UIViewController {
         quantity: quantity
       )
       guard quote.returnedMargin > 0 else {
+        sendCloseClick("선물_주문_차단", detail: "청산_대기")
         showCloseError(FuturesText.text("futures_retry_order"))
         return
       }
@@ -742,8 +763,32 @@ final class FuturesCloseViewController: UIViewController {
       didSubmit = true
       reactor.action.onNext(.closeQuantity(positionID, quantity, position.quantity, price))
     } catch {
+      sendCloseClick("선물_주문_차단", detail: "종료_입력오류")
       showCloseError(FuturesText.text("futures_close_invalid"))
     }
+  }
+
+  private var orderBlockReason: String {
+    if reactor.currentState.networkAvailable == false { return "네트워크_연결끊김" }
+    if reactor.currentState.loadFailed || reactor.currentState.dataFailure?.hold == .storageFailed { return "저장_조회실패" }
+    if reactor.needsDataRetry { return "과거검증_실패" }
+    if !reactor.canSubmit { return "과거검증_미완료" }
+    return "시세_준비안됨"
+  }
+
+  private func sendCloseClick(_ action: String, detail: String? = nil) {
+    // 종료 비율·취소 방식은 실패 사유로 집계하지 않는다.
+    var parameters: [String: Any] = ["order_type": "종료"]
+    if let detail, action.hasSuffix("_차단") || action.hasSuffix("_실패") { parameters["failure_reason"] = detail }
+    MobitAnalyticsUtil.sendClickEvent(
+      location: "트레이딩_화면",
+      stepDepth01: "선물_모의투자",
+      stepDepth02: action,
+      stepDepth03: detail,
+      account: reactor.account,
+      instrument: instrument,
+      extraParameters: parameters
+    )
   }
 
   private func showCloseError(_ message: String) {

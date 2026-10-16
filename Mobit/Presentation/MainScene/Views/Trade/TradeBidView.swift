@@ -205,6 +205,15 @@ class TradeBidView: UIView, ViewRule {
 
   @IBAction func tapOnBidButton(_ sender: UIButton) {
 	guard !isOrderSubmissionLocked else { return }
+    if let reactor {
+      MobitAnalyticsUtil.sendClickEvent(
+        location: "트레이딩_화면",
+        stepDepth01: "트레이딩_주문",
+        stepDepth02: "트레이딩_주문_매수_요청",
+        account: .spot(for: reactor.exchange),
+        instrument: reactor.analyticsInstrument()
+      )
+    }
 	self.endEditing(true)
 
 	let vibrator = UIImpactFeedbackGenerator(style: .medium)
@@ -323,6 +332,22 @@ class TradeBidView: UIView, ViewRule {
 		}
 
 		self.currentPrice.text = tradePrice.formatTradingValue()
+		// 실제 주문과 같은 정밀도로 계산하며 유효하지 않은 시세로 입력 원본을 바꾸지 않는다.
+		let orderPrice = tradePrice.formatDigits(digits: 8)
+		if orderPrice.isFinite, orderPrice > 0 {
+		  // 총액 편집 중에는 입력 금액을 유지하고, 그 외에는 실제 주문 수량으로 예상금액을 갱신한다.
+		  if self.totalPriceTextField.isFirstResponder {
+			self.textFieldDidChangeSelection(self.totalPriceTextField)
+		  } else if self.inputAmount > 0 {
+			// 최대 매수로 계산한 원본 수량을 표시용 소수 자릿수로 덮어쓰지 않는다.
+			let totalPrice = PortfolioCalculator.executedAmount(
+			  price: orderPrice,
+			  quantity: self.inputAmount,
+			  currency: self.settlementCurrency
+			)
+			self.totalPriceTextField.text = totalPrice.formatTradingValue()
+		  }
+		}
 		self.updateOrderValidationState()
 	  })
 	  .disposed(by: self.disposeBag)

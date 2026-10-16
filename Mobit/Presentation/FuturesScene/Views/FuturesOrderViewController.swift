@@ -18,7 +18,10 @@ final class FuturesOrderViewController: MobitBaseViewController {
   private let disposeBag = DisposeBag()
   private lazy var positionCard = FuturesPositionSummaryView(closeButton: closeButton)
   // 주문 전 확인 실패도 자산 요약과 같은 재시도 경로로 처리한다.
-  private lazy var dataStatusView = FuturesDataStatusView { [weak self] in self?.reactor.action.onNext(.reload) }
+  private lazy var dataStatusView = FuturesDataStatusView { [weak self] in
+    self?.sendOrderClick("선물_데이터_재시도")
+    self?.reactor.action.onNext(.reload)
+  }
   private let estimate = FuturesText.label(style: .footnote)
   // 진입할 포지션의 롱·숏 방향을 선택한다.
   private let sideSegmentedControl = UISegmentedControl(items: [FuturesText.text("futures_long"), FuturesText.text("futures_short")])
@@ -120,6 +123,7 @@ final class FuturesOrderViewController: MobitBaseViewController {
 		  else { return }
 		  let rounded = TradingNumberFormat.truncated(amount)
 		  marginTextField.text = formattedMarginText(NSDecimalNumber(decimal: rounded).stringValue)
+		  sendOrderClick("선물_증거금비율_선택", detail: "\(percent)%")
 		  updateEstimate()
 		},
 		for: .touchUpInside
@@ -191,8 +195,16 @@ final class FuturesOrderViewController: MobitBaseViewController {
 	toolbar.sizeToFit()
 	marginTextField.inputAccessoryView = toolbar
 	updateOrderAppearance()
-	sideSegmentedControl.rx.selectedSegmentIndex.changed.subscribe(onNext: { [weak self] _ in self?.render() }).disposed(by: disposeBag)
+	sideSegmentedControl.rx.selectedSegmentIndex.changed.subscribe(onNext: { [weak self] _ in
+      guard let self else { return }
+      sendOrderClick("선물_방향_선택", detail: sideSegmentedControl.selectedSegmentIndex == 0 ? "롱" : "숏")
+      render()
+    }).disposed(by: disposeBag)
 	leverageControl.rx.controlEvent(.valueChanged).subscribe(onNext: { [weak self] _ in self?.render() }).disposed(by: disposeBag)
+    leverageControl.rx.controlEvent(.editingDidEnd).subscribe(onNext: { [weak self] in
+      guard let self else { return }
+      sendOrderClick("선물_레버리지_확정", detail: "\(Int(leverageControl.value))배")
+    }).disposed(by: disposeBag)
 	marginTextField.rx.text.orEmpty.subscribe(onNext: { [weak self] _ in
 	  self?.formatMarginInput()
 	  self?.updateEstimate()
@@ -252,11 +264,26 @@ final class FuturesOrderViewController: MobitBaseViewController {
 
   func selectTab(_ index: Int) {
 	loadViewIfNeeded()
+    // 화면 구성 때 기본 선택을 적용하는 호출은 사용자 탭 전환으로 집계하지 않는다.
+    let previousIndex = historyStack.isHidden ? sideSegmentedControl.selectedSegmentIndex : 2
 	sideSegmentedControl.isHidden = true
 	view.endEditing(true)
 	orderStack.isHidden = index == 2
 	historyStack.isHidden = index != 2
 	if index < 2 { sideSegmentedControl.selectedSegmentIndex = index }
+    if viewIfLoaded?.window != nil, previousIndex != index {
+      if index == 2 {
+        MobitAnalyticsUtil.sendScreenEvent(
+          location: "트레이딩_화면",
+          stepDepth01: "선물_모의투자",
+          stepDepth02: "선물_거래내역_조회",
+          account: reactor.account,
+          instrument: instrument
+        )
+      } else {
+        sendOrderClick("선물_방향_선택", detail: index == 0 ? "롱" : "숏")
+      }
+    }
 	if index == 2 { renderHistory() }
 	render()
   }
@@ -393,29 +420,34 @@ final class FuturesOrderViewController: MobitBaseViewController {
   private func open() {
     guard !didSubmitOpening, !reactor.currentState.submitting, presentedViewController == nil else { return }
     guard let amount = marginAmount, !amount.isNaN, amount > 0 else {
+      sendOrderBlocked("증거금_입력오류")
       showOrderError(FuturesText.text("futures_input_error"))
       return
     }
     // 현재 화면이 추적하던 포지션이 사라져도 새 포지션을 실수로 열지 않는다.
     let current = reactor.position(for: instrument)
     guard expectedPositionID == nil || current?.id == expectedPositionID else {
+      sendOrderBlocked("포지션_종료됨")
       showOrderError(FuturesText.text("futures_position_closed"))
       return
     }
     // 기존 포지션과 반대 방향으로 추가 진입할 수 없는 이유도 탭 시 안내한다.
     let selectedSide: FuturesSide = sideSegmentedControl.selectedSegmentIndex == 0 ? .long : .short
     guard current == nil || current?.order.side == selectedSide else {
+      sendOrderBlocked("진입조건_불일치")
       showOrderError(FuturesText.text("futures_same_conditions"))
       return
     }
     if let cash = reactor.currentState.snapshot?.accounts.first(where: { $0.id == reactor.account })?.availableBalance,
       amount > cash {
+      sendOrderBlocked("잔액_부족")
       showOrderError(FuturesText.text("futures_margin_exceeds_balance"))
       return
     }
     // 탭 순간의 표시 가격을 한 번만 캡처해 검사와 주문에 같이 사용한다.
     let price = captureOrderPrice?()
     if let message = FuturesText.orderError(reactor, instrument: instrument, price: price) {
+      sendOrderBlocked(orderBlockReason)
       showOrderError(message)
       return
     }
@@ -456,12 +488,56 @@ final class FuturesOrderViewController: MobitBaseViewController {
       captureOrderPrice: { [weak self] in self?.captureOrderPrice?() },
       orderPriceUpdates: orderPriceUpdates
     )
-    controller.tradeCompletedCallBack = { [weak self] in self?.tradeCompletedCallBack?() }
+    controller.tradeCompletedCallBack = { [weak self] in
+      guard let self else { return }
+      // 직접 종료한 뒤에는 남은 포지션으로 폼을 갱신해 같은 화면에서 다시 진입할 수 있게 한다.
+      expectedPositionID = reactor.position(for: instrument)?.id
+      render()
+      tradeCompletedCallBack?()
+    }
     controller.modalPresentationStyle = .pageSheet
     controller.sheetPresentationController?.detents = [.medium(), .large()]
     controller.sheetPresentationController?.selectedDetentIdentifier = .large
     controller.sheetPresentationController?.prefersGrabberVisible = true
-    present(controller, animated: true)
+    present(controller, animated: true) { [account = reactor.account, instrument] in
+      MobitAnalyticsUtil.sendScreenEvent(
+        location: "트레이딩_화면",
+        stepDepth01: "선물_모의투자",
+        stepDepth02: "선물_종료시트_열기",
+        account: account,
+        instrument: instrument
+      )
+    }
+  }
+
+  private var orderBlockReason: String {
+    if reactor.currentState.networkAvailable == false { return "네트워크_연결끊김" }
+    if reactor.currentState.loadFailed || reactor.currentState.dataFailure?.hold == .storageFailed { return "저장_조회실패" }
+    if reactor.needsDataRetry { return "과거검증_실패" }
+    if !reactor.canSubmit { return "과거검증_미완료" }
+    return "시세_준비안됨"
+  }
+
+  private func sendOrderBlocked(_ reason: String) {
+    sendOrderClick("선물_주문_차단", detail: reason)
+  }
+
+  private func sendOrderClick(_ action: String, detail: String? = nil) {
+    // 일반 입력 선택값과 실제 주문 차단 사유를 구분해 전송한다.
+    var parameters: [String: Any] = [
+      "order_type": expectedPositionID != nil || reactor.position(for: instrument) != nil ? "추가_진입" : "신규_진입",
+      "position_side": sideSegmentedControl.selectedSegmentIndex == 0 ? "롱" : "숏"
+    ]
+    if let detail, action.hasSuffix("_차단") || action.hasSuffix("_실패") { parameters["failure_reason"] = detail }
+    MobitAnalyticsUtil.sendClickEvent(
+      location: "트레이딩_화면",
+      stepDepth01: "선물_모의투자",
+      stepDepth02: action,
+      stepDepth03: detail,
+      account: reactor.account,
+      instrument: instrument,
+      extraParameters: parameters
+    )
   }
 
 }
@@ -860,6 +936,7 @@ final class FuturesLeverageControl: UIControl {
 	addSubview(slider)
 	slider.addTarget(self, action: #selector(prepareFeedback), for: .touchDown)
 	slider.addTarget(self, action: #selector(sliderChanged), for: .valueChanged)
+    slider.addTarget(self, action: #selector(finishSelection), for: [.touchUpInside, .touchUpOutside])
 	updateThumb()
 	updateAppearance()
   }
@@ -897,8 +974,18 @@ final class FuturesLeverageControl: UIControl {
 	setNeedsLayout()
   }
 
-  override func accessibilityIncrement() { select(value + 1) }
-  override func accessibilityDecrement() { select(value - 1) }
+  override func accessibilityIncrement() {
+    guard isEnabled, value < maximumValue else { return }
+    select(value + 1)
+    sendActions(for: .editingDidEnd)
+  }
+  override func accessibilityDecrement() {
+    guard isEnabled, value > minimumValue else { return }
+    select(value - 1)
+    sendActions(for: .editingDidEnd)
+  }
+
+  @objc private func finishSelection() { sendActions(for: .editingDidEnd) }
 
   @objc private func prepareFeedback() { feedback.prepare() }
 

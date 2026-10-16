@@ -7,6 +7,8 @@ final class AdRewardUseCase {
   // 광고를 시작할 선물 계좌를 기존 저장소에 준비한다.
   private let prepareFuturesAccount: (TradingAccountID) throws -> Void
   private let apply: (AdRewardClaim) throws -> Void
+  // 실제 저장소와 테스트 모두 선택 계좌의 원자적 초기화를 같은 경로로 실행한다.
+  private let resetAccount: (TradingAccountID) throws -> Void
   private var unsavedClaims: [UUID: AdRewardClaim] = [:]
 
   init(
@@ -19,11 +21,19 @@ final class AdRewardUseCase {
       case .spot: try UserDataManager.applyAdvertisementReward(claim)
       case .perpetual: try LocalFuturesAccountRepository.applicationStore().applyAdvertisementReward(claim)
       }
+    },
+    resetAccount: @escaping (TradingAccountID) throws -> Void = { account in
+      switch account.product {
+      case .spot: try UserDataManager.resetInvestmentData(for: account.exchange)
+      case .perpetual:
+        try FuturesHistoryCheckService.shared.resetInvestment(for: account)
+      }
     }
   ) {
     self.store = store
     self.prepareFuturesAccount = prepareFuturesAccount
     self.apply = apply
+    self.resetAccount = resetAccount
   }
 
   func prepareAccount(_ account: TradingAccountID) throws {
@@ -80,5 +90,15 @@ final class AdRewardUseCase {
     defer { Self.lock.unlock() }
     guard unsavedClaims.isEmpty, try store.fetchClaims().isEmpty else { throw AdRewardError.pendingReward }
     guard UserDataManager.resetInvestmentData() else { throw AdRewardError.invalidStoredData }
+  }
+
+  func resetInvestment(for account: TradingAccountID) throws {
+    Self.lock.lock()
+    defer { Self.lock.unlock() }
+    guard account.availability == .available, account.currency == .krw else { throw AdRewardError.invalidClaim }
+    guard !unsavedClaims.values.contains(where: { $0.account == account }),
+      try store.fetchClaims().allSatisfy({ $0.account != account })
+    else { throw AdRewardError.pendingReward }
+    try resetAccount(account)
   }
 }

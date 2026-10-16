@@ -27,6 +27,7 @@ class MainCryptoTableViewCell: UITableViewCell {
 	// 현재가·전일대비는 regular라 다소 연해 보여 medium으로 강조
 	self.cryptoPrice.font = .systemFont(ofSize: 13, weight: .medium)
 	self.cryptoChangeRate.font = .systemFont(ofSize: 13, weight: .medium)
+	setupSkeletonView()
   }
   
   override func setSelected(_ selected: Bool, animated: Bool) {
@@ -39,6 +40,9 @@ class MainCryptoTableViewCell: UITableViewCell {
 	crypto: CryptoCellInfo,
 	isScrolling: Bool
   ) {
+	if sk.isSkeletonActive {
+	  hideSkeleton(reloadDataAfter: false, transition: .none)
+	}
 	
 	self.priceBox.layer.borderWidth = 0.3
 	self.priceBox.layer.borderColor = UIColor.clear.cgColor
@@ -148,26 +152,30 @@ class MainCryptoTableViewCell: UITableViewCell {
 	layoutIfNeeded()
   }
   
-  func setupSkeletonView() {
-	// 셀의 모든 서브뷰를 skeletonable로 설정
+  func prepareForSkeleton() {
+	self.cryptoName.attributedText = nil
+	self.cryptoName.text = "000000"
+	self.cryptoSymbol.text = "000/000"
+	self.cryptoPrice.text = "000,000"
+	self.cryptoChangeRate.text = "0.00%"
+	self.cryptoAccTradePrice.text = "000,000"
+	self.contentView.backgroundColor = .clear
+	self.priceBox.layer.borderColor = UIColor.clear.cgColor
+  }
+
+  private func setupSkeletonView() {
 	self.isSkeletonable = true
 	self.contentView.isSkeletonable = true
 	
-	// 스켈레톤을 적용할 특정 뷰들 설정
-	self.cryptoName.isSkeletonable = true
-	self.cryptoSymbol.isSkeletonable = true
-	self.cryptoPrice.isSkeletonable = true
-	self.cryptoChangeRate.isSkeletonable = true
-	self.cryptoAccTradePrice.isSkeletonable = true
-	self.isSkeletonable = true
-	self.contentView.isSkeletonable = true
-	
-	// 스켈레톤 스타일
-	cryptoName.skeletonCornerRadius = 4
-	cryptoSymbol.skeletonCornerRadius = 4
-	cryptoPrice.skeletonCornerRadius = 4
-	cryptoChangeRate.skeletonCornerRadius = 4
-	cryptoAccTradePrice.skeletonCornerRadius = 4
+	// 실제 정보의 글꼴과 배치에 맞춰 로딩 막대를 표시할 레이블이다.
+	let loadingLabels: [UILabel] = [cryptoName, cryptoSymbol, cryptoPrice, cryptoChangeRate, cryptoAccTradePrice]
+	loadingLabels.forEach {
+	  $0.isSkeletonable = true
+	  $0.skeletonCornerRadius = 4
+	  $0.linesCornerRadius = 4
+	  $0.skeletonTextNumberOfLines = .custom(1)
+	  $0.skeletonTextLineHeight = .relativeToFont
+	}
   }
   
   /// 거래대금 Format
