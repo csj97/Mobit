@@ -7,6 +7,394 @@ import SkeletonView
 
 final class TradingScreenReleaseQATests: XCTestCase {
   @MainActor
+  func testInitialTickerAfterSwitchingFromSkeletonToFavorites() throws {
+    try verifyInitialTickerDuringSkeletonTabSwitches(tabs: [.favorite])
+  }
+
+  @MainActor
+  func testInitialTickerAfterSwitchingFromSkeletonToHold() throws {
+    for product in [TradingProduct.spot, .perpetual] {
+      try verifyInitialTickerDuringSkeletonTabSwitches(tabs: [.hold], product: product)
+    }
+  }
+
+  @MainActor
+  func testInitialTickerDuringRapidSkeletonTabSwitches() throws {
+    for product in [TradingProduct.spot, .perpetual] {
+      // 선물에는 BTC 탭을 제공하지 않는 실제 상품 정책을 따른다.
+      let availableTabs: [SelectedTab] = product == .spot ? [.hold, .krw, .btc, .favorite] : [.hold, .krw, .favorite]
+      for finalTab in availableTabs {
+        // 중간 탭에서 응답을 받아도 남은 입력은 같은 실행 루프에서 이어진다.
+        let tabs: [SelectedTab] = product == .spot
+          ? [.hold, .krw, .btc, .favorite, .krw, .btc, .hold, finalTab]
+          : [.hold, .krw, .favorite, .krw, .hold, .favorite, .krw, finalTab]
+        for responseAfterTabCount in [3, tabs.count] {
+          try verifyInitialTickerDuringSkeletonTabSwitches(
+            tabs: tabs,
+            product: product,
+            responseAfterTabCount: responseAfterTabCount
+          )
+        }
+      }
+    }
+  }
+
+  @MainActor
+  private func verifyInitialTickerDuringSkeletonTabSwitches(
+    tabs: [SelectedTab],
+    product: TradingProduct = .spot,
+    responseAfterTabCount: Int? = nil
+  ) throws {
+    // SkeletonView가 XCTest에서 생략하는 실제 데이터 소스 교체도 검증한다.
+    let testConfigurationPath = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"]
+    unsetenv("XCTestConfigurationFilePath")
+    defer {
+      if let testConfigurationPath { setenv("XCTestConfigurationFilePath", testConfigurationPath, 1) }
+    }
+    // 테스트가 변경한 사용자 설정을 종료 시 복구한다.
+    let previousFavorites = UserDataManager.userFavoritePairs
+    // 보유 종목의 원본 저장 데이터까지 그대로 복원한다.
+    let previousHoldingData = UserDefaults.standard.object(forKey: UserDataManager.Keys.userCryptoList)
+    // 보유 목록 Observable에도 테스트 전 값을 다시 전달한다.
+    let previousHoldings = UserDataManager.userCryptoList
+    // 즐겨찾기 필터와 응답 종목의 거래소를 일치시킨다.
+    let previousExchange = ExchangeSelectionStore.currentExchange
+    // 상품별로 실제 제공되는 탭과 보유 데이터를 검사한다.
+    let previousProduct = ExchangeSelectionStore.currentProduct
+    ExchangeSelectionStore.currentExchange = .upbit
+    ExchangeSelectionStore.currentProduct = product
+    // 테스트 중 광고 팝업이 앱 활성 상태와 표시 계층을 바꾸지 않도록 한다.
+    let previousAdDate = UserDefaults.standard.object(forKey: "main_native_ad_popup_last_shown_date")
+    // 실제 광고 정책과 같은 날짜 형식으로 이미 본 상태를 만든다.
+    let dateFormatter = DateFormatter()
+    dateFormatter.locale = Locale(identifier: "ko_KR")
+    dateFormatter.dateFormat = "yyyy-MM-dd"
+    UserDefaults.standard.set(dateFormatter.string(from: Date()), forKey: "main_native_ad_popup_last_shown_date")
+    defer {
+      UserDataManager.userFavoritePairs = previousFavorites
+      UserDataManager.userCryptoList = previousHoldings
+      UserDefaults.standard.set(previousHoldingData, forKey: UserDataManager.Keys.userCryptoList)
+      ExchangeSelectionStore.currentExchange = previousExchange
+      ExchangeSelectionStore.currentProduct = previousProduct
+      UserDefaults.standard.set(previousAdDate, forKey: "main_native_ad_popup_last_shown_date")
+    }
+    // 최종 선택에 맞는 마켓·보유 셀만 남는지 비교한다.
+    let finalTab = try XCTUnwrap(tabs.last)
+    // 빈 사용자 목록과 첫 응답에 포함된 보유·즐겨찾기를 같은 전환으로 확인한다.
+    for hasUserCoins in [false, true] {
+      UserDataManager.userFavoritePairs = hasUserCoins
+        ? [FavoritePair(displayMarket: "BTC/KRW", exchange: .upbit)] : []
+      UserDataManager.userCryptoList = hasUserCoins ? [holding(exchange: .upbit)] : []
+      // 최초 시세 응답을 탭 전환 중 원하는 시점까지 지연한다.
+      let response = PublishSubject<CryptoTickerList>()
+      // 목록 조회와 시세 조회의 실제 Reactor 흐름을 유지한다.
+      let useCase = ReleaseQAPendingMarketsUseCase(
+        response: .just(["KRW-BTC", "BTC-ETH"].map {
+          Crypto(
+            market: $0,
+            koreanName: $0,
+            englishName: $0,
+            marketEvent: .init(
+              warning: false,
+              caution: .init(
+                priceFluctuations: false,
+                tradingVolumeSoaring: false,
+                depositAmountSoaring: false,
+                globalPriceDifferences: false,
+                concentrationOfSmallAccounts: false
+              )
+            )
+          )
+        })
+      )
+      useCase.tickerResponse = response.asObservable()
+      // 실제 로딩 상태는 외부 응답을 받을 때만 끝난다.
+      let market = MainReactor(
+        mainUseCase: useCase,
+        tickerSocketService: ReleaseQAQuietTickerSocket()
+      )
+      // 선물 보유 탭은 현물 저장 내역 대신 해당 계좌의 포지션을 사용한다.
+      let futures = product == .perpetual
+        ? FuturesAccountReactor(account: .init(exchange: .upbit, product: .perpetual, currency: .krw)) : nil
+      if let futures {
+        futures.isStubEnabled = true
+        // 현물 fixture와 같은 수량 두 개의 선물 포지션이다.
+        let position = try FuturesCalculator.open(domesticFuturesOrder(leverage: 1, margin: 2_000, price: 1_000))
+        // 실제 거래 저장 없이 포지션 유무만 화면 상태에 주입한다.
+        var state = futures.initialState
+        state.snapshot = FuturesAccountSnapshot(
+          revision: 1,
+          accounts: [.init(id: futures.account, availableBalance: 10_000)],
+          positions: hasUserCoins ? [position] : []
+        )
+        futures.stub.state.value = state
+      }
+      // 실제 테이블의 가짜 행과 Diffable 행 전환을 확인한다.
+      let main = MainViewController(reactor: market, futuresReactor: futures, networkAvailability: .empty())
+      // 스켈레톤 행을 생성할 실제 표시 영역이다.
+      let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+      // 테스트 종료 후 원래 앱 창으로 돌아간다.
+      let previousWindow = scene.windows.first { $0.isKeyWindow }
+      // 앱의 Scene 안에서 실제 화면 생명주기와 스켈레톤을 표시한다.
+      let window = UIWindow(windowScene: scene)
+      window.rootViewController = main
+      window.makeKeyAndVisible()
+      window.setNeedsLayout()
+      window.layoutIfNeeded()
+      main.view.setNeedsLayout()
+      main.view.layoutIfNeeded()
+      defer {
+        window.isHidden = true
+        window.rootViewController = nil
+        previousWindow?.makeKeyAndVisible()
+      }
+      func flush() {
+        // 목록 구독의 throttle과 메인 큐 스냅샷 반영까지 기다린다.
+        let rendered = expectation(description: "Initial tab list rendered")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { rendered.fulfill() }
+        wait(for: [rendered], timeout: 2)
+        main.view.layoutIfNeeded()
+        main.tableView.layoutIfNeeded()
+      }
+      func showSkeleton() {
+        // 비활성 XCTest 호스트에서도 로딩용 데이터 소스가 있는 전환을 재현한다.
+        main.tableView.showAnimatedGradientSkeleton(transition: .none)
+        main.tableView.layoutIfNeeded()
+        XCTAssertTrue(main.tableView.sk.isSkeletonActive)
+        XCTAssertGreaterThan(main.tableView.numberOfRows(inSection: 0), 0)
+        XCTAssertFalse(main.tableView.dataSource === main.dataSource)
+      }
+      // 서로 다른 마켓으로 응답하여 이전 탭의 스냅샷이 남는 경우도 구분한다.
+      let tickers = try JSONDecoder().decode(
+        CryptoTickerListDTO.self,
+        from: Data("""
+          [{"market":"KRW-BTC","change":"EVEN","trade_price":1000,"timestamp":1},
+           {"market":"BTC-ETH","change":"EVEN","trade_price":0.01,"timestamp":1}]
+          """.utf8)
+      ).toDomain()
+      flush()
+      market.action.onNext(.loadCryptoList)
+      flush()
+      XCTAssertTrue(market.currentState.isLoading)
+      showSkeleton()
+      for (index, tab) in tabs.enumerated() {
+        // 실제 버튼 입력으로만 선택 상태와 테이블 표시를 바꾼다.
+        let button: UIButton
+        switch tab {
+        case .hold: button = main.holdButton
+        case .krw: button = main.krwButton
+        case .btc: button = main.btcButton
+        case .favorite: button = main.favoriteButton
+        }
+        button.sendActions(for: .touchUpInside)
+        XCTAssertEqual(main.selectedTab, tab)
+        if market.currentState.isLoading && (tab == .krw || tab == .btc) {
+          showSkeleton()
+        } else {
+          XCTAssertFalse(main.tableView.sk.isSkeletonActive)
+          XCTAssertTrue(main.tableView.dataSource === main.dataSource)
+          if market.currentState.isLoading {
+            XCTAssertTrue(main.tableView.isHidden)
+            XCTAssertEqual(main.tableView.numberOfRows(inSection: 0), 0)
+          }
+        }
+        if index + 1 == (responseAfterTabCount ?? tabs.count) {
+          response.onNext(tickers)
+          response.onCompleted()
+        }
+      }
+      flush()
+      // 보유·즐겨찾기 탭만 저장된 사용자 종목의 유무에 따라 빈 화면이 된다.
+      let shouldShowCoin = finalTab == .krw || finalTab == .btc || hasUserCoins
+      // BTC 탭에만 다른 마켓의 응답이 표시되어야 한다.
+      let expectedMarket = finalTab == .btc ? "ETH/BTC" : "BTC/KRW"
+      // Diffable의 앞선 갱신이 끝나고 마지막 선택 목록까지 적용되었는지 기다린다.
+      let displayed = XCTNSPredicateExpectation(
+        predicate: NSPredicate { _, _ in
+          main.dataSource?.snapshot().itemIdentifiers.map(\.market) == (shouldShowCoin ? [expectedMarket] : [])
+        },
+        object: nil
+      )
+      wait(for: [displayed], timeout: 3)
+      main.tableView.layoutIfNeeded()
+      XCTAssertFalse(market.currentState.isLoading)
+      XCTAssertEqual(main.selectedTab, finalTab)
+      XCTAssertFalse(main.tableView.sk.isSkeletonActive)
+      XCTAssertTrue(main.tableView.dataSource === main.dataSource)
+      XCTAssertEqual(main.tableView.isHidden, !shouldShowCoin)
+      XCTAssertEqual(main.noHoldView.isHidden, finalTab != .hold || shouldShowCoin)
+      XCTAssertEqual(main.noFavoriteView.isHidden, finalTab != .favorite || shouldShowCoin)
+      XCTAssertEqual(main.dataSource?.snapshot().itemIdentifiers.map(\.market), shouldShowCoin ? [expectedMarket] : [])
+      if shouldShowCoin {
+        XCTAssertEqual(main.tableView.numberOfRows(inSection: 0), 1)
+        if finalTab == .hold {
+          XCTAssertTrue(main.tableView.cellForRow(at: IndexPath(row: 0, section: 0)) is MainHoldingTableViewCell)
+          XCTAssertEqual(main.dataSource?.snapshot().itemIdentifiers.first?.holdingQuantity, 2)
+        } else {
+          XCTAssertTrue(main.tableView.cellForRow(at: IndexPath(row: 0, section: 0)) is MainCryptoTableViewCell)
+          XCTAssertNil(main.dataSource?.snapshot().itemIdentifiers.first?.holdingQuantity)
+        }
+      }
+    }
+  }
+
+  @MainActor
+  func testHoldingSortHeaderMatchesValueColumnsAcrossProductsAndWidths() throws {
+    // 상품별 탭 구성을 검사한 뒤 원래 선택을 복구한다.
+    let previousProduct = ExchangeSelectionStore.currentProduct
+    // 레이아웃 검증 중 광고 팝업이 화면을 가리지 않도록 한다.
+    let previousAdDate = UserDefaults.standard.object(forKey: "main_native_ad_popup_last_shown_date")
+    // 실제 광고 정책과 동일한 오늘 날짜로 표시를 생략한다.
+    let dateFormatter = DateFormatter()
+    dateFormatter.locale = Locale(identifier: "ko_KR")
+    dateFormatter.dateFormat = "yyyy-MM-dd"
+    UserDefaults.standard.set(dateFormatter.string(from: Date()), forKey: "main_native_ad_popup_last_shown_date")
+    defer {
+      ExchangeSelectionStore.currentProduct = previousProduct
+      UserDefaults.standard.set(previousAdDate, forKey: "main_native_ad_popup_last_shown_date")
+    }
+    func labels(in view: UIView) -> [UILabel] {
+      ((view as? UILabel).map { [$0] } ?? [])
+        + view.subviews.flatMap { labels(in: $0) }
+    }
+    for product in [TradingProduct.spot, .perpetual] {
+      ExchangeSelectionStore.currentProduct = product
+      // 네트워크 없이 실제 메인 화면과 정렬 버튼을 구성한다.
+      let market = MainReactor(
+        mainUseCase: ReleaseQAPendingMarketsUseCase(response: .never()),
+        tickerSocketService: ReleaseQAQuietTickerSocket()
+      )
+      market.isStubEnabled = true
+      // 선물에서는 실제 보유 셀의 상품별 표시 분기까지 사용한다.
+      let futures = product == .perpetual
+        ? FuturesAccountReactor(account: .init(exchange: .upbit, product: .perpetual, currency: .krw)) : nil
+      futures?.isStubEnabled = true
+      // 헤더와 테이블 셀을 같은 실제 화면 좌표계에서 비교한다.
+      let main = MainViewController(reactor: market, futuresReactor: futures, networkAvailability: .empty())
+      // 작은 화면과 일반·큰 화면의 열 너비를 각각 검증한다.
+      let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 900))
+      window.rootViewController = main
+      window.isHidden = false
+      defer {
+        window.isHidden = true
+        window.rootViewController = nil
+      }
+      // 첨부 화면과 같이 자릿수가 긴 평가금액·평균매수가를 표시한다.
+      let info = CryptoCellInfo(
+        cryptoName: "비트코인",
+        market: "BTC/KRW",
+        holdingQuantity: 0.00502118,
+        averageBuyPrice: 111_338_995,
+        evaluationPrice: 554_836,
+        profitRate: -0.75,
+        evaluationProfitLoss: -4_217
+      )
+      for width in [CGFloat(320), 393, 430] {
+        window.frame.size.width = width
+        main.view.frame = window.bounds
+        main.holdButton.sendActions(for: .touchUpInside)
+        // 탭 전환이 예약한 빈 목록 갱신을 마친 뒤 레이아웃 전용 데이터를 적용한다.
+        let switched = expectation(description: "Holding tab layout selected")
+        DispatchQueue.main.async { DispatchQueue.main.async { switched.fulfill() } }
+        wait(for: [switched], timeout: 2)
+        main.tableView.isHidden = false
+        main.noHoldView.isHidden = true
+        // 실제 Diffable 셀 공급자를 통해 보유 전용 셀을 생성한다.
+        var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, CryptoCellInfo>()
+        snapshot.appendSections([.main])
+        snapshot.appendItems([info], toSection: .main)
+        // 이전 Diffable 작업과 셀 생성이 끝난 뒤 실제 텍스트 좌표를 확인한다.
+        let applied = expectation(description: "Holding layout row applied")
+        main.dataSource?.applySnapshotUsingReloadData(snapshot) { applied.fulfill() }
+        wait(for: [applied], timeout: 2)
+        window.setNeedsLayout()
+        window.layoutIfNeeded()
+        main.view.setNeedsLayout()
+        main.view.layoutIfNeeded()
+        main.tableView.layoutIfNeeded()
+        // 빈 이름 영역까지 네 열이 모두 같은 비율을 차지해야 한다.
+        let header = try XCTUnwrap(main.currentPriceButton.superview)
+        // 셀과 공유한 좌우 여백을 제외한 한 열의 실제 너비다.
+        let columnWidth = (main.tableView.bounds.width - MainHoldingTableViewCell.horizontalContentInset * 2) / 4
+        XCTAssertEqual(header.subviews.count, 4)
+        for (index, column) in header.subviews.enumerated() {
+          XCTAssertEqual(column.bounds.width, columnWidth, accuracy: 1)
+          XCTAssertEqual(
+            column.frame.minX,
+            MainHoldingTableViewCell.horizontalContentInset + CGFloat(index) * columnWidth,
+            accuracy: 1
+          )
+        }
+        // 헤더와 비교할 실제 표시 중인 보유 셀이다.
+        let cell = try XCTUnwrap(main.tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? MainHoldingTableViewCell)
+        // 셀 내부에서 네 열을 실제로 배치하는 스택이다.
+        let contentStack = try XCTUnwrap(cell.contentView.subviews.compactMap { $0 as? UIStackView }.first)
+        XCTAssertEqual(contentStack.arrangedSubviews.count, header.subviews.count)
+        for (headerColumn, cellColumn) in zip(header.subviews, contentStack.arrangedSubviews) {
+          // 서로 다른 부모 아래의 열 경계를 같은 화면 좌표로 비교한다.
+          let headerFrame = headerColumn.convert(headerColumn.bounds, to: main.view)
+          // 텍스트가 차지하는 너비가 아닌 셀의 실제 열 영역이다.
+          let cellFrame = cellColumn.convert(cellColumn.bounds, to: main.view)
+          XCTAssertEqual(headerFrame.minX, cellFrame.minX, accuracy: 1)
+          XCTAssertEqual(headerFrame.maxX, cellFrame.maxX, accuracy: 1)
+          XCTAssertEqual(headerFrame.width, cellFrame.width, accuracy: 1)
+        }
+        for (text, button) in [
+          ("554,836", main.currentPriceButton),
+          ("111,338,995", main.previousDayButton),
+          ("-0.75%", main.tradingVolumeButton)
+        ] {
+          // 금액의 오른쪽 끝과 정렬 버튼 제목의 오른쪽 끝을 같은 좌표계로 옮긴다.
+          let valueLabel = try XCTUnwrap(labels(in: cell.contentView).first { $0.text == text })
+          // 정렬 화살표를 포함한 버튼 제목의 실제 배치 영역이다.
+          let titleLabel = try XCTUnwrap(button.titleLabel)
+          XCTAssertEqual(
+            titleLabel.convert(titleLabel.bounds, to: main.view).maxX,
+            valueLabel.convert(valueLabel.bounds, to: main.view).maxX,
+            accuracy: 1,
+            "\(product) width=\(width) value=\(text)"
+          )
+          XCTAssertEqual(button.contentHorizontalAlignment, .right)
+          XCTAssertFalse(titleLabel.adjustsFontSizeToFitWidth)
+          XCTAssertEqual(titleLabel.font.pointSize, main.currentPriceButton.titleLabel?.font.pointSize)
+        }
+        // 헤더와 행만 잘라 실제 열 경계를 바로 비교할 수 있게 한다.
+        let previewFrame = header.convert(header.bounds, to: main.view)
+          .union(cell.convert(cell.bounds, to: main.view))
+        // 화면 크기에 따라 계산된 실제 헤더·셀 영역을 렌더링한다.
+        let preview = UIGraphicsImageRenderer(size: previewFrame.size).image { context in
+          context.cgContext.translateBy(x: -previewFrame.minX, y: -previewFrame.minY)
+          main.view.layer.render(in: context.cgContext)
+        }
+        // 테스트 실행 호스트에서 시각 검증에 사용할 이미지 경로다.
+        let previewURL = URL(fileURLWithPath: NSTemporaryDirectory())
+          .appendingPathComponent("mobit-holding-\(product)-\(Int(width)).png")
+        try preview.pngData()?.write(to: previewURL)
+        print("Holding layout preview: \(previewURL.path)")
+        for (button, titles) in [
+          (main.currentPriceButton, ["평가금액↑", "평가금액↓", "평가금액 ↑↓"]),
+          (main.previousDayButton, ["평균매수가↑", "평균매수가↓", "평균매수가 ↑↓"]),
+          (main.tradingVolumeButton, ["수익률↑", "수익률↓", "수익률 ↑↓"])
+        ] {
+          for title in titles {
+            button.sendActions(for: .touchUpInside)
+            button.layoutIfNeeded()
+            XCTAssertEqual(button.title(for: .normal), title)
+            XCTAssertEqual(button.bounds.width, columnWidth, accuracy: 1)
+          }
+        }
+        main.krwButton.sendActions(for: .touchUpInside)
+        main.view.setNeedsLayout()
+        main.view.layoutIfNeeded()
+        for button in [main.currentPriceButton, main.previousDayButton, main.tradingVolumeButton] {
+          XCTAssertEqual(button.contentHorizontalAlignment, .center)
+          XCTAssertEqual(button.bounds.width, main.tableView.bounds.width / 4, accuracy: 1)
+        }
+      }
+    }
+  }
+
+  @MainActor
   func testMainFailureSkeletonAndRetryAfterExplicitInitialLayout() throws {
     // 원본 실패 테스트와 같은 미완료 자산 검증 상태다.
     let futures = FuturesAccountReactor(account: .init(exchange: .upbit, product: .perpetual, currency: .krw))
@@ -352,6 +740,8 @@ final class TradingScreenReleaseQATests: XCTestCase {
 private final class ReleaseQAPendingMarketsUseCase: MainUseCase {
   // 실패 후 재시도에 다른 응답을 주입한다.
   var response: Observable<CryptoList>
+  // 첫 시세 수신 시점을 탭 전환 뒤로 지연할 때 사용한다.
+  var tickerResponse: Observable<CryptoTickerList> = .never()
   // 초기 레이아웃 처리가 중복 조회를 만들지 않는지 확인한다.
   private(set) var requests = 0
 
@@ -365,7 +755,7 @@ private final class ReleaseQAPendingMarketsUseCase: MainUseCase {
     return response
   }
 
-  override func fetchCryptoTicker(markets: [String]) -> Observable<CryptoTickerList> { .never() }
+  override func fetchCryptoTicker(markets: [String]) -> Observable<CryptoTickerList> { tickerResponse }
   override func fetchFearGreedIndex() -> Observable<FearGreedIndex> { .never() }
 }
 

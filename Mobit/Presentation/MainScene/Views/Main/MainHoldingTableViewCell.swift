@@ -13,6 +13,8 @@ import Then
 final class MainHoldingTableViewCell: UITableViewCell {
 
   static let reuseIdentifier = "MainHoldingTableViewCell"
+  // 보유 셀과 정렬 헤더가 같은 너비로 열을 나누는 좌우 여백이다.
+  static let horizontalContentInset: CGFloat = 10
 
   private let cryptoNameLabel = UILabel().then {
     $0.font = .systemFont(ofSize: 14, weight: .medium)
@@ -79,8 +81,8 @@ final class MainHoldingTableViewCell: UITableViewCell {
 
     contentView.addSubview(contentStack)
     contentStack.snp.makeConstraints { make in
-      make.leading.equalToSuperview().inset(10)
-      make.trailing.equalToSuperview().inset(10)
+      make.leading.equalToSuperview().inset(Self.horizontalContentInset)
+      make.trailing.equalToSuperview().inset(Self.horizontalContentInset)
       make.top.equalToSuperview().offset(10)
       make.bottom.equalToSuperview().offset(-10)
     }

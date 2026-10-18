@@ -154,7 +154,7 @@ final class MoreAccountResetViewController: UIViewController, UIAdaptivePresenta
     resetBadgeLabel.text = FuturesText.text("more_reset_badge")
     resetBadgeLabel.textColor = AccountResetColors.warningText
     resetBadgeLabel.backgroundColor = AccountResetColors.warningBackground
-    resetBadgeLabel.layer.cornerRadius = 12
+    resetBadgeLabel.layer.cornerRadius = 8
     resetBadgeLabel.clipsToBounds = true
     titleStackView.addArrangedSubview(titleLabel)
     titleStackView.addArrangedSubview(resetBadgeLabel)
@@ -572,7 +572,7 @@ private final class AccountResetRow: UIButton {
     // 이름과 상품 배지를 나란히 둘 때도 스택의 절반 폭 제약보다 자연 폭을 우선한다.
     exchangeLabel.setContentCompressionResistancePriority(UILayoutPriority(999), for: .horizontal)
     productLabel.text = FuturesText.text(account.product == .spot ? "futures_spot" : "futures_product")
-    productLabel.backgroundColor = account.product == .spot ? AccountResetColors.controlBackground : UIColor.mobitColors(.accentPrimary).withAlphaComponent(0.14)
+    productLabel.backgroundColor = UIColor.mobitColors(.accentPrimary).withAlphaComponent(0.14)
     productLabel.textColor = account.product == .spot ? .mobitColors(.textSecondary) : .mobitColors(.accentPrimary)
     currentAccountLabel.text = FuturesText.text("more_current_account")
     currentAccountLabel.textColor = .mobitColors(.accentPrimary)

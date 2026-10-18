@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="24506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="25098" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24504"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="25073"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -86,53 +87,55 @@
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="VqE-1C-Oab" userLabel="Price View">
                     <rect key="frame" x="0.0" y="172" width="393" height="60"/>
                     <subviews>
-                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="Price" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YAR-Rz-3PG">
-                            <rect key="frame" x="20" y="0.0" width="37" height="20"/>
-                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                            <nil key="textColor"/>
-                            <nil key="highlightedColor"/>
-                        </label>
-                        <stackView opaque="NO" contentMode="scaleToFill" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="wDR-2Q-tFi">
-                            <rect key="frame" x="20" y="30" width="243" height="30"/>
+                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="sg4-uM-Uxw">
+                            <rect key="frame" x="20" y="0.0" width="243" height="60"/>
                             <subviews>
-                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="changed rate" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QEz-7Y-xVg">
-                                    <rect key="frame" x="0.0" y="0.0" width="74.666666666666671" height="30"/>
-                                    <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                                    <color key="textColor" name="trade_text_primary"/>
+                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="Price" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="YAR-Rz-3PG">
+                                    <rect key="frame" x="0.0" y="0.0" width="55.666666666666664" height="28.666666666666668"/>
+                                    <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="24"/>
+                                    <nil key="textColor"/>
                                     <nil key="highlightedColor"/>
                                 </label>
-                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fFi-pF-iI3">
-                                    <rect key="frame" x="89.666666666666671" y="0.0" width="153.33333333333331" height="30"/>
+                                <stackView opaque="NO" contentMode="scaleToFill" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="wDR-2Q-tFi">
+                                    <rect key="frame" x="0.0" y="38.666666666666657" width="243" height="21.333333333333329"/>
                                     <subviews>
-                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="arrowtriangle.down.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="BzX-h7-aIN">
-                                            <rect key="frame" x="0.0" y="11.333333333333332" width="12" height="7.3333333333333321"/>
-                                            <constraints>
-                                                <constraint firstAttribute="height" constant="12" id="7jd-mg-vQI"/>
-                                                <constraint firstAttribute="width" constant="12" id="Zmr-ua-48E"/>
-                                            </constraints>
-                                        </imageView>
-                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalCompressionResistancePriority="751" text="Changed Price" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qyQ-8W-573">
-                                            <rect key="frame" x="12" y="0.0" width="141.33333333333334" height="30"/>
-                                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                                            <nil key="textColor"/>
+                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="changed rate" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="QEz-7Y-xVg">
+                                            <rect key="frame" x="0.0" y="0.0" width="90.666666666666671" height="21.333333333333332"/>
+                                            <fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/>
+                                            <color key="textColor" name="trade_text_primary"/>
                                             <nil key="highlightedColor"/>
                                         </label>
+                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fFi-pF-iI3">
+                                            <rect key="frame" x="105.66666666666667" y="0.0" width="137.33333333333331" height="21.333333333333332"/>
+                                            <subviews>
+                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="arrowtriangle.down.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="BzX-h7-aIN">
+                                                    <rect key="frame" x="0.0" y="6.6666666666666838" width="12" height="8.0000000000000018"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="12" id="7jd-mg-vQI"/>
+                                                        <constraint firstAttribute="width" constant="12" id="Zmr-ua-48E"/>
+                                                    </constraints>
+                                                </imageView>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalCompressionResistancePriority="751" text="Changed Price" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="qyQ-8W-573">
+                                                    <rect key="frame" x="11.999999999999993" y="0.0" width="125.33333333333331" height="21.333333333333332"/>
+                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                            <constraints>
+                                                <constraint firstItem="BzX-h7-aIN" firstAttribute="leading" secondItem="fFi-pF-iI3" secondAttribute="leading" id="573-La-rdq"/>
+                                                <constraint firstItem="BzX-h7-aIN" firstAttribute="centerY" secondItem="fFi-pF-iI3" secondAttribute="centerY" id="FQJ-nO-uB5"/>
+                                                <constraint firstAttribute="trailing" secondItem="qyQ-8W-573" secondAttribute="trailing" id="YZs-HK-3mu"/>
+                                                <constraint firstItem="qyQ-8W-573" firstAttribute="top" secondItem="fFi-pF-iI3" secondAttribute="top" id="ZJc-z8-6Bs"/>
+                                                <constraint firstItem="qyQ-8W-573" firstAttribute="leading" secondItem="BzX-h7-aIN" secondAttribute="trailing" id="s3l-oc-SPa"/>
+                                                <constraint firstAttribute="bottom" secondItem="qyQ-8W-573" secondAttribute="bottom" id="z2s-vc-UiG"/>
+                                            </constraints>
+                                        </view>
                                     </subviews>
                                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    <constraints>
-                                        <constraint firstItem="BzX-h7-aIN" firstAttribute="leading" secondItem="fFi-pF-iI3" secondAttribute="leading" id="573-La-rdq"/>
-                                        <constraint firstItem="BzX-h7-aIN" firstAttribute="centerY" secondItem="fFi-pF-iI3" secondAttribute="centerY" id="FQJ-nO-uB5"/>
-                                        <constraint firstAttribute="trailing" secondItem="qyQ-8W-573" secondAttribute="trailing" id="YZs-HK-3mu"/>
-                                        <constraint firstItem="qyQ-8W-573" firstAttribute="top" secondItem="fFi-pF-iI3" secondAttribute="top" id="ZJc-z8-6Bs"/>
-                                        <constraint firstItem="qyQ-8W-573" firstAttribute="leading" secondItem="BzX-h7-aIN" secondAttribute="trailing" id="s3l-oc-SPa"/>
-                                        <constraint firstAttribute="bottom" secondItem="qyQ-8W-573" secondAttribute="bottom" id="z2s-vc-UiG"/>
-                                    </constraints>
-                                </view>
+                                </stackView>
                             </subviews>
-                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                            <constraints>
-                                <constraint firstAttribute="height" constant="30" id="n2i-wm-c3e"/>
-                            </constraints>
                         </stackView>
                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="usN-Ic-cD0" userLabel="Mini Chart Container View">
                             <rect key="frame" x="283" y="0.0" width="100" height="60"/>
@@ -145,15 +148,14 @@
                     </subviews>
                     <color key="backgroundColor" name="trade_background"/>
                     <constraints>
-                        <constraint firstItem="wDR-2Q-tFi" firstAttribute="top" secondItem="YAR-Rz-3PG" secondAttribute="bottom" constant="10" id="3NB-q5-baF"/>
-                        <constraint firstItem="usN-Ic-cD0" firstAttribute="leading" secondItem="wDR-2Q-tFi" secondAttribute="trailing" constant="20" id="PNY-pt-tZu"/>
-                        <constraint firstItem="wDR-2Q-tFi" firstAttribute="leading" secondItem="VqE-1C-Oab" secondAttribute="leading" constant="20" id="WH3-Cc-szq"/>
+                        <constraint firstItem="sg4-uM-Uxw" firstAttribute="centerY" secondItem="VqE-1C-Oab" secondAttribute="centerY" id="AHq-TF-vaU"/>
+                        <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="sg4-uM-Uxw" secondAttribute="bottom" id="Iac-cv-LTc"/>
                         <constraint firstAttribute="bottom" secondItem="usN-Ic-cD0" secondAttribute="bottom" id="Zab-Qz-hu6"/>
                         <constraint firstItem="usN-Ic-cD0" firstAttribute="top" secondItem="VqE-1C-Oab" secondAttribute="top" id="gPg-fE-TCz"/>
-                        <constraint firstItem="YAR-Rz-3PG" firstAttribute="leading" secondItem="VqE-1C-Oab" secondAttribute="leading" constant="20" id="jWt-Zh-PKE"/>
+                        <constraint firstItem="usN-Ic-cD0" firstAttribute="leading" secondItem="sg4-uM-Uxw" secondAttribute="trailing" constant="20" id="mVe-OR-dYN"/>
+                        <constraint firstItem="sg4-uM-Uxw" firstAttribute="leading" secondItem="VqE-1C-Oab" secondAttribute="leading" constant="20" id="ppU-Ve-gNX"/>
                         <constraint firstAttribute="trailing" secondItem="usN-Ic-cD0" secondAttribute="trailing" constant="10" id="rKR-dv-s6g"/>
-                        <constraint firstItem="YAR-Rz-3PG" firstAttribute="top" secondItem="VqE-1C-Oab" secondAttribute="top" id="y1g-n0-7X1"/>
-                        <constraint firstAttribute="bottom" secondItem="wDR-2Q-tFi" secondAttribute="bottom" id="yjx-4X-8Og"/>
+                        <constraint firstItem="sg4-uM-Uxw" firstAttribute="top" relation="greaterThanOrEqual" secondItem="VqE-1C-Oab" secondAttribute="top" id="rn0-s6-glZ"/>
                     </constraints>
                 </view>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZMF-zH-Gij" customClass="MobitNeumorphicSegmentedControl" customModule="Mobit" customModuleProvider="target">
@@ -203,12 +205,9 @@
         </view>
     </objects>
     <resources>
-        <image name="arrow.backward" catalog="system" width="128" height="95"/>
-        <image name="arrowtriangle.down.fill" catalog="system" width="128" height="120"/>
-        <image name="star" catalog="system" width="128" height="116"/>
-        <systemColor name="secondarySystemBackgroundColor">
-            <color red="0.94901960780000005" green="0.94901960780000005" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-        </systemColor>
+        <image name="arrow.backward" catalog="system" width="128" height="99"/>
+        <image name="arrowtriangle.down.fill" catalog="system" width="128" height="125"/>
+        <image name="star" catalog="system" width="128" height="120"/>
         <namedColor name="trade_background">
             <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
@@ -216,7 +215,10 @@
             <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
         <namedColor name="trade_text_primary">
-            <color red="0" green="0" blue="0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
+        <systemColor name="secondarySystemBackgroundColor">
+            <color red="0.94901960780000005" green="0.94901960780000005" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
     </resources>
 </document>

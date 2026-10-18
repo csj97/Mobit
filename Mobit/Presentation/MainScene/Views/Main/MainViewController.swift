@@ -906,10 +906,11 @@ class MainViewController: MobitBaseViewController {
 		
 		flex.addItem(DividerLineView()).height(1)
 		
-		flex.addItem().direction(.row).justifyContent(.end).define { flex in
-		  flex.addItem(self.currentPriceButton).width(25%)
-		  flex.addItem(self.previousDayButton).width(25%)
-		  flex.addItem(self.tradingVolumeButton).width(25%)
+		flex.addItem().direction(.row).define { flex in
+		  flex.addItem().basis(0).grow(1).shrink(1)
+		  flex.addItem(self.currentPriceButton).basis(0).grow(1).shrink(1)
+		  flex.addItem(self.previousDayButton).basis(0).grow(1).shrink(1)
+		  flex.addItem(self.tradingVolumeButton).basis(0).grow(1).shrink(1)
 		  flex.backgroundColor(UIColor.mobitColors(.surfacePrimary))
 		}
 		
@@ -1270,11 +1271,7 @@ extension MainViewController: View {
 		
 		self.updateUserCryptoList(from: totalList)
 		
-		// 현재 탭 + 검색어에 맞게 필터링
-		let filteredList = self.filterListForCurrentTab(totalList: totalList)
-		
-		// 테이블뷰 업데이트
-		self.applySnapshot(cellInfos: filteredList)
+		self.refreshDisplayedList(totalList: totalList)
 
         if !totalList.isEmpty {
           self.presentLegacyBTCSettlementAlertIfNeeded()
@@ -1472,7 +1469,7 @@ extension MainViewController: View {
       guard !tableView.sk.isSkeletonActive else { return }
       tableView.showAnimatedGradientSkeleton(transition: .none)
     } else if tableView.sk.isSkeletonActive {
-      // 가짜 행을 실데이터 datasource에 맞춘 뒤 Diffable snapshot을 적용한다.
+      // 테이블이 숨겨지기 전에 실제 데이터 소스를 복원해야 한다.
       tableView.hideSkeleton(reloadDataAfter: true, transition: .none)
     }
   }
@@ -1643,9 +1640,13 @@ extension MainViewController: View {
 	let titles = isHold ? holdDefaultTitles : defaultTitles
 	let currentSort = isHold ? self.holdSortBy : self.reactor.currentState.sortBy
 	let buttons = [self.currentPriceButton, self.previousDayButton, self.tradingVolumeButton]
+	self.currentPriceButton.superview?.flex.paddingHorizontal(
+	  isHold ? MainHoldingTableViewCell.horizontalContentInset : 0
+	)
 
 	self.prevSortedButton = nil
 	for button in buttons {
+	  button.contentHorizontalAlignment = isHold ? .right : .center
 	  let (asc, desc) = self.sortTypes(forButtonTag: button.tag, isHold: isHold)
 	  if currentSort == asc || currentSort == desc {
 		button.setTitle(currentSort.rawValue, for: .normal)
@@ -1656,12 +1657,15 @@ extension MainViewController: View {
 		button.isSelected = false
 	  }
 	}
+	self.view.setNeedsLayout()
   }
   
   /// 스냅샷 적용
   private func applySnapshot(cellInfos: [CryptoCellInfo]) {
+	// 이전 탭에서 예약한 목록이 전환 후 화면에 적용되지 않도록 한다.
+	let selectedTab = self.selectedTab
 	DispatchQueue.main.async { [weak self] in
-	  guard let self = self else { return }
+	  guard let self = self, self.selectedTab == selectedTab else { return }
 	  
 	  self.updateMarketListSkeleton()
 	  guard !self.tableView.sk.isSkeletonActive else { return }
@@ -1673,10 +1677,11 @@ extension MainViewController: View {
 	}
   }
 
-  private func refreshDisplayedList() {
-    defer { updateMarketListSkeleton() }
+  private func refreshDisplayedList(totalList: [CryptoCellInfo]? = nil) {
+    // 테이블을 숨기기 전에 로딩용 데이터 소스와 행을 함께 복원한다.
+    updateMarketListSkeleton()
 	let filteredList = self.filterListForCurrentTab(
-	  totalList: reactor.currentState.totalCryptoList
+	  totalList: totalList ?? reactor.currentState.totalCryptoList
 	)
 
 	// 보유, 즐겨찾기 탭은 목록이 비면 테이블 대신 안내문구를 보여준다
@@ -1700,8 +1705,8 @@ extension MainViewController: View {
 	  self.tableView.isHidden = false
 	  self.noHoldView.isHidden = true
 	  self.noFavoriteView.isHidden = true
-	  self.applySnapshot(cellInfos: filteredList)
 	}
+	self.applySnapshot(cellInfos: filteredList)
   }
   
   /// 사용자 매수 목록 업데이트
