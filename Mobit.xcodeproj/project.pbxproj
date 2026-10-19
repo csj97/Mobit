@@ -7,15 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5F54CFDA8A3D4164A6ADF922 /* MobitAnalyticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7D4EDBE4E024975BF23A56F /* MobitAnalyticsTests.swift */; };
-		8A906D4747454081993A41E5 /* ReleaseTradingScenarioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F92E78049A9D45938D42C526 /* ReleaseTradingScenarioTests.swift */; };
-		A1452F4050094CEFB328AC3E /* TradingScreenReleaseQATests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AB1E102076495CACE704FB /* TradingScreenReleaseQATests.swift */; };
-		8701DED8D6554070BA46A61A /* FuturesReleaseQATests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D17BEBCE2234E0FB945AF82 /* FuturesReleaseQATests.swift */; };
-		ABD36466B4D4440EB97EE107 /* SpotAccountIsolationQATests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8E593CDE2934BB4AE8BA120 /* SpotAccountIsolationQATests.swift */; };
-		F10116000000000000000001 /* AdBannerLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10116000000000000000002 /* AdBannerLoadingView.swift */; };
-		F10114000000000000000001 /* MobitToastPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10114000000000000000002 /* MobitToastPresenter.swift */; };
-		F10114000000000000000003 /* MobitToastTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10114000000000000000004 /* MobitToastTests.swift */; };
-		E9967D894A3D4F188F7065B2 /* FuturesInvestmentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76482DD0266E470BBE4DB2F2 /* FuturesInvestmentViewController.swift */; };
 		157F7CC64BAA461BA7E5B642 /* FuturesAccountViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0E097AE7FC1447BBF425A91 /* FuturesAccountViewController.swift */; };
 		310865062E1EC3F40089D67A /* MobitChargeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 310865052E1EC3F40089D67A /* MobitChargeButton.swift */; };
 		311E33FA2C46068C0054C6BC /* ErrorType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 311E33F92C46068C0054C6BC /* ErrorType.swift */; };
@@ -68,7 +59,6 @@
 		31E208432C46CB47000BFEBC /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 31E208422C46CB47000BFEBC /* Then */; };
 		31F33FCA2DDA1ACE003D533A /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 31F33FC92DDA1ACE003D533A /* GoogleMobileAds */; };
 		31F33FCF2DDA1C09003D533A /* MoreViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31F33FCD2DDA1C09003D533A /* MoreViewController.swift */; };
-		A3D6F0311A804D2686E0E8C1 /* MoreAccountResetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3D6F0311A804D2686E0E8C2 /* MoreAccountResetViewController.swift */; };
 		31F33FD02DDA1C09003D533A /* MoreViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31F33FCE2DDA1C09003D533A /* MoreViewController.xib */; };
 		31F33FD32DDA1D4C003D533A /* MobitAlertViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31F33FD12DDA1D4C003D533A /* MobitAlertViewController.swift */; };
 		31F33FD42DDA1D4C003D533A /* MobitAlertViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 31F33FD22DDA1D4C003D533A /* MobitAlertViewController.xib */; };
@@ -77,12 +67,16 @@
 		369E877F2C7D955E0020A0B3 /* OrderBookResponseDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369E877E2C7D955E0020A0B3 /* OrderBookResponseDTO.swift */; };
 		36E7718F2D7595A700739CDE /* CallbackResultEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E7718E2D7595A700739CDE /* CallbackResultEnums.swift */; };
 		36E771932D75AF1E00739CDE /* MobitTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E771922D75AF1E00739CDE /* MobitTextField.swift */; };
+		5EC8FC34947D4845944E46EF /* MoreAccountsUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2F4482507D447E1AC2D7D76 /* MoreAccountsUseCase.swift */; };
+		5F54CFDA8A3D4164A6ADF922 /* MobitAnalyticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7D4EDBE4E024975BF23A56F /* MobitAnalyticsTests.swift */; };
 		5F5EDD442FFAA20D008ED0B3 /* MarketColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F5EDD432FFAA20D008ED0B3 /* MarketColorPalette.swift */; };
 		5FA880E32E1A3D0B00F22F9C /* NoticeForceUpdateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA880E12E1A3D0B00F22F9C /* NoticeForceUpdateViewController.swift */; };
 		5FA880E42E1A3D0B00F22F9C /* NoticeForceUpdateViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5FA880E22E1A3D0B00F22F9C /* NoticeForceUpdateViewController.xib */; };
 		5FA880E62E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA880E52E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift */; };
 		5FA880E82E1A58E700F22F9C /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5FA880E72E1A58E700F22F9C /* GoogleService-Info.plist */; };
 		5FA880EB2E1A598100F22F9C /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5FA880EA2E1A598100F22F9C /* FirebaseAnalytics */; };
+		8701DED8D6554070BA46A61A /* FuturesReleaseQATests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D17BEBCE2234E0FB945AF82 /* FuturesReleaseQATests.swift */; };
+		8A906D4747454081993A41E5 /* ReleaseTradingScenarioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F92E78049A9D45938D42C526 /* ReleaseTradingScenarioTests.swift */; };
 		998725022C50944700088C71 /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = 998725012C50944700088C71 /* RxCocoa */; };
 		998725062C50944700088C71 /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = 998725052C50944700088C71 /* RxRelay */; };
 		9987250A2C50944700088C71 /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 998725092C50944700088C71 /* RxSwift */; };
@@ -107,7 +101,11 @@
 		99C20AB22C4F6A04009276E7 /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB12C4F6A04009276E7 /* Environment.swift */; };
 		99C20AB42C4F7177009276E7 /* CryptoSocketTicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB32C4F7177009276E7 /* CryptoSocketTicker.swift */; };
 		99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB72C4F775B009276E7 /* Crypto.swift */; };
+		A1452F4050094CEFB328AC3E /* TradingScreenReleaseQATests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AB1E102076495CACE704FB /* TradingScreenReleaseQATests.swift */; };
+		A3D6F0311A804D2686E0E8C1 /* MoreAccountResetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3D6F0311A804D2686E0E8C2 /* MoreAccountResetViewController.swift */; };
+		A3D6F0311A804D2686E0E8C3 /* MoreAccountResetSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3D6F0311A804D2686E0E8C4 /* MoreAccountResetSheetTests.swift */; };
 		A7E29788888F4EF094B2ABE5 /* FuturesAccountReactorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 619158489B6D4A7DABE428B6 /* FuturesAccountReactorTests.swift */; };
+		ABD36466B4D4440EB97EE107 /* SpotAccountIsolationQATests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8E593CDE2934BB4AE8BA120 /* SpotAccountIsolationQATests.swift */; };
 		C0D100012EF6000000000011 /* MarketFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100032EF6000000000011 /* MarketFormat.swift */; };
 		C0D100022EF6000000000011 /* PortfolioCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100042EF6000000000011 /* PortfolioCalculator.swift */; };
 		C0D100052EF6000000000011 /* PortfolioCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D100082EF6000000000011 /* PortfolioCalculatorTests.swift */; };
@@ -235,10 +233,12 @@
 		D0B1000E2FF1000000000001 /* BithumbWebSocketClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B1000D2FF1000000000001 /* BithumbWebSocketClient.swift */; };
 		D0B200052FF2000000000001 /* UpbitWebSocketClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B200042FF2000000000001 /* UpbitWebSocketClient.swift */; };
 		D0C300022FFB000000000001 /* NetworkResponseValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C300012FFB000000000001 /* NetworkResponseValidator.swift */; };
+		D819A20230194DF0870A1201 /* InvestmentSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D819A20230194DF0870A1202 /* InvestmentSummaryView.swift */; };
+		D819A20230194DF0870A1211 /* ExchangeSelectionSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D819A20230194DF0870A1212 /* ExchangeSelectionSheetViewController.swift */; };
+		D819A20230194DF0870A1213 /* InvestmentExchangeSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D819A20230194DF0870A1214 /* InvestmentExchangeSheetTests.swift */; };
 		E37F0D76B29045D89D18DDED /* FuturesCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8B3CBC579634A5BA3CBB74E /* FuturesCoordinator.swift */; };
+		E9967D894A3D4F188F7065B2 /* FuturesInvestmentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76482DD0266E470BBE4DB2F2 /* FuturesInvestmentViewController.swift */; };
 		F09222000000000000000002 /* TradingAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09222000000000000000001 /* TradingAccount.swift */; };
-		F10112000000000000000002 /* TradingRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10112000000000000000001 /* TradingRules.swift */; };
-		F10112000000000000000004 /* TradingRulesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10112000000000000000003 /* TradingRulesTests.swift */; };
 		F09222000000000000000004 /* LocalFuturesAccountRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09222000000000000000003 /* LocalFuturesAccountRepository.swift */; };
 		F09222000000000000000006 /* LocalFuturesAccountRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09222000000000000000005 /* LocalFuturesAccountRepositoryTests.swift */; };
 		F09222000000000000000012 /* AdRewardClaim.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09222000000000000000011 /* AdRewardClaim.swift */; };
@@ -263,6 +263,12 @@
 		F09329000000000000000004 /* DomesticFuturesMarketRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09329000000000000000003 /* DomesticFuturesMarketRepository.swift */; };
 		F09329000000000000000006 /* DomesticFuturesMarketRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09329000000000000000005 /* DomesticFuturesMarketRepositoryTests.swift */; };
 		F09329000000000000000008 /* FuturesTradingUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09329000000000000000007 /* FuturesTradingUseCase.swift */; };
+		F10007000000000000000002 /* FuturesCloseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10007000000000000000001 /* FuturesCloseViewController.swift */; };
+		F10112000000000000000002 /* TradingRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10112000000000000000001 /* TradingRules.swift */; };
+		F10112000000000000000004 /* TradingRulesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10112000000000000000003 /* TradingRulesTests.swift */; };
+		F10114000000000000000001 /* MobitToastPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10114000000000000000002 /* MobitToastPresenter.swift */; };
+		F10114000000000000000003 /* MobitToastTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10114000000000000000004 /* MobitToastTests.swift */; };
+		F10116000000000000000001 /* AdBannerLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10116000000000000000002 /* AdBannerLoadingView.swift */; };
 		F592674570AB41C3985E2306 /* FuturesOrderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D479337EF3574613A3F16DFD /* FuturesOrderViewController.swift */; };
 		FAFFBE1989D14FF091DD469B /* FuturesAccountReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2E7252A056E4DF387E0DF7E /* FuturesAccountReactor.swift */; };
 		FEA000000000000000000011 /* FearGreedIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA000000000000000000010 /* FearGreedIndex.swift */; };
@@ -270,10 +276,7 @@
 		FEA000000000000000000031 /* FearGreedIndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA000000000000000000030 /* FearGreedIndexView.swift */; };
 		FEA000000000000000000041 /* FearGreedInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA000000000000000000040 /* FearGreedInfoViewController.swift */; };
 		FEA000000000000000000051 /* MainHoldingTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA000000000000000000050 /* MainHoldingTableViewCell.swift */; };
-		F10007000000000000000002 /* FuturesCloseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10007000000000000000001 /* FuturesCloseViewController.swift */; };
-		5EC8FC34947D4845944E46EF /* MoreAccountsUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2F4482507D447E1AC2D7D76 /* MoreAccountsUseCase.swift */; };
 		FFAADEE71F8742D5BD6EF3D7 /* MoreScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7A1682839BC44FD85A785C7 /* MoreScreenTests.swift */; };
-		A3D6F0311A804D2686E0E8C3 /* MoreAccountResetSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3D6F0311A804D2686E0E8C4 /* MoreAccountResetSheetTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -317,15 +320,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		E7D4EDBE4E024975BF23A56F /* MobitAnalyticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitAnalyticsTests.swift; sourceTree = "<group>"; };
-		F92E78049A9D45938D42C526 /* ReleaseTradingScenarioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseTradingScenarioTests.swift; sourceTree = "<group>"; };
-		D7AB1E102076495CACE704FB /* TradingScreenReleaseQATests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradingScreenReleaseQATests.swift; sourceTree = "<group>"; };
 		0D17BEBCE2234E0FB945AF82 /* FuturesReleaseQATests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesReleaseQATests.swift; sourceTree = "<group>"; };
-		C8E593CDE2934BB4AE8BA120 /* SpotAccountIsolationQATests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotAccountIsolationQATests.swift; sourceTree = "<group>"; };
-		F10116000000000000000002 /* AdBannerLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdBannerLoadingView.swift; sourceTree = "<group>"; };
-		F10114000000000000000002 /* MobitToastPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitToastPresenter.swift; sourceTree = "<group>"; };
-		F10114000000000000000004 /* MobitToastTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitToastTests.swift; sourceTree = "<group>"; };
-		76482DD0266E470BBE4DB2F2 /* FuturesInvestmentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesInvestmentViewController.swift; sourceTree = "<group>"; };
 		310865052E1EC3F40089D67A /* MobitChargeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitChargeButton.swift; sourceTree = "<group>"; };
 		311E33F92C46068C0054C6BC /* ErrorType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorType.swift; sourceTree = "<group>"; };
 		311E33FB2C4608800054C6BC /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
@@ -375,7 +370,6 @@
 		31E208162C46C441000BFEBC /* MoreCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreCoordinator.swift; sourceTree = "<group>"; };
 		31E208532C46CD9F000BFEBC /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/iPhoneOS.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		31F33FCD2DDA1C09003D533A /* MoreViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreViewController.swift; sourceTree = "<group>"; };
-		A3D6F0311A804D2686E0E8C2 /* MoreAccountResetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreAccountResetViewController.swift; sourceTree = "<group>"; };
 		31F33FCE2DDA1C09003D533A /* MoreViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MoreViewController.xib; sourceTree = "<group>"; };
 		31F33FD12DDA1D4C003D533A /* MobitAlertViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitAlertViewController.swift; sourceTree = "<group>"; };
 		31F33FD22DDA1D4C003D533A /* MobitAlertViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MobitAlertViewController.xib; sourceTree = "<group>"; };
@@ -391,6 +385,7 @@
 		5FA880E52E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoticeAppUpdateCoordinator.swift; sourceTree = "<group>"; };
 		5FA880E72E1A58E700F22F9C /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		619158489B6D4A7DABE428B6 /* FuturesAccountReactorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesAccountReactorTests.swift; sourceTree = "<group>"; };
+		76482DD0266E470BBE4DB2F2 /* FuturesInvestmentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesInvestmentViewController.swift; sourceTree = "<group>"; };
 		998849E12C524AAA0073A27D /* CryptoCellInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoCellInfo.swift; sourceTree = "<group>"; };
 		998849E32C5378CD0073A27D /* CryptoTickerDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTickerDTO.swift; sourceTree = "<group>"; };
 		998849E52C5379960073A27D /* CryptoTicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTicker.swift; sourceTree = "<group>"; };
@@ -404,6 +399,9 @@
 		99C20AB12C4F6A04009276E7 /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
 		99C20AB32C4F7177009276E7 /* CryptoSocketTicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CryptoSocketTicker.swift; path = Mobit/Domain/Model/CryptoSocketTicker.swift; sourceTree = SOURCE_ROOT; };
 		99C20AB72C4F775B009276E7 /* Crypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Crypto.swift; sourceTree = "<group>"; };
+		A3D6F0311A804D2686E0E8C2 /* MoreAccountResetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreAccountResetViewController.swift; sourceTree = "<group>"; };
+		A3D6F0311A804D2686E0E8C4 /* MoreAccountResetSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreAccountResetSheetTests.swift; sourceTree = "<group>"; };
+		A7A1682839BC44FD85A785C7 /* MoreScreenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreScreenTests.swift; sourceTree = "<group>"; };
 		B0E097AE7FC1447BBF425A91 /* FuturesAccountViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesAccountViewController.swift; sourceTree = "<group>"; };
 		B8B3CBC579634A5BA3CBB74E /* FuturesCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesCoordinator.swift; sourceTree = "<group>"; };
 		C0D100032EF6000000000011 /* MarketFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketFormat.swift; sourceTree = "<group>"; };
@@ -513,6 +511,7 @@
 		C1DF71162E16407E002E89E1 /* MainCryptoTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainCryptoTableViewCell.xib; sourceTree = "<group>"; };
 		C1E12D3F2D7C29A9003C76F0 /* DoubleExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoubleExtension.swift; sourceTree = "<group>"; };
 		C2E7252A056E4DF387E0DF7E /* FuturesAccountReactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesAccountReactor.swift; sourceTree = "<group>"; };
+		C8E593CDE2934BB4AE8BA120 /* SpotAccountIsolationQATests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotAccountIsolationQATests.swift; sourceTree = "<group>"; };
 		D0A100012FF0000000000001 /* ExchangeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExchangeModels.swift; sourceTree = "<group>"; };
 		D0A100032FF0000000000002 /* ExchangeMarketCodeConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExchangeMarketCodeConverter.swift; sourceTree = "<group>"; };
 		D0A100052FF0000000000002 /* ExchangeMarketCodeConverterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExchangeMarketCodeConverterTests.swift; sourceTree = "<group>"; };
@@ -530,11 +529,15 @@
 		D0B1000D2FF1000000000001 /* BithumbWebSocketClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BithumbWebSocketClient.swift; sourceTree = "<group>"; };
 		D0B200042FF2000000000001 /* UpbitWebSocketClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpbitWebSocketClient.swift; sourceTree = "<group>"; };
 		D0C300012FFB000000000001 /* NetworkResponseValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkResponseValidator.swift; sourceTree = "<group>"; };
+		D2F4482507D447E1AC2D7D76 /* MoreAccountsUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreAccountsUseCase.swift; sourceTree = "<group>"; };
 		D479337EF3574613A3F16DFD /* FuturesOrderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesOrderViewController.swift; sourceTree = "<group>"; };
+		D7AB1E102076495CACE704FB /* TradingScreenReleaseQATests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradingScreenReleaseQATests.swift; sourceTree = "<group>"; };
+		D819A20230194DF0870A1202 /* InvestmentSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestmentSummaryView.swift; sourceTree = "<group>"; };
+		D819A20230194DF0870A1212 /* ExchangeSelectionSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExchangeSelectionSheetViewController.swift; sourceTree = "<group>"; };
+		D819A20230194DF0870A1214 /* InvestmentExchangeSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestmentExchangeSheetTests.swift; sourceTree = "<group>"; };
+		E7D4EDBE4E024975BF23A56F /* MobitAnalyticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitAnalyticsTests.swift; sourceTree = "<group>"; };
 		EE703D167D454C228F42B31E /* FuturesText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesText.swift; sourceTree = "<group>"; };
 		F09222000000000000000001 /* TradingAccount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradingAccount.swift; sourceTree = "<group>"; };
-		F10112000000000000000001 /* TradingRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradingRules.swift; sourceTree = "<group>"; };
-		F10112000000000000000003 /* TradingRulesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradingRulesTests.swift; sourceTree = "<group>"; };
 		F09222000000000000000003 /* LocalFuturesAccountRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalFuturesAccountRepository.swift; sourceTree = "<group>"; };
 		F09222000000000000000005 /* LocalFuturesAccountRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalFuturesAccountRepositoryTests.swift; sourceTree = "<group>"; };
 		F09222000000000000000011 /* AdRewardClaim.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdRewardClaim.swift; sourceTree = "<group>"; };
@@ -559,15 +562,18 @@
 		F09329000000000000000003 /* DomesticFuturesMarketRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomesticFuturesMarketRepository.swift; sourceTree = "<group>"; };
 		F09329000000000000000005 /* DomesticFuturesMarketRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomesticFuturesMarketRepositoryTests.swift; sourceTree = "<group>"; };
 		F09329000000000000000007 /* FuturesTradingUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesTradingUseCase.swift; sourceTree = "<group>"; };
+		F10007000000000000000001 /* FuturesCloseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesCloseViewController.swift; sourceTree = "<group>"; };
+		F10112000000000000000001 /* TradingRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradingRules.swift; sourceTree = "<group>"; };
+		F10112000000000000000003 /* TradingRulesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradingRulesTests.swift; sourceTree = "<group>"; };
+		F10114000000000000000002 /* MobitToastPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitToastPresenter.swift; sourceTree = "<group>"; };
+		F10114000000000000000004 /* MobitToastTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitToastTests.swift; sourceTree = "<group>"; };
+		F10116000000000000000002 /* AdBannerLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdBannerLoadingView.swift; sourceTree = "<group>"; };
+		F92E78049A9D45938D42C526 /* ReleaseTradingScenarioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseTradingScenarioTests.swift; sourceTree = "<group>"; };
 		FEA000000000000000000010 /* FearGreedIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FearGreedIndex.swift; sourceTree = "<group>"; };
 		FEA000000000000000000020 /* FearGreedIndexResponseDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FearGreedIndexResponseDTO.swift; sourceTree = "<group>"; };
 		FEA000000000000000000030 /* FearGreedIndexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FearGreedIndexView.swift; sourceTree = "<group>"; };
 		FEA000000000000000000040 /* FearGreedInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FearGreedInfoViewController.swift; sourceTree = "<group>"; };
 		FEA000000000000000000050 /* MainHoldingTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainHoldingTableViewCell.swift; sourceTree = "<group>"; };
-		F10007000000000000000001 /* FuturesCloseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesCloseViewController.swift; sourceTree = "<group>"; };
-		D2F4482507D447E1AC2D7D76 /* MoreAccountsUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreAccountsUseCase.swift; sourceTree = "<group>"; };
-		A7A1682839BC44FD85A785C7 /* MoreScreenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreScreenTests.swift; sourceTree = "<group>"; };
-		A3D6F0311A804D2686E0E8C4 /* MoreAccountResetSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreAccountResetSheetTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -749,6 +755,7 @@
 				F09222000000000000000019 /* AdRewardTests.swift */,
 				A7A1682839BC44FD85A785C7 /* MoreScreenTests.swift */,
 				A3D6F0311A804D2686E0E8C4 /* MoreAccountResetSheetTests.swift */,
+				D819A20230194DF0870A1214 /* InvestmentExchangeSheetTests.swift */,
 				3133E23E2C3E2357000D4B1A /* MobitTests.swift */,
 				C0D100082EF6000000000011 /* PortfolioCalculatorTests.swift */,
 				C0D100092EF6000000000011 /* MarketFormatTests.swift */,
@@ -975,8 +982,9 @@
 			isa = PBXGroup;
 			children = (
 				C17CF49A2DA4DAE900CDF76D /* InvestmentViewController.swift */,
-				76482DD0266E470BBE4DB2F2 /* FuturesInvestmentViewController.swift */,
 				C17CF49B2DA4DAE900CDF76D /* InvestmentViewController.xib */,
+				D819A20230194DF0870A1202 /* InvestmentSummaryView.swift */,
+				76482DD0266E470BBE4DB2F2 /* FuturesInvestmentViewController.swift */,
 				C17DB9702DA5FAF000DA673A /* InvestmentTableViewCell.swift */,
 				C17DB9712DA5FAF000DA673A /* InvestmentTableViewCell.xib */,
 				C16FAE6B2E38B4B9003C5AD1 /* PNLViewController.swift */,
@@ -1317,6 +1325,7 @@
 			children = (
 				F10116000000000000000002 /* AdBannerLoadingView.swift */,
 				C17BB4172E2F27A400BDAA0F /* MobitBaseViewController.swift */,
+				D819A20230194DF0870A1212 /* ExchangeSelectionSheetViewController.swift */,
 				F10114000000000000000002 /* MobitToastPresenter.swift */,
 				C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */,
 				310865052E1EC3F40089D67A /* MobitChargeButton.swift */,
@@ -1797,6 +1806,8 @@
 				C182B6A72EF5285A0090CA34 /* Candle+DayResponseDTO.swift in Sources */,
 				99C20AAC2C4F458C009276E7 /* CryptoSocketTickerDTO.swift in Sources */,
 				C17CF49C2DA4DAE900CDF76D /* InvestmentViewController.swift in Sources */,
+				D819A20230194DF0870A1201 /* InvestmentSummaryView.swift in Sources */,
+				D819A20230194DF0870A1211 /* ExchangeSelectionSheetViewController.swift in Sources */,
 				E9967D894A3D4F188F7065B2 /* FuturesInvestmentViewController.swift in Sources */,
 				31D6444D2C72590C00C7F96D /* CryptoDetailUseCase.swift in Sources */,
 				5FA880E62E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift in Sources */,
@@ -1877,6 +1888,7 @@
 				F09222000000000000000020 /* AdRewardTests.swift in Sources */,
 				FFAADEE71F8742D5BD6EF3D7 /* MoreScreenTests.swift in Sources */,
 				A3D6F0311A804D2686E0E8C3 /* MoreAccountResetSheetTests.swift in Sources */,
+				D819A20230194DF0870A1213 /* InvestmentExchangeSheetTests.swift in Sources */,
 				C0D1000B2EF6000000000011 /* SocketServiceTests.swift in Sources */,
 				D0A1000E2FF0000000000006 /* StringExtensionTests.swift in Sources */,
 				D0A100062FF0000000000002 /* ExchangeMarketCodeConverterTests.swift in Sources */,
@@ -2072,7 +2084,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = L8AX56G69N;
 				ENABLE_TESTING_SEARCH_PATHS = YES;
@@ -2114,7 +2126,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = L8AX56G69N;
 				ENABLE_TESTING_SEARCH_PATHS = YES;
 				GENERATE_INFOPLIST_FILE = YES;

@@ -1,0 +1,47 @@
+MOBIT App Store header — mobile crop adjustment v2
+
+Submission asset:
+mobit-app-store-header-safe-v2-3840x1646.png
+3840 × 1646 px; 8-bit RGB PNG; sRGB; no alpha channel.
+This is the supported header-only 21:9 size.
+
+Preview:
+mobit-app-store-header-safe-v2-mobile-preview.png
+The preview is a simulation based on the user-supplied screenshot, not a capture from App Store Connect after upload.
+It reuses the measured header viewport (x73..580, y89..424), a conservative 527px rendered image height, and the existing foreground controls. The original screenshot's semi-transparent controls were reconstructed to remove remnants of the old phone image. Other page content is unchanged.
+An additional width-preserving 936px rendered-image model was checked mathematically and also contains all key content.
+
+Official template:
+https://devimages-cdn.apple.com/design/resources/download/app-store/creative_assets-product_page_header_template-static.psd
+Canvas 3840 × 1646; Art Safe Area layer bounds x1097..2743, y493..1154.
+The composition uses an inset safe rectangle x1098..2742, y494..1153.
+Source guidance:
+https://developer.apple.com/app-store/asset-best-practices/
+https://developer.apple.com/help/app-store-connect/reference/app-information/creative-assets-specifications
+
+Changes:
+Moved and reduced logo, title, subtitle and all three phones into the official safe area.
+Retained original title wording and changed subtitle line breaks to improve small-screen reading.
+Original phone pixels and screens were reused through an outline mask, rather than regenerated.
+The original purple logo symbol was reused with a transparency mask.
+Built-in image_gen created only the clean pale-lavender background plate in the existing visual style.
+All text uses the supplied /Users/chosungjae/Library/Fonts/esamanru-OTF-Medium.otf loaded directly by CoreText, verified PostScript name esamanruOTFMedium.
+
+Final bounds in asset pixels:
+Logo x1250 y526 w90 h90.9.
+MOBIT: 80pt, visible origin x1364 y539.
+가상 자금으로: 96pt, visible origin x1250 y656.
+시작하는 코인 투자: 96pt, visible origin x1250 y766.
+모의투자로 배우는: 48pt, visible origin x1250 y880.
+실전 암호화폐 투자: 48pt, visible origin x1250 y933.
+Phone group x2090 y500 w500 h485.34.
+
+Validation:
+Every text glyph bound, the logo frame and entire phone frame are inside the official inset safe rectangle.
+The saved submission PNG was reopened and verified at 3840 × 1646 with no alpha channel.
+Independent visual QA found all copy and phone outlines visible, with approximately 40px side margins and 20px clearance to the app information card in the simulated mobile preview.
+Actual App Store Connect output has not been captured after this revision.
+
+Exact built-in image_gen background prompt:
+Use case: precise-object-edit. Input image is the edit target and visual style reference for an App Store header background. Remove every foreground element: all external promotional typography including MOBIT, the purple M logo with its tiny nearby dot, and all three iPhone mockups including their shadows. Seamlessly reconstruct only the underlying very pale off-white/lavender smooth gradient background with the existing abstract white/lavender curved forms and soft purple spheres. Preserve the elegant restrained original lighting and subtle texture. Reframe to a wide 21:9 landscape canvas. Keep the large lavender sphere along the upper center edge, the tiny purple decorative sphere in upper-middle-left, the soft purple sphere near lower-middle, and pale curved forms at the outer right edge as peripheral background decoration. Keep the central composition zone extremely clean and light so dark text and phones can be composited later. Do not add any text, logos, phones, UI, frames, guides, grids, safe area lines, or new objects. This is a clean background plate only, based on the existing image; preserve the visual identity.
+

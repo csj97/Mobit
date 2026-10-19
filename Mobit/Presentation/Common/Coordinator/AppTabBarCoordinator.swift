@@ -65,7 +65,7 @@ class AppTabBarCoordinator: BaseCoordinator {
 	UserDataManager.publishCurrentExchangeBalance()
 	// 정보탭 CMC 캐시를 새 거래소 기준으로 갱신한다.
 	AppDataManager.shared.refreshCMCData(for: exchange)
-	self.configureTabs(selectedIndex: 0)
+	self.configureTabs(selectedIndex: mobitTabBarController.selectedIndex)
 	tradingSelectionChangedCallBack?()
   }
   
@@ -137,6 +137,11 @@ class AppTabBarCoordinator: BaseCoordinator {
 	  newsCoordinator.navigationController,
 	  moreCoordinator.navigationController
 	], selectedIndex: selectedIndex)
+	if selectedIndex == 1 {
+	  // 투자내역에서 계좌를 바꿔도 메인 화면에 의존하는 현물 시세 구독을 먼저 준비한다.
+	  mainCoordinator.navigationController.viewControllers.first?.loadViewIfNeeded()
+	  mobitTabBarController.controlSocket(appState: .foreground)
+	}
   }
 }
 

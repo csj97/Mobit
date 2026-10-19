@@ -112,6 +112,7 @@ class MobitBottomSheetViewController: MobitBaseViewController {
     
   private func makeCell(sortType: String, index: Int) -> UIView {
 	let isSelected = self.sortType.rawValue == sortType
+	  || FuturesText.text(self.sortType.localizationKey) == sortType
 	let view: UIView = UIView()
 	let label: UILabel = UILabel().then { label in
 	  label.text = sortType

@@ -95,6 +95,10 @@ class InvestmentCoordinator: NSObject, BaseCoordinator, UINavigationControllerDe
 	
 	self.delegate?.mainCoordinatorDidRequestHideTabBar()
   }
+
+  func switchExchange(to exchange: Exchange) {
+	self.delegate?.mainCoordinatorDidRequestExchangeSwitch(to: exchange)
+  }
 }
 
 extension InvestmentCoordinator: MainCoordinatorDelegate {

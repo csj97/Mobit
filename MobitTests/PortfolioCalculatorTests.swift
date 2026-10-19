@@ -215,11 +215,12 @@ final class PortfolioCalculatorTests: XCTestCase {
       crypto.staticData.exchange = exchange
       AppDataManager.shared.updateBTCKRWPrice(120_000_000, for: exchange)
       cell.configure(crypto: crypto, isLast: true)
-      XCTAssertEqual(cell.cryptoName.text, "ETH/BTC")
+      XCTAssertEqual(cell.cryptoName.text, crypto.staticData.cryptoName)
+      XCTAssertEqual(cell.marketSymbolLabel.text, "ETH/BTC")
       XCTAssertEqual(cell.cryptoBuyPrice.text, "5,000,000")
       XCTAssertEqual(cell.cryptoEvalPrice.text, "6,000,000")
-      XCTAssertEqual(cell.cryptoEvalLoss.text, "1,000,000")
-      XCTAssertEqual(cell.cryptoProfitRate.text, "20 %")
+      XCTAssertEqual(cell.cryptoEvalLoss.text, "+1,000,000")
+      XCTAssertEqual(cell.cryptoProfitRate.text, "+20%")
       XCTAssertEqual(cell.cryptoAveragePrice.text, "0.05")
     }
 
@@ -230,12 +231,15 @@ final class PortfolioCalculatorTests: XCTestCase {
       marketName: "ETH/BTC"
     )
     cell.configure(crypto: legacyCrypto, isLast: false)
-    XCTAssertEqual(cell.cryptoBuyPrice.text, "-")
+    XCTAssertEqual(cell.cryptoBuyPrice.text, "—")
     XCTAssertEqual(cell.cryptoEvalPrice.text, "6,000,000")
-    XCTAssertEqual(cell.cryptoProfitRate.text, "-")
+    XCTAssertEqual(cell.cryptoProfitRate.text, "—")
   }
 
   func testUnsupportedInvestmentCellShowsOpaqueStatusDesign() throws {
+    func descendants(of view: UIView) -> [UIView] {
+      view.subviews.flatMap { [$0] + descendants(of: $0) }
+    }
     let cell = try XCTUnwrap(UINib(nibName: "InvestmentTableViewCell", bundle: Bundle.main)
       .instantiate(withOwner: nil).first as? InvestmentTableViewCell)
     let crypto = makeCrypto(
@@ -262,10 +266,10 @@ final class PortfolioCalculatorTests: XCTestCase {
     ).height
 
     let badge = try XCTUnwrap(
-      cell.bgView.subviews.first { $0.accessibilityLabel == "거래지원 종료" }
+      descendants(of: cell.bgView).first { $0.accessibilityLabel == FuturesText.text("investment_unsupported_badge") }
     )
     let notice = try XCTUnwrap(
-      cell.bgView.subviews.first { $0.accessibilityLabel == "거래소에서 지원하지 않는 코인입니다." }
+      descendants(of: cell.bgView).first { $0.accessibilityLabel == FuturesText.text("investment_unsupported_notice") }
     )
     XCTAssertFalse(badge.isHidden)
     XCTAssertFalse(notice.isHidden)
@@ -276,6 +280,13 @@ final class PortfolioCalculatorTests: XCTestCase {
       XCTAssertEqual(badge.backgroundColor?.resolvedColor(with: traits).cgColor.alpha, 1)
       XCTAssertEqual(notice.backgroundColor?.resolvedColor(with: traits).cgColor.alpha, 1)
     }
+
+    cell.prepareForReuse()
+    XCTAssertTrue(badge.isHidden)
+    XCTAssertTrue(notice.isHidden)
+    cell.configure(crypto: crypto, isLast: false)
+    XCTAssertTrue(badge.isHidden)
+    XCTAssertTrue(notice.isHidden)
   }
 
   func testTradeHoldingViewDisplaysBTCMarketAveragePriceInBTC() throws {

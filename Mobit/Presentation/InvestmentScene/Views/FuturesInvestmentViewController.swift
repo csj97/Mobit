@@ -4,12 +4,22 @@ import RxCocoa
 
 final class FuturesInvestmentViewController: MobitBaseViewController, UITableViewDelegate, SocketControllable {
   @IBOutlet weak var transactionTableview: UITableView!
+  // 현물과 같은 요약 배치를 사용하며 실제 콘텐츠 높이로 스크롤한다.
+  @IBOutlet var summaryHeaderView: InvestmentSummaryView!
+  // 현재 선물 계좌의 거래소를 선택한다.
+  @IBOutlet private weak var exchangeButton: UIButton!
+  // 현물과 같은 화면 제목을 사용한다.
+  @IBOutlet private weak var screenTitleLabel: UILabel!
+  // 선물 투자손익 내역으로 연결한다.
+  @IBOutlet private weak var historyButton: UIButton!
   @IBOutlet weak var totalUserBalance: UILabel!
-  // 현물과 공유하는 요약 제목을 선물의 보유 포지션 범위에 맞춰 표시한다.
+  // 현금과 포지션 평가금액을 합산한 총 보유자산 제목이다.
   @IBOutlet weak var totalEvaluationTitle: UILabel!
   @IBOutlet weak var totalEvalProfitLoss: UILabel!
   @IBOutlet weak var totalProfitRate: UILabel!
   @IBOutlet weak var totalBuyPrice: UILabel!
+  // 주문가능 현금을 제외한 포지션 평가금액이다.
+  @IBOutlet weak var totalEvaluationAmount: UILabel!
   @IBOutlet weak var totalBuyTitle: UILabel!
   @IBOutlet weak var availableUserBalance: UILabel!
   @IBOutlet weak var noResultView: UIView!
@@ -47,11 +57,18 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    summaryHeaderView.configure(product: .perpetual)
+    InvestmentSummaryView.configureNavigation(
+      titleLabel: screenTitleLabel,
+      historyButton: historyButton,
+      exchangeButton: exchangeButton,
+      account: reactor.account
+    )
+    exchangeButton.addTarget(self, action: #selector(presentExchangeSheet), for: .touchUpInside)
+    transactionTableview.tableHeaderView = summaryHeaderView
     applyThemeColors()
-    totalBuyTitle.text = FuturesText.text("futures_total_margin")
-    totalEvaluationTitle.text = FuturesText.text("futures_total_evaluation")
     chargeButton.accessibilityLabel = FuturesText.text("futures_charge")
-    transactionTableview.contentInset.bottom = 70
+    transactionTableview.contentInset.bottom = 16
     transactionTableview.bounces = false
     transactionTableview.rowHeight = UITableView.automaticDimension
     transactionTableview.estimatedRowHeight = 160
@@ -80,6 +97,11 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
     render()
   }
 
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    summaryHeaderView.updateLayout(in: transactionTableview)
+  }
+
   override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
     pauseSocket()
@@ -106,13 +128,24 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
   }
   func pauseSocket() { marketReactor.action.onNext(.pauseSocket) }
 
+  @objc private func presentExchangeSheet() {
+    guard presentedViewController == nil else { return }
+    // 전역 선택 대신 이 화면에서 표시 중인 계좌를 기본값으로 전달한다.
+    let controller = ExchangeSelectionSheetViewController(
+      selectedExchange: reactor.account.exchange
+    ) { [weak self] exchange in self?.coordinator?.switchExchange(exchange) }
+    controller.prepareSheet(for: view.bounds.width)
+    present(controller, animated: true)
+  }
+
   private func applyThemeColors() {
     view.backgroundColor = .mobitColors(.investmentBackground)
     transactionTableview.backgroundColor = .mobitColors(.investmentBackground)
     noResultView.backgroundColor = .mobitColors(.investmentBackground)
     dimView.backgroundColor = UIColor.black.withAlphaComponent(0.35)
     sortLabel.textColor = .mobitColors(.investmentTextSecondary)
-    [totalUserBalance, totalBuyPrice, availableUserBalance].forEach {
+    summaryHeaderView.applyThemeColors()
+    [totalUserBalance, totalBuyPrice, totalEvaluationAmount, availableUserBalance].forEach {
       $0?.textColor = .mobitColors(.investmentTextPrimary)
     }
   }
@@ -158,11 +191,12 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
 	  now: now,
 	  forDisplay: true
 	)
-    totalUserBalance.text = Self.krw(valuation.flatMap { try? $0.positionsEquity })
-    totalEvalProfitLoss.text = Self.krw(valuation?.unrealizedPnL)
+    totalUserBalance.text = Self.krw(valuation?.totalEquity)
+    totalEvaluationAmount.text = Self.krw(valuation.flatMap { try? $0.positionsEquity })
+    totalEvalProfitLoss.text = valuation.map { ($0.unrealizedPnL > 0 ? "+" : "") + Self.krw($0.unrealizedPnL) } ?? "—"
     // 선물 수익률은 보유 현금을 제외하고 포지션에 사용한 증거금을 기준으로 계산한다.
     let rate = valuation.flatMap { $0.reservedMargin > 0 ? try? FuturesDecimal.multiply(FuturesDecimal.divide($0.unrealizedPnL, $0.reservedMargin), 100) : Decimal(0) }
-    totalProfitRate.text = rate.map { FuturesText.number($0, digits: 2) + " %" } ?? "—"
+    totalProfitRate.text = rate.map { ($0 > 0 ? "+" : "") + FuturesText.number($0, digits: 2) + "%" } ?? "—"
     let color = valuation.map { MarketColorPalette.color(forSignedValue: NSDecimalNumber(decimal: $0.unrealizedPnL).doubleValue) }
       ?? UIColor.mobitColors(.investmentTextSecondary)
     totalEvalProfitLoss.textColor = color
@@ -174,6 +208,8 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
     emptyLabel.numberOfLines = 0
     emptyLabel.isHidden = false
     sortLabel.text = FuturesText.text(Self.sortKey(selectedSortType))
+    summaryHeaderView.updateCount(items.count)
+    summaryHeaderView.updateLayout(in: transactionTableview)
     var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, UUID>()
     snapshot.appendSections([.invest])
     snapshot.appendItems(items.map { $0.position.id })
@@ -187,7 +223,7 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
   }
 
   private static func krw(_ value: Decimal?) -> String {
-    value.map { FuturesText.number($0) + " \(FuturesText.text("currency_krw_unit"))" } ?? "—"
+    value.map { FuturesText.number($0) } ?? "—"
   }
 
   private static func sortKey(_ type: InvestSortType) -> String {
@@ -210,6 +246,15 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
       guard let self, confirmed else { return }
       RewardedAdManager.shared.showAd(from: self, account: account)
     }
+  }
+
+  @IBAction private func tapOnAssetInfoButton(_ sender: UIButton) {
+    show(
+      alertType: .onlyConfirm,
+      title: FuturesText.text("investment_assets_info"),
+      content: FuturesText.text("investment_futures_assets_description"),
+      callBack: nil
+    )
   }
 
   @IBAction func tapOnPnlButton(_ sender: UIButton) {

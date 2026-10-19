@@ -20,16 +20,39 @@ enum InvestSortType: String {
   case evalProfitLossLowToHigh = "평가손익 낮은순"	// 평가손익 낮은순
   case evalPriceHighToLow = "평가금액 높은순"	// 평가금액 높은순
   case evalPriceLowToHigh = "평가금액 낮은순"	// 평가금액 낮은순
+
+  // 정렬 계산과 별개로 화면에 표시할 현지화 키를 제공한다.
+  var localizationKey: String {
+	switch self {
+	case .name: return "sort_name"
+	case .pnlHighToLow: return "sort_return_high"
+	case .pnlLowToHigh: return "sort_return_low"
+	case .evalProfitLossHighToLow: return "sort_profit_high"
+	case .evalProfitLossLowToHigh: return "sort_profit_low"
+	case .evalPriceHighToLow: return "sort_value_high"
+	case .evalPriceLowToHigh: return "sort_value_low"
+	}
+  }
 }
 
 class InvestmentViewController: MobitBaseViewController {
   @IBOutlet weak var transactionTableview: UITableView!
+  // 자산 요약과 빈 목록 안내를 목록과 함께 스크롤한다.
+  @IBOutlet var summaryHeaderView: InvestmentSummaryView!
+  // 현재 계좌의 거래소를 선택한다.
+  @IBOutlet private weak var exchangeButton: UIButton!
+  // 화면 제목을 앱의 포인트 색상으로 표시한다.
+  @IBOutlet private weak var screenTitleLabel: UILabel!
+  // 기존 투자손익 내역 화면으로 이동한다.
+  @IBOutlet private weak var historyButton: UIButton!
   @IBOutlet weak var totalUserBalance: UILabel!
   // 선물과 공유하는 XIB 제목이며 현물에서는 기존 문구를 유지한다.
   @IBOutlet weak var totalEvaluationTitle: UILabel!
   @IBOutlet weak var totalEvalProfitLoss: UILabel!
   @IBOutlet weak var totalProfitRate: UILabel!
   @IBOutlet weak var totalBuyPrice: UILabel!
+  // 주문가능 잔고를 제외한 보유 코인의 평가금액이다.
+  @IBOutlet weak var totalEvaluationAmount: UILabel!
   @IBOutlet weak var totalBuyTitle: UILabel!
   @IBOutlet weak var emptyLabel: UILabel!
   @IBOutlet weak var availableUserBalance: UILabel!
@@ -50,7 +73,7 @@ class InvestmentViewController: MobitBaseViewController {
 	didSet {
 	  self.cryptos = self.sortCryptos(sortType: self.selectedSortType, cryptos: cryptos)
 	  self.applySnapshot(cryptoTransacDataModel: self.cryptos)
-	  self.sortLabel.text = self.selectedSortType.rawValue
+	  self.sortLabel.text = FuturesText.text(self.selectedSortType.localizationKey)
 	}
   }
   private var sortedInvestCryptos: [CryptoTransactionDataModel] = []
@@ -93,6 +116,7 @@ class InvestmentViewController: MobitBaseViewController {
 
   override func viewDidLayoutSubviews() {
 	super.viewDidLayoutSubviews()
+	summaryHeaderView.updateLayout(in: transactionTableview)
   }
 
   override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -103,10 +127,29 @@ class InvestmentViewController: MobitBaseViewController {
   }
   
   func setUI() {
-//	self.transactionTableview.delegate = self
-//	self.transactionTableview.dataSource = self
+	summaryHeaderView.configure(product: .spot)
+	summaryHeaderView.updateCount(cryptos.count)
+	sortLabel.text = FuturesText.text(selectedSortType.localizationKey)
+	InvestmentSummaryView.configureNavigation(
+	  titleLabel: screenTitleLabel,
+	  historyButton: historyButton,
+	  exchangeButton: exchangeButton,
+	  account: .spot(for: ExchangeSelectionStore.currentExchange)
+	)
+	exchangeButton.addTarget(self, action: #selector(presentExchangeSheet), for: .touchUpInside)
+	transactionTableview.tableHeaderView = summaryHeaderView
 	applyThemeColors()
-	self.transactionTableview.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 70, right: 0)
+	self.transactionTableview.contentInset.bottom = 16
+  }
+
+  @objc private func presentExchangeSheet() {
+	guard presentedViewController == nil else { return }
+	// 확인 전에는 현재 거래소와 시세 구독을 변경하지 않는다.
+	let controller = ExchangeSelectionSheetViewController(
+	  selectedExchange: ExchangeSelectionStore.currentExchange
+	) { [weak self] exchange in self?.coordinator?.switchExchange(to: exchange) }
+	controller.prepareSheet(for: view.bounds.width)
+	present(controller, animated: true)
   }
 
   private func applyThemeColors() {
@@ -115,9 +158,11 @@ class InvestmentViewController: MobitBaseViewController {
 	self.noResultView.backgroundColor = .mobitColors(.investmentBackground)
 	self.dimView.backgroundColor = UIColor.black.withAlphaComponent(0.35)
 	self.sortLabel.textColor = .mobitColors(.investmentTextPrimary)
+	summaryHeaderView.applyThemeColors()
 	[
 	  self.totalUserBalance,
 	  self.totalBuyPrice,
+	  self.totalEvaluationAmount,
 	  self.availableUserBalance
 	].forEach { $0?.textColor = .mobitColors(.investmentTextPrimary) }
 	self.applyInvestmentPanelTheme()
@@ -135,8 +180,6 @@ class InvestmentViewController: MobitBaseViewController {
   }
 
   func setTableView() {
-	let nib = UINib(nibName: "InvestmentTableViewCell", bundle: nil)
-	self.transactionTableview.register(nib, forCellReuseIdentifier: "InvestmentTableViewCell")
 	self.transactionTableview.register(
 	  UINib(nibName: "InvestmentTableViewCell", bundle: nil),
 	  forCellReuseIdentifier: "InvestmentTableViewCell"
@@ -144,7 +187,7 @@ class InvestmentViewController: MobitBaseViewController {
 	
 	self.transactionTableview.bounces = false
 	self.transactionTableview.rowHeight = UITableView.automaticDimension
-	self.transactionTableview.estimatedRowHeight = UITableView.automaticDimension
+	self.transactionTableview.estimatedRowHeight = 160
 	
 	self.dataSource = UITableViewDiffableDataSource<TableViewSection, CryptoTransactionDataModel>(
 	  tableView: self.transactionTableview,
@@ -223,16 +266,21 @@ class InvestmentViewController: MobitBaseViewController {
 	  btcKRWPrice: btcKRWPrice
 	)
 
+	// 요약의 단위는 별도 제목에서 한 번만 표시한다.
 	let availableUserBalanceString: String = availableUserBalance == 0 ? "0" : availableUserBalance.formatTradingValue()
-	let totalProfitRateString: String = totalProfitRate == 0 ? "0" : totalProfitRate.formatSignificantDigits(digits: 4)
+	// 기존 수익률 자릿수는 유지하고 이익의 양수 부호만 보강한다.
+	let totalProfitRateString: String = (totalProfitRate > 0 ? "+" : "")
+	  + (totalProfitRate == 0 ? "0" : totalProfitRate.formatSignificantDigits(digits: 4))
 
-	self.availableUserBalance.text = availableUserBalanceString + " 원"
+	self.availableUserBalance.text = availableUserBalanceString
 	self.totalUserBalance.text = Self.krwText(totalUserBalance)
-	self.totalProfitRate.text = (totalUserBalance == nil || totalProfitLoss == nil) ? Self.unavailableText : totalProfitRateString + " %"
+	self.totalEvaluationAmount.text = Self.krwText(PortfolioCalculator.totalEvaluationPrice(cryptos: cryptos, btcKRWPrice: btcKRWPrice))
+	self.totalProfitRate.text = (totalUserBalance == nil || totalProfitLoss == nil) ? Self.unavailableText : totalProfitRateString + "%"
 	self.totalProfitRate.textColor = MarketColorPalette.color(forSignedValue: totalProfitRate)
-	self.totalEvalProfitLoss.text = Self.krwText(totalProfitLoss)
+	self.totalEvalProfitLoss.text = totalProfitLoss.map { ($0 > 0 ? "+" : "") + Self.krwText($0) } ?? Self.unavailableText
 	self.totalEvalProfitLoss.textColor = MarketColorPalette.color(forSignedValue: totalProfitLoss ?? 0)
 	self.totalBuyPrice.text = Self.krwText(totalBuyPrice)
+	summaryHeaderView.updateLayout(in: transactionTableview)
   }
 
   /// BTC/KRW 시세를 아직 받지 못한 상태를 0원으로 보여주면 자산이 사라진 것처럼 읽힌다.
@@ -240,7 +288,7 @@ class InvestmentViewController: MobitBaseViewController {
 
   private static func krwText(_ value: Double?) -> String {
 	guard let value else { return unavailableText }
-	return (value == 0 ? "0" : value.formatTradingValue()) + " 원"
+	return value == 0 ? "0" : value.formatTradingValue()
   }
 
   private func isTradingUnsupported(_ crypto: CryptoTransactionDataModel) -> Bool {
@@ -285,6 +333,7 @@ class InvestmentViewController: MobitBaseViewController {
   }
 
   func applyCryptos(_ cryptos: [CryptoTransactionDataModel]) {
+	summaryHeaderView.updateCount(cryptos.count)
 	guard cryptos.count != 0 else {
 	  self.noResultView.isHidden = false
       self.cryptos = []
@@ -325,6 +374,15 @@ class InvestmentViewController: MobitBaseViewController {
   }
   
   // MARK: - Button Actions
+
+  @IBAction private func tapOnAssetInfoButton(_ sender: UIButton) {
+	show(
+	  alertType: .onlyConfirm,
+	  title: FuturesText.text("investment_assets_info"),
+	  content: FuturesText.text("investment_spot_assets_description"),
+	  callBack: nil
+	)
+  }
     
   /// 충전하기 버튼 클릭
   @IBAction func tapOnChargeButton(_ sender: MobitChargeButton) {
@@ -356,10 +414,10 @@ class InvestmentViewController: MobitBaseViewController {
 	let sortTypes: [InvestSortType] = [
 	  .name, .pnlHighToLow, .pnlLowToHigh, .evalProfitLossHighToLow, .evalProfitLossLowToHigh, .evalPriceHighToLow, .evalPriceLowToHigh
 	]
-	let sortTitles: [String] = sortTypes.map { $0.rawValue }
+	let sortTitles: [String] = sortTypes.map { FuturesText.text($0.localizationKey) }
 	
 	self.showBottomSheet(
-	  title: "정렬 방법",
+	  title: FuturesText.text("sort_method"),
 	  contentList: sortTitles,
 	  sortType: self.selectedSortType
 	) { index in

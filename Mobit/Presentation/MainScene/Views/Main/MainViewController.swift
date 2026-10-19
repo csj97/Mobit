@@ -196,6 +196,8 @@ class MainViewController: MobitBaseViewController {
 
   private let exchangeSelectorButton = UIButton(type: .system).then {
 	$0.configuration = .plain()
+	$0.accessibilityIdentifier = "main.exchange"
+	$0.accessibilityLabel = FuturesText.text("investment_select_exchange")
 	$0.configuration?.contentInsets = NSDirectionalEdgeInsets(
 	  top: 10,
 	  leading: 14,
@@ -974,44 +976,34 @@ class MainViewController: MobitBaseViewController {
   }
 
   @objc private func didTapExchangeSelectorButton() {
+	guard presentedViewController == nil else { return }
+	// 선택 확정까지 기존 거래소의 시세와 계좌를 유지한다.
 	let currentExchange = ExchangeSelectionStore.currentExchange
-	let alert = UIAlertController(title: "거래소 선택", message: nil, preferredStyle: .actionSheet)
-
-	[Exchange.upbit, .bithumb].forEach { exchange in
+	// 투자내역과 같은 시트를 사용하고 닫힌 뒤 기존 Coordinator로 전환한다.
+	let controller = ExchangeSelectionSheetViewController(
+	  selectedExchange: currentExchange
+	) { [weak self] exchange in
+	  guard let self else { return }
+	  // 기존 분석 이벤트는 확인 완료 시점에만 기록한다.
 	  let exchangeName = self.analyticsExchangeName(exchange)
-	  // 버튼과 선택 목록은 같은 거래소 이름을 사용한다.
-	  let displayName = self.exchangeSelectorDisplayName(exchange)
+	  // 현재 거래소를 다시 확인하면 화면과 소켓을 재구성하지 않는다.
 	  let isCurrent = currentExchange == exchange
-	  let title = isCurrent ? "\(displayName) · 현재 선택" : displayName
-	  let action = UIAlertAction(title: title, style: .default) { [weak self] _ in
-		guard let self = self else { return }
-		MobitAnalyticsUtil.sendClickEvent(
-		  location: "거래소_화면",
-		  stepDepth01: "거래소_선택",
-		  stepDepth02: "거래소_변경",
-		  stepDepth03: exchangeName,
-		  account: TradingAccountID(exchange: exchange, product: self.analyticsAccount.product, currency: .krw),
-		  extraParameters: [
-			"selected_exchange": exchangeName,
-			"previous_exchange": self.analyticsExchangeName(currentExchange),
-			"change_status": isCurrent ? "변경없음" : "변경있음"
-		  ]
-		)
-		guard isCurrent == false else { return }
-		self.coordinator?.switchExchange(to: exchange)
-	  }
-	  if let logoImage = self.exchangeLogoImage(exchange, size: 24) {
-		action.setValue(logoImage, forKey: "image")
-	  }
-	  alert.addAction(action)
+	  MobitAnalyticsUtil.sendClickEvent(
+		location: "거래소_화면",
+		stepDepth01: "거래소_선택",
+		stepDepth02: "거래소_변경",
+		stepDepth03: exchangeName,
+		account: TradingAccountID(exchange: exchange, product: self.analyticsAccount.product, currency: .krw),
+		extraParameters: [
+		  "selected_exchange": exchangeName,
+		  "previous_exchange": self.analyticsExchangeName(currentExchange),
+		  "change_status": isCurrent ? "변경없음" : "변경있음"
+		]
+	  )
+	  guard isCurrent == false else { return }
+	  self.coordinator?.switchExchange(to: exchange)
 	}
-
-	alert.addAction(UIAlertAction(title: "취소", style: .cancel))
-
-	if let popover = alert.popoverPresentationController {
-	  popover.sourceView = self.exchangeSelectorButton
-	  popover.sourceRect = self.exchangeSelectorButton.bounds
-	}
+	controller.prepareSheet(for: view.bounds.width)
 
 	MobitAnalyticsUtil.sendClickEvent(
 	  location: "거래소_화면",
@@ -1021,12 +1013,13 @@ class MainViewController: MobitBaseViewController {
 	  account: self.analyticsAccount,
 	  extraParameters: ["selected_exchange": self.analyticsExchangeName(currentExchange)]
 	)
-	self.present(alert, animated: true)
+	self.present(controller, animated: true)
   }
 
   private func updateExchangeSelectorButtonTitle() {
 	let currentExchange = ExchangeSelectionStore.currentExchange
 	let displayName = self.exchangeSelectorDisplayName(currentExchange)
+	self.exchangeSelectorButton.accessibilityValue = displayName
 
 	var nameAttributes = AttributeContainer()
 	nameAttributes.font = .systemFont(ofSize: 15, weight: .semibold)
