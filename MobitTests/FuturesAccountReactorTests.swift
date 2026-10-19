@@ -4831,6 +4831,19 @@ final class FuturesAccountReactorTests: XCTestCase {
               cell.setNeedsLayout()
               cell.layoutIfNeeded()
               try assertCompactLayout(cell)
+              // 중첩 지표 행까지 검사해 배지가 정상이어도 남을 수 있는 크기 모호성을 잡는다.
+              for view in descendants(cell.contentView) where !sequence(first: view, next: { $0.superview })
+                .contains(where: { $0.isHidden }) {
+                XCTAssertFalse(
+                  view.hasAmbiguousLayout,
+                  "\(view), labels: \(descendants(view).compactMap { ($0 as? UILabel)?.text })"
+                )
+              }
+              // 옆 지표가 두 줄이어도 한 줄 숫자가 세로로 늘어나 단위와 어긋나면 안 된다.
+              for label in [cell.cryptoAmount, cell.cryptoAveragePrice, cell.cryptoEvalPrice, cell.cryptoBuyPrice]
+                .compactMap({ $0 }) {
+                XCTAssertEqual(label.bounds.height, label.intrinsicContentSize.height, accuracy: 0.5)
+              }
             }
             XCTAssertEqual(cell.sideBadgeLabel.text, FuturesText.side(side))
             XCTAssertEqual(cell.leverageBadgeLabel.text, "\(leverage)×")

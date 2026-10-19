@@ -288,15 +288,25 @@ final class InvestmentTableViewCell: UITableViewCell {
         item.spacing = item.axis == .vertical ? 3 : 6
         values.axis = valueWidth > itemWidth ? .vertical : .horizontal
         values.alignment = values.axis == .vertical ? .trailing : .firstBaseline
+        // 가로 기준선 묶음은 콘텐츠 높이에 맞추고 세로 배치에서는 높이 제약을 완화한다.
+        item.constraints.first {
+          $0.firstItem === item && $0.firstAttribute == .height && $0.secondItem === values
+        }?.priority = UILayoutPriority(item.axis == .horizontal ? 249 : 1)
+        item.constraints.first {
+          $0.firstItem === values && $0.firstAttribute == .top && $0.secondItem === item
+        }?.priority = UILayoutPriority(item.axis == .horizontal ? 999 : 1)
+        values.constraints.first {
+          $0.firstItem === values && $0.firstAttribute == .height && $0.secondItem === values.arrangedSubviews.first
+        }?.priority = UILayoutPriority(values.axis == .horizontal ? 999 : 1)
       }
     }
   }
 
   private func naturalWidth(of view: UIView) -> CGFloat {
     guard let label = view as? UILabel else { return max(view.intrinsicContentSize.width, 0) }
-    // 여러 줄 제목도 현재 레이아웃 폭에 눌린 intrinsic 너비로 오판하지 않는다.
+    // 이전 줄바꿈 결과에 따라 배치가 반복 전환되지 않도록 한 줄 텍스트 폭만 사용한다.
     let textWidth = ((label.text ?? "") as NSString).size(withAttributes: [.font: label.font as Any]).width
-    return ceil(max(label.intrinsicContentSize.width, textWidth))
+    return ceil(textWidth)
   }
 
   private func updateThemeColors() {
