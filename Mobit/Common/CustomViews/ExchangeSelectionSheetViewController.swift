@@ -381,7 +381,7 @@ private final class ExchangeSelectionOptionButton: UIButton {
   private func updateSelection() {
     backgroundColor = isSelected ? .mobitColors(.investmentSurface) : .mobitColors(.investmentBackground)
     layer.borderWidth = isSelected ? 2 : 1
-    layer.borderColor = (isSelected ? UIColor.systemBlue : UIColor.mobitColors(.investmentSeparator)).resolvedColor(with: traitCollection).cgColor
+    layer.borderColor = (isSelected ? UIColor.mobitColors(.accountAction) : UIColor.mobitColors(.investmentSeparator)).resolvedColor(with: traitCollection).cgColor
     selectedBadgeLabel.isHidden = !isSelected
     selectionImageView.image = UIImage(
       systemName: isSelected ? "checkmark.circle.fill" : "circle",

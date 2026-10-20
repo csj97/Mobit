@@ -59,7 +59,7 @@ class InvestmentViewController: MobitBaseViewController {
   @IBOutlet weak var noResultView: UIView!
   @IBOutlet weak var sortLabel: UILabel!
   @IBOutlet weak var dimView: UIView!
-  @IBOutlet weak var chargeButton: MobitChargeButton!
+  @IBOutlet weak var chargeButton: InvestmentChargeButton!
     
   weak var coordinator: InvestmentCoordinator?
   var dataSource: UITableViewDiffableDataSource<TableViewSection, CryptoTransactionDataModel>?
@@ -385,7 +385,7 @@ class InvestmentViewController: MobitBaseViewController {
   }
     
   /// 충전하기 버튼 클릭
-  @IBAction func tapOnChargeButton(_ sender: MobitChargeButton) {
+  @IBAction func tapOnChargeButton(_ sender: InvestmentChargeButton) {
     // 광고 안내 중 모드가 바뀌어도 버튼을 누른 현물 계좌를 유지한다.
     let account = TradingAccountID.spot(for: ExchangeSelectionStore.currentExchange)
     MobitAnalyticsUtil.sendClickEvent(event: .investment_charge, account: account)

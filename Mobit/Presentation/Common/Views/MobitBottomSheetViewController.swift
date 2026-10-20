@@ -141,7 +141,7 @@ class MobitBottomSheetViewController: MobitBaseViewController {
 	label.snp.makeConstraints { make in
 	  make.leading.equalToSuperview()
 	  make.top.bottom.equalToSuperview().inset(10)
-	  make.trailing.greaterThanOrEqualTo(imageView.snp.leading).offset(10)
+	  make.trailing.equalTo(imageView.snp.leading).offset(-10)
 	}
 	
 	imageView.snp.makeConstraints { make in

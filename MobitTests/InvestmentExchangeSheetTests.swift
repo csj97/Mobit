@@ -421,3 +421,461 @@ private final class MainExchangeSheetDelegate: MainCoordinatorDelegate {
     presentedDuringConfirmation.append(main?.presentedViewController != nil)
   }
 }
+
+@MainActor
+final class InvestmentXIBLayoutTests: XCTestCase {
+  func testSummaryAccommodatesAccessibilityTextAndHiddenEmptyState() throws {
+    guard #available(iOS 17.0, *) else { throw XCTSkip("Trait overrides require iOS 17") }
+    for width: CGFloat in [320, 393, 440] {
+      // 화면 생명주기와 시세 구독 없이 실제 XIB 연결을 검사한다.
+      let owner = InvestmentLayoutNibOwner()
+      // 테이블 헤더의 너비와 높이는 실제 사용처와 동일하게 외부에서 결정한다.
+      let root = try loadNib("InvestmentViewController", owner: owner)
+      // 접근성 글자 크기를 전달할 표시 전용 컨트롤러다.
+      let controller = UIViewController()
+      controller.view = root
+      // 각 화면 너비에서 요약 콘텐츠의 실제 배치를 확인한다.
+      let window = host(controller, width: width)
+      defer { window.isHidden = true; window.rootViewController = nil }
+      // 현물과 선물이 공유하는 요약 헤더를 직접 구성한다.
+      let header = try XCTUnwrap(owner.outlets["summaryHeaderView"] as? InvestmentSummaryView)
+      // 목록에서 헤더의 자연 높이를 계산하는 실제 테이블이다.
+      let table = try XCTUnwrap(owner.outlets["transactionTableview"] as? UITableView)
+      // 숨김 전환 시 내부 여백과 접힘 제약이 충돌하지 않아야 한다.
+      let empty = try XCTUnwrap(owner.outlets["noResultView"] as? UIView)
+      header.configure(product: .perpetual)
+      header.updateCount(42)
+      // 양쪽 열의 줄 수가 다를 때도 각 제목과 금액의 높이가 결정되어야 한다.
+      (owner.outlets["availableUserBalance"] as? UILabel)?.text = "0"
+      (owner.outlets["totalUserBalance"] as? UILabel)?.text = "9,999,999,999,999,999"
+      (owner.outlets["totalBuyPrice"] as? UILabel)?.text = "1,234,567,890,123,456"
+      (owner.outlets["totalEvaluationAmount"] as? UILabel)?.text = "0"
+      (owner.outlets["totalEvalProfitLoss"] as? UILabel)?.text = "-9,999,999,999"
+      (owner.outlets["totalProfitRate"] as? UILabel)?.text = "+123,456.78%"
+      (owner.outlets["sortLabel"] as? UILabel)?.text = "Evaluation Profit and Loss: Highest First"
+      for category in [UIContentSizeCategory.large, .accessibilityExtraExtraExtraLarge, .large] {
+        controller.traitOverrides.preferredContentSizeCategory = category
+        controller.updateTraitsIfNeeded()
+        for hidden in [false, true, false] {
+          empty.isHidden = hidden
+          root.layoutIfNeeded()
+          header.updateLayout(in: table)
+          header.layoutIfNeeded()
+          // 부모의 다음 레이아웃에서 줄바꿈 후 자연 높이를 재확인하는 실제 흐름이다.
+          header.updateLayout(in: table)
+          header.layoutIfNeeded()
+          XCTAssertGreaterThan(header.bounds.height, 0)
+          XCTAssertEqual(header.bounds.width, table.bounds.width, accuracy: 1)
+          assertLabelsFit(in: header)
+          // 숫자 개수를 여러 줄로 나누거나 일반 제목을 한 글자 폭으로 압축하면 안 된다.
+          let headerLabels = descendants(header).compactMap { $0 as? UILabel }
+          // 개수는 접근성 크기에서도 하나의 숫자로 읽을 수 있어야 한다.
+          let count = try XCTUnwrap(headerLabels.first { $0.text == "42" })
+          XCTAssertGreaterThanOrEqual(count.bounds.width + 1, ("42" as NSString).size(withAttributes: [.font: count.font as Any]).width)
+          if !category.isAccessibilityCategory {
+            // 일반 배치에서는 원래 한 줄 제목 너비를 정렬 문구보다 먼저 보존한다.
+            let list = try XCTUnwrap(headerLabels.first { $0.text == FuturesText.text("investment_positions") })
+            XCTAssertGreaterThanOrEqual(list.bounds.width + 1, ((list.text ?? "") as NSString).size(withAttributes: [.font: list.font as Any]).width)
+          }
+          if category.isAccessibilityCategory {
+            // 제목과 통화 단위가 한 글자보다 좁게 눌리는 시각적 잘림을 검사한다.
+            let labels = descendants(header).compactMap { $0 as? UILabel }
+            // 두 글자 이상을 함께 읽을 수 있어야 하는 자산 제목이다.
+            let title = try XCTUnwrap(labels.first { $0.text == FuturesText.text("investment_my_assets") })
+            // 통화 기호를 세로 글자 조각으로 표시하면 안 된다.
+            let unit = try XCTUnwrap(labels.first { $0.text == FuturesText.text("investment_unit_krw") })
+            // 언어별 실제 글꼴에서 가장 넓은 글자를 기준으로 최소 폭을 비교한다.
+            let glyphWidth = (title.text ?? "").map {
+              (String($0) as NSString).size(withAttributes: [.font: title.font as Any]).width
+            }.max() ?? 0
+            // 통화 단위는 적어도 공백으로 구분한 한 단어를 온전히 표시한다.
+            let unitWordWidth = (unit.text ?? "").split(separator: " ").map {
+              (String($0) as NSString).size(withAttributes: [.font: unit.font as Any]).width
+            }.max() ?? 0
+            XCTAssertGreaterThanOrEqual(title.bounds.width + 1, glyphWidth * 2)
+            XCTAssertGreaterThanOrEqual(unit.bounds.width + 1, unitWordWidth)
+            // 긴 정렬 문구는 제목·개수와 별도 행에서 가로 공간을 사용한다.
+            let sort = try XCTUnwrap(owner.outlets["sortLabel"] as? UILabel)
+            XCTAssertGreaterThanOrEqual(sort.bounds.width + 1, width - 32 - 38)
+          }
+        }
+        attach(header, name: "InvestmentSummary-\(Int(width))-\(category.rawValue)")
+      }
+    }
+  }
+
+  func testEmptyInvestmentMessageCentersInRemainingListViewport() throws {
+    guard #available(iOS 17.0, *) else { throw XCTSkip("Trait overrides require iOS 17") }
+    for product in [TradingProduct.spot, .perpetual] {
+      for width: CGFloat in [320, 393, 440] {
+        // 두 상품 화면이 실제로 공유하는 요약·정렬·빈 목록 계층이다.
+        let owner = InvestmentLayoutNibOwner()
+        // 부모 테이블의 가용 높이에서 빈 안내 위치를 검사한다.
+        let root = try loadNib("InvestmentViewController", owner: owner)
+        // Dynamic Type 변경을 실제 화면 계층에 전달한다.
+        let controller = UIViewController()
+        controller.view = root
+        // 작은 화면에서도 긴 요약은 스크롤 흐름을 유지해야 한다.
+        let window = host(controller, width: width)
+        defer { window.isHidden = true; window.rootViewController = nil }
+        // 높이 변경 뒤 원래 viewport로 돌아오는지도 확인한다.
+        let originalWindowHeight = window.bounds.height
+        // 목록 너비와 viewport를 제공하는 실제 테이블이다.
+        let table = try XCTUnwrap(owner.outlets["transactionTableview"] as? UITableView)
+        table.contentInset.bottom = 16
+        // 요약과 정렬 아래에 붙은 기존 빈 목록 영역이다.
+        let header = try XCTUnwrap(owner.outlets["summaryHeaderView"] as? InvestmentSummaryView)
+        // 데이터 유무에 따라 접히는 실제 컨테이너다.
+        let empty = try XCTUnwrap(owner.outlets["noResultView"] as? UIView)
+        // 빈 상태뿐 아니라 여러 줄 오류도 같은 목록 영역에서 읽을 수 있어야 한다.
+        let label = try XCTUnwrap(owner.outlets["emptyLabel"] as? UILabel)
+        header.configure(product: product)
+        header.updateCount(0)
+        for category in [UIContentSizeCategory.large, .accessibilityExtraExtraExtraLarge, .large] {
+          controller.traitOverrides.preferredContentSizeCategory = category
+          controller.updateTraitsIfNeeded()
+          for message in [
+            FuturesText.text(product == .spot ? "trade_no_coins" : "futures_no_position"),
+            FuturesText.text("futures_storage_error")
+          ] {
+            label.text = message
+            // inset 16→60→16과 viewport 확대·복원에서 높이가 누적되지 않아야 한다.
+            let layouts: [(CGFloat, CGFloat)] = [
+              (16, originalWindowHeight), (60, originalWindowHeight),
+              (16, originalWindowHeight + 160), (16, originalWindowHeight)
+            ]
+            for (bottomInset, windowHeight) in layouts {
+              table.contentInset.bottom = bottomInset
+              window.frame.size.height = windowHeight
+              empty.isHidden = false
+              window.layoutIfNeeded()
+              root.layoutIfNeeded()
+              header.updateLayout(in: table)
+              header.layoutIfNeeded()
+              header.updateLayout(in: table)
+              header.layoutIfNeeded()
+              // 요약과 정렬을 뺀 뒤 남는 테이블 높이가 빈 안내의 기준이다.
+              let viewportHeight = table.bounds.height - table.adjustedContentInset.top - table.adjustedContentInset.bottom
+              // 기존 상·하 48pt를 지킬 수 없으면 안내를 화면 밖으로 밀지 않고 스크롤한다.
+              let minimumHeight = label.sizeThatFits(CGSize(width: label.bounds.width, height: .greatestFiniteMagnitude)).height + 96
+              // 빈 안내 위에 있는 실제 요약과 정렬의 콘텐츠 높이다.
+              let prefixHeight = empty.frame.minY
+              XCTAssertEqual(empty.frame.height, max(minimumHeight, viewportHeight - prefixHeight), accuracy: 1)
+              XCTAssertEqual(label.center.y, empty.bounds.midY, accuracy: 1)
+              XCTAssertEqual(label.center.x, empty.bounds.midX, accuracy: 1)
+              XCTAssertGreaterThanOrEqual(label.frame.minY + 1, 48)
+              XCTAssertLessThanOrEqual(label.frame.maxY - 1, empty.bounds.height - 48)
+              XCTAssertEqual(header.bounds.height, prefixHeight + empty.bounds.height, accuracy: 1)
+              assertLabelsFit(in: header)
+              // 같은 입력으로 반복 측정해도 정수·픽셀 반올림 오차가 쌓이지 않아야 한다.
+              let stableHeight = header.bounds.height
+              for _ in 0..<10 {
+                header.updateLayout(in: table)
+                header.layoutIfNeeded()
+                XCTAssertEqual(header.bounds.height, stableHeight, accuracy: 0.001)
+              }
+              empty.isHidden = true
+              root.layoutIfNeeded()
+              header.updateLayout(in: table)
+              header.layoutIfNeeded()
+              XCTAssertEqual(header.bounds.height, prefixHeight, accuracy: 1)
+              XCTAssertFalse(header.hasAmbiguousLayout)
+            }
+          }
+          label.text = FuturesText.text(product == .spot ? "trade_no_coins" : "futures_no_position")
+          empty.isHidden = false
+          header.updateLayout(in: table)
+          header.layoutIfNeeded()
+          attach(header, name: "InvestmentEmpty-\(product)-\(Int(width))-\(category.rawValue)")
+        }
+        empty.isHidden = false
+        header.updateLayout(in: table)
+        header.layoutIfNeeded()
+        attach(root, name: "InvestmentEmpty-\(product)-\(Int(width))")
+      }
+    }
+  }
+
+  func testPNLEmptyMessageUsesTableViewport() throws {
+    for width: CGFloat in [320, 393, 440] {
+      // 실현 손익은 요약 헤더가 없는 별도 목록 화면이다.
+      let owner = InvestmentLayoutNibOwner()
+      // 기존 목록 overlay를 화면 전체 중앙과 구별해 확인한다.
+      let root = try loadNib("PNLViewController", owner: owner)
+      // Safe Area를 포함한 실제 부모 크기를 제공한다.
+      let controller = UIViewController()
+      controller.view = root
+      // 화면 너비별 목록 영역을 표시한다.
+      let window = host(controller, width: width)
+      defer { window.isHidden = true; window.rootViewController = nil }
+      // 비어 있는 거래 내역의 목록 영역이다.
+      let table = try XCTUnwrap(owner.outlets["pnlTableView"] as? UITableView)
+      // 목록과 같은 경계를 가진 빈 상태 overlay다.
+      let empty = try XCTUnwrap(owner.outlets["noResultView"] as? UIView)
+      // 긴 오류 문구도 목록 중앙을 유지한다.
+      let label = try XCTUnwrap(owner.outlets["emptyLabel"] as? UILabel)
+      label.text = FuturesText.text("futures_storage_error")
+      root.layoutIfNeeded()
+      XCTAssertEqual(empty.frame, table.frame)
+      XCTAssertEqual(label.center.x, empty.bounds.midX, accuracy: 1)
+      XCTAssertEqual(label.center.y, empty.bounds.midY, accuracy: 1)
+      assertLabelsFit(in: empty)
+    }
+  }
+
+  func testPNLCellShowsLongPricesAndCompleteExecutionTime() throws {
+    for width: CGFloat in [320, 393, 440] {
+      // 거래 내역의 실제 nib과 configure 경로로 표시 누락을 검사한다.
+      let cell = try XCTUnwrap(try loadNib("PNLTableViewCell") as? PNLTableViewCell)
+      // 큰 가격과 초 단위 시각은 기존 두 열의 값 영역보다 길다.
+      let history = UserPNLHistoryModel(
+        marketName: "BTC/KRW",
+        entryPrice: 1_234_567_890_123_456,
+        exitPrice: 1_234_567_890_123_457,
+        transactionDate: "2026.10.20 12:34:56",
+        orderQuantity: 123_456_789.12345678,
+        pnl: 1
+      )
+      cell.configure(pnlHistory: history)
+      cell.frame = CGRect(x: 0, y: 0, width: width, height: 200)
+      // 셀의 responsive 배치가 적용된 뒤 자동 높이를 계산한다.
+      let fitting = cell.systemLayoutSizeFitting(
+        CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
+        withHorizontalFittingPriority: .required,
+        verticalFittingPriority: .fittingSizeLevel
+      )
+      cell.frame.size.height = fitting.height
+      cell.setNeedsLayout()
+      cell.layoutIfNeeded()
+      XCTAssertGreaterThan(fitting.height, 0)
+      assertLabelsFit(in: cell.contentView)
+      for label in [cell.quantityLabel, cell.entryPriceLabel, cell.exitPriceLabel, cell.transactionDateLabel] {
+        // 전체 값이 카드의 가로 영역 안에 남아 있어야 한다.
+        let value = try XCTUnwrap(label)
+        // 셀 좌표계에서 텍스트 영역이 좌우 가장자리 밖으로 나가지 않는지 확인한다.
+        let frame = value.convert(value.bounds, to: cell.contentView)
+        XCTAssertGreaterThanOrEqual(frame.minX, 28 - 1)
+        XCTAssertLessThanOrEqual(frame.maxX, width - 28 + 1)
+        XCTAssertFalse(value.hasAmbiguousLayout)
+      }
+      attach(cell, name: "PNLCell-long-values-\(Int(width))")
+    }
+  }
+
+  func testPNLAutomaticTableRowsUseResponsiveContentHeight() throws {
+    for width: CGFloat in [320, 393, 440] {
+      // UIKit의 실제 자동 높이 계산에서도 긴 데이터가 잘리지 않아야 한다.
+      let cell = try XCTUnwrap(try loadNib("PNLTableViewCell") as? PNLTableViewCell)
+      cell.configure(pnlHistory: UserPNLHistoryModel(
+        marketName: "BTC/KRW",
+        entryPrice: 1_234_567_890_123_456,
+        exitPrice: 1_234_567_890_123_457,
+        transactionDate: "2026.10.20 12:34:56",
+        orderQuantity: 123_456_789.12345678,
+        pnl: 1
+      ))
+      // 실데이터 소스와 같은 경로로 셀을 테이블에 전달한다.
+      let source = InvestmentLayoutTableSource(cell: cell)
+      // 직접 fitting한 높이와 실제 UITableView의 결과를 비교한다.
+      let table = UITableView()
+      table.dataSource = source
+      table.rowHeight = UITableView.automaticDimension
+      table.estimatedRowHeight = 200
+      // 자동 높이를 계산할 실제 표시 환경이다.
+      let controller = UIViewController()
+      controller.view = table
+      // 각 기기 너비를 유지한 독립 창이다.
+      let window = host(controller, width: width)
+      defer { window.isHidden = true; window.rootViewController = nil }
+      table.reloadData()
+      table.layoutIfNeeded()
+      // 같은 너비에서 요구하는 콘텐츠의 최소 높이다.
+      let fitting = cell.systemLayoutSizeFitting(
+        CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
+        withHorizontalFittingPriority: .required,
+        verticalFittingPriority: .fittingSizeLevel
+      )
+      XCTAssertGreaterThanOrEqual(table.rectForRow(at: IndexPath(row: 0, section: 0)).height + 1, fitting.height)
+      assertLabelsFit(in: cell.contentView)
+    }
+  }
+
+  func testShareCardBoundsLongValuesAndErrorMessage() throws {
+    for width: CGFloat in [320, 393, 440] {
+      // 공유 이미지에도 실제 계좌·가격·체결 시각을 빠짐없이 표시한다.
+      let share = try XCTUnwrap(try loadNib("PNLShareView") as? PNLShareView)
+      share.configure(pnlShareUnit: PNLShareUnit(
+        marketName: "BTC/KRW",
+        roi: 123_456.78,
+        pnl: 1_234_567_890_123_456,
+        quantity: 1_234_567_890_123_456,
+        entryPrice: 1_234_567_890_123_456,
+        exitPrice: 1_234_567_890_123_457,
+        transactionDate: "2026.10.20 12:34:56",
+        product: .perpetual,
+        exchange: .upbit
+      ))
+      // 작은 화면에서도 닫기와 저장·공유에 접근할 수 있어야 한다.
+      let controller = UIViewController()
+      controller.view = share
+      // 320pt 기기는 568pt의 실제 작은 화면 높이를 사용한다.
+      let window = host(controller, width: width)
+      defer { window.isHidden = true; window.rootViewController = nil }
+      share.layoutIfNeeded()
+      assertLabelsFit(in: share.pnlView)
+      // 오른쪽 로고의 원래 비율을 줄여 긴 값의 공간을 확보하면 안 된다.
+      let logo = try XCTUnwrap(share.pnlView.subviews.compactMap { $0 as? UIImageView }.first)
+      XCTAssertEqual(logo.bounds.width, 44, accuracy: 1)
+      XCTAssertEqual(logo.bounds.height, 214, accuracy: 1)
+      XCTAssertFalse(logo.hasAmbiguousLayout)
+      for label in [share.marketName, share.roiLabel, share.pnlLabel, share.entryPriceLabel, share.exitPriceLabel, share.quantityLabel, share.transactionDateLabel] {
+        // 자산 숫자와 줄바꿈된 마켓명이 공유 카드 밖으로 넘치지 않아야 한다.
+        let value = try XCTUnwrap(label)
+        // 카드 내부 좌표계로 모든 동적 텍스트의 경계를 비교한다.
+        let frame = value.convert(value.bounds, to: share.pnlView)
+        XCTAssertGreaterThanOrEqual(frame.minX, 15 - 1)
+        XCTAssertLessThanOrEqual(frame.maxX, share.pnlView.bounds.width - 15 + 1)
+      }
+      // 화면 밖 카드가 있으면 스크롤을 통해 하단 제어에 도달할 수 있어야 한다.
+      let cardFrame = share.pnlView.convert(share.pnlView.bounds, to: share)
+      if let scroll = descendants(share).compactMap({ $0 as? UIScrollView }).first {
+        XCTAssertEqual(scroll.contentSize.width, scroll.bounds.width, accuracy: 1)
+        XCTAssertGreaterThanOrEqual(scroll.contentSize.height + 1, scroll.bounds.height)
+        XCTAssertGreaterThanOrEqual(cardFrame.minY, share.safeAreaLayoutGuide.layoutFrame.minY - 1)
+        attach(share, name: "PNLShare-long-values-top-\(Int(width))")
+        scroll.setContentOffset(CGPoint(x: 0, y: max(0, scroll.contentSize.height - scroll.bounds.height)), animated: false)
+        share.layoutIfNeeded()
+        XCTAssertLessThanOrEqual(
+          share.buttonStackView.convert(share.buttonStackView.bounds, to: share).maxY,
+          share.safeAreaLayoutGuide.layoutFrame.maxY + 1
+        )
+      } else {
+        XCTAssertGreaterThanOrEqual(cardFrame.minY, share.safeAreaLayoutGuide.layoutFrame.minY - 1)
+        XCTAssertLessThanOrEqual(share.buttonStackView.convert(share.buttonStackView.bounds, to: share).maxY, share.safeAreaLayoutGuide.layoutFrame.maxY + 1)
+      }
+      attach(share, name: "PNLShare-long-values-bottom-\(Int(width))")
+      attach(share.pnlView, name: "PNLShare-complete-card-\(Int(width))")
+
+      // 저장 오류 문구는 XIB의 중앙 정렬만으로 너비가 정해지지 않던 사례다.
+      let owner = InvestmentLayoutNibOwner()
+      // 거래 내역 화면의 네트워크·저장소 접근 없이 오류 UI만 구성한다.
+      let root = try loadNib("PNLViewController", owner: owner)
+      root.frame = CGRect(x: 0, y: 0, width: width, height: 568)
+      // 양쪽 언어의 오류 문구가 모두 여러 줄로 표시될 수 있어야 한다.
+      let message = try XCTUnwrap(owner.outlets["emptyLabel"] as? UILabel)
+      message.text = "Unable to read saved assets. Retry without resetting your data."
+      root.layoutIfNeeded()
+      XCTAssertLessThanOrEqual(message.bounds.width, width - 32 + 1)
+      assertLabelsFit(in: try XCTUnwrap(owner.outlets["noResultView"] as? UIView))
+    }
+  }
+
+  func testShareImageIncludesCardTallerThanScreen() throws {
+    for width: CGFloat in [320, 393, 440] {
+      // 일반 카드와 화면보다 긴 본문 모두 기존 중심 위치와 출력 크기를 검사한다.
+      let share = try XCTUnwrap(try loadNib("PNLShareView") as? PNLShareView)
+      // 미리보기와 저장 캔버스를 실제 표시 환경에서 비교한다.
+      let controller = UIViewController()
+      controller.view = share
+      // 작은 기기부터 넓은 화면까지 같은 카드 중심 정책을 사용한다.
+      let window = host(controller, width: width)
+      defer { window.isHidden = true; window.rootViewController = nil }
+      share.layoutIfNeeded()
+      // 원본 XIB는 카드와 버튼을 합친 스택의 중심을 root 중심에 연결했다.
+      let stack = try XCTUnwrap(share.pnlView.superview as? UIStackView)
+      // Safe Area 안에서 root 중심을 유지할 수 있는 최대 세로 영역이다.
+      let safeFrame = share.safeAreaLayoutGuide.layoutFrame
+      // 양쪽 중 더 큰 안전 여백을 대칭으로 확보한다.
+      let centeredHeight = share.bounds.height - 2 * max(safeFrame.minY, share.bounds.maxY - safeFrame.maxY)
+      if stack.bounds.height <= centeredHeight + 1 {
+        XCTAssertEqual(stack.convert(stack.bounds, to: share).midY, share.bounds.midY, accuracy: 1)
+      }
+      // 일반 카드의 기존 화면 크기 출력 형식은 바뀌지 않아야 한다.
+      let normalImage = try XCTUnwrap(share.makeShareImage())
+      if width == 320 { XCTAssertEqual(normalImage.size, UIScreen.main.bounds.size) }
+      guard width == 320 else { continue }
+      share.marketName.text = Array(repeating: "BTC/KRW · Long market description", count: 45).joined(separator: "\n")
+      share.setNeedsLayout()
+      share.layoutIfNeeded()
+      XCTAssertGreaterThan(share.pnlView.bounds.height, UIScreen.main.bounds.height)
+      // 버튼이 호출하는 실제 공유 이미지 생성 경로다.
+      let image = try XCTUnwrap(share.makeShareImage())
+      XCTAssertGreaterThanOrEqual(image.size.height, share.pnlView.bounds.height + 32)
+      XCTAssertGreaterThanOrEqual(image.size.width, share.pnlView.bounds.width + 32)
+      // 출력 이미지 자체를 보존해 위·아래 카드 경계도 직접 확인한다.
+      let attachment = XCTAttachment(image: image)
+      attachment.name = "PNLShare-export-taller-than-screen"
+      attachment.lifetime = .keepAlways
+      add(attachment)
+    }
+  }
+
+  private func loadNib(_ name: String, owner: InvestmentLayoutNibOwner? = nil) throws -> UIView {
+    // IBOutlet을 보존한 채 화면 생명주기 없이 실제 뷰 계층을 만든다.
+    let objects = UINib(nibName: name, bundle: Bundle(for: PNLShareView.self))
+      .instantiate(withOwner: owner, options: nil)
+    return try XCTUnwrap(objects.compactMap { $0 as? UIView }.first)
+  }
+
+  private func host(_ controller: UIViewController, width: CGFloat) -> UIWindow {
+    // 동적 글꼴과 Safe Area가 실제 표시 계층에서 계산되도록 한다.
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: width == 320 ? 568 : 852))
+    window.rootViewController = controller
+    window.makeKeyAndVisible()
+    window.layoutIfNeeded()
+    controller.view.layoutIfNeeded()
+    return window
+  }
+
+  private func assertLabelsFit(in root: UIView) {
+    for label in descendants(root).compactMap({ $0 as? UILabel }) where isVisible(label) && !(label.text ?? "").isEmpty {
+      XCTAssertGreaterThan(label.bounds.width, 0, label.text ?? "")
+      XCTAssertGreaterThanOrEqual(
+        label.bounds.height + 1,
+        label.sizeThatFits(CGSize(width: label.bounds.width, height: .greatestFiniteMagnitude)).height,
+        label.text ?? ""
+      )
+      XCTAssertFalse(label.hasAmbiguousLayout, label.text ?? "")
+    }
+  }
+
+  private func isVisible(_ view: UIView) -> Bool {
+    !sequence(first: view, next: { $0.superview }).contains { $0.isHidden || $0.alpha == 0 }
+  }
+
+  private func descendants(_ view: UIView) -> [UIView] {
+    [view] + view.subviews.flatMap { descendants($0) }
+  }
+
+  private func attach(_ view: UIView, name: String) {
+    // 제약 검사와 별개로 잘림·겹침을 직접 검토할 이미지를 보존한다.
+    let attachment = XCTAttachment(image: UIGraphicsImageRenderer(bounds: view.bounds).image { view.layer.render(in: $0.cgContext) })
+    attachment.name = name
+    attachment.lifetime = .keepAlways
+    add(attachment)
+  }
+}
+
+@MainActor
+private final class InvestmentLayoutNibOwner: NSObject {
+  // XIB가 연결한 화면 객체를 검사하는 동안 유지한다.
+  var outlets: [String: Any] = [:]
+
+  override func setValue(_ value: Any?, forUndefinedKey key: String) {
+    outlets[key] = value
+  }
+}
+
+@MainActor
+private final class InvestmentLayoutTableSource: NSObject, UITableViewDataSource {
+  // 실제 테이블의 자동 높이 계산에 전달할 구성 완료된 셀이다.
+  let cell: UITableViewCell
+
+  init(cell: UITableViewCell) {
+    self.cell = cell
+  }
+
+  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 1 }
+
+  func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell { cell }
+}

@@ -4661,6 +4661,8 @@ final class FuturesAccountReactorTests: XCTestCase {
     XCTAssertEqual(cell.cryptoEvalPrice.text, "200,000")
     XCTAssertEqual(cell.cryptoProfitRate.text, "+100%")
     XCTAssertEqual(cell.averagePriceTitle.text, FuturesText.text("futures_entry"))
+    // 투자 전용 버튼은 XIB에서 지정한 글꼴 크기를 확대 설정과 무관하게 유지한다.
+    let chargeFontSize = try XCTUnwrap(controller.chargeButton.titleLabel).font.pointSize
     for style in [UIUserInterfaceStyle.light, .dark, .light] {
       controller.overrideUserInterfaceStyle = style
       // iOS 17 이후 지연되는 trait 전파를 완료한 뒤 실제 테마를 검사한다.
@@ -4674,25 +4676,31 @@ final class FuturesAccountReactorTests: XCTestCase {
       // 작은 기기와 일반 기기의 요약 행 너비를 각각 검증한다.
       for width in [320.0, 375.0] {
         window.frame.size.width = width
-        controller.view.layoutIfNeeded()
-        controller.chargeButton.layoutIfNeeded()
-        try assertInvestmentHeaderLayout(in: controller)
-        XCTAssertGreaterThanOrEqual(controller.chargeButton.bounds.height, 44)
-        XCTAssertGreaterThanOrEqual(
-          controller.chargeButton.bounds.width,
-          controller.chargeButton.intrinsicContentSize.width - 0.5
-        )
-        XCTAssertEqual(controller.chargeButton.configuration?.title, FuturesText.text("investment_recharge"))
-        XCTAssertEqual(controller.chargeButton.accessibilityLabel, FuturesText.text("futures_charge"))
-        // 작은 화면에서도 충전 버튼과 평가 금액이 겹치지 않는지 시각적으로 확인한다.
-        let image = UIGraphicsImageRenderer(bounds: controller.view.bounds).image {
-          controller.view.layer.render(in: $0.cgContext)
+        for category in [UIContentSizeCategory.large, .accessibilityExtraExtraExtraLarge, .large] {
+          if #available(iOS 17.0, *) {
+            controller.traitOverrides.preferredContentSizeCategory = category
+            controller.updateTraitsIfNeeded()
+          }
+          waitForNoticeUpdates(0.05)
+          if #available(iOS 17.0, *) {
+            XCTAssertEqual(controller.view.traitCollection.preferredContentSizeCategory, category)
+          }
+          controller.view.setNeedsLayout()
+          controller.view.layoutIfNeeded()
+          controller.chargeButton.layoutIfNeeded()
+          try assertInvestmentHeaderLayout(in: controller)
+          try assertCompactInvestmentChargeButton(controller.chargeButton, fontSize: chargeFontSize)
+          XCTAssertEqual(controller.chargeButton.accessibilityLabel, FuturesText.text("futures_charge"))
+          // 작은 화면에서도 충전 버튼과 평가 금액이 겹치지 않는지 시각적으로 확인한다.
+          let image = UIGraphicsImageRenderer(bounds: controller.view.bounds).image {
+            controller.view.layer.render(in: $0.cgContext)
+          }
+          // 현물과 공유하는 레이아웃의 테마·글자 크기 검증 결과를 보관한다.
+          let attachment = XCTAttachment(image: image)
+          attachment.name = "Futures investment \(style == .dark ? "dark" : "light") \(Int(width)) \(category.rawValue)"
+          attachment.lifetime = .keepAlways
+          add(attachment)
         }
-        // 현물과 공유하는 레이아웃의 다크·라이트 모드 검증 결과를 보관한다.
-        let attachment = XCTAttachment(image: image)
-        attachment.name = "Futures investment \(style == .dark ? "dark" : "light") \(Int(width))"
-        attachment.lifetime = .keepAlways
-        add(attachment)
       }
     }
     let stale = [
@@ -5017,6 +5025,10 @@ final class FuturesAccountReactorTests: XCTestCase {
     controller.view.frame = window.bounds
     defer { window.isHidden = true }
     XCTAssertEqual(controller.view.bounds.width, 320)
+    controller.view.layoutIfNeeded()
+    controller.chargeButton.layoutIfNeeded()
+    // 고정 크기의 투자 전용 버튼에서 XIB 글꼴 설정을 보존한다.
+    let chargeFontSize = try XCTUnwrap(controller.chargeButton.titleLabel).font.pointSize
     for style in [UIUserInterfaceStyle.light, .dark, .light] {
       controller.overrideUserInterfaceStyle = style
       // iOS 17 이후 지연되는 trait 전파를 완료한 뒤 실제 테마를 검사한다.
@@ -5027,24 +5039,30 @@ final class FuturesAccountReactorTests: XCTestCase {
         controller.transactionTableview.superview?.backgroundColor?.resolvedColor(with: controller.traitCollection),
         UIColor.mobitColors(.investmentBackground).resolvedColor(with: controller.traitCollection)
       )
-      controller.view.layoutIfNeeded()
-      controller.chargeButton.layoutIfNeeded()
-      try assertInvestmentHeaderLayout(in: controller)
-      XCTAssertGreaterThanOrEqual(controller.chargeButton.bounds.height, 44)
-      XCTAssertGreaterThanOrEqual(
-        controller.chargeButton.bounds.width,
-        controller.chargeButton.intrinsicContentSize.width - 0.5
-      )
-      XCTAssertEqual(controller.chargeButton.configuration?.title, FuturesText.text("investment_recharge"))
-      // 현물 화면도 동일한 캡슐 버튼을 사용하는지 검증할 이미지를 만든다.
-      let image = UIGraphicsImageRenderer(bounds: controller.view.bounds).image {
-        controller.view.layer.render(in: $0.cgContext)
+      for category in [UIContentSizeCategory.large, .accessibilityExtraExtraExtraLarge, .large] {
+        if #available(iOS 17.0, *) {
+          controller.traitOverrides.preferredContentSizeCategory = category
+          controller.updateTraitsIfNeeded()
+        }
+        waitForNoticeUpdates(0.05)
+        if #available(iOS 17.0, *) {
+          XCTAssertEqual(controller.view.traitCollection.preferredContentSizeCategory, category)
+        }
+        controller.view.setNeedsLayout()
+        controller.view.layoutIfNeeded()
+        controller.chargeButton.layoutIfNeeded()
+        try assertInvestmentHeaderLayout(in: controller)
+        try assertCompactInvestmentChargeButton(controller.chargeButton, fontSize: chargeFontSize)
+        // 현물 화면도 같은 크기와 XIB 글꼴을 유지하는지 시각적으로 확인한다.
+        let image = UIGraphicsImageRenderer(bounds: controller.view.bounds).image {
+          controller.view.layer.render(in: $0.cgContext)
+        }
+        // 작은 화면의 테마·글자 크기를 테스트 결과에서 바로 비교한다.
+        let attachment = XCTAttachment(image: image)
+        attachment.name = "Spot investment \(style == .dark ? "dark" : "light") 320 \(category.rawValue)"
+        attachment.lifetime = .keepAlways
+        add(attachment)
       }
-      // 작은 화면의 두 테마를 테스트 결과에서 바로 비교한다.
-      let attachment = XCTAttachment(image: image)
-      attachment.name = "Spot investment \(style == .dark ? "dark" : "light") 320"
-      attachment.lifetime = .keepAlways
-      add(attachment)
     }
   }
 
@@ -5144,6 +5162,48 @@ final class FuturesAccountReactorTests: XCTestCase {
           try assertInvestmentHeaderLayout(in: controller)
         }
       }
+    }
+  }
+
+  @MainActor
+  private func assertCompactInvestmentChargeButton(_ button: UIButton, fontSize: CGFloat) throws {
+    XCTAssertTrue(button is InvestmentChargeButton)
+    XCTAssertFalse(button is MobitChargeButton)
+    XCTAssertEqual(button.bounds.width, 80, accuracy: 0.5)
+    XCTAssertEqual(button.bounds.height, 32, accuracy: 0.5)
+    XCTAssertEqual(button.configuration?.title, FuturesText.text("investment_recharge"))
+    XCTAssertFalse(button.hasAmbiguousLayout)
+    // 고정 크기 안에서 원래 XIB 글꼴과 한 줄 제목을 모두 보존해야 한다.
+    let title = try XCTUnwrap(button.titleLabel)
+    XCTAssertEqual(title.numberOfLines, 1)
+    XCTAssertFalse(title.adjustsFontForContentSizeCategory)
+    XCTAssertEqual(title.font.pointSize, fontSize, accuracy: 0.001)
+    // 줄바꿈이나 숨은 압축으로 통과하지 않도록 전체 제목의 자연 폭을 검사한다.
+    let titleWidth = ((title.text ?? "") as NSString).size(withAttributes: [.font: title.font as Any]).width
+    XCTAssertGreaterThanOrEqual(title.bounds.width + 0.5, titleWidth)
+    XCTAssertGreaterThanOrEqual(title.bounds.height + 0.5, title.font.lineHeight)
+    // 버튼 설정의 실제 내부 여백 안에 심볼과 제목이 모두 들어가야 한다.
+    let insets = button.configuration?.contentInsets ?? .zero
+    // 배경이나 그림자 크기 대신 콘텐츠가 사용할 수 있는 영역만 비교한다.
+    let contentBounds = CGRect(
+      x: button.bounds.minX + insets.leading,
+      y: button.bounds.minY + insets.top,
+      width: button.bounds.width - insets.leading - insets.trailing,
+      height: button.bounds.height - insets.top - insets.bottom
+    )
+    // plus가 사라지거나 버튼 밖에서 잘리는 상태도 검출한다.
+    let image = try XCTUnwrap(button.imageView)
+    XCTAssertGreaterThan(image.bounds.width, 0)
+    XCTAssertGreaterThan(image.bounds.height, 0)
+    // UIKit 내부 컨테이너와 무관하게 버튼 좌표계에서 경계를 확인한다.
+    let contentViews: [UIView] = [title, image]
+    for view in contentViews {
+      // 각각의 실제 렌더링 영역을 설정된 내부 여백과 비교한다.
+      let frame = view.convert(view.bounds, to: button)
+      XCTAssertGreaterThanOrEqual(frame.minX + 0.5, contentBounds.minX)
+      XCTAssertGreaterThanOrEqual(frame.minY + 0.5, contentBounds.minY)
+      XCTAssertLessThanOrEqual(frame.maxX - 0.5, contentBounds.maxX)
+      XCTAssertLessThanOrEqual(frame.maxY - 0.5, contentBounds.maxY)
     }
   }
 
@@ -6815,6 +6875,138 @@ extension FuturesAccountReactorTests {
         )
       ]
     )
+  }
+
+  @MainActor
+  func testFuturesEmptyHistoryStaysCenteredAcrossTabsAndHistoryUpdates() throws {
+    guard #available(iOS 17.0, *) else { throw XCTSkip("Trait overrides require iOS 17") }
+    for width: CGFloat in [320, 393] {
+      for style in [UIUserInterfaceStyle.light, .dark] {
+        // 실제 저장소 대신 빈 계좌와 체결 이력을 번갈아 전달한다.
+        let futures = reactor()
+        // 거래내역이 없는 정상 조회 상태다.
+        let emptyState = try readyOrderCompletionState(futures)
+        futures.stub.state.value = emptyState
+        // TradeVC의 호가·세그먼트·선물 자식 화면을 함께 검사한다.
+        let host = try makeSpotOrderLayoutController()
+        host.futuresReactor = futures
+        // 화면마다 달라지는 실제 내역 표시 영역을 제공한다.
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: width == 320 ? 568 : 852))
+        window.overrideUserInterfaceStyle = style
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        defer { window.isHidden = true; window.rootViewController = nil }
+        // 실제 탭 액션과 표시 영역을 소유하는 주문 화면이다.
+        let orderView = try XCTUnwrap(host.orderView)
+        // 선물 주문은 기존 현물 컨테이너 안의 자식 화면이다.
+        let order = try XCTUnwrap(host.children.compactMap { $0 as? FuturesOrderViewController }.first)
+        // 키보드 가이드를 반영한 현재 가용 영역이다.
+        let scroll = try XCTUnwrap(order.view.subviews.compactMap { $0 as? UIScrollView }.first)
+        for category in [UIContentSizeCategory.large, .accessibilityExtraExtraExtraLarge, .large] {
+          host.traitOverrides.preferredContentSizeCategory = category
+          host.updateTraitsIfNeeded()
+          order.updateTraitsIfNeeded()
+          for tab in [2, 0, 2, 1, 2] {
+            orderView.segmentedControl.selectedIndex = tab
+            orderView.segmentedControl.onSegmentChanged?(tab)
+            window.layoutIfNeeded()
+            guard tab == 2 else { continue }
+            // 문구 존재뿐 아니라 사용자가 보는 스크롤 좌표의 중앙을 확인한다.
+            let label = try XCTUnwrap(descendants(order.view).compactMap { $0 as? UILabel }.first {
+              $0.text == FuturesText.text("futures_empty_history")
+            })
+            // 현물의 빈 영역도 위 10pt·아래 0pt로 중심이 표시 영역보다 5pt 낮다.
+            let frame = label.convert(label.bounds, to: scroll)
+            XCTAssertEqual(label.textAlignment, .center)
+            XCTAssertEqual(frame.midX, scroll.bounds.midX, accuracy: 0.5)
+            XCTAssertEqual(frame.midY, scroll.bounds.midY + 5, accuracy: 0.5)
+            XCTAssertGreaterThanOrEqual(label.bounds.height + 0.5, label.sizeThatFits(CGSize(width: label.bounds.width, height: .greatestFiniteMagnitude)).height)
+            XCTAssertFalse(label.hasAmbiguousLayout)
+            XCTAssertFalse(try XCTUnwrap(label.superview).hasAmbiguousLayout)
+          }
+          // 긴 내역의 마지막까지 스크롤한 뒤 빈 계좌로 돌아오는 상황이다.
+          var populatedState = emptyState
+          populatedState.snapshot = try futuresHistoryLayoutSnapshot()
+          futures.stub.state.value = populatedState
+          order.selectTab(2)
+          window.layoutIfNeeded()
+          XCTAssertTrue(descendants(order.view).contains {
+            $0.accessibilityIdentifier?.hasPrefix("futuresHistoryEntry.") == true
+          })
+          scroll.setContentOffset(CGPoint(x: 0, y: max(0, scroll.contentSize.height - scroll.bounds.height)), animated: false)
+          futures.stub.state.value = emptyState
+          order.selectTab(2)
+          window.layoutIfNeeded()
+          // 이전 목록의 스크롤 위치가 빈 문구를 화면 밖으로 밀어내면 안 된다.
+          let restoredLabel = try XCTUnwrap(descendants(order.view).compactMap { $0 as? UILabel }.first {
+            $0.text == FuturesText.text("futures_empty_history")
+          })
+          // 데이터가 바뀐 뒤에도 현재 표시 영역을 기준으로 배치한다.
+          let restoredFrame = restoredLabel.convert(restoredLabel.bounds, to: scroll)
+          XCTAssertEqual(restoredFrame.midY, scroll.bounds.midY + 5, accuracy: 0.5)
+          XCTAssertEqual(scroll.contentSize.width, scroll.bounds.width, accuracy: 0.5)
+          // 두 테마와 글자 크기별 실제 분할 화면을 남긴다.
+          let attachment = XCTAttachment(image: UIGraphicsImageRenderer(bounds: host.view.bounds).image { host.view.layer.render(in: $0.cgContext) })
+          attachment.name = "Futures-empty-history-\(Int(width))-\(style.rawValue)-\(category.rawValue)"
+          attachment.lifetime = .keepAlways
+          add(attachment)
+        }
+      }
+    }
+  }
+
+  @MainActor
+  func testSpotEmptyHistoryMessageFitsLongTextWithinItsPanel() throws {
+    // 빈 내역 fixture가 실제 거래 이력 저장값에 남지 않도록 보존한다.
+    let previousTransactions = UserDefaults.standard.object(forKey: UserDataManager.Keys.userTransactionList)
+    // 현물 상세 fixture의 거래소와 조회 대상 계좌를 일치시킨다.
+    let previousExchange = ExchangeSelectionStore.currentExchange
+    ExchangeSelectionStore.currentExchange = .upbit
+    UserDataManager.userTransactionList = []
+    defer {
+      UserDefaults.standard.set(previousTransactions, forKey: UserDataManager.Keys.userTransactionList)
+      ExchangeSelectionStore.currentExchange = previousExchange
+    }
+    // 호가 150pt를 제외한 실제 오른쪽 패널에서 줄바꿈을 확인한다.
+    for width: CGFloat in [320, 393] {
+      // 외부 시세 요청 없이 기존 TradeVC와 XIB를 그대로 표시한다.
+      let host = try makeSpotOrderLayoutController()
+      // 실제 부모와 Safe Area가 존재하는 표시 환경이다.
+      let window = UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: width == 320 ? 568 : 852))
+      window.rootViewController = host
+      window.makeKeyAndVisible()
+      defer { window.isHidden = true; window.rootViewController = nil }
+      // 실제 매수·거래내역 탭 콜백을 통해 빈 상태를 표시한다.
+      let order = try XCTUnwrap(host.orderView)
+      // 현물의 빈 상태는 전체 주문 화면이 아니라 거래내역 영역에 정렬된다.
+      let history = try XCTUnwrap(order.historyView)
+      order.segmentedControl.selectedIndex = 2
+      order.segmentedControl.onSegmentChanged?(2)
+      window.layoutIfNeeded()
+      // 기존 XIB에서 이미 중앙에 배치하는 안내 라벨이다.
+      let label = try XCTUnwrap(history.noHistoryView.subviews.compactMap { $0 as? UILabel }.first)
+      // 언어별 문구가 길어져도 패널 바깥으로 넘치지 않아야 한다.
+      for text in [label.text ?? "", "Transaction history is empty for this market. Completed trades will appear here."] {
+        label.text = text
+        label.setNeedsLayout()
+        history.setNeedsLayout()
+        window.layoutIfNeeded()
+        history.layoutIfNeeded()
+        XCTAssertFalse(history.noHistoryView.isHidden)
+        XCTAssertEqual(label.textAlignment, .center)
+        XCTAssertGreaterThanOrEqual(label.frame.minX, 0)
+        XCTAssertLessThanOrEqual(label.frame.maxX, history.noHistoryView.bounds.width)
+        XCTAssertEqual(label.center.x, history.noHistoryView.bounds.midX, accuracy: 0.5)
+        XCTAssertEqual(label.center.y, history.noHistoryView.bounds.midY, accuracy: 0.5)
+        XCTAssertGreaterThanOrEqual(label.bounds.height + 0.5, label.sizeThatFits(CGSize(width: label.bounds.width, height: .greatestFiniteMagnitude)).height)
+        XCTAssertFalse(label.hasAmbiguousLayout)
+      }
+      // 좁은 주문 패널에서 긴 문구의 실제 줄바꿈과 중앙 위치도 검토한다.
+      let attachment = XCTAttachment(image: UIGraphicsImageRenderer(bounds: host.view.bounds).image { host.view.layer.render(in: $0.cgContext) })
+      attachment.name = "Spot-empty-history-long-message-\(Int(width))"
+      attachment.lifetime = .keepAlways
+      add(attachment)
+    }
   }
 
   @MainActor

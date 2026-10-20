@@ -145,8 +145,18 @@ class PNLShareView: UIView {
   func makeShareImage() -> UIImage? {
 	guard let pnlView = self.pnlView else { return nil }
 
+	layoutIfNeeded()
+	// 기본 공유 이미지 크기는 유지하고 긴 카드에는 바깥 여백까지 포함한다.
 	let screenSize = UIScreen.main.bounds.size
-	let captureView = UIView(frame: CGRect(origin: .zero, size: screenSize))
+	// 미리보기와 같은 최소 바깥 여백을 이미지에도 남긴다.
+	let imageInset: CGFloat = 16
+	// 스크롤 영역보다 긴 카드도 원본 크기로 저장할 수 있는 캔버스다.
+	let captureSize = CGSize(
+	  width: max(screenSize.width, pnlView.bounds.width + imageInset * 2),
+	  height: max(screenSize.height, pnlView.bounds.height + imageInset * 2)
+	)
+	// 완성된 카드 전체를 가운데 배치하는 공유 이미지 배경이다.
+	let captureView = UIView(frame: CGRect(origin: .zero, size: captureSize))
 	captureView.backgroundColor = .mobitColors(.backgroundPrimary)
 
 	let pnlImage = pnlView.asImage()

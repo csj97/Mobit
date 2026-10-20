@@ -26,7 +26,7 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
   @IBOutlet weak var emptyLabel: UILabel!
   @IBOutlet weak var sortLabel: UILabel!
   @IBOutlet weak var dimView: UIView!
-  @IBOutlet weak var chargeButton: MobitChargeButton!
+  @IBOutlet weak var chargeButton: InvestmentChargeButton!
 
   weak var coordinator: FuturesCoordinator?
   private let reactor: FuturesAccountReactor
@@ -238,7 +238,7 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
     }
   }
 
-  @IBAction func tapOnChargeButton(_ sender: MobitChargeButton) {
+  @IBAction func tapOnChargeButton(_ sender: InvestmentChargeButton) {
     guard !reactor.currentState.submitting else { return }
     MobitAnalyticsUtil.sendClickEvent(event: .investment_charge, account: reactor.account)
     show(alertType: .canCancel, title: FuturesText.text("futures_charge"), content: FuturesText.text("futures_reward_note")) { [weak self, account = reactor.account] confirmed in

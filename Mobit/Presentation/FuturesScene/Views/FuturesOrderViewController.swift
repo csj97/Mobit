@@ -33,6 +33,12 @@ final class FuturesOrderViewController: MobitBaseViewController {
   private let availableAmountLabel = FuturesText.label(style: .caption1)
   // 일반 글자 크기에서는 잔액을 한 줄로, 접근성 크기에서는 세로로 배치한다.
   private lazy var availableRow = UIStackView(arrangedSubviews: [availableTitleLabel, availableAmountLabel])
+  // 빈 내역도 현재 키보드를 제외한 표시 영역의 높이를 사용한다.
+  private let orderScrollView = UIScrollView()
+  // 주문과 내역 콘텐츠가 세그먼트 아래에서 시작하는 간격이다.
+  private let contentTopInset: CGFloat = 20
+  // 스크롤 콘텐츠의 기존 하단 여백을 유지한다.
+  private let contentBottomInset: CGFloat = 10
   private let historyStack = UIStackView()
   private let orderStack = UIStackView()
   // 새 진입이나 추가 진입에 사용할 증거금을 입력받는다.
@@ -56,9 +62,8 @@ final class FuturesOrderViewController: MobitBaseViewController {
   override func viewDidLoad() {
 	super.viewDidLoad()
 	view.backgroundColor = .clear
-	let scroll = UIScrollView()
-	scroll.keyboardDismissMode = .interactive
-	scroll.contentInsetAdjustmentBehavior = .never
+	orderScrollView.keyboardDismissMode = .interactive
+	orderScrollView.contentInsetAdjustmentBehavior = .never
 	marketOrderLabel.text = FuturesText.text("futures_market_order")
 	marketOrderLabel.textAlignment = .center
 	marketOrderLabel.backgroundColor = .mobitColors(.tradeControlSurface)
@@ -139,15 +144,16 @@ final class FuturesOrderViewController: MobitBaseViewController {
 	historyStack.isHidden = true
 	let stack = UIStackView(arrangedSubviews: [orderStack, historyStack])
 	stack.axis = .vertical
-	view.addSubview(scroll)
-	scroll.addSubview(stack)
-	scroll.snp.makeConstraints {
+	view.addSubview(orderScrollView)
+	orderScrollView.addSubview(stack)
+	orderScrollView.snp.makeConstraints {
 	  $0.top.leading.trailing.equalToSuperview(); $0.bottom.equalTo(view.keyboardLayoutGuide.snp.top)
 	}
 	stack.snp.makeConstraints {
-	  $0.top.equalTo(scroll.contentLayoutGuide).offset(20)
-	  $0.leading.trailing.bottom.equalTo(scroll.contentLayoutGuide).inset(10)
-	  $0.width.equalTo(scroll.frameLayoutGuide).offset(-20)
+	  $0.top.equalTo(orderScrollView.contentLayoutGuide).offset(contentTopInset)
+	  $0.leading.trailing.equalTo(orderScrollView.contentLayoutGuide).inset(10)
+	  $0.bottom.equalTo(orderScrollView.contentLayoutGuide).inset(contentBottomInset)
+	  $0.width.equalTo(orderScrollView.frameLayoutGuide).offset(-20)
 	}
 	[leverageLabel, estimate].forEach {
 	  $0.font = .preferredFont(forTextStyle: .caption1)
@@ -300,9 +306,24 @@ final class FuturesOrderViewController: MobitBaseViewController {
 	  let records = try snapshot.transactionHistory(for: reactor.account).filter { $0.instrument == instrument }
 		.reversed()
 	  if records.isEmpty {
+		// 현물처럼 빈 안내가 내역 영역 전체를 사용하고, 큰 글자에서는 콘텐츠만큼 늘어난다.
+		let emptyView = UIView()
+		// 빈 내역 문구의 여러 줄 텍스트도 가로 중앙에 정렬한다.
 		let label = FuturesText.label(style: .footnote)
 		label.text = FuturesText.text("futures_empty_history")
-		historyStack.addArrangedSubview(label)
+		label.textAlignment = .center
+		emptyView.addSubview(label)
+		historyStack.addArrangedSubview(emptyView)
+		emptyView.snp.makeConstraints {
+		  $0.height.equalTo(orderScrollView.frameLayoutGuide.snp.height)
+			.offset(-contentTopInset - contentBottomInset).priority(.low)
+		}
+		label.snp.makeConstraints {
+		  $0.center.equalToSuperview()
+		  $0.leading.trailing.equalToSuperview()
+		  $0.top.greaterThanOrEqualToSuperview()
+		  $0.bottom.lessThanOrEqualToSuperview()
+		}
 	  }
 	  for record in records {
 		historyStack.addArrangedSubview(try FuturesHistoryEntryView(record: record))

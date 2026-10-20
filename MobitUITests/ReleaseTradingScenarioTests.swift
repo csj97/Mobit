@@ -98,10 +98,8 @@ final class ReleaseTradingScenarioTests: XCTestCase {
   }
 
   private func selectExchange(_ exchangeName: String, in application: XCUIApplication) throws {
-    // 거래소명이 포함된 메인 선택 버튼을 사용한다.
-    let selector = application.buttons.matching(
-      NSPredicate(format: "label CONTAINS %@ OR label CONTAINS %@", "업비트", "빗썸")
-    ).firstMatch
+    // 거래소명은 접근성 value에 있으므로 고정 식별자로 선택 버튼을 찾는다.
+    let selector = application.buttons["main.exchange"]
     XCTAssertTrue(selector.waitForExistence(timeout: 25))
     XCTAssertEqual(
       XCTWaiter.wait(
@@ -111,12 +109,11 @@ final class ReleaseTradingScenarioTests: XCTestCase {
       .completed
     )
     selector.tap()
-    // 액션시트로 범위를 좁혀 메인 버튼과 거래소 선택 항목을 구분한다.
-    let exchangeAction = application.sheets.buttons.matching(
-      NSPredicate(format: "label CONTAINS %@", exchangeName)
-    ).firstMatch
+    // 현재 공용 거래소 시트에서 선택을 확정해야 메인 계좌가 바뀐다.
+    let exchangeAction = application.buttons[exchangeName == "업비트" ? "investment.exchangeOption.upbit" : "investment.exchangeOption.bithumb"]
     XCTAssertTrue(exchangeAction.waitForExistence(timeout: 5))
     exchangeAction.tap()
+    application.buttons["investment.exchangeConfirm"].tap()
   }
 
   private func openBitcoinOrder(in application: XCUIApplication) throws {

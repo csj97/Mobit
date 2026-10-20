@@ -160,6 +160,18 @@ class MobitTabBarViewController: MobitBaseViewController {
     }
   }
 
+  func getTradingContentBottomInset(in contentView: UIView) -> CGFloat {
+    // 실제로 겹치는 하단 컨트롤만 제외해 목록의 빈 안내 영역을 계산한다.
+    let coveredTop = [productControl, mobitTabBar].compactMap { control -> CGFloat? in
+      guard !control.isHidden, control.bounds.height > 0 else { return nil }
+      // 자식 화면의 Safe Area가 이미 제외한 영역을 중복 차감하지 않는다.
+      let frame = control.convert(control.bounds, to: contentView)
+      return frame.intersects(contentView.bounds) ? frame.minY : nil
+    }.min()
+    guard let coveredTop else { return 0 }
+    return min(contentView.bounds.height, max(0, contentView.bounds.maxY - coveredTop))
+  }
+
   var onTabSelected: ((Int) -> Void)?
   // 첫 화면 표시 완료 후 대기 중인 앱 안내를 노출한다.
   var didAppearCallBack: (() -> Void)?

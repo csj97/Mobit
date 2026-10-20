@@ -263,6 +263,7 @@
 		F09329000000000000000004 /* DomesticFuturesMarketRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09329000000000000000003 /* DomesticFuturesMarketRepository.swift */; };
 		F09329000000000000000006 /* DomesticFuturesMarketRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09329000000000000000005 /* DomesticFuturesMarketRepositoryTests.swift */; };
 		F09329000000000000000008 /* FuturesTradingUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09329000000000000000007 /* FuturesTradingUseCase.swift */; };
+		F0FFE501833AFA6FF120E663 /* InvestmentChargeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927D6BCBB0A8B1B2D61F6250 /* InvestmentChargeButton.swift */; };
 		F10007000000000000000002 /* FuturesCloseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10007000000000000000001 /* FuturesCloseViewController.swift */; };
 		F10112000000000000000002 /* TradingRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10112000000000000000001 /* TradingRules.swift */; };
 		F10112000000000000000004 /* TradingRulesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10112000000000000000003 /* TradingRulesTests.swift */; };
@@ -386,6 +387,7 @@
 		5FA880E72E1A58E700F22F9C /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		619158489B6D4A7DABE428B6 /* FuturesAccountReactorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesAccountReactorTests.swift; sourceTree = "<group>"; };
 		76482DD0266E470BBE4DB2F2 /* FuturesInvestmentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesInvestmentViewController.swift; sourceTree = "<group>"; };
+		927D6BCBB0A8B1B2D61F6250 /* InvestmentChargeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestmentChargeButton.swift; sourceTree = "<group>"; };
 		998849E12C524AAA0073A27D /* CryptoCellInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoCellInfo.swift; sourceTree = "<group>"; };
 		998849E32C5378CD0073A27D /* CryptoTickerDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTickerDTO.swift; sourceTree = "<group>"; };
 		998849E52C5379960073A27D /* CryptoTicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTicker.swift; sourceTree = "<group>"; };
@@ -983,8 +985,6 @@
 			children = (
 				C17CF49A2DA4DAE900CDF76D /* InvestmentViewController.swift */,
 				C17CF49B2DA4DAE900CDF76D /* InvestmentViewController.xib */,
-				D819A20230194DF0870A1202 /* InvestmentSummaryView.swift */,
-				76482DD0266E470BBE4DB2F2 /* FuturesInvestmentViewController.swift */,
 				C17DB9702DA5FAF000DA673A /* InvestmentTableViewCell.swift */,
 				C17DB9712DA5FAF000DA673A /* InvestmentTableViewCell.xib */,
 				C16FAE6B2E38B4B9003C5AD1 /* PNLViewController.swift */,
@@ -993,6 +993,9 @@
 				C16FAE702E38B530003C5AD1 /* PNLTableViewCell.xib */,
 				C19F77962E41A2EA00863159 /* PNLShareView.swift */,
 				C19F77982E41A2F300863159 /* PNLShareView.xib */,
+				D819A20230194DF0870A1202 /* InvestmentSummaryView.swift */,
+				927D6BCBB0A8B1B2D61F6250 /* InvestmentChargeButton.swift */,
+				76482DD0266E470BBE4DB2F2 /* FuturesInvestmentViewController.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1807,6 +1810,7 @@
 				99C20AAC2C4F458C009276E7 /* CryptoSocketTickerDTO.swift in Sources */,
 				C17CF49C2DA4DAE900CDF76D /* InvestmentViewController.swift in Sources */,
 				D819A20230194DF0870A1201 /* InvestmentSummaryView.swift in Sources */,
+				F0FFE501833AFA6FF120E663 /* InvestmentChargeButton.swift in Sources */,
 				D819A20230194DF0870A1211 /* ExchangeSelectionSheetViewController.swift in Sources */,
 				E9967D894A3D4F188F7065B2 /* FuturesInvestmentViewController.swift in Sources */,
 				31D6444D2C72590C00C7F96D /* CryptoDetailUseCase.swift in Sources */,

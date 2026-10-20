@@ -3,6 +3,10 @@ import UIKit
 final class InvestmentSummaryView: UIView {
   // 요약과 목록의 제목을 현물·선물 계좌에 맞춰 표시한다.
   @IBOutlet private weak var holdingsTitle: UILabel!
+  // 큰 글자에서는 자산 제목과 통화 단위를 별도 행으로 배치한다.
+  @IBOutlet private weak var titleStack: UIStackView!
+  // 세로 제목에서는 가로 여백용 뷰를 접는다.
+  @IBOutlet private weak var titleSpace: UIView!
   // 요약 숫자에 공통으로 적용되는 통화 단위를 표시한다.
   @IBOutlet private weak var unitTitle: UILabel!
   // 사용 가능한 계좌 잔고의 단위를 표시한다.
@@ -23,6 +27,10 @@ final class InvestmentSummaryView: UIView {
   @IBOutlet private weak var listTitle: UILabel!
   // 현재 표시되는 종목 또는 포지션 개수다.
   @IBOutlet private weak var countLabel: UILabel!
+  // 큰 글자에서는 목록 제목과 정렬을 별도 행으로 배치한다.
+  @IBOutlet private weak var toolbarStack: UIStackView!
+  // 세로 도구 모음에서는 가로 여백용 뷰를 접는다.
+  @IBOutlet private weak var toolbarSpace: UIView!
   // 요약 계산 기준을 안내한다.
   @IBOutlet private weak var infoButton: UIButton!
   // 목록 정렬 버튼의 화살표와 접근성 제목을 설정한다.
@@ -43,6 +51,8 @@ final class InvestmentSummaryView: UIView {
   @IBOutlet private var valueLabels: [UILabel]!
   // 현물 빈 목록 메시지를 현지화한다.
   @IBOutlet private weak var emptyMessageLabel: UILabel!
+  // 요약 아래 남은 목록 공간을 빈 안내 영역으로 사용한다.
+  @IBOutlet private weak var emptyMinimumHeight: NSLayoutConstraint!
 
   override func awakeFromNib() {
     super.awakeFromNib()
@@ -93,23 +103,62 @@ final class InvestmentSummaryView: UIView {
     guard tableView.bounds.width > 0 else { return }
     // 접근성 글자 크기에서는 두 열보다 원본 숫자를 모두 읽을 수 있는 배치를 우선한다.
     let expandedText = traitCollection.preferredContentSizeCategory.isAccessibilityCategory
+    // 가로 배치의 원래 글자 폭은 유지하고 접근성 행에서는 전체 폭을 사용한다.
+    let headingHugging: UILayoutPriority = expandedText ? .defaultLow : .required
+    holdingsTitle.setContentHuggingPriority(headingHugging, for: .horizontal)
+    unitTitle.setContentHuggingPriority(headingHugging, for: .horizontal)
+    listTitle.setContentHuggingPriority(headingHugging, for: .horizontal)
+    listTitle.numberOfLines = expandedText ? 0 : 1
+    (sortButton.superview as? UIStackView)?.arrangedSubviews.first?
+      .setContentHuggingPriority(headingHugging, for: .horizontal)
+    titleStack.axis = expandedText ? .vertical : .horizontal
+    titleStack.alignment = expandedText ? .fill : .center
+    titleStack.spacing = expandedText ? 8 : 4
+    titleSpace.isHidden = expandedText
+    toolbarStack.axis = expandedText ? .vertical : .horizontal
+    toolbarStack.alignment = .fill
+    toolbarSpace.isHidden = expandedText
     balanceColumns.axis = expandedText ? .vertical : .horizontal
     balanceDivider.isHidden = expandedText
     metricColumns.axis = expandedText ? .vertical : .horizontal
+    // 두 열의 번역 높이가 달라도 짧은 열의 행을 임의로 늘리지 않는다.
+    metricColumns.alignment = expandedText ? .fill : .top
+    metricColumns.distribution = expandedText ? .fill : .fillEqually
     chargeStack.axis = expandedText ? .vertical : .horizontal
-    chargeStack.alignment = expandedText ? .fill : .center
+    chargeStack.alignment = expandedText ? .leading : .center
     metricRows.forEach { row in
       row.axis = expandedText || tableView.bounds.width < 350 ? .vertical : .horizontal
       row.alignment = .fill
     }
+    // 외부에서 제공하는 너비를 먼저 반영해 이전 기기 너비로 줄바꿈하지 않는다.
+    frame.size.width = tableView.bounds.width
+    emptyMinimumHeight.constant = 0
     // UITableView의 헤더 높이는 화면 추정값 대신 현재 너비에서 실제 콘텐츠로 계산한다.
     let fittingSize = systemLayoutSizeFitting(
       CGSize(width: tableView.bounds.width, height: UIView.layoutFittingCompressedSize.height),
       withHorizontalFittingPriority: .required,
       verticalFittingPriority: .fittingSizeLevel
     )
-    // 저장할 정수 높이로 비교해 소수점 반올림이 반복 레이아웃을 만들지 않게 한다.
-    let fittedHeight = ceil(fittingSize.height)
+    // 긴 요약은 계속 스크롤하고, 짧은 요약 아래에서는 남은 목록 영역을 채운다.
+    var contentHeight = fittingSize.height
+    // 현물과 선물이 공유하는 빈 목록 컨테이너만 확장한다.
+    if let emptyView = emptyMessageLabel.superview, !emptyView.isHidden {
+      // 빈 안내 자체의 최소 높이를 제외해 요약과 정렬 영역만 남긴다.
+      let emptySize = emptyView.systemLayoutSizeFitting(
+        CGSize(width: tableView.bounds.width, height: UIView.layoutFittingCompressedSize.height),
+        withHorizontalFittingPriority: .required,
+        verticalFittingPriority: .fittingSizeLevel
+      )
+      // 테이블의 실제 보이는 목록 영역에는 콘텐츠 바깥 여백을 포함하지 않는다.
+      let viewportHeight = tableView.bounds.height - tableView.adjustedContentInset.top - tableView.adjustedContentInset.bottom
+      emptyMinimumHeight.constant = max(0, viewportHeight - fittingSize.height + emptySize.height)
+      contentHeight += max(0, emptyMinimumHeight.constant - emptySize.height)
+    }
+    // 정수 pt 올림이 만든 여유 높이 대신 실제 화면의 픽셀 경계에 맞춘다.
+    let displayScale = traitCollection.displayScale
+    guard displayScale > 0 else { return }
+    // 같은 콘텐츠는 같은 높이를 사용해 테이블 헤더의 반복 재배치를 막는다.
+    let fittedHeight = (contentHeight * displayScale).rounded() / displayScale
     guard frame.width != tableView.bounds.width || frame.height != fittedHeight else { return }
     frame.size = CGSize(width: tableView.bounds.width, height: fittedHeight)
     tableView.tableHeaderView = self
@@ -141,7 +190,6 @@ final class InvestmentSummaryView: UIView {
       maximumPointSize: 28
     )
     titleLabel.adjustsFontForContentSizeCategory = true
-    titleLabel.textColor = .mobitColors(.accentPrimary)
     historyButton.accessibilityLabel = FuturesText.text("investment_records")
     historyButton.accessibilityIdentifier = "investment.history"
     // 거래소 선택은 기존 Coordinator가 계좌와 소켓을 함께 전환한다.

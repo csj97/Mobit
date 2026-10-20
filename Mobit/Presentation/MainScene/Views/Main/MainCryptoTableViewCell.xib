@@ -53,7 +53,9 @@
                                 </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
+                                    <constraint firstItem="jwN-Ag-FRa" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="NXH-jd-ehB" secondAttribute="leading" id="PRC-LD-BND"/>
                                     <constraint firstItem="jwN-Ag-FRa" firstAttribute="centerX" secondItem="NXH-jd-ehB" secondAttribute="centerX" id="Qdd-PT-rfw"/>
+                                    <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="jwN-Ag-FRa" secondAttribute="trailing" id="PRC-TR-BND"/>
                                     <constraint firstItem="jwN-Ag-FRa" firstAttribute="centerY" secondItem="NXH-jd-ehB" secondAttribute="centerY" id="taj-rf-IgS"/>
                                 </constraints>
                                 <userDefinedRuntimeAttributes>

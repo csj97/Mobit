@@ -309,6 +309,7 @@ class MainViewController: MobitBaseViewController {
   let noHoldLabel: UILabel = UILabel().then {
 	$0.text = "보유중인 코인이 없습니다."
 	$0.font = .systemFont(ofSize: 14, weight: .medium)
+	$0.numberOfLines = 0
 	$0.textAlignment = .center
 	$0.textColor = .mobitColors(.textPrimary)
   }
@@ -321,6 +322,7 @@ class MainViewController: MobitBaseViewController {
   let noFavoriteLabel: UILabel = UILabel().then {
 	$0.text = "즐겨찾기 설정된 코인이 없습니다."
 	$0.font = .systemFont(ofSize: 14, weight: .medium)
+	$0.numberOfLines = 0
 	$0.textAlignment = .center
 	$0.textColor = .mobitColors(.textPrimary)
   }
@@ -405,6 +407,18 @@ class MainViewController: MobitBaseViewController {
 	
 	rootContainer.pin.all(self.view.pin.safeArea)
 	rootContainer.flex.layout()
+    // 테이블 위에 겹친 실제 하단 크롬만 제외하고 목록 안내를 가운데 배치한다.
+    let tabs = (navigationController?.parent ?? parent) as? MobitTabBarViewController
+    // 부모 Safe Area에 이미 반영된 여백과 별도로 남는 겹침 높이다.
+    let emptyGuideBottomInset = tabs?.getTradingContentBottomInset(in: tableView) ?? 0
+    // Flex의 소수점 반올림 차이로 같은 크기를 반복 배치하지 않는다.
+    let layoutTolerance = 1 / view.contentScaleFactor
+    if let listContainer = tableView.superview,
+       abs(noHoldView.frame.height - max(0, listContainer.bounds.height - emptyGuideBottomInset)) > layoutTolerance {
+      noHoldView.flex.bottom(emptyGuideBottomInset)
+      noFavoriteView.flex.bottom(emptyGuideBottomInset)
+      rootContainer.flex.layout()
+    }
     updateMarketListSkeleton()
     (navigationController?.parent as? MobitTabBarViewController)?.alignTradingAccessory(fearGreedFloatingButton)
   }
@@ -926,9 +940,10 @@ class MainViewController: MobitBaseViewController {
 			.top(0).bottom(80).left(0).right(0)
 			.justifyContent(.center)
 			.alignItems(.center)
+			.paddingHorizontal(16)
 			.backgroundColor(UIColor.mobitColors(.backgroundPrimary))
 			.define { flex in
-			  flex.addItem(self.noHoldLabel)
+			  flex.addItem(self.noHoldLabel).width(100%)
 			}
 
 		  flex.addItem(self.noFavoriteView)
@@ -936,9 +951,10 @@ class MainViewController: MobitBaseViewController {
 			.top(0).bottom(80).left(0).right(0)
 			.justifyContent(.center)
 			.alignItems(.center)
+			.paddingHorizontal(16)
 			.backgroundColor(UIColor.mobitColors(.backgroundPrimary))
 			.define { flex in
-			  flex.addItem(self.noFavoriteLabel)
+			  flex.addItem(self.noFavoriteLabel).width(100%)
 			}
 		}.grow(1)
 	  }
@@ -1699,6 +1715,10 @@ extension MainViewController: View {
 	  self.noHoldView.isHidden = true
 	  self.noFavoriteView.isHidden = true
 	}
+	// Flex의 이전 문구 측정값을 버려 긴 오류·빈 상태 문구도 다시 가운데 배치한다.
+	self.noHoldLabel.flex.markDirty()
+	self.noFavoriteLabel.flex.markDirty()
+	self.view.setNeedsLayout()
 	self.applySnapshot(cellInfos: filteredList)
   }
   
