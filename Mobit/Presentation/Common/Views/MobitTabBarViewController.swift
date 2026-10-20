@@ -126,7 +126,23 @@ class MobitTabBarViewController: MobitBaseViewController {
     let trailingInset = TradingControlsLayout.horizontalInset
       + (selectedIndex == 0 ? TradingControlsLayout.accessorySize + TradingControlsLayout.accessorySpacing : 0)
     productTrailingConstraint?.update(offset: -trailingInset)
-    currentViewController?.additionalSafeAreaInsets.bottom = visible ? 76 : 0
+    updateContentSafeArea()
+  }
+
+  private func updateContentSafeArea() {
+    guard let currentViewController else { return }
+    guard productControl.isHidden || productControl.bounds.height > 0 else { return }
+    // 거래소의 기존 여백은 유지하고 투자내역에만 스위치 실측 높이를 반영한다.
+    let bottomInset: CGFloat
+    if productControl.isHidden {
+      bottomInset = 0
+    } else if selectedIndex == 0 {
+      bottomInset = 76
+    } else {
+      bottomInset = max(0, view.safeAreaLayoutGuide.layoutFrame.maxY - productControl.frame.minY)
+    }
+    guard currentViewController.additionalSafeAreaInsets.bottom != bottomInset else { return }
+    currentViewController.additionalSafeAreaInsets.bottom = bottomInset
   }
 
   @objc private func selectProduct() {
@@ -142,6 +158,18 @@ class MobitTabBarViewController: MobitBaseViewController {
     accessory.snp.updateConstraints {
       $0.bottom.equalTo(container.safeAreaLayoutGuide).offset(bottomOffset)
     }
+  }
+
+  func getTradingContentBottomInset(in contentView: UIView) -> CGFloat {
+    // 실제로 겹치는 하단 컨트롤만 제외해 목록의 빈 안내 영역을 계산한다.
+    let coveredTop = [productControl, mobitTabBar].compactMap { control -> CGFloat? in
+      guard !control.isHidden, control.bounds.height > 0 else { return nil }
+      // 자식 화면의 Safe Area가 이미 제외한 영역을 중복 차감하지 않는다.
+      let frame = control.convert(control.bounds, to: contentView)
+      return frame.intersects(contentView.bounds) ? frame.minY : nil
+    }.min()
+    guard let coveredTop else { return 0 }
+    return min(contentView.bounds.height, max(0, contentView.bounds.maxY - coveredTop))
   }
 
   var onTabSelected: ((Int) -> Void)?
@@ -168,6 +196,7 @@ class MobitTabBarViewController: MobitBaseViewController {
 	super.viewDidLayoutSubviews()
 	// 플로팅 스타일에서만 카드형 둥근 모서리 적용
 	mobitTabBar.layer.cornerRadius = style == .floating ? 30 : 0
+    updateContentSafeArea()
   }
 
   override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {

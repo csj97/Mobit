@@ -231,6 +231,11 @@ class TradeOrderView: UIView, ViewRule {
 	self.segmentedContainerStackView.addArrangedSubview(bidView)
 	self.segmentedContainerStackView.addArrangedSubview(askView)
 	self.segmentedContainerStackView.addArrangedSubview(historyView)
+	// 스크롤 하단의 750보다 낮춰 작은 표시 영역에서도 내역의 최소 높이를 우선한다.
+	let historyHeightPriority = UILayoutPriority.defaultHigh.rawValue - 1
+	historyView.snp.makeConstraints {
+	  $0.height.equalTo(spotOrderScrollView.frameLayoutGuide.snp.height).priority(historyHeightPriority)
+	}
 	configureSpotOrderScrollView()
 	
 	bidView.isHidden = true

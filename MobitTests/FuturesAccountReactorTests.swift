@@ -42,6 +42,110 @@ final class FuturesAccountReactorTests: XCTestCase {
     XCTAssertEqual(detail.resumes, 1)
   }
 
+  @MainActor
+  func testExchangeSwitchKeepsSpotInvestmentSelectedAndPreparesMainPriceBinding() throws {
+    // 테스트가 바꾼 거래소와 상품 선택을 종료 시 복구한다.
+    let previousExchange = ExchangeSelectionStore.currentExchange
+    // 계좌 전환 경로는 현물 투자내역을 기준으로 검사한다.
+    let previousProduct = ExchangeSelectionStore.currentProduct
+    ExchangeSelectionStore.currentExchange = .upbit
+    ExchangeSelectionStore.currentProduct = .spot
+    // 실제 상위 Coordinator를 통해 탭 재구성 경로를 실행한다.
+    let navigation = UINavigationController()
+    // 투자내역을 유지하면서 메인 시세 바인딩을 준비하는 대상이다.
+    let coordinator = AppTabBarCoordinator(navigationController: navigation)
+    // 거래소 버튼이 실제 시스템 시트를 표시할 수 있는 화면 계층이다.
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 375, height: 812))
+    window.rootViewController = navigation
+    window.makeKeyAndVisible()
+    defer {
+      window.isHidden = true
+      window.rootViewController = nil
+      coordinator.childCoordinators.compactMap { $0 as? MainCoordinator }.forEach { $0.disconnectSocket() }
+      ExchangeSelectionStore.currentExchange = previousExchange
+      ExchangeSelectionStore.currentProduct = previousProduct
+      UserDataManager.publishCurrentExchangeBalance()
+    }
+    coordinator.start()
+    // 투자내역에서 거래소를 고른 상황을 재현한다.
+    let tabs = try XCTUnwrap(navigation.viewControllers.first as? MobitTabBarViewController)
+    tabs.switchToTab(index: 1)
+    func checkSelectedExchange(_ exchange: Exchange) throws {
+      // 전환 때마다 새로 구성된 투자내역 화면의 버튼을 검사한다.
+      let controller = try XCTUnwrap(
+        coordinator.childCoordinators.compactMap { $0 as? InvestmentCoordinator }.first?
+          .navigationController.viewControllers.first as? InvestmentViewController
+      )
+      try assertInvestmentExchangeButton(in: controller, exchange: exchange)
+    }
+    func confirmExchange(_ exchange: Exchange) throws {
+      // 현재 투자내역의 버튼을 통해 선택부터 확인까지 실제 경로를 검사한다.
+      let controller = try XCTUnwrap(
+        coordinator.childCoordinators.compactMap { $0 as? InvestmentCoordinator }.first?
+          .navigationController.viewControllers.first as? InvestmentViewController
+      )
+      // 확인 전에는 기존 계좌가 유지돼야 한다.
+      let previous = ExchangeSelectionStore.currentExchange
+      // 현재 화면의 바텀시트 진입 버튼이다.
+      let button = try XCTUnwrap(descendants(controller.view).compactMap { $0 as? UIButton }.first {
+        $0.accessibilityIdentifier == "investment.exchange"
+      })
+      button.sendActions(for: .touchUpInside)
+      button.sendActions(for: .touchUpInside)
+      // 중복 탭에도 시스템 시트 하나만 표시한다.
+      let sheet = try XCTUnwrap(
+        (controller.presentedViewController ?? navigation.presentedViewController) as? ExchangeSelectionSheetViewController
+      )
+      // 기기별 애니메이션 길이 대신 시트 표시 완료를 기다린다.
+      let presented = XCTNSPredicateExpectation(
+        predicate: NSPredicate { _, _ in !sheet.isBeingPresented && sheet.view.window != nil },
+        object: nil
+      )
+      wait(for: [presented], timeout: 3)
+      // 카드 선택은 계좌를 전환하는 확인 동작과 분리된다.
+      let option = try XCTUnwrap(descendants(sheet.view).compactMap { $0 as? UIControl }.first {
+        $0.accessibilityIdentifier == "investment.exchangeOption.\(exchange.rawValue)"
+      })
+      option.sendActions(for: .touchUpInside)
+      XCTAssertEqual(ExchangeSelectionStore.currentExchange, previous)
+      // dismiss 완료 뒤 기존 Coordinator가 탭과 시세를 함께 전환한다.
+      let confirm = try XCTUnwrap(descendants(sheet.view).compactMap { $0 as? UIButton }.first {
+        $0.accessibilityIdentifier == "investment.exchangeConfirm"
+      })
+      confirm.sendActions(for: .touchUpInside)
+      // 모달 종료와 계좌 전환이 모두 반영되는 시점까지 기다린다.
+      let switched = XCTNSPredicateExpectation(
+        predicate: NSPredicate { _, _ in
+          ExchangeSelectionStore.currentExchange == exchange && navigation.presentedViewController == nil
+        },
+        object: nil
+      )
+      wait(for: [switched], timeout: 3)
+    }
+    try checkSelectedExchange(.upbit)
+    // 이전 거래소의 화면을 재사용하지 않는지도 함께 검사한다.
+    let previousMain = try XCTUnwrap(
+      coordinator.childCoordinators.compactMap { $0 as? MainCoordinator }.first?
+        .navigationController.viewControllers.first as? MainViewController
+    )
+    try confirmExchange(.bithumb)
+    // 새 거래소의 숨겨진 메인도 투자내역 시세를 반영할 바인딩이 준비돼야 한다.
+    let main = try XCTUnwrap(
+      coordinator.childCoordinators.compactMap { $0 as? MainCoordinator }.first?
+        .navigationController.viewControllers.first as? MainViewController
+    )
+    XCTAssertEqual(tabs.selectedIndex, 1)
+    XCTAssertEqual(ExchangeSelectionStore.currentExchange, .bithumb)
+    XCTAssertEqual(ExchangeSelectionStore.currentProduct, .spot)
+    XCTAssertFalse(main === previousMain)
+    XCTAssertTrue(main.isViewLoaded)
+    try checkSelectedExchange(.bithumb)
+    try confirmExchange(.upbit)
+    XCTAssertEqual(tabs.selectedIndex, 1)
+    XCTAssertEqual(ExchangeSelectionStore.currentExchange, .upbit)
+    try checkSelectedExchange(.upbit)
+  }
+
   #if DEBUG
   @MainActor
   func testLiquidationNoticeAnalyticsRecordsOnlyVisibleOriginalAccountOnce() throws {
@@ -1094,7 +1198,10 @@ final class FuturesAccountReactorTests: XCTestCase {
       )
       investment.configure(position: position, valuation: nil, isLast: true)
       XCTAssertEqual(investment.cryptoAmount.text, expected)
-      XCTAssertEqual(investment.cryptoBuyPrice.text, expected + " 원")
+      XCTAssertEqual(investment.cryptoBuyPrice.text, expected)
+      investment.prepareForReuse()
+      XCTAssertNil(investment.sideBadgeLabel.text)
+      XCTAssertNil(investment.leverageBadgeLabel.text)
       let record = FuturesTransactionRecord(
         eventID: UUID(),
         positionID: position.id,
@@ -2889,7 +2996,7 @@ final class FuturesAccountReactorTests: XCTestCase {
       XCTAssertEqual(controller.transactionTableview.convert(controller.transactionTableview.bounds, to: controller.view).minY, original.transactionTableview.convert(original.transactionTableview.bounds, to: original.view).minY, accuracy: 0.5)
     }
     send(.status(.refreshing))
-    XCTAssertEqual(controller.totalEvalProfitLoss.text, "10 \(FuturesText.text("currency_krw_unit"))")
+    XCTAssertEqual(controller.totalEvalProfitLoss.text, "+10")
     send(.status(.paused))
     send(.status(.refreshing))
     for hold in [FuturesHistoryCheckHold.workLimit, .currentInterval, .revisionChanged] {
@@ -2898,9 +3005,9 @@ final class FuturesAccountReactorTests: XCTestCase {
       send(.status(.refreshing))
     }
     send(.quote(.init(instrument: quote.instrument, price: 120, timestamp: 110_000)))
-    XCTAssertEqual(controller.totalEvalProfitLoss.text, "10 \(FuturesText.text("currency_krw_unit"))")
+    XCTAssertEqual(controller.totalEvalProfitLoss.text, "+10")
     send(.status(.finished([.init(positionID: position.id, verifiedThrough: 110_000, liquidated: false, hold: nil)])))
-    XCTAssertEqual(controller.totalEvalProfitLoss.text, "20 \(FuturesText.text("currency_krw_unit"))")
+    XCTAssertEqual(controller.totalEvalProfitLoss.text, "+20")
     XCTAssertEqual(controller.transactionTableview.numberOfRows(inSection: 0), 1)
     // 갱신 문구 없이 정상 목록이 표시되는 화면 검토 자료다.
     let attachment = XCTAttachment(image: UIGraphicsImageRenderer(bounds: controller.view.bounds).image { controller.view.layer.render(in: $0.cgContext) })
@@ -4441,6 +4548,43 @@ final class FuturesAccountReactorTests: XCTestCase {
   }
 
   @MainActor
+  func testFuturesInvestmentExchangeTitleUsesItsAccountInsteadOfGlobalSelection() throws {
+    // 전역 현물 선택과 선물 화면 계좌가 다를 때도 표시할 계좌가 우선한다.
+    let previousExchange = ExchangeSelectionStore.currentExchange
+    ExchangeSelectionStore.currentExchange = .upbit
+    defer { ExchangeSelectionStore.currentExchange = previousExchange }
+    // 공유 XIB의 업비트 초기값을 덮어써야 하는 빗썸 선물 계좌다.
+    let account = TradingAccountID(exchange: .bithumb, product: .perpetual, currency: .krw)
+    // 실제 계좌 조회 없이 화면에 전달되는 계좌 이름을 검증한다.
+    let reactor = FuturesAccountReactor(account: account)
+    reactor.isStubEnabled = true
+    // 시세 조회를 시작하지 않고 투자내역 화면을 생성한다.
+    let market = MainReactor(mainUseCase: try FuturesMainFixtureUseCase(), tickerSocketService: FuturesMainFixtureSocket())
+    market.isStubEnabled = true
+    // 현물과 공유하는 XIB에도 빗썸 계좌명이 표시돼야 한다.
+    let controller = FuturesInvestmentViewController(reactor: reactor, marketReactor: market)
+    try assertInvestmentExchangeButton(in: controller, exchange: .bithumb)
+    // 선물 버튼도 동일한 바텀시트를 현재 선물 계좌로 열어야 한다.
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 375, height: 812))
+    window.rootViewController = controller
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true; window.rootViewController = nil }
+    // 기본 거래소가 전역 현물 선택으로 덮어써지지 않는지 확인한다.
+    let button = try XCTUnwrap(descendants(controller.view).compactMap { $0 as? UIButton }.first {
+      $0.accessibilityIdentifier == "investment.exchange"
+    })
+    button.sendActions(for: .touchUpInside)
+    // 계좌별 초기 선택을 표시하는 실제 시스템 시트다.
+    let sheet = try XCTUnwrap(controller.presentedViewController as? ExchangeSelectionSheetViewController)
+    // 빗썸 카드만 선택 표시를 유지해야 한다.
+    let option = try XCTUnwrap(descendants(sheet.view).compactMap { $0 as? UIButton }.first {
+      $0.accessibilityIdentifier == "investment.exchangeOption.bithumb"
+    })
+    XCTAssertTrue(option.isSelected)
+    XCTAssertEqual(ExchangeSelectionStore.currentExchange, .upbit)
+  }
+
+  @MainActor
   func testFuturesInvestmentReusesSpotLayoutAndShowsOnlyCurrentAccountAssets() throws {
     func flushDisplay() {
       let rendered = expectation(description: "Investment state rendered")
@@ -4477,12 +4621,14 @@ final class FuturesAccountReactorTests: XCTestCase {
     defer { window.isHidden = true }
     controller.view.layoutIfNeeded()
     XCTAssertEqual(controller.nibName, "InvestmentViewController")
+    try assertInvestmentExchangeButton(in: controller, exchange: account.exchange)
     XCTAssertEqual(controller.totalBuyTitle.text, FuturesText.text("futures_total_margin"))
-    XCTAssertEqual(controller.totalEvaluationTitle.text, FuturesText.text("futures_total_evaluation"))
-    XCTAssertNotEqual(controller.totalEvaluationTitle.text, "futures_total_evaluation")
+    XCTAssertEqual(controller.totalEvaluationTitle.text, FuturesText.text("investment_total_assets"))
+    XCTAssertNotEqual(controller.totalEvaluationTitle.text, "investment_total_assets")
     flushDisplay()
-    XCTAssertEqual(controller.totalUserBalance.text, "100,000 원")
-    XCTAssertEqual(controller.totalEvalProfitLoss.text, "0 원")
+    XCTAssertEqual(controller.totalUserBalance.text, "1,000,000")
+    XCTAssertEqual(controller.totalEvaluationAmount.text, "100,000")
+    XCTAssertEqual(controller.totalEvalProfitLoss.text, "0")
     // 화면을 재생성하지 않고 완료 이벤트만으로 현재가 평가를 표시한다.
     let verified = FuturesRefreshResult(
       positionID: position.id,
@@ -4493,11 +4639,12 @@ final class FuturesAccountReactorTests: XCTestCase {
     )
     reactor.stub.state.value = reactor.reduce(state: reactor.currentState, mutation: .status(.finished([verified])))
     flushDisplay()
-    XCTAssertEqual(controller.totalUserBalance.text, "200,000 원")
-    XCTAssertEqual(controller.availableUserBalance.text, "900,000 원")
-    XCTAssertEqual(controller.totalBuyPrice.text, "100,000 원")
-    XCTAssertEqual(controller.totalEvalProfitLoss.text, "100,000 원")
-    XCTAssertEqual(controller.totalProfitRate.text, "100 %")
+    XCTAssertEqual(controller.totalUserBalance.text, "1,100,000")
+    XCTAssertEqual(controller.totalEvaluationAmount.text, "200,000")
+    XCTAssertEqual(controller.availableUserBalance.text, "900,000")
+    XCTAssertEqual(controller.totalBuyPrice.text, "100,000")
+    XCTAssertEqual(controller.totalEvalProfitLoss.text, "+100,000")
+    XCTAssertEqual(controller.totalProfitRate.text, "+100%")
     XCTAssertTrue(controller.noResultView.isHidden)
     XCTAssertEqual(controller.transactionTableview.numberOfRows(inSection: 0), 1)
     let cell = try XCTUnwrap(
@@ -4506,11 +4653,16 @@ final class FuturesAccountReactorTests: XCTestCase {
         cellForRowAt: IndexPath(row: 0, section: 0)
       ) as? InvestmentTableViewCell
     )
-    XCTAssertTrue(cell.cryptoName.text?.contains(FuturesText.text("futures_long")) == true)
-    XCTAssertEqual(cell.cryptoBuyPrice.text, "100,000 원")
-    XCTAssertEqual(cell.cryptoEvalPrice.text, "200,000 원")
-    XCTAssertEqual(cell.cryptoProfitRate.text, "100 %")
-    XCTAssertEqual(cell.averagePriceTitle.text, FuturesText.text("futures_entry") + " : ")
+    XCTAssertEqual(cell.cryptoName.text, "BTC")
+    XCTAssertEqual(cell.marketSymbolLabel.text, "BTC/KRW")
+    XCTAssertEqual(cell.sideBadgeLabel.text, FuturesText.text("futures_long"))
+    XCTAssertEqual(cell.leverageBadgeLabel.text, "10×")
+    XCTAssertEqual(cell.cryptoBuyPrice.text, "100,000")
+    XCTAssertEqual(cell.cryptoEvalPrice.text, "200,000")
+    XCTAssertEqual(cell.cryptoProfitRate.text, "+100%")
+    XCTAssertEqual(cell.averagePriceTitle.text, FuturesText.text("futures_entry"))
+    // 투자 전용 버튼은 XIB에서 지정한 글꼴 크기를 확대 설정과 무관하게 유지한다.
+    let chargeFontSize = try XCTUnwrap(controller.chargeButton.titleLabel).font.pointSize
     for style in [UIUserInterfaceStyle.light, .dark, .light] {
       controller.overrideUserInterfaceStyle = style
       // iOS 17 이후 지연되는 trait 전파를 완료한 뒤 실제 테마를 검사한다.
@@ -4524,24 +4676,31 @@ final class FuturesAccountReactorTests: XCTestCase {
       // 작은 기기와 일반 기기의 요약 행 너비를 각각 검증한다.
       for width in [320.0, 375.0] {
         window.frame.size.width = width
-        controller.view.layoutIfNeeded()
-        controller.chargeButton.layoutIfNeeded()
-        XCTAssertGreaterThanOrEqual(controller.chargeButton.bounds.height, 44)
-        XCTAssertGreaterThanOrEqual(
-          controller.chargeButton.bounds.width,
-          controller.chargeButton.intrinsicContentSize.width - 0.5
-        )
-        XCTAssertEqual(controller.chargeButton.configuration?.title, FuturesText.text("investment_recharge"))
-        XCTAssertEqual(controller.chargeButton.accessibilityLabel, FuturesText.text("futures_charge"))
-        // 작은 화면에서도 충전 버튼과 평가 금액이 겹치지 않는지 시각적으로 확인한다.
-        let image = UIGraphicsImageRenderer(bounds: controller.view.bounds).image {
-          controller.view.layer.render(in: $0.cgContext)
+        for category in [UIContentSizeCategory.large, .accessibilityExtraExtraExtraLarge, .large] {
+          if #available(iOS 17.0, *) {
+            controller.traitOverrides.preferredContentSizeCategory = category
+            controller.updateTraitsIfNeeded()
+          }
+          waitForNoticeUpdates(0.05)
+          if #available(iOS 17.0, *) {
+            XCTAssertEqual(controller.view.traitCollection.preferredContentSizeCategory, category)
+          }
+          controller.view.setNeedsLayout()
+          controller.view.layoutIfNeeded()
+          controller.chargeButton.layoutIfNeeded()
+          try assertInvestmentHeaderLayout(in: controller)
+          try assertCompactInvestmentChargeButton(controller.chargeButton, fontSize: chargeFontSize)
+          XCTAssertEqual(controller.chargeButton.accessibilityLabel, FuturesText.text("futures_charge"))
+          // 작은 화면에서도 충전 버튼과 평가 금액이 겹치지 않는지 시각적으로 확인한다.
+          let image = UIGraphicsImageRenderer(bounds: controller.view.bounds).image {
+            controller.view.layer.render(in: $0.cgContext)
+          }
+          // 현물과 공유하는 레이아웃의 테마·글자 크기 검증 결과를 보관한다.
+          let attachment = XCTAttachment(image: image)
+          attachment.name = "Futures investment \(style == .dark ? "dark" : "light") \(Int(width)) \(category.rawValue)"
+          attachment.lifetime = .keepAlways
+          add(attachment)
         }
-        // 현물과 공유하는 레이아웃의 다크·라이트 모드 검증 결과를 보관한다.
-        let attachment = XCTAttachment(image: image)
-        attachment.name = "Futures investment \(style == .dark ? "dark" : "light") \(Int(width))"
-        attachment.lifetime = .keepAlways
-        add(attachment)
       }
     }
     let stale = [
@@ -4553,16 +4712,18 @@ final class FuturesAccountReactorTests: XCTestCase {
     ]
     reactor.stub.state.value = reactor.reduce(state: reactor.currentState, mutation: .snapshot(snapshot, stale))
     flushDisplay()
-    XCTAssertEqual(controller.totalUserBalance.text, "200,000 원")
-    XCTAssertEqual(controller.totalProfitRate.text, "100 %")
+    XCTAssertEqual(controller.totalUserBalance.text, "1,100,000")
+    XCTAssertEqual(controller.totalEvaluationAmount.text, "200,000")
+    XCTAssertEqual(controller.totalProfitRate.text, "+100%")
     reactor.stub.state.value = reactor.reduce(state: reactor.currentState, mutation: .snapshot(snapshot, [:]))
     reactor.stub.state.value = reactor.reduce(state: reactor.currentState, mutation: .status(.refreshing))
     flushDisplay()
-    XCTAssertEqual(controller.totalUserBalance.text, "200,000 원")
-    XCTAssertEqual(controller.totalEvalProfitLoss.text, "100,000 원")
-    XCTAssertEqual(controller.totalBuyPrice.text, "100,000 원")
-    XCTAssertEqual(controller.availableUserBalance.text, "900,000 원")
-    // 투자내역의 총평가도 현재 보유 포지션의 손실만 반영한다.
+    XCTAssertEqual(controller.totalUserBalance.text, "1,100,000")
+    XCTAssertEqual(controller.totalEvaluationAmount.text, "200,000")
+    XCTAssertEqual(controller.totalEvalProfitLoss.text, "+100,000")
+    XCTAssertEqual(controller.totalBuyPrice.text, "100,000")
+    XCTAssertEqual(controller.availableUserBalance.text, "900,000")
+    // 총 보유자산은 현재 계좌의 현금과 포지션 평가금액을 합산한다.
     let lossQuote = FuturesMarkQuote(
       instrument: position.order.instrument,
       price: 95_000_000,
@@ -4570,25 +4731,170 @@ final class FuturesAccountReactorTests: XCTestCase {
     )
     reactor.stub.state.value = reactor.reduce(state: reactor.currentState, mutation: .quote(lossQuote))
     flushDisplay()
-    XCTAssertEqual(controller.totalUserBalance.text, "50,000 원")
+    XCTAssertEqual(controller.totalUserBalance.text, "950,000")
+    XCTAssertEqual(controller.totalEvaluationAmount.text, "50,000")
     // 검증 중에는 마지막 확인 가격을 유지하고 완료 후 손실 시세를 표시한다.
     reactor.stub.state.value = reactor.reduce(state: reactor.currentState, mutation: .status(.finished([verified])))
     flushDisplay()
-    XCTAssertEqual(controller.totalUserBalance.text, "50,000 원")
-    XCTAssertEqual(controller.totalEvalProfitLoss.text, "-50,000 원")
-    XCTAssertEqual(controller.availableUserBalance.text, "900,000 원")
+    XCTAssertEqual(controller.totalUserBalance.text, "950,000")
+    XCTAssertEqual(controller.totalEvaluationAmount.text, "50,000")
+    XCTAssertEqual(controller.totalEvalProfitLoss.text, "-50,000")
+    XCTAssertEqual(controller.availableUserBalance.text, "900,000")
     let empty = FuturesAccountSnapshot(revision: 2, accounts: [.init(id: account, availableBalance: 1_000_000)])
     reactor.stub.state.value = reactor.reduce(state: reactor.currentState, mutation: .snapshot(empty, [:]))
     flushDisplay()
-    XCTAssertEqual(controller.totalUserBalance.text, "0 원")
-    XCTAssertEqual(controller.availableUserBalance.text, "1,000,000 원")
-    XCTAssertEqual(controller.totalBuyPrice.text, "0 원")
-    XCTAssertEqual(controller.totalProfitRate.text, "0 %")
+    XCTAssertEqual(controller.totalUserBalance.text, "1,000,000")
+    XCTAssertEqual(controller.totalEvaluationAmount.text, "0")
+    XCTAssertEqual(controller.availableUserBalance.text, "1,000,000")
+    XCTAssertEqual(controller.totalBuyPrice.text, "0")
+    XCTAssertEqual(controller.totalProfitRate.text, "0%")
     XCTAssertFalse(controller.noResultView.isHidden)
     XCTAssertEqual(controller.emptyLabel.text, FuturesText.text("futures_no_position"))
     reactor.stub.state.value = reactor.reduce(state: reactor.currentState, mutation: .loadFailed)
     flushDisplay()
     XCTAssertEqual(controller.emptyLabel.text, FuturesText.text("futures_storage_error"))
+  }
+
+  @MainActor
+  func testInvestmentPositionBadgesAndROEStayCompactAcrossLayoutQuoteUpdatesAndReuse() throws {
+    // 작은 화면과 일반 화면에서 같은 셀을 재사용하며 최초 배치까지 확인한다.
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+    // 저장 데이터와 네트워크 없이 실제 nib의 제약만 검증한다.
+    let host = UIViewController()
+    window.rootViewController = host
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true; window.rootViewController = nil }
+    if #available(iOS 17.0, *) {
+      host.traitOverrides.preferredContentSizeCategory = .large
+      host.updateTraitsIfNeeded()
+    }
+    // 셀 배경까지 포함한 자연 폭과 ROE의 실제 텍스트 간격을 검사한다.
+    func assertCompactLayout(_ cell: InvestmentTableViewCell) throws {
+      for label in [cell.sideBadgeLabel, cell.leverageBadgeLabel].compactMap({ $0 }) {
+        // 텍스트뿐 아니라 배경 뷰까지 자연 폭을 유지해야 한다.
+        let badge = try XCTUnwrap(label.superview)
+        // XIB의 좌우 8pt 여백을 제외한 배지 폭은 글자 폭과 같아야 한다.
+        let naturalWidth = label.sizeThatFits(
+          CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+        ).width
+        XCTAssertEqual(badge.bounds.width, naturalWidth + 16, accuracy: 0.5, label.text ?? "")
+        XCTAssertFalse(badge.hasAmbiguousLayout)
+      }
+      // 값 라벨이 남는 폭을 차지하면 오른쪽 정렬된 글자까지의 간격이 벌어진다.
+      let titleFrame = cell.profitRateTitle.convert(cell.profitRateTitle.bounds, to: cell.contentView)
+      // 숫자 프레임도 같은 좌표계에서 비교한다.
+      let rateFrame = cell.cryptoProfitRate.convert(cell.cryptoProfitRate.bounds, to: cell.contentView)
+      // 손익 크기가 바뀌어도 ROE 한 묶음은 셀의 우측 여백에 붙는다.
+      let rateWidth = cell.cryptoProfitRate.sizeThatFits(
+        CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+      ).width
+      if cell.traitCollection.preferredContentSizeCategory.isAccessibilityCategory {
+        XCTAssertEqual(rateFrame.minY - titleFrame.maxY, 4, accuracy: 0.5)
+        XCTAssertEqual(rateFrame.minX, titleFrame.minX, accuracy: 0.5)
+      } else {
+        XCTAssertEqual(rateFrame.minX - titleFrame.maxX, 4, accuracy: 0.5)
+        XCTAssertEqual(rateFrame.maxX, cell.contentView.bounds.width - 16, accuracy: 0.5)
+      }
+      XCTAssertEqual(rateFrame.width, rateWidth, accuracy: 0.5)
+      XCTAssertGreaterThanOrEqual(rateFrame.minX, 16 - 0.5)
+      XCTAssertLessThanOrEqual(rateFrame.maxX, cell.contentView.bounds.width - 16 + 0.5)
+    }
+    for width: CGFloat in [320, 393] {
+      // 각 폭의 첫 layout pass도 이전 폭의 결과에 의존하지 않아야 한다.
+      let cell = try XCTUnwrap(
+        UINib(nibName: "InvestmentTableViewCell", bundle: .main)
+          .instantiate(withOwner: nil).first as? InvestmentTableViewCell
+      )
+      host.view.addSubview(cell)
+      defer { cell.removeFromSuperview() }
+      cell.frame = CGRect(x: 0, y: 0, width: width, height: 260)
+      for side in [FuturesSide.long, .short] {
+        for (symbol, leverage) in [("KRW-GTC", 20), ("KRW-BTC", 1), ("KRW-BTC", 100)] {
+          cell.prepareForReuse()
+          // 사용자 화면의 GTC 20배를 포함해 배지 문자열 길이를 바꾼다.
+          let position = try FuturesCalculator.open(
+            domesticFuturesOrder(
+              symbol: symbol,
+              side: side,
+              leverage: leverage,
+              margin: 2_500_000,
+              price: 404
+            )
+          )
+          for price: Decimal in [404, 405, 4_040, 404] {
+            // 0%와 작은 변동, 큰 손익 뒤 0%로 복귀하는 실시간 갱신이다.
+            let valuation = try FuturesCalculator.evaluate(position, markPrice: price)
+            cell.configure(position: position, valuation: valuation, isLast: false)
+            cell.setNeedsLayout()
+            cell.layoutIfNeeded()
+            try assertCompactLayout(cell)
+            // 테이블의 self-sizing 이후에도 첫 배치와 같은 배지 폭을 유지한다.
+            let fittedHeight = cell.systemLayoutSizeFitting(
+              CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
+              withHorizontalFittingPriority: .required,
+              verticalFittingPriority: .fittingSizeLevel
+            ).height
+            cell.frame.size.height = ceil(fittedHeight)
+            for _ in 0..<2 {
+              cell.setNeedsLayout()
+              cell.layoutIfNeeded()
+              try assertCompactLayout(cell)
+              // 중첩 지표 행까지 검사해 배지가 정상이어도 남을 수 있는 크기 모호성을 잡는다.
+              for view in descendants(cell.contentView) where !sequence(first: view, next: { $0.superview })
+                .contains(where: { $0.isHidden }) {
+                XCTAssertFalse(
+                  view.hasAmbiguousLayout,
+                  "\(view), labels: \(descendants(view).compactMap { ($0 as? UILabel)?.text })"
+                )
+              }
+              // 옆 지표가 두 줄이어도 한 줄 숫자가 세로로 늘어나 단위와 어긋나면 안 된다.
+              for label in [cell.cryptoAmount, cell.cryptoAveragePrice, cell.cryptoEvalPrice, cell.cryptoBuyPrice]
+                .compactMap({ $0 }) {
+                XCTAssertEqual(label.bounds.height, label.intrinsicContentSize.height, accuracy: 0.5)
+              }
+            }
+            XCTAssertEqual(cell.sideBadgeLabel.text, FuturesText.side(side))
+            XCTAssertEqual(cell.leverageBadgeLabel.text, "\(leverage)×")
+            if price == 404 {
+              XCTAssertEqual(cell.cryptoProfitRate.text, "0%")
+              XCTAssertEqual(cell.cryptoEvalLoss.text, "0")
+            }
+          }
+          if symbol == "KRW-GTC", side == .long {
+            // 제보된 20배·0% 상태의 실제 배지 폭과 수익률 간격을 보관한다.
+            let capture = XCTAttachment(image: UIGraphicsImageRenderer(bounds: cell.bounds).image {
+              cell.layer.render(in: $0.cgContext)
+            })
+            capture.name = "FuturesCell-GTC20-\(Int(width))"
+            capture.lifetime = .keepAlways
+            add(capture)
+            if #available(iOS 17.0, *) {
+              for category in [UIContentSizeCategory.accessibilityExtraExtraExtraLarge, .large] {
+                cell.traitOverrides.preferredContentSizeCategory = category
+                cell.updateTraitsIfNeeded()
+                // 글자 확대와 복귀에서도 배지·수익률의 자연 크기를 다시 반영한다.
+                let height = cell.systemLayoutSizeFitting(
+                  CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
+                  withHorizontalFittingPriority: .required,
+                  verticalFittingPriority: .fittingSizeLevel
+                ).height
+                cell.frame.size.height = ceil(height)
+                cell.setNeedsLayout()
+                cell.layoutIfNeeded()
+                try assertCompactLayout(cell)
+              }
+            }
+          }
+          cell.prepareForReuse()
+          cell.configure(crypto: spotOrderLayoutHolding(), isLast: false)
+          cell.setNeedsLayout()
+          cell.layoutIfNeeded()
+          XCTAssertNil(cell.sideBadgeLabel.text)
+          XCTAssertNil(cell.leverageBadgeLabel.text)
+          XCTAssertTrue(cell.sideBadgeLabel.superview?.superview?.isHidden == true)
+        }
+      }
+    }
   }
 
   @MainActor
@@ -4703,14 +5009,14 @@ final class FuturesAccountReactorTests: XCTestCase {
     spot.isStubEnabled = true
     let controller = InvestmentViewController(reactor: spot)
     controller.loadViewIfNeeded()
-    XCTAssertEqual(controller.totalBuyTitle.text, "총 매수금액")
-    XCTAssertEqual(controller.totalEvaluationTitle.text, "총 보유자산")
-    XCTAssertEqual(controller.emptyLabel.text, "보유중인 코인이 없습니다.")
+    XCTAssertEqual(controller.totalBuyTitle.text, FuturesText.text("investment_total_buy"))
+    XCTAssertEqual(controller.totalEvaluationTitle.text, FuturesText.text("investment_total_assets"))
+    XCTAssertEqual(controller.emptyLabel.text, FuturesText.text("trade_no_coins"))
     let cell = try XCTUnwrap(
       UINib(nibName: "InvestmentTableViewCell", bundle: nil).instantiate(withOwner: nil).first
         as? InvestmentTableViewCell
     )
-    XCTAssertEqual(cell.buyPriceTitle.text, "매수금액 : ")
+    XCTAssertEqual(cell.buyPriceTitle.text, "매수금액")
     // 화면 진입 부수 효과 없이 XIB 레이아웃을 실제 윈도우에서 검증한다.
     let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 812))
     window.rootViewController = UIViewController()
@@ -4719,6 +5025,10 @@ final class FuturesAccountReactorTests: XCTestCase {
     controller.view.frame = window.bounds
     defer { window.isHidden = true }
     XCTAssertEqual(controller.view.bounds.width, 320)
+    controller.view.layoutIfNeeded()
+    controller.chargeButton.layoutIfNeeded()
+    // 고정 크기의 투자 전용 버튼에서 XIB 글꼴 설정을 보존한다.
+    let chargeFontSize = try XCTUnwrap(controller.chargeButton.titleLabel).font.pointSize
     for style in [UIUserInterfaceStyle.light, .dark, .light] {
       controller.overrideUserInterfaceStyle = style
       // iOS 17 이후 지연되는 trait 전파를 완료한 뒤 실제 테마를 검사한다.
@@ -4729,41 +5039,287 @@ final class FuturesAccountReactorTests: XCTestCase {
         controller.transactionTableview.superview?.backgroundColor?.resolvedColor(with: controller.traitCollection),
         UIColor.mobitColors(.investmentBackground).resolvedColor(with: controller.traitCollection)
       )
-      controller.view.layoutIfNeeded()
-      controller.chargeButton.layoutIfNeeded()
-      XCTAssertGreaterThanOrEqual(controller.chargeButton.bounds.height, 44)
-      XCTAssertGreaterThanOrEqual(
-        controller.chargeButton.bounds.width,
-        controller.chargeButton.intrinsicContentSize.width - 0.5
-      )
-      XCTAssertEqual(controller.chargeButton.configuration?.title, FuturesText.text("investment_recharge"))
-      // 현물 화면도 동일한 캡슐 버튼을 사용하는지 검증할 이미지를 만든다.
-      let image = UIGraphicsImageRenderer(bounds: controller.view.bounds).image {
-        controller.view.layer.render(in: $0.cgContext)
+      for category in [UIContentSizeCategory.large, .accessibilityExtraExtraExtraLarge, .large] {
+        if #available(iOS 17.0, *) {
+          controller.traitOverrides.preferredContentSizeCategory = category
+          controller.updateTraitsIfNeeded()
+        }
+        waitForNoticeUpdates(0.05)
+        if #available(iOS 17.0, *) {
+          XCTAssertEqual(controller.view.traitCollection.preferredContentSizeCategory, category)
+        }
+        controller.view.setNeedsLayout()
+        controller.view.layoutIfNeeded()
+        controller.chargeButton.layoutIfNeeded()
+        try assertInvestmentHeaderLayout(in: controller)
+        try assertCompactInvestmentChargeButton(controller.chargeButton, fontSize: chargeFontSize)
+        // 현물 화면도 같은 크기와 XIB 글꼴을 유지하는지 시각적으로 확인한다.
+        let image = UIGraphicsImageRenderer(bounds: controller.view.bounds).image {
+          controller.view.layer.render(in: $0.cgContext)
+        }
+        // 작은 화면의 테마·글자 크기를 테스트 결과에서 바로 비교한다.
+        let attachment = XCTAttachment(image: image)
+        attachment.name = "Spot investment \(style == .dark ? "dark" : "light") 320 \(category.rawValue)"
+        attachment.lifetime = .keepAlways
+        add(attachment)
       }
-      // 작은 화면의 두 테마를 테스트 결과에서 바로 비교한다.
-      let attachment = XCTAttachment(image: image)
-      attachment.name = "Spot investment \(style == .dark ? "dark" : "light") 320"
-      attachment.lifetime = .keepAlways
-      add(attachment)
     }
+  }
+
+  @MainActor
+  func testInvestmentXIBContainsItsSummaryAndLaysOutBeforeControllerConfiguration() throws {
+    // 화면 설정 코드가 실행되기 전에도 XIB 자체의 계층과 배치가 완성돼야 한다.
+    let spot = InvestReactor(mainUseCase: MainUseCase(mainRepository: MainRepository()))
+    spot.isStubEnabled = true
+    // File's Owner 연결만 제공하고 viewDidLoad를 호출하지 않는다.
+    let owner = InvestmentViewController(reactor: spot)
+    // 분리된 최상위 요약 뷰가 없어야 편집기에서도 한 화면으로 표시된다.
+    let roots = UINib(nibName: "InvestmentViewController", bundle: nil).instantiate(withOwner: owner)
+    XCTAssertEqual(roots.count, 1)
+    // nib에서 직접 로드한 실제 편집 대상 화면이다.
+    let root = try XCTUnwrap(roots.first as? UIView)
+    root.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
+    // 원래 테이블 헤더로 연결된 상태를 검사한다.
+    let header = try XCTUnwrap(owner.transactionTableview.tableHeaderView as? InvestmentSummaryView)
+    XCTAssertTrue(header === owner.summaryHeaderView)
+    XCTAssertTrue(header.isDescendant(of: root))
+    root.layoutIfNeeded()
+    header.updateLayout(in: owner.transactionTableview)
+    root.layoutIfNeeded()
+    header.layoutIfNeeded()
+    XCTAssertGreaterThan(owner.transactionTableview.bounds.height, 400)
+    // 상단 안전 영역과 무관하게 내비게이션 콘텐츠 높이만 검사한다.
+    XCTAssertLessThan(owner.transactionTableview.frame.minY - root.safeAreaLayoutGuide.layoutFrame.minY, 100)
+    XCTAssertLessThan(header.bounds.height, 450)
+    XCTAssertGreaterThan(header.bounds.height, 250)
+    XCTAssertFalse(root.hasAmbiguousLayout)
+    XCTAssertFalse(header.hasAmbiguousLayout)
+    // 편집기에 저장할 프레임도 코드 설정 전의 배치와 비교할 수 있게 남긴다.
+    func frames(_ view: UIView) -> [String: Any] {
+      if !sequence(first: view, next: { $0.superview }).contains(where: { $0.isHidden }) {
+        XCTAssertFalse(view.hasAmbiguousLayout, String(describing: type(of: view)))
+      }
+      // UIKit 내부 장식 대신 XIB에서 편집하는 자식 뷰만 수집한다.
+      let children: [UIView]
+      if let table = view as? UITableView {
+        children = table.tableHeaderView.map { [$0] } ?? []
+      } else if view is UIButton {
+        children = view.subviews.filter { $0.accessibilityIdentifier == "investment.exchange.chevron" }
+      } else if view is UILabel {
+        children = []
+      } else if let stack = view as? UIStackView {
+        children = stack.arrangedSubviews
+      } else {
+        children = view.subviews
+      }
+      return [
+        "class": String(describing: type(of: view)),
+        "frame": [view.frame.minX, view.frame.minY, view.frame.width, view.frame.height],
+        "children": children.map(frames)
+      ]
+    }
+    // XIB 미리보기의 저장 프레임과 실제 Auto Layout 결과를 비교한다.
+    let data = try JSONSerialization.data(withJSONObject: frames(root), options: [.prettyPrinted, .sortedKeys])
+    // 실행 코드로 보정하기 전의 배치를 테스트 결과에 보관한다.
+    let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")
+    attachment.name = "Investment-XIB-default-frames"
+    attachment.lifetime = .keepAlways
+    add(attachment)
+  }
+
+  @MainActor
+  func testInvestmentHeaderFitsBothAccountsAndLargeLocalizedTitles() throws {
+    guard #available(iOS 17.0, *) else { throw XCTSkip("Trait overrides require iOS 17") }
+    // 현물 버튼의 현재 거래소 선택은 테스트 후 복구한다.
+    let previousExchange = ExchangeSelectionStore.currentExchange
+    defer { ExchangeSelectionStore.currentExchange = previousExchange }
+    for exchange in [Exchange.upbit, .bithumb] {
+      ExchangeSelectionStore.currentExchange = exchange
+      // 현물 데이터 조회 없이 공유 헤더를 검사한다.
+      let spot = InvestReactor(mainUseCase: MainUseCase(mainRepository: MainRepository()))
+      spot.isStubEnabled = true
+      // 선물 헤더도 전역 선택과 무관하게 계좌를 표시한다.
+      let futures = FuturesAccountReactor(account: .init(exchange: exchange, product: .perpetual, currency: .krw))
+      futures.isStubEnabled = true
+      // 실제 소켓 연결 없이 선물 화면의 기존 주입 경로를 사용한다.
+      let market = MainReactor(mainUseCase: try FuturesMainFixtureUseCase(), tickerSocketService: FuturesMainFixtureSocket())
+      market.isStubEnabled = true
+      // 같은 XIB를 사용하는 두 상품의 화면을 동일한 조건에서 검사한다.
+      let controllers: [UIViewController] = [
+        InvestmentViewController(reactor: spot),
+        FuturesInvestmentViewController(reactor: futures, marketReactor: market)
+      ]
+      for controller in controllers {
+        // 좁은 화면에서도 제목과 양쪽 버튼이 겹치지 않아야 한다.
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 812))
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        defer { window.isHidden = true; window.rootViewController = nil }
+        for category in [UIContentSizeCategory.large, .accessibilityExtraExtraExtraLarge] {
+          controller.traitOverrides.preferredContentSizeCategory = category
+          controller.updateTraitsIfNeeded()
+          controller.view.layoutIfNeeded()
+          try assertInvestmentHeaderLayout(in: controller)
+        }
+      }
+    }
+  }
+
+  @MainActor
+  private func assertCompactInvestmentChargeButton(_ button: UIButton, fontSize: CGFloat) throws {
+    XCTAssertTrue(button is InvestmentChargeButton)
+    XCTAssertFalse(button is MobitChargeButton)
+    XCTAssertEqual(button.bounds.width, 80, accuracy: 0.5)
+    XCTAssertEqual(button.bounds.height, 32, accuracy: 0.5)
+    XCTAssertEqual(button.configuration?.title, FuturesText.text("investment_recharge"))
+    XCTAssertFalse(button.hasAmbiguousLayout)
+    // 고정 크기 안에서 원래 XIB 글꼴과 한 줄 제목을 모두 보존해야 한다.
+    let title = try XCTUnwrap(button.titleLabel)
+    XCTAssertEqual(title.numberOfLines, 1)
+    XCTAssertFalse(title.adjustsFontForContentSizeCategory)
+    XCTAssertEqual(title.font.pointSize, fontSize, accuracy: 0.001)
+    // 줄바꿈이나 숨은 압축으로 통과하지 않도록 전체 제목의 자연 폭을 검사한다.
+    let titleWidth = ((title.text ?? "") as NSString).size(withAttributes: [.font: title.font as Any]).width
+    XCTAssertGreaterThanOrEqual(title.bounds.width + 0.5, titleWidth)
+    XCTAssertGreaterThanOrEqual(title.bounds.height + 0.5, title.font.lineHeight)
+    // 버튼 설정의 실제 내부 여백 안에 심볼과 제목이 모두 들어가야 한다.
+    let insets = button.configuration?.contentInsets ?? .zero
+    // 배경이나 그림자 크기 대신 콘텐츠가 사용할 수 있는 영역만 비교한다.
+    let contentBounds = CGRect(
+      x: button.bounds.minX + insets.leading,
+      y: button.bounds.minY + insets.top,
+      width: button.bounds.width - insets.leading - insets.trailing,
+      height: button.bounds.height - insets.top - insets.bottom
+    )
+    // plus가 사라지거나 버튼 밖에서 잘리는 상태도 검출한다.
+    let image = try XCTUnwrap(button.imageView)
+    XCTAssertGreaterThan(image.bounds.width, 0)
+    XCTAssertGreaterThan(image.bounds.height, 0)
+    // UIKit 내부 컨테이너와 무관하게 버튼 좌표계에서 경계를 확인한다.
+    let contentViews: [UIView] = [title, image]
+    for view in contentViews {
+      // 각각의 실제 렌더링 영역을 설정된 내부 여백과 비교한다.
+      let frame = view.convert(view.bounds, to: button)
+      XCTAssertGreaterThanOrEqual(frame.minX + 0.5, contentBounds.minX)
+      XCTAssertGreaterThanOrEqual(frame.minY + 0.5, contentBounds.minY)
+      XCTAssertLessThanOrEqual(frame.maxX - 0.5, contentBounds.maxX)
+      XCTAssertLessThanOrEqual(frame.maxY - 0.5, contentBounds.maxY)
+    }
+  }
+
+  @MainActor
+  private func assertInvestmentHeaderLayout(in controller: UIViewController) throws {
+    // 거래소와 내역 버튼은 제목을 사이에 두고 한 줄의 헤더를 구성한다.
+    let exchange = try XCTUnwrap(descendants(controller.view).compactMap { $0 as? UIButton }.first {
+      $0.accessibilityIdentifier == "investment.exchange"
+    })
+    // 내역 버튼은 확대된 글씨에서도 요청한 24pt 정사각형을 유지한다.
+    let history = try XCTUnwrap(descendants(controller.view).compactMap { $0 as? UIButton }.first {
+      $0.accessibilityIdentifier == "investment.history"
+    })
+    // 제목은 양쪽 버튼 사이의 가용 폭에서 자연스럽게 줄바꿈한다.
+    let title = try XCTUnwrap(descendants(controller.view).compactMap { $0 as? UILabel }.first {
+      $0.text == FuturesText.text("investment_history")
+    })
+    XCTAssertTrue(exchange.superview === title.superview)
+    XCTAssertTrue(history.superview === title.superview)
+    XCTAssertEqual(history.bounds.size.width, 24, accuracy: 0.5)
+    XCTAssertEqual(history.bounds.size.height, 24, accuracy: 0.5)
+    XCTAssertGreaterThan(history.currentImage?.size.height ?? 0, 0)
+    XCTAssertGreaterThan(history.imageView?.bounds.height ?? 0, 0)
+    // 버튼 밖으로 원본 심볼이 그려져 잘리는 상태도 크기 검증에 포함한다.
+    let historyImage = try XCTUnwrap(history.imageView)
+    // 이미지가 별도 컨테이너를 갖더라도 버튼의 좌표계에서 범위를 비교한다.
+    let imageFrame = historyImage.convert(historyImage.bounds, to: history)
+    // 실패 시 버튼 크기와 실제 심볼 렌더링 크기를 함께 확인한다.
+    let imageDescription = "button=\(history.bounds), image=\(String(describing: history.currentImage?.size)), imageFrame=\(imageFrame)"
+    XCTAssertGreaterThanOrEqual(imageFrame.minX, -0.5, imageDescription)
+    XCTAssertGreaterThanOrEqual(imageFrame.minY, -0.5, imageDescription)
+    XCTAssertLessThanOrEqual(imageFrame.maxX, history.bounds.width + 0.5, imageDescription)
+    XCTAssertLessThanOrEqual(imageFrame.maxY, history.bounds.height + 0.5, imageDescription)
+    XCTAssertTrue(history.actions(forTarget: controller, forControlEvent: .touchUpInside)?.contains("tapOnPnlButton:") == true)
+    XCTAssertLessThanOrEqual(exchange.frame.maxX + 12, title.frame.minX + 0.5)
+    XCTAssertLessThanOrEqual(title.frame.maxX + 12, history.frame.minX + 0.5)
+    XCTAssertEqual(exchange.frame.midY, title.frame.midY, accuracy: 0.5)
+    XCTAssertEqual(history.frame.midY, title.frame.midY, accuracy: 0.5)
+    XCTAssertFalse(title.hasAmbiguousLayout)
+    XCTAssertGreaterThanOrEqual(
+      title.bounds.height + 1,
+      title.sizeThatFits(CGSize(width: title.bounds.width, height: .greatestFiniteMagnitude)).height
+    )
+    // 확대된 충전 안내도 고정 높이로 잘리지 않아야 한다.
+    let note = try XCTUnwrap(descendants(controller.view).compactMap { $0 as? UILabel }.first {
+      $0.accessibilityIdentifier == "investment.chargeNote"
+    })
+    XCTAssertGreaterThanOrEqual(
+      note.bounds.height + 1,
+      note.sizeThatFits(CGSize(width: note.bounds.width, height: .greatestFiniteMagnitude)).height
+    )
+  }
+
+  @MainActor
+  private func assertInvestmentExchangeButton(
+    in controller: UIViewController,
+    exchange: Exchange,
+    file: StaticString = #filePath,
+    line: UInt = #line
+  ) throws {
+    controller.loadViewIfNeeded()
+    controller.view.layoutIfNeeded()
+    // XIB의 기본 제목과 설정 기반 제목이 서로 덮어쓰지 않아야 한다.
+    let button = try XCTUnwrap(
+      descendants(controller.view).compactMap { $0 as? UIButton }.first {
+        $0.accessibilityIdentifier == "investment.exchange"
+      },
+      file: file,
+      line: line
+    )
+    // 실제 선택 계좌에서 생성한 다국어 거래소 이름이다.
+    let expectedTitle = FuturesText.text(exchange == .upbit ? "futures_upbit" : "futures_bithumb")
+    XCTAssertEqual(button.configuration?.title, expectedTitle, file: file, line: line)
+    XCTAssertEqual(button.title(for: .normal), expectedTitle, file: file, line: line)
+    XCTAssertEqual(button.currentTitle, expectedTitle, file: file, line: line)
+    // 기존 거래소 로고도 실제 선택 계좌에 맞춰 함께 바뀌어야 한다.
+    let assetImage = try XCTUnwrap(
+      UIImage(named: exchange == .upbit ? "upbit_logo" : "bithumb_logo"),
+      file: file,
+      line: line
+    )
+    // 기존 거래소 로고가 버튼용 크기로 표시되는지 확인한다.
+    let imageSize = CGSize(width: 18, height: 18)
+    // 원본 자산과 같은 로고가 작은 버튼에도 유지되어야 한다.
+    let expectedImage = UIGraphicsImageRenderer(size: imageSize).image { _ in
+      assetImage.draw(in: CGRect(origin: .zero, size: imageSize))
+    }
+    XCTAssertEqual(button.currentImage?.size, imageSize, file: file, line: line)
+    XCTAssertEqual(button.currentImage?.pngData(), expectedImage.pngData(), file: file, line: line)
+    XCTAssertEqual(button.image(for: .normal)?.pngData(), expectedImage.pngData(), file: file, line: line)
+    XCTAssertNil(button.menu, file: file, line: line)
+    XCTAssertFalse(button.showsMenuAsPrimaryAction, file: file, line: line)
   }
 
   private func descendants(_ view: UIView) -> [UIView] {
     view.subviews.flatMap { [$0] + descendants($0) }
   }
 
-  func testFloatingSwitchHidesOnOtherTabsAndDetail() {
+  @MainActor
+  func testFloatingSwitchHidesOnOtherTabsAndDetail() throws {
+    // 실제 컨트롤 위치를 계산할 수 있는 탭 컨테이너다.
     let controller = MobitTabBarViewController()
     controller.setViewControllers([UIViewController(), UIViewController(), UIViewController()])
     controller.setProduct(.perpetual)
-    XCTAssertEqual(controller.children.first?.additionalSafeAreaInsets.bottom, 76)
+    // 안전 영역이 있는 윈도우에서 실제 스위치 높이를 반영한다.
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+    window.rootViewController = controller
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true; window.rootViewController = nil }
+    XCTAssertGreaterThan(try assertProductSelectorSafeArea(in: controller), 0)
     controller.switchToTab(index: 2)
-    XCTAssertEqual(controller.children.first?.additionalSafeAreaInsets.bottom, 0)
+    XCTAssertEqual(try assertProductSelectorSafeArea(in: controller), 0)
     controller.switchToTab(index: 1)
-    XCTAssertEqual(controller.children.first?.additionalSafeAreaInsets.bottom, 76)
+    XCTAssertGreaterThan(try assertProductSelectorSafeArea(in: controller), 0)
     controller.setTradingChromeHidden(true)
-    XCTAssertEqual(controller.children.first?.additionalSafeAreaInsets.bottom, 0)
+    XCTAssertEqual(try assertProductSelectorSafeArea(in: controller), 0)
     XCTAssertTrue(controller.mobitTabBar.isHidden)
   }
 
@@ -4779,6 +5335,12 @@ final class FuturesAccountReactorTests: XCTestCase {
     let container = MobitTabBarViewController()
     container.setViewControllers([UIViewController(), coordinator.investmentNavigationController], selectedIndex: 1)
     container.setProduct(.perpetual)
+    // 복귀 순간에도 실측 높이를 계산할 수 있도록 실제 창에 붙인다.
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+    window.rootViewController = container
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true; window.rootViewController = nil }
+    _ = try assertProductSelectorSafeArea(in: container)
     // 앱과 동일하게 Coordinator의 표시 요청을 컨테이너에 전달한다.
     let delegate = FuturesTradingControlsDelegateFixture(container: container)
     coordinator.delegate = delegate
@@ -4795,9 +5357,159 @@ final class FuturesAccountReactorTests: XCTestCase {
     pnl.beginAppearanceTransition(false, animated: true)
     XCTAssertFalse(container.mobitTabBar.isHidden)
     XCTAssertFalse(selector.isHidden)
-    XCTAssertEqual(coordinator.investmentNavigationController.additionalSafeAreaInsets.bottom, 76)
+    XCTAssertGreaterThan(try assertProductSelectorSafeArea(in: container), 0)
     pnl.endAppearanceTransition()
     XCTAssertFalse(container.mobitTabBar.isHidden)
+  }
+
+  @MainActor
+  func testInvestmentLastHoldingScrollsAboveProductSelectorAcrossStylesAndTextSizes() throws {
+    guard #available(iOS 17.0, *) else { throw XCTSkip("Trait overrides require iOS 17") }
+    for style in [MobitTabBarViewController.Style.standard, .floating] {
+      for width: CGFloat in [320, 393] {
+        for product in [TradingProduct.spot, .perpetual] {
+          // 두 상품에서 이미 사용하는 실제 요약과 목록 XIB를 로드한다.
+          let spot = InvestReactor(mainUseCase: try FuturesMainFixtureUseCase())
+          spot.isStubEnabled = true
+          // 계좌 조회와 시세 연결 없이 선물 화면의 기존 바인딩을 유지한다.
+          let futures = FuturesAccountReactor(account: account)
+          futures.isStubEnabled = true
+          // 외부 통신을 시작하지 않는 메인 시세 Reactor다.
+          let market = MainReactor(mainUseCase: try FuturesMainFixtureUseCase(), tickerSocketService: FuturesMainFixtureSocket())
+          market.isStubEnabled = true
+          // 목록을 직접 스크롤할 실제 투자내역 화면이다.
+          let investment: UIViewController = product == .spot
+            ? InvestmentViewController(reactor: spot)
+            : FuturesInvestmentViewController(reactor: futures, marketReactor: market)
+          // 앱과 같은 내비게이션 계층에 추가 안전 영역이 전달돼야 한다.
+          let navigation = UINavigationController(rootViewController: investment)
+          navigation.setNavigationBarHidden(true, animated: false)
+          // 스타일별 탭바와 상품 스위치의 실제 위치를 측정한다.
+          let container = MobitTabBarViewController()
+          container.style = style
+          container.setViewControllers([UIViewController(), navigation, UIViewController()], selectedIndex: 1)
+          container.setProduct(product)
+          // 기기별 안전 영역을 가진 실제 윈도우에서 Auto Layout을 수행한다.
+          let window = UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: 852))
+          window.rootViewController = container
+          window.makeKeyAndVisible()
+          defer { window.isHidden = true; window.rootViewController = nil }
+          investment.loadViewIfNeeded()
+          window.layoutIfNeeded()
+          _ = try assertProductSelectorSafeArea(in: container)
+          XCTAssertTrue(investment.view.isDescendant(of: container.view))
+          // 화면별 원래 테이블과 공유 헤더를 유지하고 행 데이터만 통제한다.
+          let table: UITableView
+          if let controller = investment as? InvestmentViewController {
+            table = try XCTUnwrap(controller.transactionTableview)
+            controller.noResultView.isHidden = true
+            controller.summaryHeaderView.updateCount(12)
+          } else {
+            // 분기별 화면 타입은 위에서 정한 상품과 일치해야 한다.
+            let controller = try XCTUnwrap(investment as? FuturesInvestmentViewController)
+            table = try XCTUnwrap(controller.transactionTableview)
+            controller.noResultView.isHidden = true
+            controller.summaryHeaderView.updateCount(12)
+          }
+          // 마지막 셀이 화면 밖으로 충분히 내려가는 실제 보유자산 데이터다.
+          let holding = spotOrderLayoutHolding()
+          // 지연된 화면 바인딩도 원래 데이터 소스로 돌아가 갱신할 수 있게 복구한다.
+          let originalDataSource = table.dataSource
+          defer { table.dataSource = originalDataSource }
+          // 선물도 현물과 같은 셀을 사용하면서 방향 배지와 ROE를 표시한다.
+          let position = try FuturesCalculator.open(domesticFuturesOrder(leverage: 20))
+          // 서버나 사용자 저장소를 바꾸지 않고 12개 셀의 자체 높이를 계산한다.
+          let dataSource = UITableViewDiffableDataSource<Int, Int>(tableView: table) { table, path, _ in
+            guard let cell = table.dequeueReusableCell(withIdentifier: "InvestmentTableViewCell", for: path) as? InvestmentTableViewCell else {
+              return UITableViewCell()
+            }
+            if product == .spot { cell.configure(crypto: holding, isLast: path.row == 11) }
+            else { cell.configure(position: position, valuation: nil, isLast: path.row == 11) }
+            return cell
+          }
+          // 글씨 크기가 바뀐 뒤에도 같은 식별자를 재사용한다.
+          var snapshot = NSDiffableDataSourceSnapshot<Int, Int>()
+          snapshot.appendSections([0])
+          snapshot.appendItems(Array(0..<12))
+          dataSource.apply(snapshot, animatingDifferences: false)
+          // 확대 후 기본 글씨로 돌아올 때 여백이 누적되지 않아야 한다.
+          var normalInset: CGFloat?
+          for category in [UIContentSizeCategory.large, .accessibilityExtraExtraExtraLarge, .large] {
+            container.traitOverrides.preferredContentSizeCategory = category
+            container.updateTraitsIfNeeded()
+            // 화면을 반복해서 숨기고 복원해도 매번 같은 실측값을 적용한다.
+            for _ in 0..<2 {
+              container.setTradingChromeHidden(true)
+              XCTAssertEqual(try assertProductSelectorSafeArea(in: container), 0)
+              container.setTradingChromeHidden(false)
+            }
+            // 현재 글씨 크기의 실제 상품 스위치 높이에 맞춘 여백이다.
+            let inset = try assertProductSelectorSafeArea(in: container)
+            XCTAssertGreaterThan(inset, 0)
+            if category == .large {
+              if let normalInset { XCTAssertEqual(inset, normalInset, accuracy: 0.5) }
+              else { normalInset = inset }
+            }
+            table.reloadData()
+            table.layoutIfNeeded()
+            // 목록 영역은 스위치 뒤까지 유지하고 스크롤 콘텐츠에만 하단 여백을 준다.
+            XCTAssertEqual(table.frame.maxY, investment.view.bounds.maxY, accuracy: 0.5)
+            // 마지막 행의 추정 높이를 실제 셀 높이로 확정한다.
+            let lastPath = IndexPath(row: 11, section: 0)
+            table.scrollToRow(at: lastPath, at: .bottom, animated: false)
+            table.layoutIfNeeded()
+            // 사용자가 끝까지 스크롤할 수 있는 실제 최대 오프셋이다.
+            let maximumOffset = max(-table.adjustedContentInset.top, table.contentSize.height - table.bounds.height + table.adjustedContentInset.bottom)
+            table.setContentOffset(CGPoint(x: 0, y: maximumOffset), animated: false)
+            table.layoutIfNeeded()
+            // 셀과 스위치를 컨테이너 좌표계에서 비교해야 내비게이션 여백도 포함된다.
+            let lastFrame = table.convert(table.rectForRow(at: lastPath), to: container.view)
+            // 스위치의 상단보다 셀 하단이 위로 올라가야 모든 지표가 보인다.
+            let selector = try XCTUnwrap(descendants(container.view).first { $0.accessibilityIdentifier == "tradingProductSelector" })
+            // 실제 선택 컨트롤의 표시 범위다.
+            let selectorFrame = selector.convert(selector.bounds, to: container.view)
+            XCTAssertLessThanOrEqual(lastFrame.maxY, selectorFrame.minY + 0.5, "\(product) \(style) \(width) \(category)")
+            XCTAssertNotNil(table.cellForRow(at: lastPath))
+            if style == .standard, width == 393, category == .large {
+              // 스크롤 끝에서 마지막 셀과 하단 스위치의 실제 간격을 보관한다.
+              let capture = XCTAttachment(image: UIGraphicsImageRenderer(bounds: container.view.bounds).image {
+                container.view.layer.render(in: $0.cgContext)
+              })
+              capture.name = "InvestmentLastRow-\(product.rawValue)"
+              capture.lifetime = .keepAlways
+              add(capture)
+            }
+          }
+          withExtendedLifetime(dataSource) {}
+        }
+      }
+    }
+  }
+
+  @MainActor
+  @discardableResult
+  private func assertProductSelectorSafeArea(in container: MobitTabBarViewController) throws -> CGFloat {
+    container.view.setNeedsLayout()
+    container.view.layoutIfNeeded()
+    // 안전 영역 변경을 받은 현재 탭의 실제 루트 화면이다.
+    let content = try XCTUnwrap(container.children.first)
+    content.view.layoutIfNeeded()
+    // 표시 상태와 높이를 같은 레이아웃 패스에서 측정한다.
+    let selector = try XCTUnwrap(descendants(container.view).first { $0.accessibilityIdentifier == "tradingProductSelector" })
+    // 거래소는 기존 여백을 유지하고 투자내역만 실제 컨트롤 높이를 따른다.
+    let expected: CGFloat
+    if selector.isHidden {
+      expected = 0
+    } else if container.selectedIndex == 0 {
+      expected = 76
+    } else {
+      expected = max(
+        0,
+        container.view.safeAreaLayoutGuide.layoutFrame.maxY - selector.convert(selector.bounds, to: container.view).minY
+      )
+    }
+    XCTAssertEqual(content.additionalSafeAreaInsets.bottom, expected, accuracy: 0.5)
+    return expected
   }
 
 }
@@ -6163,6 +6875,138 @@ extension FuturesAccountReactorTests {
         )
       ]
     )
+  }
+
+  @MainActor
+  func testFuturesEmptyHistoryStaysCenteredAcrossTabsAndHistoryUpdates() throws {
+    guard #available(iOS 17.0, *) else { throw XCTSkip("Trait overrides require iOS 17") }
+    for width: CGFloat in [320, 393] {
+      for style in [UIUserInterfaceStyle.light, .dark] {
+        // 실제 저장소 대신 빈 계좌와 체결 이력을 번갈아 전달한다.
+        let futures = reactor()
+        // 거래내역이 없는 정상 조회 상태다.
+        let emptyState = try readyOrderCompletionState(futures)
+        futures.stub.state.value = emptyState
+        // TradeVC의 호가·세그먼트·선물 자식 화면을 함께 검사한다.
+        let host = try makeSpotOrderLayoutController()
+        host.futuresReactor = futures
+        // 화면마다 달라지는 실제 내역 표시 영역을 제공한다.
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: width == 320 ? 568 : 852))
+        window.overrideUserInterfaceStyle = style
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        defer { window.isHidden = true; window.rootViewController = nil }
+        // 실제 탭 액션과 표시 영역을 소유하는 주문 화면이다.
+        let orderView = try XCTUnwrap(host.orderView)
+        // 선물 주문은 기존 현물 컨테이너 안의 자식 화면이다.
+        let order = try XCTUnwrap(host.children.compactMap { $0 as? FuturesOrderViewController }.first)
+        // 키보드 가이드를 반영한 현재 가용 영역이다.
+        let scroll = try XCTUnwrap(order.view.subviews.compactMap { $0 as? UIScrollView }.first)
+        for category in [UIContentSizeCategory.large, .accessibilityExtraExtraExtraLarge, .large] {
+          host.traitOverrides.preferredContentSizeCategory = category
+          host.updateTraitsIfNeeded()
+          order.updateTraitsIfNeeded()
+          for tab in [2, 0, 2, 1, 2] {
+            orderView.segmentedControl.selectedIndex = tab
+            orderView.segmentedControl.onSegmentChanged?(tab)
+            window.layoutIfNeeded()
+            guard tab == 2 else { continue }
+            // 문구 존재뿐 아니라 사용자가 보는 스크롤 좌표의 중앙을 확인한다.
+            let label = try XCTUnwrap(descendants(order.view).compactMap { $0 as? UILabel }.first {
+              $0.text == FuturesText.text("futures_empty_history")
+            })
+            // 현물의 빈 영역도 위 10pt·아래 0pt로 중심이 표시 영역보다 5pt 낮다.
+            let frame = label.convert(label.bounds, to: scroll)
+            XCTAssertEqual(label.textAlignment, .center)
+            XCTAssertEqual(frame.midX, scroll.bounds.midX, accuracy: 0.5)
+            XCTAssertEqual(frame.midY, scroll.bounds.midY + 5, accuracy: 0.5)
+            XCTAssertGreaterThanOrEqual(label.bounds.height + 0.5, label.sizeThatFits(CGSize(width: label.bounds.width, height: .greatestFiniteMagnitude)).height)
+            XCTAssertFalse(label.hasAmbiguousLayout)
+            XCTAssertFalse(try XCTUnwrap(label.superview).hasAmbiguousLayout)
+          }
+          // 긴 내역의 마지막까지 스크롤한 뒤 빈 계좌로 돌아오는 상황이다.
+          var populatedState = emptyState
+          populatedState.snapshot = try futuresHistoryLayoutSnapshot()
+          futures.stub.state.value = populatedState
+          order.selectTab(2)
+          window.layoutIfNeeded()
+          XCTAssertTrue(descendants(order.view).contains {
+            $0.accessibilityIdentifier?.hasPrefix("futuresHistoryEntry.") == true
+          })
+          scroll.setContentOffset(CGPoint(x: 0, y: max(0, scroll.contentSize.height - scroll.bounds.height)), animated: false)
+          futures.stub.state.value = emptyState
+          order.selectTab(2)
+          window.layoutIfNeeded()
+          // 이전 목록의 스크롤 위치가 빈 문구를 화면 밖으로 밀어내면 안 된다.
+          let restoredLabel = try XCTUnwrap(descendants(order.view).compactMap { $0 as? UILabel }.first {
+            $0.text == FuturesText.text("futures_empty_history")
+          })
+          // 데이터가 바뀐 뒤에도 현재 표시 영역을 기준으로 배치한다.
+          let restoredFrame = restoredLabel.convert(restoredLabel.bounds, to: scroll)
+          XCTAssertEqual(restoredFrame.midY, scroll.bounds.midY + 5, accuracy: 0.5)
+          XCTAssertEqual(scroll.contentSize.width, scroll.bounds.width, accuracy: 0.5)
+          // 두 테마와 글자 크기별 실제 분할 화면을 남긴다.
+          let attachment = XCTAttachment(image: UIGraphicsImageRenderer(bounds: host.view.bounds).image { host.view.layer.render(in: $0.cgContext) })
+          attachment.name = "Futures-empty-history-\(Int(width))-\(style.rawValue)-\(category.rawValue)"
+          attachment.lifetime = .keepAlways
+          add(attachment)
+        }
+      }
+    }
+  }
+
+  @MainActor
+  func testSpotEmptyHistoryMessageFitsLongTextWithinItsPanel() throws {
+    // 빈 내역 fixture가 실제 거래 이력 저장값에 남지 않도록 보존한다.
+    let previousTransactions = UserDefaults.standard.object(forKey: UserDataManager.Keys.userTransactionList)
+    // 현물 상세 fixture의 거래소와 조회 대상 계좌를 일치시킨다.
+    let previousExchange = ExchangeSelectionStore.currentExchange
+    ExchangeSelectionStore.currentExchange = .upbit
+    UserDataManager.userTransactionList = []
+    defer {
+      UserDefaults.standard.set(previousTransactions, forKey: UserDataManager.Keys.userTransactionList)
+      ExchangeSelectionStore.currentExchange = previousExchange
+    }
+    // 호가 150pt를 제외한 실제 오른쪽 패널에서 줄바꿈을 확인한다.
+    for width: CGFloat in [320, 393] {
+      // 외부 시세 요청 없이 기존 TradeVC와 XIB를 그대로 표시한다.
+      let host = try makeSpotOrderLayoutController()
+      // 실제 부모와 Safe Area가 존재하는 표시 환경이다.
+      let window = UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: width == 320 ? 568 : 852))
+      window.rootViewController = host
+      window.makeKeyAndVisible()
+      defer { window.isHidden = true; window.rootViewController = nil }
+      // 실제 매수·거래내역 탭 콜백을 통해 빈 상태를 표시한다.
+      let order = try XCTUnwrap(host.orderView)
+      // 현물의 빈 상태는 전체 주문 화면이 아니라 거래내역 영역에 정렬된다.
+      let history = try XCTUnwrap(order.historyView)
+      order.segmentedControl.selectedIndex = 2
+      order.segmentedControl.onSegmentChanged?(2)
+      window.layoutIfNeeded()
+      // 기존 XIB에서 이미 중앙에 배치하는 안내 라벨이다.
+      let label = try XCTUnwrap(history.noHistoryView.subviews.compactMap { $0 as? UILabel }.first)
+      // 언어별 문구가 길어져도 패널 바깥으로 넘치지 않아야 한다.
+      for text in [label.text ?? "", "Transaction history is empty for this market. Completed trades will appear here."] {
+        label.text = text
+        label.setNeedsLayout()
+        history.setNeedsLayout()
+        window.layoutIfNeeded()
+        history.layoutIfNeeded()
+        XCTAssertFalse(history.noHistoryView.isHidden)
+        XCTAssertEqual(label.textAlignment, .center)
+        XCTAssertGreaterThanOrEqual(label.frame.minX, 0)
+        XCTAssertLessThanOrEqual(label.frame.maxX, history.noHistoryView.bounds.width)
+        XCTAssertEqual(label.center.x, history.noHistoryView.bounds.midX, accuracy: 0.5)
+        XCTAssertEqual(label.center.y, history.noHistoryView.bounds.midY, accuracy: 0.5)
+        XCTAssertGreaterThanOrEqual(label.bounds.height + 0.5, label.sizeThatFits(CGSize(width: label.bounds.width, height: .greatestFiniteMagnitude)).height)
+        XCTAssertFalse(label.hasAmbiguousLayout)
+      }
+      // 좁은 주문 패널에서 긴 문구의 실제 줄바꿈과 중앙 위치도 검토한다.
+      let attachment = XCTAttachment(image: UIGraphicsImageRenderer(bounds: host.view.bounds).image { host.view.layer.render(in: $0.cgContext) })
+      attachment.name = "Spot-empty-history-long-message-\(Int(width))"
+      attachment.lifetime = .keepAlways
+      add(attachment)
+    }
   }
 
   @MainActor

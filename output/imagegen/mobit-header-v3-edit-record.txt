@@ -1,0 +1,47 @@
+MOBIT App Store header v3 — enlargement calibrated to the new actual preview
+
+Submission PNG:
+mobit-app-store-header-v3-3840x1646.png
+Exactly 3840 × 1646 pixels, 8-bit RGB PNG, no alpha channel, sRGB.
+
+Preview files:
+mobit-app-store-header-v3-mobile-preview.png
+mobit-app-store-header-v3-crop-preview.png
+These are composites calibrated to the user-supplied actual screenshot, not new App Store Connect captures.
+
+Calibration:
+Source screenshot: /Users/chosungjae/Desktop/스크린샷 2026-10-16 오후 4.39.31.png (790 × 1260)
+Previous v2 asset was independently matched against phone, text and background pixel patches.
+Best measured display width is about 605 pixels (source scale 605/3840 = 0.157552).
+Displayed image origin is approximately x102, y193, with the lower edge at y452.
+The visible inner header is x151..658, y117..452.
+The original upper blur extension and foreground controls are preserved in the predicted composite.
+The previous estimated 527-pixel displayed image height is not used.
+
+Changes:
+All logo, title, subtitle and phone group dimensions are doubled from v2 with uniform proportions.
+Elements were repositioned below the upper navigation controls.
+The original phone/screen pixels and logo symbol are reused.
+The same clean background generated with the built-in image_gen during v2 is reused unchanged. No new image generation was needed for this source-based layout adjustment.
+The supplied OTF Medium is directly rendered again with CoreText at final resolution:
+  PostScript name esamanruOTFMedium
+  /Users/chosungjae/Library/Fonts/esamanru-OTF-Medium.otf
+Headline 192pt, subtitle 96pt, MOBIT wordmark 160pt.
+
+Geometry:
+Final source content bounds x580..3260, y477..1447.67.
+Predicted screenshot content bounds x193.38..615.62, y267.82..420.65.
+Predicted left/right clearance: 42.38px each.
+Predicted clearance to the app information card: 31.35px.
+This revision is sized to the user-provided observed header rendering rather than the narrower generic template guide.
+
+Validation:
+PNG file reopened and verified at 3840 × 1646 with no alpha channel.
+Calculated foreground bounds fit the observed viewport.
+Independent visual QA found no clipped copy, navigation-control overlap, phone contour clipping, or visible background seams.
+Actual App Store Connect output after uploading v3 has not been captured.
+
+Background generation mode and exact original v2 background prompt:
+Built-in image_gen, reused from v2.
+Use case: precise-object-edit. Input image is the edit target and visual style reference for an App Store header background. Remove every foreground element: all external promotional typography including MOBIT, the purple M logo with its tiny nearby dot, and all three iPhone mockups including their shadows. Seamlessly reconstruct only the underlying very pale off-white/lavender smooth gradient background with the existing abstract white/lavender curved forms and soft purple spheres. Preserve the elegant restrained original lighting and subtle texture. Reframe to a wide 21:9 landscape canvas. Keep the large lavender sphere along the upper center edge, the tiny purple decorative sphere in upper-middle-left, the soft purple sphere near lower-middle, and pale curved forms at the outer right edge as peripheral background decoration. Keep the central composition zone extremely clean and light so dark text and phones can be composited later. Do not add any text, logos, phones, UI, frames, guides, grids, safe area lines, or new objects. This is a clean background plate only, based on the existing image; preserve the visual identity.
+

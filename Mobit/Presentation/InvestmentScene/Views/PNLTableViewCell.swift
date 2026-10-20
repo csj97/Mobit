@@ -49,13 +49,64 @@ class PNLTableViewCell: UITableViewCell {
 	}
   }
 
+  override func layoutSubviews() {
+    updateMetricsLayout(for: bounds.width)
+    super.layoutSubviews()
+  }
+
+  override func systemLayoutSizeFitting(
+    _ targetSize: CGSize,
+    withHorizontalFittingPriority horizontalFittingPriority: UILayoutPriority,
+    verticalFittingPriority: UILayoutPriority
+  ) -> CGSize {
+    updateMetricsLayout(for: targetSize.width)
+    return super.systemLayoutSizeFitting(
+      targetSize,
+      withHorizontalFittingPriority: horizontalFittingPriority,
+      verticalFittingPriority: verticalFittingPriority
+    )
+  }
+
+  private func updateMetricsLayout(for width: CGFloat) {
+    guard width > 62 else { return }
+    // 카드 바깥 12pt와 안쪽 16pt 여백을 제외한 지표 영역이다.
+    let contentWidth = width - 56
+    // 기존 두 열 사이의 6pt 간격을 유지한다.
+    let columnWidth = (contentWidth - 6) / 2
+    for case let row as UIStackView in metricsStackView.arrangedSubviews {
+      // 값 자체가 열보다 길면 행을 펼쳐 체결 시각과 가격이 잘리지 않게 한다.
+      let needsFullWidth = row.arrangedSubviews.contains { view in
+        guard let item = view as? UIStackView,
+              let valueLabel = item.arrangedSubviews.last as? UILabel else { return false }
+        return naturalWidth(of: valueLabel) > columnWidth
+      }
+      // 펼친 행의 제목과 값은 카드의 전체 콘텐츠 너비를 사용한다.
+      let itemWidth = needsFullWidth ? contentWidth : columnWidth
+      row.axis = needsFullWidth ? .vertical : .horizontal
+      row.distribution = needsFullWidth ? .fill : .fillEqually
+      row.spacing = needsFullWidth ? 12 : 6
+      for case let item as UIStackView in row.arrangedSubviews {
+        guard let titleLabel = item.arrangedSubviews.first as? UILabel,
+              let valueLabel = item.arrangedSubviews.last as? UILabel else { continue }
+        // 긴 번역 제목은 값을 압축하는 대신 값 위로 배치한다.
+        let needsSeparateLine = naturalWidth(of: titleLabel) + naturalWidth(of: valueLabel) + 8 > itemWidth
+        item.axis = needsSeparateLine ? .vertical : .horizontal
+        item.spacing = needsSeparateLine ? 4 : 8
+      }
+    }
+  }
+
+  private func naturalWidth(of label: UILabel) -> CGFloat {
+    // 현재 줄바꿈 결과와 무관한 원래 텍스트 폭으로 배치 반복 전환을 방지한다.
+    ceil(((label.text ?? "") as NSString).size(withAttributes: [.font: label.font as Any]).width)
+  }
+
   override func setSelected(_ selected: Bool, animated: Bool) {
 	super.setSelected(selected, animated: animated)
 	
   }
   
   func configure(pnlHistory: UserPNLHistoryModel) {
-    transactionDateLabel.numberOfLines = 1
     marketNameLabel.numberOfLines = 1
     marketNameLabel.adjustsFontSizeToFitWidth = false
     marketNameLabel.minimumScaleFactor = 1
@@ -106,7 +157,6 @@ class PNLTableViewCell: UITableViewCell {
     pnlLabel.textColor = currentPNL.map { MarketColorPalette.color(forSignedValue: $0) } ?? .mobitColors(.textSecondary)
     dateTitle.text = FuturesText.text("investment_execution_time") + " :"
     transactionDateLabel.text = FuturesText.occurrenceDate(record)
-    transactionDateLabel.numberOfLines = 1
     layer.cornerRadius = 8
   }
 

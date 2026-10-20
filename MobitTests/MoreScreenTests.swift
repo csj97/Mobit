@@ -574,19 +574,58 @@ final class MoreScreenTests: XCTestCase {
     defer { window.isHidden = true; window.rootViewController = nil }
     // 현물 잔고의 렌더링 결과를 읽는다.
     let label = try XCTUnwrap(find(controller.view, "more.balance.upbit.spot") as? UILabel)
+    // 읽기 실패 안내가 실제 스택에서 나타나고 사라지는지 확인한다.
+    let errorLabel = try XCTUnwrap(find(controller.view, "more.accounts.error") as? UILabel)
+    // 오류 문구와 재시도 버튼을 함께 접는 XIB 컨테이너다.
+    let errorStack = try XCTUnwrap(errorLabel.superview as? UIStackView)
+    // 숨긴 오류 뷰의 잔존 frame 대신 실제 형제 간 배치를 검사한다.
+    let contentStack = try XCTUnwrap(errorStack.superview as? UIStackView)
+    // 오류 안내 직전의 계좌 목록이 차지하는 실제 영역이다.
+    let accountsStack = try XCTUnwrap(contentStack.arrangedSubviews.first)
+    // 오류 안내 직후 광고 영역과의 간격으로 접힘 여부를 확인한다.
+    let bannerContainer = try XCTUnwrap(find(controller.view, "more.banner.container"))
+    // 오류 안내의 실제 다시 불러오기 버튼이다.
+    let retry = try XCTUnwrap(find(controller.view, "more.accounts.retry") as? UIButton)
     waitUntil { label.text?.contains("123") == true }
+    controller.view.layoutIfNeeded()
+    XCTAssertTrue(errorStack.isHidden)
+    XCTAssertEqual(bannerContainer.frame.minY - accountsStack.frame.maxY, contentStack.spacing, accuracy: 0.5)
     cash = 10_000_123
     NotificationCenter.default.post(name: .futuresAccountDidChange, object: nil)
     waitUntil { label.text?.contains("10,000,123") == true }
     failed = true
     NotificationCenter.default.post(name: .futuresAccountDidChange, object: nil)
     waitUntil { label.text == "—" }
+    controller.view.layoutIfNeeded()
+    XCTAssertFalse(errorStack.isHidden)
+    XCTAssertEqual(errorStack.frame.minY - accountsStack.frame.maxY, contentStack.spacing, accuracy: 0.5)
+    XCTAssertEqual(bannerContainer.frame.minY - errorStack.frame.maxY, contentStack.spacing, accuracy: 0.5)
+    XCTAssertGreaterThanOrEqual(retry.bounds.height, 44)
+    XCTAssertGreaterThan(errorLabel.bounds.height, 0)
+    XCTAssertLessThanOrEqual(errorLabel.frame.maxY, retry.frame.minY)
+    for view in [errorStack, errorLabel, retry] {
+      XCTAssertFalse(view.hasAmbiguousLayout)
+    }
+    if #available(iOS 17.0, *) {
+      controller.traitOverrides.preferredContentSizeCategory = .accessibilityExtraExtraExtraLarge
+      controller.updateTraitsIfNeeded()
+      controller.view.layoutIfNeeded()
+      XCTAssertEqual(errorStack.frame.minY - accountsStack.frame.maxY, contentStack.spacing, accuracy: 0.5)
+      XCTAssertEqual(bannerContainer.frame.minY - errorStack.frame.maxY, contentStack.spacing, accuracy: 0.5)
+      XCTAssertGreaterThanOrEqual(retry.bounds.height, 44)
+      XCTAssertGreaterThan(errorLabel.bounds.height, 0)
+      XCTAssertLessThanOrEqual(errorLabel.frame.maxY, retry.frame.minY)
+      for view in [errorStack, errorLabel, retry] {
+        XCTAssertFalse(view.hasAmbiguousLayout)
+      }
+    }
     XCTAssertFalse(MobitBaseViewController.isLoadingIndicatorVisible(in: window))
     failed = false
-    // 오류 안내의 실제 다시 불러오기 버튼이다.
-    let retry = try XCTUnwrap(find(controller.view, "more.accounts.retry") as? UIButton)
     retry.sendActions(for: .touchUpInside)
     waitUntil { label.text?.contains("10,000,123") == true }
+    controller.view.layoutIfNeeded()
+    XCTAssertTrue(errorStack.isHidden)
+    XCTAssertEqual(bannerContainer.frame.minY - accountsStack.frame.maxY, contentStack.spacing, accuracy: 0.5)
     XCTAssertNil(controller.presentedViewController)
   }
 

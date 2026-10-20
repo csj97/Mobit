@@ -233,6 +233,9 @@
 		D0B1000E2FF1000000000001 /* BithumbWebSocketClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B1000D2FF1000000000001 /* BithumbWebSocketClient.swift */; };
 		D0B200052FF2000000000001 /* UpbitWebSocketClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B200042FF2000000000001 /* UpbitWebSocketClient.swift */; };
 		D0C300022FFB000000000001 /* NetworkResponseValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C300012FFB000000000001 /* NetworkResponseValidator.swift */; };
+		D819A20230194DF0870A1201 /* InvestmentSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D819A20230194DF0870A1202 /* InvestmentSummaryView.swift */; };
+		D819A20230194DF0870A1211 /* ExchangeSelectionSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D819A20230194DF0870A1212 /* ExchangeSelectionSheetViewController.swift */; };
+		D819A20230194DF0870A1213 /* InvestmentExchangeSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D819A20230194DF0870A1214 /* InvestmentExchangeSheetTests.swift */; };
 		E37F0D76B29045D89D18DDED /* FuturesCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8B3CBC579634A5BA3CBB74E /* FuturesCoordinator.swift */; };
 		E9967D894A3D4F188F7065B2 /* FuturesInvestmentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76482DD0266E470BBE4DB2F2 /* FuturesInvestmentViewController.swift */; };
 		F09222000000000000000002 /* TradingAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09222000000000000000001 /* TradingAccount.swift */; };
@@ -260,6 +263,7 @@
 		F09329000000000000000004 /* DomesticFuturesMarketRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09329000000000000000003 /* DomesticFuturesMarketRepository.swift */; };
 		F09329000000000000000006 /* DomesticFuturesMarketRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09329000000000000000005 /* DomesticFuturesMarketRepositoryTests.swift */; };
 		F09329000000000000000008 /* FuturesTradingUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09329000000000000000007 /* FuturesTradingUseCase.swift */; };
+		F0FFE501833AFA6FF120E663 /* InvestmentChargeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927D6BCBB0A8B1B2D61F6250 /* InvestmentChargeButton.swift */; };
 		F10007000000000000000002 /* FuturesCloseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10007000000000000000001 /* FuturesCloseViewController.swift */; };
 		F10112000000000000000002 /* TradingRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10112000000000000000001 /* TradingRules.swift */; };
 		F10112000000000000000004 /* TradingRulesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10112000000000000000003 /* TradingRulesTests.swift */; };
@@ -383,6 +387,7 @@
 		5FA880E72E1A58E700F22F9C /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		619158489B6D4A7DABE428B6 /* FuturesAccountReactorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesAccountReactorTests.swift; sourceTree = "<group>"; };
 		76482DD0266E470BBE4DB2F2 /* FuturesInvestmentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesInvestmentViewController.swift; sourceTree = "<group>"; };
+		927D6BCBB0A8B1B2D61F6250 /* InvestmentChargeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestmentChargeButton.swift; sourceTree = "<group>"; };
 		998849E12C524AAA0073A27D /* CryptoCellInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoCellInfo.swift; sourceTree = "<group>"; };
 		998849E32C5378CD0073A27D /* CryptoTickerDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTickerDTO.swift; sourceTree = "<group>"; };
 		998849E52C5379960073A27D /* CryptoTicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoTicker.swift; sourceTree = "<group>"; };
@@ -529,6 +534,9 @@
 		D2F4482507D447E1AC2D7D76 /* MoreAccountsUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreAccountsUseCase.swift; sourceTree = "<group>"; };
 		D479337EF3574613A3F16DFD /* FuturesOrderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesOrderViewController.swift; sourceTree = "<group>"; };
 		D7AB1E102076495CACE704FB /* TradingScreenReleaseQATests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradingScreenReleaseQATests.swift; sourceTree = "<group>"; };
+		D819A20230194DF0870A1202 /* InvestmentSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestmentSummaryView.swift; sourceTree = "<group>"; };
+		D819A20230194DF0870A1212 /* ExchangeSelectionSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExchangeSelectionSheetViewController.swift; sourceTree = "<group>"; };
+		D819A20230194DF0870A1214 /* InvestmentExchangeSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestmentExchangeSheetTests.swift; sourceTree = "<group>"; };
 		E7D4EDBE4E024975BF23A56F /* MobitAnalyticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitAnalyticsTests.swift; sourceTree = "<group>"; };
 		EE703D167D454C228F42B31E /* FuturesText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesText.swift; sourceTree = "<group>"; };
 		F09222000000000000000001 /* TradingAccount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradingAccount.swift; sourceTree = "<group>"; };
@@ -749,6 +757,7 @@
 				F09222000000000000000019 /* AdRewardTests.swift */,
 				A7A1682839BC44FD85A785C7 /* MoreScreenTests.swift */,
 				A3D6F0311A804D2686E0E8C4 /* MoreAccountResetSheetTests.swift */,
+				D819A20230194DF0870A1214 /* InvestmentExchangeSheetTests.swift */,
 				3133E23E2C3E2357000D4B1A /* MobitTests.swift */,
 				C0D100082EF6000000000011 /* PortfolioCalculatorTests.swift */,
 				C0D100092EF6000000000011 /* MarketFormatTests.swift */,
@@ -975,7 +984,6 @@
 			isa = PBXGroup;
 			children = (
 				C17CF49A2DA4DAE900CDF76D /* InvestmentViewController.swift */,
-				76482DD0266E470BBE4DB2F2 /* FuturesInvestmentViewController.swift */,
 				C17CF49B2DA4DAE900CDF76D /* InvestmentViewController.xib */,
 				C17DB9702DA5FAF000DA673A /* InvestmentTableViewCell.swift */,
 				C17DB9712DA5FAF000DA673A /* InvestmentTableViewCell.xib */,
@@ -985,6 +993,9 @@
 				C16FAE702E38B530003C5AD1 /* PNLTableViewCell.xib */,
 				C19F77962E41A2EA00863159 /* PNLShareView.swift */,
 				C19F77982E41A2F300863159 /* PNLShareView.xib */,
+				D819A20230194DF0870A1202 /* InvestmentSummaryView.swift */,
+				927D6BCBB0A8B1B2D61F6250 /* InvestmentChargeButton.swift */,
+				76482DD0266E470BBE4DB2F2 /* FuturesInvestmentViewController.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1317,6 +1328,7 @@
 			children = (
 				F10116000000000000000002 /* AdBannerLoadingView.swift */,
 				C17BB4172E2F27A400BDAA0F /* MobitBaseViewController.swift */,
+				D819A20230194DF0870A1212 /* ExchangeSelectionSheetViewController.swift */,
 				F10114000000000000000002 /* MobitToastPresenter.swift */,
 				C1B8F3BB2E272E6800C46734 /* SelfSizingViews.swift */,
 				310865052E1EC3F40089D67A /* MobitChargeButton.swift */,
@@ -1797,6 +1809,9 @@
 				C182B6A72EF5285A0090CA34 /* Candle+DayResponseDTO.swift in Sources */,
 				99C20AAC2C4F458C009276E7 /* CryptoSocketTickerDTO.swift in Sources */,
 				C17CF49C2DA4DAE900CDF76D /* InvestmentViewController.swift in Sources */,
+				D819A20230194DF0870A1201 /* InvestmentSummaryView.swift in Sources */,
+				F0FFE501833AFA6FF120E663 /* InvestmentChargeButton.swift in Sources */,
+				D819A20230194DF0870A1211 /* ExchangeSelectionSheetViewController.swift in Sources */,
 				E9967D894A3D4F188F7065B2 /* FuturesInvestmentViewController.swift in Sources */,
 				31D6444D2C72590C00C7F96D /* CryptoDetailUseCase.swift in Sources */,
 				5FA880E62E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift in Sources */,
@@ -1877,6 +1892,7 @@
 				F09222000000000000000020 /* AdRewardTests.swift in Sources */,
 				FFAADEE71F8742D5BD6EF3D7 /* MoreScreenTests.swift in Sources */,
 				A3D6F0311A804D2686E0E8C3 /* MoreAccountResetSheetTests.swift in Sources */,
+				D819A20230194DF0870A1213 /* InvestmentExchangeSheetTests.swift in Sources */,
 				C0D1000B2EF6000000000011 /* SocketServiceTests.swift in Sources */,
 				D0A1000E2FF0000000000006 /* StringExtensionTests.swift in Sources */,
 				D0A100062FF0000000000002 /* ExchangeMarketCodeConverterTests.swift in Sources */,

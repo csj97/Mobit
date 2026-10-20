@@ -52,6 +52,9 @@ final class MobitChargeButton: UIButton {
       value: "",
       comment: ""
     )
+    style.image = UIImage(systemName: "plus")
+    style.imagePadding = 4
+    style.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 12, weight: .semibold)
     style.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
     style.cornerStyle = .fixed
     style.background.cornerRadius = 8

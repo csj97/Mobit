@@ -395,6 +395,210 @@ final class TradingScreenReleaseQATests: XCTestCase {
   }
 
   @MainActor
+  func testMainEmptyGuidesCenterInUncoveredListAndWrapChangedMessages() throws {
+    // 선택 계좌와 빈 목록 fixture를 테스트 전 상태로 복구한다.
+    let previousExchange = ExchangeSelectionStore.currentExchange
+    // 현물·선물의 실제 하단 전환 컨트롤을 각각 검사한다.
+    let previousProduct = ExchangeSelectionStore.currentProduct
+    // 즐겨찾기 없음 안내를 실제 필터 경로로 연다.
+    let previousFavorites = UserDataManager.userFavoritePairs
+    // 화면 초기화가 다시 저장하는 보유 내역 원본도 보존한다.
+    let previousHoldingData = UserDefaults.standard.object(forKey: UserDataManager.Keys.userCryptoList)
+    // 보유 내역 구독에 테스트 전 값을 다시 전달한다.
+    let previousHoldings = UserDataManager.userCryptoList
+    // 광고가 안내 영역을 가리지 않도록 기존 표시 기록을 보존한다.
+    let previousAdDate = UserDefaults.standard.object(forKey: "main_native_ad_popup_last_shown_date")
+    // 실제 광고 표시 생략 정책과 같은 날짜 형식이다.
+    let dateFormatter = DateFormatter()
+    dateFormatter.locale = Locale(identifier: "ko_KR")
+    dateFormatter.dateFormat = "yyyy-MM-dd"
+    UserDefaults.standard.set(dateFormatter.string(from: Date()), forKey: "main_native_ad_popup_last_shown_date")
+    UserDataManager.userCryptoList = []
+    UserDataManager.userFavoritePairs = []
+    ExchangeSelectionStore.currentExchange = .upbit
+    defer {
+      UserDataManager.userCryptoList = previousHoldings
+      UserDefaults.standard.set(previousHoldingData, forKey: UserDataManager.Keys.userCryptoList)
+      UserDataManager.userFavoritePairs = previousFavorites
+      ExchangeSelectionStore.currentExchange = previousExchange
+      ExchangeSelectionStore.currentProduct = previousProduct
+      UserDefaults.standard.set(previousAdDate, forKey: "main_native_ad_popup_last_shown_date")
+    }
+    for product in [TradingProduct.spot, .perpetual] {
+      ExchangeSelectionStore.currentProduct = product
+      // 외부 시세·소켓 없이 실제 필터와 빈 안내 표시를 사용한다.
+      let market = MainReactor(
+        mainUseCase: ReleaseQAPendingMarketsUseCase(response: .never()),
+        tickerSocketService: ReleaseQAQuietTickerSocket()
+      )
+      market.isStubEnabled = true
+      // 마켓 목록은 존재하고 사용자 보유·즐겨찾기만 없는 상태다.
+      var marketState = market.initialState
+      marketState.totalCryptoList = [CryptoCellInfo(cryptoName: "비트코인", market: "BTC/KRW")]
+      market.stub.state.value = marketState
+      // 선물 저장 오류 문구로 변경되는 실제 표시 분기를 포함한다.
+      let futures = product == .perpetual
+        ? FuturesAccountReactor(account: .init(exchange: .upbit, product: .perpetual, currency: .krw)) : nil
+      futures?.isStubEnabled = true
+      // 앱과 같은 탭·내비게이션 부모 아래에서 하단 겹침을 계산한다.
+      let main = MainViewController(reactor: market, futuresReactor: futures, networkAvailability: .empty())
+      // 앱의 메인 화면처럼 시스템 내비게이션 바는 숨긴다.
+      let navigation = UINavigationController(rootViewController: main)
+      navigation.setNavigationBarHidden(true, animated: false)
+      // 제품 전환 pill과 탭바가 실제 목록 위에 놓이는 부모다.
+      let tabs = MobitTabBarViewController()
+      tabs.setViewControllers([navigation])
+      // 작은 화면과 일반 화면을 같은 표시 계층에서 반복한다.
+      let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 568))
+      window.rootViewController = tabs
+      window.isHidden = false
+      defer { window.isHidden = true; window.rootViewController = nil }
+      func flush() {
+        // Flex 배치와 비동기 목록 스냅샷까지 완료한다.
+        let rendered = expectation(description: "Empty main content rendered")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { rendered.fulfill() }
+        wait(for: [rendered], timeout: 2)
+        window.setNeedsLayout()
+        window.layoutIfNeeded()
+        main.view.setNeedsLayout()
+        main.view.layoutIfNeeded()
+      }
+      func verifyActualGuide(_ label: UILabel, name: String) {
+        // 숨긴 크롬이나 다른 창으로 분리된 부모의 frame은 가림 영역에서 제외한다.
+        let tableFrame = main.tableView.convert(main.tableView.bounds, to: main.view)
+        // 현재 창에서 실제 목록을 가리는 하단 컨트롤의 첫 경계다.
+        let chromeTop = tabs.view.subviews.filter {
+          ($0.accessibilityIdentifier == "tradingProductSelector" || $0 === tabs.mobitTabBar)
+            && !$0.isHidden && $0.window === window
+        }.map { $0.convert($0.bounds, to: main.view) }
+          .filter { $0.intersects(tableFrame) }.map(\.minY).min()
+        // 탭을 숨기거나 분리한 경우에는 테이블 전체가 안내의 표시 영역이다.
+        let visibleBottom = min(tableFrame.maxY, chromeTop ?? tableFrame.maxY)
+        // 실제 제품 문구의 경계가 목록의 보이는 영역 안에 있어야 한다.
+        let labelFrame = label.convert(label.bounds, to: main.view)
+        XCTAssertEqual(labelFrame.midX, tableFrame.midX, accuracy: 1, name)
+        XCTAssertEqual(labelFrame.midY, (tableFrame.minY + visibleBottom) / 2, accuracy: 1, name)
+        XCTAssertGreaterThanOrEqual(labelFrame.minY, tableFrame.minY - 1, name)
+        XCTAssertLessThanOrEqual(labelFrame.maxY, visibleBottom + 1, name)
+        XCTAssertGreaterThanOrEqual(
+          label.bounds.height + 1,
+          label.sizeThatFits(CGSize(width: label.bounds.width, height: .greatestFiniteMagnitude)).height,
+          name
+        )
+        // 임의 반복문이 아닌 실제 빈 문구·저장 오류를 시각 검토용으로 남긴다.
+        let image = UIGraphicsImageRenderer(bounds: window.bounds).image { context in
+          window.layer.render(in: context.cgContext)
+        }
+        // 화면 크기와 상태를 구분해 테스트 결과에서 직접 열 수 있다.
+        let attachment = XCTAttachment(image: image)
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+      }
+      flush()
+      // viewDidLoad의 보유 내역 재전달이 끝난 뒤 필터용 실제 목록을 확정한다.
+      market.stub.state.value = marketState
+      flush()
+      XCTAssertEqual(market.currentState.totalCryptoList.count, 1)
+      // 다음 너비에서도 반복 문자열이 아닌 원래 현물 안내로 시작한다.
+      let holdMessage = main.noHoldLabel.text
+      // 즐겨찾기는 모든 너비에서 실제 제품 문구를 먼저 검증한다.
+      let favoriteMessage = main.noFavoriteLabel.text
+      for width: CGFloat in [320, 393, 440] {
+        window.frame.size = CGSize(width: width, height: width == 320 ? 568 : 852)
+        for (button, overlay, label) in [
+          (main.holdButton, main.noHoldView, main.noHoldLabel),
+          (main.favoriteButton, main.noFavoriteView, main.noFavoriteLabel)
+        ] {
+          label.text = button === main.holdButton ? holdMessage : favoriteMessage
+          button.sendActions(for: .touchUpInside)
+          flush()
+          XCTAssertFalse(overlay.isHidden)
+          if width == 320 || width == 440 {
+            verifyActualGuide(label, name: "Main-empty-\(product)-\(button.tag)-\(Int(width))")
+          }
+          // 반복 문구는 측정 캐시 갱신만 검사하며 실제 화면 안의 수용 보장으로 해석하지 않는다.
+          label.text = String(repeating: "목록에 표시할 항목이 없습니다. ", count: 8)
+          main.krwButton.sendActions(for: .touchUpInside)
+          button.sendActions(for: .touchUpInside)
+          flush()
+          // 목록 영역을 실제 화면 좌표계로 비교한다.
+          let tableFrame = main.tableView.convert(main.tableView.bounds, to: main.view)
+          // 하단 제품 전환 컨트롤은 private 구현 대신 접근성 식별자로 찾는다.
+          let productControl = try XCTUnwrap(tabs.view.subviews.first { $0.accessibilityIdentifier == "tradingProductSelector" })
+          // 화면에서 실제로 가려지기 시작하는 첫 경계다.
+          let visibleBottom = min(
+            tableFrame.maxY,
+            productControl.convert(productControl.bounds, to: main.view).minY,
+            tabs.mobitTabBar.convert(tabs.mobitTabBar.bounds, to: main.view).minY
+          )
+          // 줄바꿈 이후 안내 문구가 차지하는 실제 영역이다.
+          let labelFrame = label.convert(label.bounds, to: main.view)
+          if button === main.holdButton {
+            print("Main empty layout \(product) \(width): table=\(tableFrame), visibleBottom=\(visibleBottom), original80Center=\((tableFrame.minY + tableFrame.maxY - 80) / 2), currentCenter=\(labelFrame.midY)")
+          }
+          XCTAssertGreaterThan(overlay.bounds.height, 0)
+          XCTAssertEqual(labelFrame.midX, tableFrame.midX, accuracy: 1)
+          XCTAssertEqual(labelFrame.midY, (tableFrame.minY + visibleBottom) / 2, accuracy: 1)
+          XCTAssertGreaterThanOrEqual(labelFrame.minX, tableFrame.minX + 15)
+          XCTAssertLessThanOrEqual(labelFrame.maxX, tableFrame.maxX - 15)
+          if futures == nil || button !== main.holdButton {
+            XCTAssertGreaterThan(label.bounds.height, label.font.lineHeight)
+          }
+          XCTAssertGreaterThanOrEqual(
+            label.bounds.height + 1,
+            label.sizeThatFits(CGSize(width: label.bounds.width, height: .greatestFiniteMagnitude)).height
+          )
+        }
+        main.krwButton.sendActions(for: .touchUpInside)
+        main.searchBar.text = "no_matching_symbol"
+        main.searchBar(main.searchBar, textDidChange: "no_matching_symbol")
+        flush()
+        XCTAssertTrue(main.noHoldView.isHidden)
+        XCTAssertTrue(main.noFavoriteView.isHidden)
+        XCTAssertEqual(main.dataSource?.snapshot().numberOfItems, 0)
+        main.searchBarCancelButtonClicked(main.searchBar)
+        flush()
+        XCTAssertEqual(market.currentState.totalCryptoList.count, 1)
+        XCTAssertEqual(main.dataSource?.snapshot().numberOfItems, 1)
+        if width == 320 {
+          main.noHoldLabel.text = holdMessage
+          main.holdButton.sendActions(for: .touchUpInside)
+          tabs.setTradingChromeHidden(true)
+          flush()
+          XCTAssertEqual(tabs.getTradingContentBottomInset(in: main.tableView), 0)
+          verifyActualGuide(main.noHoldLabel, name: "Main-empty-chrome-hidden-\(product)-320")
+          tabs.setTradingChromeHidden(false)
+          flush()
+          verifyActualGuide(main.noHoldLabel, name: "Main-empty-chrome-restored-\(product)-320")
+          main.krwButton.sendActions(for: .touchUpInside)
+          flush()
+        }
+      }
+      if let futures {
+        main.holdButton.sendActions(for: .touchUpInside)
+        // 짧은 빈 포지션 안내에서 긴 저장소 오류로 바뀌어도 전부 표시한다.
+        var failureState = futures.currentState
+        failureState.loadFailed = true
+        futures.stub.state.value = failureState
+        for width: CGFloat in [320, 440] {
+          window.frame.size = CGSize(width: width, height: width == 320 ? 568 : 852)
+          flush()
+          XCTAssertEqual(main.noHoldLabel.text, FuturesText.text("futures_storage_error"))
+          verifyActualGuide(main.noHoldLabel, name: "Main-empty-storage-error-\(Int(width))")
+        }
+      }
+      main.krwButton.sendActions(for: .touchUpInside)
+      marketState.totalCryptoList = []
+      market.stub.state.value = marketState
+      flush()
+      XCTAssertFalse(main.tableView.isHidden)
+      XCTAssertTrue(main.noHoldView.isHidden)
+      XCTAssertTrue(main.noFavoriteView.isHidden)
+    }
+  }
+
+  @MainActor
   func testMainFailureSkeletonAndRetryAfterExplicitInitialLayout() throws {
     // 원본 실패 테스트와 같은 미완료 자산 검증 상태다.
     let futures = FuturesAccountReactor(account: .init(exchange: .upbit, product: .perpetual, currency: .krw))
@@ -518,6 +722,91 @@ final class TradingScreenReleaseQATests: XCTestCase {
     XCTAssertNil(releasedAskView)
     // 실패 시 테스트가 만든 순환 참조를 끊어 뒤 테스트의 Rx 구독에 남기지 않는다.
     releasedOrderView?.dataSource = nil
+  }
+
+  @MainActor
+  func testSpotHistoryPanelUsesViewportHeightAcrossTabsAndContent() throws {
+    // 테스트의 체결 내역이 실제 사용자 저장값에 남지 않도록 원본을 보존한다.
+    let previousTransactions = UserDefaults.standard.object(forKey: UserDataManager.Keys.userTransactionList)
+    // 주문 화면과 fixture 체결 내역의 거래소를 일치시킨다.
+    let previousExchange = ExchangeSelectionStore.currentExchange
+    ExchangeSelectionStore.currentExchange = .upbit
+    defer {
+      UserDefaults.standard.set(previousTransactions, forKey: UserDataManager.Keys.userTransactionList)
+      ExchangeSelectionStore.currentExchange = previousExchange
+    }
+    // 빈 내역과 실제 셀이 표시되는 내역을 같은 화면에서 전환한다.
+    let transaction = TransactionInfo(
+      exchange: .upbit,
+      marketName: "BTC/KRW",
+      orderType: .bid,
+      executedTimestamp: 1_760_000_000_000,
+      executedPrice: 1_000,
+      executedQuantity: 1,
+      executedAmount: 1_000
+    )
+    // 작은 휴대폰과 기본 휴대폰에서 주문 열의 실제 폭을 사용한다.
+    for width: CGFloat in [320, 393] {
+      // 키보드 등으로 최소 내역 높이보다 작아진 표시 영역도 검사한다.
+      for viewportHeight: CGFloat in [200, 400] {
+        UserDataManager.userTransactionList = []
+        // 네트워크 없이 실제 주문 화면의 부모 제약과 탭 콜백을 구성한다.
+        let reactor = makeTradeReactor()
+        // 생산 코드의 거래내역 높이 제약이 실제 factory 경로에서 추가되어야 한다.
+        let order = TradeOrderView.instanceFromNib(reactor: reactor) { _ in }
+        // 부모 세로 스택에서 숨김과 표시를 반복할 실제 거래내역 패널이다.
+        let history = try XCTUnwrap(order.historyView)
+        // 모든 주문 콘텐츠의 높이를 제공하는 바깥쪽 세로 스택이다.
+        let contentStack = try XCTUnwrap(order.segmentedContainerStackView.superview as? UIStackView)
+        // 거래내역이 최소 높이를 유지할 때 실제로 스크롤되는 표시 영역이다.
+        let scroll = try XCTUnwrap(contentStack.superview as? UIScrollView)
+        // 주문 화면을 상단 헤더 아래에 배치하여 추가 Safe Area 여백을 방지한다.
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: viewportHeight + 256))
+        // 실제 창에 붙여 숨김 제약과 scroll contentSize를 활성화한다.
+        let host = UIViewController()
+        window.rootViewController = host
+        order.frame = CGRect(x: 0, y: 100, width: width, height: viewportHeight + 56)
+        host.view.addSubview(order)
+        window.makeKeyAndVisible()
+        defer {
+          window.isHidden = true
+          window.rootViewController = nil
+        }
+        window.layoutIfNeeded()
+        // 내용 유무는 레이아웃 제약을 바꾸지 않고 실제 저장·조회 흐름으로 반영한다.
+        for transactions in [[], [transaction]] {
+          UserDataManager.userTransactionList = transactions
+          // 매수·내역·매도·내역을 거쳐 이전 탭 높이가 남는 경우도 확인한다.
+          for tab in [0, 2, 1, 2] {
+            order.segmentedControl.selectedIndex = tab
+            order.segmentedControl.onSegmentChanged?(tab)
+            window.layoutIfNeeded()
+            order.layoutIfNeeded()
+            XCTAssertEqual(scroll.bounds.width, width - 150, accuracy: 1)
+            XCTAssertEqual(scroll.bounds.height, viewportHeight, accuracy: 1)
+            guard tab == 2 else {
+              XCTAssertTrue(history.isHidden)
+              continue
+            }
+            XCTAssertFalse(history.isHidden)
+            XCTAssertTrue(order.investLiveView.isHidden)
+            XCTAssertEqual(history.noHistoryView.isHidden, !transactions.isEmpty)
+            XCTAssertEqual(history.historyTableView.isHidden, transactions.isEmpty)
+            XCTAssertEqual(history.historyTableView.numberOfRows(inSection: 0), transactions.count)
+            XCTAssertFalse(scroll.hasAmbiguousLayout)
+            XCTAssertFalse(contentStack.hasAmbiguousLayout)
+            XCTAssertFalse(order.segmentedContainerStackView.hasAmbiguousLayout)
+            XCTAssertFalse(history.hasAmbiguousLayout)
+            XCTAssertFalse(history.historyTableView.hasAmbiguousLayout)
+            XCTAssertEqual(history.bounds.height, max(viewportHeight, 310), accuracy: 1)
+            XCTAssertEqual(order.segmentedContainerStackView.bounds.height, history.bounds.height, accuracy: 1)
+            // 표시 영역이 작아져도 내역 하단과 기존 12pt 여백까지 스크롤할 수 있어야 한다.
+            let historyBottom = history.convert(history.bounds, to: scroll).maxY
+            XCTAssertGreaterThanOrEqual(scroll.contentSize.height + 1, historyBottom + 12)
+          }
+        }
+      }
+    }
   }
 
   @MainActor

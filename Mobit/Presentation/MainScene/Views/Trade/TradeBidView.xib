@@ -325,9 +325,6 @@
             </constraints>
             <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
             <userDefinedRuntimeAttributes>
-                <userDefinedRuntimeAttribute type="number" keyPath="viewCornerRadius">
-                    <real key="value" value="6"/>
-                </userDefinedRuntimeAttribute>
                 <userDefinedRuntimeAttribute type="boolean" keyPath="maskToBound" value="NO"/>
             </userDefinedRuntimeAttributes>
             <connections>

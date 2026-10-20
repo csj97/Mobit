@@ -65,7 +65,7 @@
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rD0-el-fTk" userLabel="NO RESULT VIEW">
                     <rect key="frame" x="0.0" y="170" width="393" height="614"/>
                     <subviews>
-                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="실현손익 내역이 없습니다." textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Kw2-SY-gKi">
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="실현손익 내역이 없습니다." textAlignment="center" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Kw2-SY-gKi">
                             <rect key="frame" x="124" y="298.66666666666669" width="145" height="17"/>
                             <fontDescription key="fontDescription" type="system" pointSize="14"/>
                             <color key="textColor" name="text_secondary"/>
@@ -76,6 +76,8 @@
                     <constraints>
                         <constraint firstItem="Kw2-SY-gKi" firstAttribute="centerX" secondItem="rD0-el-fTk" secondAttribute="centerX" id="9XH-DB-cld"/>
                         <constraint firstItem="Kw2-SY-gKi" firstAttribute="centerY" secondItem="rD0-el-fTk" secondAttribute="centerY" id="GXj-k2-8Oy"/>
+                        <constraint firstItem="Kw2-SY-gKi" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="rD0-el-fTk" secondAttribute="leading" constant="16" id="pnl-empty-leading"/>
+                        <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="Kw2-SY-gKi" secondAttribute="trailing" constant="16" id="pnl-empty-trailing"/>
                     </constraints>
                 </view>
             </subviews>
