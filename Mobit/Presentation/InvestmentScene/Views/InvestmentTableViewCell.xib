@@ -12,23 +12,23 @@
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
         <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="InvestmentTableViewCell" rowHeight="174" id="KGk-i7-Jjw" customClass="InvestmentTableViewCell" customModule="Mobit" customModuleProvider="target">
-            <rect key="frame" x="0.0" y="0.0" width="393" height="174"/>
+            <rect key="frame" x="0.0" y="0.0" width="504" height="174"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
             <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
-                <rect key="frame" x="0.0" y="0.0" width="393" height="174"/>
+                <rect key="frame" x="0.0" y="0.0" width="504" height="174"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="iHx-qk-Ur0">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="173"/>
+                        <rect key="frame" x="0.0" y="0.0" width="504" height="173"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="body-stack">
-                                <rect key="frame" x="16" y="14" width="361" height="145"/>
+                                <rect key="frame" x="16" y="14" width="472" height="145"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" alignment="top" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="header-stack">
-                                        <rect key="frame" x="0.0" y="0.0" width="361" height="87.333333333333329"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="472" height="87.333333333333329"/>
                                         <subviews>
                                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="identity-stack">
-                                                <rect key="frame" x="0.0" y="0.0" width="155.33333333333334" height="87.333333333333329"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="203" height="87.333333333333329"/>
                                                 <subviews>
                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" verticalCompressionResistancePriority="752" text="비트코인" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7Xe-NN-YW5">
                                                         <rect key="frame" x="0.0" y="0.0" width="59" height="20.333333333333332"/>
@@ -84,16 +84,16 @@
                                                 </subviews>
                                             </stackView>
                                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="bottom" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="profit-stack">
-                                                <rect key="frame" x="167.33333333333337" y="0.0" width="193.66666666666663" height="57.666666666666664"/>
+                                                <rect key="frame" x="215" y="0.0" width="257" height="57.666666666666664"/>
                                                 <subviews>
                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="평가손익" textAlignment="right" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="evaluation-title">
-                                                        <rect key="frame" x="151.99999999999997" y="0.0" width="41.666666666666657" height="14.333333333333334"/>
+                                                        <rect key="frame" x="215.33333333333331" y="0.0" width="41.666666666666686" height="14.333333333333334"/>
                                                         <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                         <color key="textColor" name="investment_text_secondary"/>
                                                         <nil key="highlightedColor"/>
                                                     </label>
                                                     <stackView opaque="NO" contentMode="scaleToFill" alignment="firstBaseline" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="loss-value-stack">
-                                                        <rect key="frame" x="100.66666666666666" y="17.333333333333332" width="93" height="22.999999999999996"/>
+                                                        <rect key="frame" x="164" y="17.333333333333332" width="93" height="22.999999999999996"/>
                                                         <subviews>
                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" horizontalCompressionResistancePriority="250" text="+60,000" textAlignment="right" lineBreakMode="clip" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="CRA-ut-yCs">
                                                                 <rect key="frame" x="0.0" y="0.0" width="79.333333333333329" height="23"/>
@@ -110,7 +110,7 @@
                                                         </subviews>
                                                     </stackView>
                                                     <stackView opaque="NO" contentMode="scaleToFill" alignment="firstBaseline" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="profit-rate-stack">
-                                                        <rect key="frame" x="111.66666666666666" y="43.333333333333336" width="82" height="14.333333333333336"/>
+                                                        <rect key="frame" x="175" y="43.333333333333336" width="82" height="14.333333333333336"/>
                                                         <subviews>
                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="999" verticalHuggingPriority="251" text="수익률" textAlignment="right" lineBreakMode="wordWrap" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="LF6-kG-bk8">
                                                                 <rect key="frame" x="0.0" y="0.0" width="31.333333333333332" height="14.333333333333334"/>
@@ -134,38 +134,38 @@
                                         </constraints>
                                     </stackView>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="q9v-un-IDd">
-                                        <rect key="frame" x="0.0" y="95.333333333333329" width="361" height="0.3333333333333286"/>
+                                        <rect key="frame" x="0.0" y="95.333333333333329" width="472" height="0.3333333333333286"/>
                                         <color key="backgroundColor" name="investment_separator"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="0.5" id="header-divider-height"/>
                                         </constraints>
                                     </view>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="PhI-Cj-ece">
-                                        <rect key="frame" x="0.0" y="103.66666666666667" width="361" height="41.333333333333329"/>
+                                        <rect key="frame" x="0.0" y="103.66666666666667" width="472" height="41.333333333333329"/>
                                         <subviews>
                                             <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" spacing="16" translatesAutoresizingMaskIntoConstraints="NO" id="metrics-row-one">
-                                                <rect key="frame" x="0.0" y="0.0" width="361" height="17"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="472" height="17"/>
                                                 <subviews>
                                                     <stackView opaque="NO" contentMode="scaleToFill" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="quantity-metric">
-                                                        <rect key="frame" x="0.0" y="0.0" width="172.66666666666666" height="17"/>
+                                                        <rect key="frame" x="0.0" y="0.0" width="228" height="17"/>
                                                         <subviews>
                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="보유수량" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UcV-wW-3yY">
-                                                                <rect key="frame" x="0.0" y="0.0" width="83.333333333333329" height="17"/>
+                                                                <rect key="frame" x="0.0" y="0.0" width="111" height="17"/>
                                                                 <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                                 <color key="textColor" name="investment_text_secondary"/>
                                                                 <nil key="highlightedColor"/>
                                                             </label>
                                                             <stackView opaque="NO" contentMode="scaleToFill" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="quantity-metric-value">
-                                                                <rect key="frame" x="89.333333333333343" y="0.0" width="83.333333333333343" height="17"/>
+                                                                <rect key="frame" x="117" y="0.0" width="111" height="17"/>
                                                                 <subviews>
                                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="252" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="751" text="0.02" textAlignment="right" lineBreakMode="clip" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="sFZ-j3-5AA">
-                                                                        <rect key="frame" x="0.0" y="0.0" width="55.333333333333336" height="17"/>
+                                                                        <rect key="frame" x="0.0" y="0.0" width="83" height="17"/>
                                                                         <fontDescription key="fontDescription" type="system" weight="medium" pointSize="14"/>
                                                                         <color key="textColor" name="investment_text_primary"/>
                                                                         <nil key="highlightedColor"/>
                                                                     </label>
                                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="1000" verticalHuggingPriority="251" horizontalCompressionResistancePriority="1000" text="BTC" textAlignment="right" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="quantity-unit">
-                                                                        <rect key="frame" x="58.333333333333329" y="0.0" width="25" height="17"/>
+                                                                        <rect key="frame" x="86" y="0.0" width="25" height="17"/>
                                                                         <fontDescription key="fontDescription" type="boldSystem" pointSize="12"/>
                                                                         <color key="textColor" name="investment_text_primary"/>
                                                                         <nil key="highlightedColor"/>
@@ -183,25 +183,25 @@
                                                         </constraints>
                                                     </stackView>
                                                     <stackView opaque="NO" contentMode="scaleToFill" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="average-metric">
-                                                        <rect key="frame" x="188.66666666666663" y="0.0" width="172.33333333333337" height="17"/>
+                                                        <rect key="frame" x="244" y="0.0" width="228" height="17"/>
                                                         <subviews>
                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="매수평균가" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5Z4-zF-heC">
-                                                                <rect key="frame" x="0.0" y="0.0" width="83" height="17"/>
+                                                                <rect key="frame" x="0.0" y="0.0" width="111" height="17"/>
                                                                 <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                                 <color key="textColor" name="investment_text_secondary"/>
                                                                 <nil key="highlightedColor"/>
                                                             </label>
                                                             <stackView opaque="NO" contentMode="scaleToFill" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="average-metric-value">
-                                                                <rect key="frame" x="89.000000000000028" y="0.0" width="83.333333333333343" height="17"/>
+                                                                <rect key="frame" x="117" y="0.0" width="111" height="17"/>
                                                                 <subviews>
                                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="252" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="751" text="90,000,000" textAlignment="right" lineBreakMode="clip" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="O9e-b1-b8f">
-                                                                        <rect key="frame" x="0.0" y="0.0" width="51.333333333333336" height="17"/>
+                                                                        <rect key="frame" x="0.0" y="0.0" width="79" height="17"/>
                                                                         <fontDescription key="fontDescription" type="system" weight="medium" pointSize="14"/>
                                                                         <color key="textColor" name="investment_text_primary"/>
                                                                         <nil key="highlightedColor"/>
                                                                     </label>
                                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="1000" verticalHuggingPriority="251" horizontalCompressionResistancePriority="1000" text="KRW" textAlignment="right" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="average-unit">
-                                                                        <rect key="frame" x="54.333333333333314" y="0.0" width="29" height="17"/>
+                                                                        <rect key="frame" x="82" y="0.0" width="29" height="17"/>
                                                                         <fontDescription key="fontDescription" type="boldSystem" pointSize="12"/>
                                                                         <color key="textColor" name="investment_text_primary"/>
                                                                         <nil key="highlightedColor"/>
@@ -221,28 +221,28 @@
                                                 </subviews>
                                             </stackView>
                                             <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" spacing="16" translatesAutoresizingMaskIntoConstraints="NO" id="metrics-row-two">
-                                                <rect key="frame" x="0.0" y="24.999999999999986" width="361" height="16.333333333333329"/>
+                                                <rect key="frame" x="0.0" y="24.999999999999986" width="472" height="16.333333333333329"/>
                                                 <subviews>
                                                     <stackView opaque="NO" contentMode="scaleToFill" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="evaluation-metric">
-                                                        <rect key="frame" x="0.0" y="0.0" width="172.66666666666666" height="16.333333333333332"/>
+                                                        <rect key="frame" x="0.0" y="0.0" width="228" height="16.333333333333332"/>
                                                         <subviews>
                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="평가금액" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pMT-CV-Fyo">
-                                                                <rect key="frame" x="0.0" y="0.0" width="83.333333333333329" height="16.333333333333332"/>
+                                                                <rect key="frame" x="0.0" y="0.0" width="111" height="16.333333333333332"/>
                                                                 <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                                 <color key="textColor" name="investment_text_secondary"/>
                                                                 <nil key="highlightedColor"/>
                                                             </label>
                                                             <stackView opaque="NO" contentMode="scaleToFill" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="evaluation-metric-value">
-                                                                <rect key="frame" x="89.333333333333343" y="0.0" width="83.333333333333343" height="16.333333333333332"/>
+                                                                <rect key="frame" x="117" y="0.0" width="111" height="16.333333333333332"/>
                                                                 <subviews>
                                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" horizontalCompressionResistancePriority="250" text="1,860,000" textAlignment="right" lineBreakMode="clip" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="CHA-Sp-ag5">
-                                                                        <rect key="frame" x="0.0" y="0.0" width="51.333333333333336" height="16.333333333333332"/>
+                                                                        <rect key="frame" x="0.0" y="0.0" width="79" height="16.333333333333332"/>
                                                                         <fontDescription key="fontDescription" type="system" weight="medium" pointSize="14"/>
                                                                         <color key="textColor" name="investment_text_primary"/>
                                                                         <nil key="highlightedColor"/>
                                                                     </label>
                                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="1000" verticalHuggingPriority="251" horizontalCompressionResistancePriority="1000" text="KRW" textAlignment="right" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="evaluation-unit">
-                                                                        <rect key="frame" x="54.333333333333329" y="0.0" width="29" height="16.333333333333332"/>
+                                                                        <rect key="frame" x="82" y="0.0" width="29" height="16.333333333333332"/>
                                                                         <fontDescription key="fontDescription" type="boldSystem" pointSize="12"/>
                                                                         <color key="textColor" name="investment_text_primary"/>
                                                                         <nil key="highlightedColor"/>
@@ -260,25 +260,25 @@
                                                         </constraints>
                                                     </stackView>
                                                     <stackView opaque="NO" contentMode="scaleToFill" alignment="firstBaseline" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="purchase-metric">
-                                                        <rect key="frame" x="188.66666666666663" y="0.0" width="172.33333333333337" height="16.333333333333332"/>
+                                                        <rect key="frame" x="244" y="0.0" width="228" height="16.333333333333332"/>
                                                         <subviews>
                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="매수금액" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QcA-tg-tdv">
-                                                                <rect key="frame" x="0.0" y="2.0000000000000009" width="83" height="14.333333333333336"/>
+                                                                <rect key="frame" x="0.0" y="2.0000000000000009" width="111" height="14.333333333333336"/>
                                                                 <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                                 <color key="textColor" name="investment_text_secondary"/>
                                                                 <nil key="highlightedColor"/>
                                                             </label>
                                                             <stackView opaque="NO" contentMode="scaleToFill" alignment="firstBaseline" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="purchase-metric-value">
-                                                                <rect key="frame" x="89.000000000000028" y="0.0" width="83.333333333333343" height="16.333333333333332"/>
+                                                                <rect key="frame" x="117" y="0.0" width="111" height="16.333333333333332"/>
                                                                 <subviews>
                                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" horizontalCompressionResistancePriority="250" text="1,800,000" textAlignment="right" lineBreakMode="clip" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="NgY-f0-M9r">
-                                                                        <rect key="frame" x="0.0" y="0.0" width="51.333333333333336" height="16.333333333333332"/>
+                                                                        <rect key="frame" x="0.0" y="0.0" width="79" height="16.333333333333332"/>
                                                                         <fontDescription key="fontDescription" type="system" weight="medium" pointSize="14"/>
                                                                         <color key="textColor" name="investment_text_primary"/>
                                                                         <nil key="highlightedColor"/>
                                                                     </label>
                                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="1000" verticalHuggingPriority="251" horizontalCompressionResistancePriority="1000" text="KRW" textAlignment="right" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="purchase-unit">
-                                                                        <rect key="frame" x="54.333333333333314" y="2.0000000000000009" width="29" height="14.333333333333336"/>
+                                                                        <rect key="frame" x="82" y="2.0000000000000009" width="29" height="14.333333333333336"/>
                                                                         <fontDescription key="fontDescription" type="boldSystem" pointSize="12"/>
                                                                         <color key="textColor" name="investment_text_primary"/>
                                                                         <nil key="highlightedColor"/>
@@ -311,7 +311,7 @@
                         </constraints>
                     </view>
                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="juc-Zd-ArT">
-                        <rect key="frame" x="0.0" y="173" width="393" height="1"/>
+                        <rect key="frame" x="0.0" y="173" width="504" height="1"/>
                         <color key="backgroundColor" red="0.83921568627450982" green="0.87058823529411766" blue="0.9137254901960784" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstAttribute="height" constant="1" id="bottom-divider-height"/>
@@ -367,7 +367,7 @@
                 <outletCollection property="metricRows" destination="metrics-row-one" collectionClass="NSMutableArray" id="outlet-metricRows-0"/>
                 <outletCollection property="metricRows" destination="metrics-row-two" collectionClass="NSMutableArray" id="outlet-metricRows-1"/>
             </connections>
-            <point key="canvasLocation" x="139.69465648854961" y="114.08450704225352"/>
+            <point key="canvasLocation" x="224.42748091603053" y="114.08450704225352"/>
         </tableViewCell>
     </objects>
     <resources>
