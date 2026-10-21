@@ -8,132 +8,142 @@
 import UIKit
 
 class PNLTableViewCell: UITableViewCell {
-  
+
+  // 거래 내역을 감싸는 카드 표면이다.
+  @IBOutlet weak var cardView: UIView!
+  // 거래 종목을 방향·종료 상태와 분리해서 표시한다.
   @IBOutlet weak var marketNameLabel: UILabel!
+  // 선물 방향과 배율에 옅은 배경을 적용한다.
+  @IBOutlet weak var positionBadgeView: UIView!
+  // 선물 내역의 롱·숏과 체결 배율을 표시한다.
+  @IBOutlet weak var positionBadgeLabel: UILabel!
+  // 포지션 종료와 강제 청산을 구분한다.
+  @IBOutlet weak var statusLabel: UILabel!
+  // 실현손익 항목의 번역 제목이다.
+  @IBOutlet private weak var pnlTitle: UILabel!
+  // 원화로 정산한 실현손익을 표시한다.
   @IBOutlet weak var pnlLabel: UILabel!
+  // 수익률 항목의 번역 제목이다.
+  @IBOutlet private weak var roiTitle: UILabel!
+  // 해당 체결의 원가 또는 증거금 기준 수익률이다.
+  @IBOutlet weak var roiLabel: UILabel!
+  // 체결 수량의 원래 표시 정밀도를 유지한다.
   @IBOutlet weak var quantityLabel: UILabel!
   // 현물·선물 손익 내역에 공통으로 표시하는 체결 수량 제목이다.
   @IBOutlet private weak var quantityTitle: UILabel!
+  // 현물 매수 가격 또는 선물 진입 가격이다.
   @IBOutlet weak var entryPriceLabel: UILabel!
+  // 현물 매도 가격 또는 선물 종료 가격이다.
   @IBOutlet weak var exitPriceLabel: UILabel!
+  // 실제 체결 또는 청산 발생 시각을 표시한다.
   @IBOutlet weak var transactionDateLabel: UILabel!
+  // 상품에 맞는 진입 가격 제목이다.
   @IBOutlet weak var entryTitle: UILabel!
+  // 일반 종료와 청산을 구분하는 종료 가격 제목이다.
   @IBOutlet weak var exitTitle: UILabel!
-  @IBOutlet weak var dateTitle: UILabel!
+  // 현물에서는 숨기는 선물 체결 증거금 영역이다.
+  @IBOutlet weak var marginView: UIStackView!
+  // 증거금 항목의 번역 제목이다.
+  @IBOutlet private weak var marginTitle: UILabel!
+  // 전체 잔여 포지션 대신 해당 종료 체결의 증거금을 표시한다.
+  @IBOutlet weak var marginLabel: UILabel!
+  // XIB에서 두 열로 구성한 상세 정보 영역이다.
   @IBOutlet weak var metricsStackView: UIStackView!
-  
+  // 기존 손익 공유 화면을 여는 버튼이다.
+  @IBOutlet weak var shareButton: UIButton!
+
   var shareCallBack: (() -> ())? = nil
   private var currentPNL: Double?
-  
+  // 테마 전환 시 방향 배지의 색상을 복원한다.
+  private var currentSide: FuturesSide?
+
   deinit {
-	print("deinit : " + String(describing: type(of: self)))
+    print("deinit : " + String(describing: type(of: self)))
   }
-  
+
   override func awakeFromNib() {
-	super.awakeFromNib()
-	quantityTitle.text = FuturesText.text("trade_executed_quantity") + " :"
-	updateThemeColors()
+    super.awakeFromNib()
+    quantityTitle.text = FuturesText.text("trade_executed_quantity")
+    pnlTitle.text = FuturesText.text("futures_realized")
+    roiTitle.text = FuturesText.text("investment_return_rate")
+    marginTitle.text = FuturesText.text("futures_margin")
+    shareButton.setTitle(FuturesText.text("media_share"), for: .normal)
+    transactionDateLabel.accessibilityLabel = FuturesText.text("investment_execution_time")
+    updateThemeColors()
   }
 
   override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-	super.traitCollectionDidChange(previousTraitCollection)
-	guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
-	updateThemeColors()
+    super.traitCollectionDidChange(previousTraitCollection)
+    guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+    updateThemeColors()
   }
 
   private func updateThemeColors() {
-	self.backgroundColor = .mobitColors(.backgroundPrimary)
-	self.contentView.backgroundColor = .mobitColors(.backgroundPrimary)
-	if let currentPNL {
-	  self.pnlLabel.textColor = MarketColorPalette.color(forSignedValue: currentPNL)
-	}
-  }
-
-  override func layoutSubviews() {
-    updateMetricsLayout(for: bounds.width)
-    super.layoutSubviews()
-  }
-
-  override func systemLayoutSizeFitting(
-    _ targetSize: CGSize,
-    withHorizontalFittingPriority horizontalFittingPriority: UILayoutPriority,
-    verticalFittingPriority: UILayoutPriority
-  ) -> CGSize {
-    updateMetricsLayout(for: targetSize.width)
-    return super.systemLayoutSizeFitting(
-      targetSize,
-      withHorizontalFittingPriority: horizontalFittingPriority,
-      verticalFittingPriority: verticalFittingPriority
-    )
-  }
-
-  private func updateMetricsLayout(for width: CGFloat) {
-    guard width > 62 else { return }
-    // 카드 바깥 12pt와 안쪽 16pt 여백을 제외한 지표 영역이다.
-    let contentWidth = width - 56
-    // 기존 두 열 사이의 6pt 간격을 유지한다.
-    let columnWidth = (contentWidth - 6) / 2
-    for case let row as UIStackView in metricsStackView.arrangedSubviews {
-      // 값 자체가 열보다 길면 행을 펼쳐 체결 시각과 가격이 잘리지 않게 한다.
-      let needsFullWidth = row.arrangedSubviews.contains { view in
-        guard let item = view as? UIStackView,
-              let valueLabel = item.arrangedSubviews.last as? UILabel else { return false }
-        return naturalWidth(of: valueLabel) > columnWidth
-      }
-      // 펼친 행의 제목과 값은 카드의 전체 콘텐츠 너비를 사용한다.
-      let itemWidth = needsFullWidth ? contentWidth : columnWidth
-      row.axis = needsFullWidth ? .vertical : .horizontal
-      row.distribution = needsFullWidth ? .fill : .fillEqually
-      row.spacing = needsFullWidth ? 12 : 6
-      for case let item as UIStackView in row.arrangedSubviews {
-        guard let titleLabel = item.arrangedSubviews.first as? UILabel,
-              let valueLabel = item.arrangedSubviews.last as? UILabel else { continue }
-        // 긴 번역 제목은 값을 압축하는 대신 값 위로 배치한다.
-        let needsSeparateLine = naturalWidth(of: titleLabel) + naturalWidth(of: valueLabel) + 8 > itemWidth
-        item.axis = needsSeparateLine ? .vertical : .horizontal
-        item.spacing = needsSeparateLine ? 4 : 8
-      }
+    backgroundColor = .mobitColors(.investmentSurface)
+    contentView.backgroundColor = .mobitColors(.investmentSurface)
+    cardView.layer.borderColor = UIColor.mobitColors(.investmentSeparator).resolvedColor(with: traitCollection).cgColor
+    shareButton.layer.borderColor = UIColor.mobitColors(.investmentSeparator).resolvedColor(with: traitCollection).cgColor
+    // 손익을 알 수 없는 재사용 셀에도 이전 손익 색상을 남기지 않는다.
+    let profitColor = currentPNL.map { MarketColorPalette.color(forSignedValue: $0) }
+      ?? .mobitColors(.textSecondary)
+    pnlLabel.textColor = profitColor
+    roiLabel.textColor = profitColor
+    if let currentSide {
+      // 사용자 상승·하락 색상 설정을 방향 배지에도 동일하게 적용한다.
+      let sideColor = currentSide == .long ? MarketColorPalette.riseColor : MarketColorPalette.fallColor
+      positionBadgeLabel.textColor = sideColor
+      positionBadgeView.backgroundColor = sideColor.withAlphaComponent(0.08)
     }
-  }
-
-  private func naturalWidth(of label: UILabel) -> CGFloat {
-    // 현재 줄바꿈 결과와 무관한 원래 텍스트 폭으로 배치 반복 전환을 방지한다.
-    ceil(((label.text ?? "") as NSString).size(withAttributes: [.font: label.font as Any]).width)
+    updateDetailTextStyle()
   }
 
   override func setSelected(_ selected: Bool, animated: Bool) {
-	super.setSelected(selected, animated: animated)
-	
+    super.setSelected(selected, animated: animated)
   }
-  
-  func configure(pnlHistory: UserPNLHistoryModel) {
-    marketNameLabel.numberOfLines = 1
-    marketNameLabel.adjustsFontSizeToFitWidth = false
-    marketNameLabel.minimumScaleFactor = 1
-    dateTitle.text = FuturesText.text("investment_execution_time") + " :"
-    entryTitle.text = FuturesText.text("investment_entry_price") + " :"
-    exitTitle.text = FuturesText.text("investment_exit_price") + " :"
-	let currency = pnlHistory.settlementCurrency
-	let realizedKRW = pnlHistory.realizedProfitLossKRW.map(PortfolioCalculator.double)
-	  ?? (currency == .krw ? pnlHistory.pnl : nil)
-	self.currentPNL = realizedKRW
 
-	self.marketNameLabel.text = pnlHistory.exchangePairID.displayMarket
-	self.pnlLabel.text = realizedKRW.map {
-	  $0.formatTradingValue().addComma() + " 원"
-	} ?? "-"
-	self.pnlLabel.adjustsFontSizeToFitWidth = false
-	self.quantityLabel.text = "\(pnlHistory.orderQuantity.formatTradingValue())".addComma()
-	self.entryPriceLabel.text = "\(pnlHistory.entryPrice.formatTradingValue())".addComma() + (currency == .krw ? "" : " " + currency.rawValue)
-	self.exitPriceLabel.text = "\(pnlHistory.exitPrice.formatTradingValue())".addComma() + (currency == .krw ? "" : " " + currency.rawValue)
-	self.transactionDateLabel.text = "\(pnlHistory.transactionDate)"
-	
-	self.pnlLabel.textColor = realizedKRW.map { MarketColorPalette.color(forSignedValue: $0) }
-	  ?? .mobitColors(.textSecondary)
-	
-	self.layer.cornerRadius = 8
+  func configure(pnlHistory: UserPNLHistoryModel) {
+    // 현물로 재사용할 때 선물에만 있는 정보가 남지 않게 한다.
+    currentSide = nil
+    positionBadgeView.isHidden = true
+    positionBadgeLabel.text = nil
+    statusLabel.isHidden = true
+    statusLabel.text = nil
+    marginView.isHidden = true
+    marginLabel.text = nil
+    // 투자내역과 같은 마켓 표기에서 수량의 종목 단위를 구한다.
+    let market = pnlHistory.exchangePairID.displayMarket
+    // 결제 통화 대신 실제 체결한 종목을 수량 단위로 표시한다.
+    let quantityUnit = market.split(separator: "/").first.map(String.init) ?? market
+    marketNameLabel.text = market
+    entryTitle.text = FuturesText.text("investment_entry_price")
+    exitTitle.text = FuturesText.text("investment_exit_price")
+    // BTC 마켓도 저장된 원화 정산값이 있을 때만 원화 손익으로 표시한다.
+    let currency = pnlHistory.settlementCurrency
+    // 원화는 다른 손익 항목과 같은 번역 단위로 표시한다.
+    let currencyUnit = currency == .krw ? FuturesText.text("currency_krw_unit") : currency.rawValue
+    // 레거시 KRW 거래는 기존 손익값을 그대로 사용한다.
+    let realizedKRW = pnlHistory.realizedProfitLossKRW.map(PortfolioCalculator.double)
+      ?? (currency == .krw ? pnlHistory.pnl : nil)
+    // 원화 원가가 있으면 공유 화면과 같은 원화 기준 수익률을 사용한다.
+    let rate: Double?
+    if let cost = pnlHistory.costBasisKRW, let realized = pnlHistory.realizedProfitLossKRW,
+       pnlHistory.orderQuantity > 0, cost > 0 {
+      rate = PortfolioCalculator.double(realized / cost * 100)
+    } else {
+      rate = pnlHistory.entryPrice > 0
+        ? (pnlHistory.exitPrice - pnlHistory.entryPrice) / pnlHistory.entryPrice * 100 : nil
+    }
+    quantityLabel.text = pnlHistory.orderQuantity.formatTradingValue().addComma() + " " + quantityUnit
+    entryPriceLabel.text = pnlHistory.entryPrice.formatTradingValue().addComma() + " " + currencyUnit
+    exitPriceLabel.text = pnlHistory.exitPrice.formatTradingValue().addComma() + " " + currencyUnit
+    transactionDateLabel.text = pnlHistory.transactionDate
+    transactionDateLabel.accessibilityValue = transactionDateLabel.text
+    updateProfitLoss(
+      amount: realizedKRW.map(PortfolioCalculator.decimal),
+      rate: realizedKRW == nil ? nil : rate
+    )
   }
-  
+
   func configure(record: FuturesTransactionRecord, position: FuturesPosition) {
     // 실현손익의 종료 결과 문구를 주문 동작·일반 거래내역 문구와 구분한다.
     let statusKey: String
@@ -142,25 +152,81 @@ class PNLTableViewCell: UITableViewCell {
     case .liquidation: statusKey = "futures_pnl_liquidated"
     default: statusKey = "futures_" + record.kind.rawValue
     }
-    marketNameLabel.text = "\(FuturesText.symbol(record.instrument)) · \(FuturesText.side(record.side)) \(record.leverage)× · \(FuturesText.text(statusKey))"
-    // 종료 유형을 포함한 제목을 한 줄 안에서 원래 글자 크기의 55%까지 축소한다.
-    marketNameLabel.numberOfLines = 1
-    marketNameLabel.adjustsFontSizeToFitWidth = true
-    marketNameLabel.minimumScaleFactor = 0.55
-    entryTitle.text = FuturesText.text("futures_entry_price") + " :"
-    exitTitle.text = FuturesText.text(record.kind == .liquidation ? "futures_liquidation_exit_price" : "futures_exit_price") + " :"
-    quantityLabel.text = FuturesText.number(record.quantity)
-    entryPriceLabel.text = FuturesText.number(try? record.entryPrice ?? position.averageEntryPrice)
-    exitPriceLabel.text = FuturesText.number(record.price)
-    pnlLabel.text = FuturesText.number(record.realizedPnL) + " \(FuturesText.text("currency_krw_unit"))"
-    currentPNL = record.realizedPnL.map { NSDecimalNumber(decimal: $0).doubleValue }
-    pnlLabel.textColor = currentPNL.map { MarketColorPalette.color(forSignedValue: $0) } ?? .mobitColors(.textSecondary)
-    dateTitle.text = FuturesText.text("investment_execution_time") + " :"
+    // 종료 내역에 저장된 종목을 헤더와 수량 단위에 함께 사용한다.
+    let market = FuturesText.symbol(record.instrument)
+    // 현물과 같은 기초자산 심볼을 선물 체결 수량에도 붙인다.
+    let quantityUnit = market.split(separator: "/").first.map(String.init) ?? market
+    marketNameLabel.text = market
+    currentSide = record.side
+    positionBadgeView.isHidden = false
+    positionBadgeLabel.text = "\(FuturesText.side(record.side)) \(record.leverage)×"
+    statusLabel.isHidden = false
+    statusLabel.text = FuturesText.text(statusKey)
+    entryTitle.text = FuturesText.text("futures_entry_price")
+    exitTitle.text = FuturesText.text(record.kind == .liquidation ? "futures_liquidation_exit_price" : "futures_exit_price")
+    quantityLabel.text = FuturesText.number(record.quantity) + " " + quantityUnit
+    // 가격 단위는 체결에 사용한 마켓의 결제 통화다.
+    let currency = record.instrument.settlementCurrency
+    // 가격과 증거금에 같은 결제 통화 단위를 사용한다.
+    let currencyUnit = currency == .krw ? FuturesText.text("currency_krw_unit") : currency.rawValue
+    entryPriceLabel.text = FuturesText.number(try? record.entryPrice ?? position.averageEntryPrice) + " " + currencyUnit
+    exitPriceLabel.text = FuturesText.number(record.price) + " " + currencyUnit
+    marginView.isHidden = false
+    marginLabel.text = FuturesText.number(try? record.margin ?? position.margin) + " " + currencyUnit
     transactionDateLabel.text = FuturesText.occurrenceDate(record)
-    layer.cornerRadius = 8
+    transactionDateLabel.accessibilityValue = transactionDateLabel.text
+    // 공유 화면과 같은 체결별 증거금 기준으로 수익률을 계산한다.
+    let shareUnit = try? FuturesText.shareUnit(record, position: position)
+    updateProfitLoss(
+      amount: record.realizedPnL,
+      rate: shareUnit?.roi
+    )
+  }
+
+  private func updateProfitLoss(amount: Decimal?, rate: Double?) {
+    currentPNL = amount.map { NSDecimalNumber(decimal: $0).doubleValue }
+    pnlLabel.text = amount.map {
+      ($0 > 0 ? "+" : "") + FuturesText.number($0) + " " + FuturesText.text("currency_krw_unit")
+    } ?? "-"
+    roiLabel.text = rate.flatMap { value in
+      value.isFinite ? (value > 0 ? "+" : "") + value.formatSignificantDigits(digits: 2) + "%" : nil
+    } ?? "-"
+    updateThemeColors()
+  }
+
+  private func updateDetailTextStyle() {
+    // 손익·수익률·수량·가격·증거금의 단위에 같은 서식을 적용한다.
+    let detailLabels: [UILabel?] = [pnlLabel, roiLabel, quantityLabel, entryPriceLabel, exitPriceLabel, marginLabel]
+    for label in detailLabels {
+      // 비어 있는 현물 증거금은 이전 재사용 셀의 스타일을 적용하지 않는다.
+      guard let label, let text = label.text, let numberFont = label.font else { continue }
+      // 숫자는 XIB 폰트와 기본 텍스트 색상을 그대로 사용한다.
+      let styledText = NSMutableAttributedString(string: text, attributes: [.font: numberFont])
+      // 수익률의 끝 기호와 공백 뒤의 종목·통화 단위를 구분한다.
+      let unitRange: NSRange?
+      if text.hasSuffix("%") {
+        unitRange = (text as NSString).range(of: "%", options: .backwards)
+      } else if let separator = text.lastIndex(of: " ") {
+        unitRange = NSRange(text.index(after: separator)..<text.endIndex, in: text)
+      } else {
+        unitRange = nil
+      }
+      if let unitRange {
+        // 숫자의 굵기와 무관하게 모든 단위는 같은 10pt로 표시한다.
+        let unitFontSize: CGFloat = 10
+        styledText.addAttributes(
+          [
+            .font: UIFont.systemFont(ofSize: unitFontSize),
+            .foregroundColor: UIColor.mobitColors(.investmentTextTertiary)
+          ],
+          range: unitRange
+        )
+      }
+      label.attributedText = styledText
+    }
   }
 
   @IBAction func tapOnShareButton(_ sender: UIButton) {
-	self.shareCallBack?()
+    shareCallBack?()
   }
 }

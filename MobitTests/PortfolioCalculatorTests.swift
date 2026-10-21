@@ -345,11 +345,16 @@ final class PortfolioCalculatorTests: XCTestCase {
       pnl: 0.01
     )
     history.realizedProfitLossKRW = 1_500_000
+    history.costBasisKRW = 3_000_000
 
     cell.configure(pnlHistory: history)
 
     XCTAssertEqual(cell.marketNameLabel.text, "ETH/BTC")
-    XCTAssertEqual(cell.pnlLabel.text, "1,500,000 원")
+    XCTAssertEqual(cell.pnlLabel.text, "+1,500,000 " + FuturesText.text("currency_krw_unit"))
+    XCTAssertEqual(cell.roiLabel.text, "+50%")
+    XCTAssertTrue(cell.positionBadgeView.isHidden)
+    XCTAssertTrue(cell.statusLabel.isHidden)
+    XCTAssertTrue(cell.marginView.isHidden)
   }
 
   func testPNLCellDoesNotDisplayNativeBTCProfitWhenKRWProfitIsMissing() throws {
@@ -366,9 +371,42 @@ final class PortfolioCalculatorTests: XCTestCase {
       pnl: 0.01
     )
 
+    cell.configure(pnlHistory: UserPNLHistoryModel(
+      marketName: "BTC/KRW",
+      entryPrice: 100,
+      exitPrice: 110,
+      transactionTimestamp: 1_700_000_000_000,
+      orderQuantity: 1,
+      pnl: 10
+    ))
     cell.configure(pnlHistory: history)
 
     XCTAssertEqual(cell.pnlLabel.text, "-")
+    XCTAssertEqual(cell.roiLabel.text, "-")
+    XCTAssertEqual(cell.pnlLabel.textColor, UIColor.mobitColors(.textSecondary))
+  }
+
+  func testPNLCellShowsNativeSpotReturnWithoutKRWCostBasis() throws {
+    // 원화 원가가 없는 기존 기록도 진입·종료 가격 기준 수익률을 표시한다.
+    let cell = try XCTUnwrap(
+      UINib(nibName: "PNLTableViewCell", bundle: Bundle.main)
+        .instantiate(withOwner: nil).first as? PNLTableViewCell
+    )
+    // 저장된 현물 거래의 가격 수익률은 25%다.
+    let history = UserPNLHistoryModel(
+      marketName: "BTC/KRW",
+      entryPrice: 100,
+      exitPrice: 125,
+      transactionTimestamp: 1_700_000_000_000,
+      orderQuantity: 2,
+      pnl: 50
+    )
+
+    cell.configure(pnlHistory: history)
+
+    XCTAssertEqual(cell.pnlLabel.text, "+50 " + FuturesText.text("currency_krw_unit"))
+    XCTAssertEqual(cell.roiLabel.text, "+25%")
+    XCTAssertTrue(cell.marginView.isHidden)
   }
 
   func testTradeInputsRemoveGroupingSeparatorsBeforeEditing() {

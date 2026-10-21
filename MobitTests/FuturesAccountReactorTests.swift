@@ -1220,9 +1220,11 @@ final class FuturesAccountReactorTests: XCTestCase {
         UINib(nibName: "PNLTableViewCell", bundle: .main).instantiate(withOwner: nil).first as? PNLTableViewCell
       )
       history.configure(record: record, position: position)
-      XCTAssertTrue(history.marketNameLabel.text?.hasSuffix(FuturesText.text("futures_pnl_closed")) == true)
-      XCTAssertEqual(history.quantityLabel.text, expected)
-      XCTAssertEqual(history.pnlLabel.text, expected + " 원")
+      XCTAssertEqual(history.marketNameLabel.text, FuturesText.symbol(record.instrument))
+      XCTAssertEqual(history.positionBadgeLabel.text, "\(FuturesText.side(record.side)) 1×")
+      XCTAssertEqual(history.statusLabel.text, FuturesText.text("futures_pnl_closed"))
+      XCTAssertEqual(history.quantityLabel.text, expected + " BTC")
+      XCTAssertEqual(history.pnlLabel.text, "+" + expected + " " + FuturesText.text("currency_krw_unit"))
       let share = PNLShareView.instanceFromNib(pnlShareUnit: try FuturesText.shareUnit(record, position: position)) { _ in }
       XCTAssertEqual(share.quantityLabel.text, expected)
       XCTAssertEqual(share.pnlLabel.text, "+" + expected + " ₩")
@@ -5132,16 +5134,17 @@ final class FuturesAccountReactorTests: XCTestCase {
     let cell = try XCTUnwrap(
       controller.tableView(controller.pnlTableView, cellForRowAt: IndexPath(row: 0, section: 0)) as? PNLTableViewCell
     )
-    XCTAssertEqual(cell.pnlLabel.text, "-100,000 원")
-    XCTAssertTrue(cell.marketNameLabel.text?.contains(FuturesText.text("futures_short")) == true)
-    XCTAssertTrue(cell.marketNameLabel.text?.hasSuffix(FuturesText.text("futures_pnl_liquidated")) == true)
-    XCTAssertEqual(cell.exitTitle.text, FuturesText.text("futures_liquidation_exit_price") + " :")
-    XCTAssertEqual(cell.entryTitle.text, FuturesText.text("futures_entry_price") + " :")
-    XCTAssertEqual(cell.dateTitle.text, FuturesText.text("investment_execution_time") + " :")
+    XCTAssertEqual(cell.pnlLabel.text, "-100,000 " + FuturesText.text("currency_krw_unit"))
+    XCTAssertEqual(cell.marketNameLabel.text, FuturesText.symbol(position.order.instrument))
+    XCTAssertEqual(cell.positionBadgeLabel.text, "\(FuturesText.text("futures_short")) \(position.order.leverage)×")
+    XCTAssertEqual(cell.statusLabel.text, FuturesText.text("futures_pnl_liquidated"))
+    XCTAssertEqual(cell.exitTitle.text, FuturesText.text("futures_liquidation_exit_price"))
+    XCTAssertEqual(cell.entryTitle.text, FuturesText.text("futures_entry_price"))
     XCTAssertEqual(cell.transactionDateLabel.numberOfLines, 1)
     XCTAssertEqual((cell.transactionDateLabel.superview as? UIStackView)?.axis, .horizontal)
     XCTAssertEqual(cell.metricsStackView.arrangedSubviews.count, 2)
     XCTAssertEqual(cell.transactionDateLabel.text, String(FuturesText.date(Date(timeIntervalSince1970: 60)).dropLast(3)))
+    XCTAssertEqual(cell.transactionDateLabel.accessibilityValue, cell.transactionDateLabel.text)
     XCTAssertFalse(cell.transactionDateLabel.text?.contains("~") == true)
     XCTAssertFalse(cell.transactionDateLabel.text?.contains(FuturesText.text("futures_settled")) == true)
     XCTAssertNotNil(cell.shareCallBack)
@@ -5157,16 +5160,28 @@ final class FuturesAccountReactorTests: XCTestCase {
       controller.overrideUserInterfaceStyle = style
       waitForNoticeUpdates(0.05)
       controller.view.layoutIfNeeded()
+      XCTAssertEqual(
+        controller.view.backgroundColor?.resolvedColor(with: controller.traitCollection),
+        UIColor.mobitColors(.backgroundPrimary).resolvedColor(with: controller.traitCollection)
+      )
+      // 헤더의 기본 배경과 구분해 목록·빈 화면의 표면색을 검사한다.
+      let backgroundViews: [UIView] = [controller.pnlTableView, controller.noResultView]
+      for backgroundView in backgroundViews {
+        XCTAssertEqual(
+          backgroundView.backgroundColor?.resolvedColor(with: controller.traitCollection),
+          UIColor.mobitColors(.investmentSurface).resolvedColor(with: controller.traitCollection)
+        )
+      }
       // 화면에 실제 배치된 셀의 문구와 동적 색상을 확인한다.
       let visibleCell = try XCTUnwrap(controller.pnlTableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? PNLTableViewCell)
-      XCTAssertTrue(visibleCell.marketNameLabel.text?.hasSuffix(FuturesText.text("futures_pnl_liquidated")) == true)
+      XCTAssertEqual(visibleCell.statusLabel.text, FuturesText.text("futures_pnl_liquidated"))
       XCTAssertEqual(
         visibleCell.marketNameLabel.textColor.resolvedColor(with: visibleCell.traitCollection),
         UIColor.mobitColors(.textPrimary).resolvedColor(with: visibleCell.traitCollection)
       )
       XCTAssertEqual(
-        visibleCell.contentView.subviews.first?.backgroundColor?.resolvedColor(with: visibleCell.traitCollection),
-        UIColor.mobitColors(.investmentSurface).resolvedColor(with: visibleCell.traitCollection)
+        visibleCell.cardView.backgroundColor?.resolvedColor(with: visibleCell.traitCollection),
+        UIColor.mobitColors(.backgroundPrimary).resolvedColor(with: visibleCell.traitCollection)
       )
       // 테마별 실제 셀 배치와 손익 색상을 렌더링해 확인한다.
       let image = UIGraphicsImageRenderer(bounds: controller.view.bounds).image {
@@ -6564,22 +6579,106 @@ private final class MainIndicatorDelegateSpy: MainCoordinatorDelegate {
 
 extension FuturesAccountReactorTests {
   @MainActor
+  func testPNLCardKeepsDecimalPrecisionBelowIntegerThreshold() throws {
+    // Double 변환으로 1,000에 반올림되기 쉬운 손익도 원래 Decimal로 표시한다.
+    let position = try FuturesCalculator.open(domesticFuturesOrder())
+    // 양수·음수 모두 절댓값 1,000 미만의 소수점 8자리 절삭 정책을 지킨다.
+    let samples = [
+      ("999.99999999999999", "+999.99999999"),
+      ("-999.99999999999999", "-999.99999999")
+    ]
+    // 한 셀을 재사용해 손익 부호가 바뀔 때 표시가 남는지도 확인한다.
+    let cell = try XCTUnwrap(
+      UINib(nibName: "PNLTableViewCell", bundle: .main)
+        .instantiate(withOwner: nil).first as? PNLTableViewCell
+    )
+    for (input, expected) in samples {
+      // 원본 문자열에서 Double을 거치지 않고 정밀한 손익을 구성한다.
+      let pnl = try XCTUnwrap(Decimal(string: input))
+      // 저장된 체결 결과의 손익만 화면에 전달한다.
+      let record = FuturesTransactionRecord(
+        eventID: UUID(),
+        positionID: position.id,
+        kind: .closing,
+        instrument: position.order.instrument,
+        side: position.order.side,
+        leverage: position.order.leverage,
+        quantity: position.quantity,
+        intervalStart: 120_000,
+        intervalEndExclusive: nil,
+        recordedAt: Date(timeIntervalSince1970: 120),
+        price: 100_000_000,
+        realizedPnL: pnl
+      )
+
+      cell.configure(record: record, position: position)
+
+      XCTAssertEqual(cell.pnlLabel.text, expected + " " + FuturesText.text("currency_krw_unit"))
+    }
+  }
+
+  @MainActor
+  func testPNLCardUsesPartialClosingMarginAndEntryPriceForRealizedReturn() throws {
+    // 종료 기록의 원가와 증거금을 현재 보유 포지션과 구분해 검증한다.
+    let position = try FuturesCalculator.open(domesticFuturesOrder())
+    // 부분 종료 당시의 증거금과 평균 진입가는 이후 포지션 값에 영향받지 않는다.
+    let record = FuturesTransactionRecord(
+      eventID: UUID(),
+      positionID: position.id,
+      kind: .closing,
+      instrument: position.order.instrument,
+      side: position.order.side,
+      leverage: position.order.leverage,
+      quantity: position.quantity / 4,
+      intervalStart: 120_000,
+      intervalEndExclusive: nil,
+      recordedAt: Date(timeIntervalSince1970: 120),
+      price: 110_000_000,
+      realizedPnL: 10_000,
+      margin: 25_000,
+      entryPrice: 90_000_000
+    )
+    // 실제 XIB와 화면 구성 경로로 표시값을 확인한다.
+    let cell = try XCTUnwrap(
+      UINib(nibName: "PNLTableViewCell", bundle: .main)
+        .instantiate(withOwner: nil).first as? PNLTableViewCell
+    )
+
+    cell.configure(record: record, position: position)
+
+    XCTAssertEqual(cell.marketNameLabel.text, FuturesText.symbol(record.instrument))
+    XCTAssertEqual(cell.positionBadgeLabel.text, "\(FuturesText.side(record.side)) \(record.leverage)×")
+    XCTAssertEqual(cell.statusLabel.text, FuturesText.text("futures_pnl_closed"))
+    XCTAssertFalse(cell.positionBadgeView.isHidden)
+    XCTAssertFalse(cell.statusLabel.isHidden)
+    XCTAssertFalse(cell.marginView.isHidden)
+    XCTAssertEqual(cell.marginLabel.text, "25,000 " + FuturesText.text("currency_krw_unit"))
+    XCTAssertEqual(cell.entryPriceLabel.text, "90,000,000 " + FuturesText.text("currency_krw_unit"))
+    XCTAssertEqual(cell.exitPriceLabel.text, "110,000,000 " + FuturesText.text("currency_krw_unit"))
+    XCTAssertEqual(cell.pnlLabel.text, "+10,000 " + FuturesText.text("currency_krw_unit"))
+    XCTAssertEqual(cell.roiLabel.text, "+40%")
+    XCTAssertEqual(try FuturesText.shareUnit(record, position: position).roi, 40)
+  }
+
+  @MainActor
   func testPNLReusePreservesXIBRowsAndCardColorsAcrossThemes() throws {
     // 현물·선물 구성을 번갈아 적용해도 XIB 행 배치가 바뀌면 안 된다.
     let cell = try XCTUnwrap(UINib(nibName: "PNLTableViewCell", bundle: .main).instantiate(withOwner: nil).first as? PNLTableViewCell)
-    // 원래 XIB의 날짜 행과 두 지표 행을 보존한다.
+    // 날짜 푸터와 두 지표 행은 재사용 중 같은 계층에 남아야 한다.
     let dateRow = try XCTUnwrap(cell.transactionDateLabel.superview)
     // 날짜 행의 소유 행이 재사용 중 바뀌지 않는지 비교한다.
     let dateParent = try XCTUnwrap(dateRow.superview)
     // 기존 두 행의 객체와 순서가 유지돼야 한다.
     let rows = cell.metricsStackView.arrangedSubviews
+    // 헤더·날짜만 한 줄 축소를 허용하고 본문 지표의 동적 글씨를 유지한다.
+    let compactLabels: [UILabel] = [cell.marketNameLabel, cell.positionBadgeLabel, cell.statusLabel, cell.transactionDateLabel]
     // 셀 표면의 named color가 실제 trait 변경을 따라가는지 검사한다.
-    let card = try XCTUnwrap(cell.contentView.subviews.first)
+    let card = try XCTUnwrap(cell.cardView)
     // 창에 넣어 실제 라이트·다크 전환을 전달한다.
     let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 568))
     window.rootViewController = UIViewController()
     window.rootViewController?.view.addSubview(cell)
-    cell.frame = CGRect(x: 0, y: 0, width: 320, height: 280)
+    cell.frame = CGRect(x: 0, y: 0, width: 320, height: 1_000)
     window.makeKeyAndVisible()
     defer { window.isHidden = true }
     // 거래 계산을 바꾸지 않고 셀의 현물 표시 경로만 실행한다.
@@ -6617,14 +6716,57 @@ extension FuturesAccountReactorTests {
       for isFutures in [true, false, true] {
         if isFutures { cell.configure(record: record, position: position) }
         else { cell.configure(pnlHistory: spot) }
+        // 배지·증거금 표시 여부에 맞는 자연 높이에서 재사용 결과를 비교한다.
+        let fitting = cell.systemLayoutSizeFitting(
+          CGSize(width: 320, height: UIView.layoutFittingCompressedSize.height),
+          withHorizontalFittingPriority: .required,
+          verticalFittingPriority: .fittingSizeLevel
+        )
+        cell.frame.size.height = ceil(fitting.height)
+        cell.setNeedsLayout()
         cell.layoutIfNeeded()
         XCTAssertTrue(cell.transactionDateLabel.superview === dateRow)
         XCTAssertTrue(dateRow.superview === dateParent)
         XCTAssertEqual(cell.metricsStackView.arrangedSubviews, rows)
         XCTAssertEqual(rows.count, 2)
-        XCTAssertEqual(cell.marketNameLabel.adjustsFontSizeToFitWidth, isFutures)
-        XCTAssertEqual(cell.marketNameLabel.minimumScaleFactor, isFutures ? 0.55 : 1, accuracy: 0.001)
-        XCTAssertEqual(card.backgroundColor?.resolvedColor(with: cell.traitCollection), UIColor.mobitColors(.investmentSurface).resolvedColor(with: cell.traitCollection))
+        for label in compactLabels {
+          XCTAssertEqual(label.numberOfLines, 1)
+          XCTAssertTrue(label.adjustsFontSizeToFitWidth)
+          XCTAssertFalse(label.adjustsFontForContentSizeCategory)
+        }
+        // 날짜와 공유 버튼은 현물·선물 재사용 모두 같은 행을 유지한다.
+        let dateFrame = cell.transactionDateLabel.convert(cell.transactionDateLabel.bounds, to: cell.contentView)
+        // 날짜와 같은 행에 놓인 공유 버튼의 셀 기준 영역이다.
+        let shareFrame = cell.shareButton.convert(cell.shareButton.bounds, to: cell.contentView)
+        XCTAssertEqual(dateFrame.midY, shareFrame.midY, accuracy: 1)
+        XCTAssertLessThanOrEqual(dateFrame.maxX, shareFrame.minX)
+        XCTAssertGreaterThanOrEqual(cell.shareButton.bounds.height, cell.shareButton.intrinsicContentSize.height)
+        XCTAssertTrue(cell.pnlLabel.adjustsFontSizeToFitWidth)
+        XCTAssertTrue(cell.roiLabel.adjustsFontSizeToFitWidth)
+        XCTAssertEqual(cell.positionBadgeView.isHidden, !isFutures)
+        XCTAssertEqual(cell.statusLabel.isHidden, !isFutures)
+        XCTAssertEqual(cell.marginView.isHidden, !isFutures)
+        if isFutures {
+          // 재사용과 테마 전환 뒤에도 종목·배지·상태의 같은 행 정렬을 보존한다.
+          let marketFrame = cell.marketNameLabel.convert(cell.marketNameLabel.bounds, to: cell.contentView)
+          // 배지의 배경 영역까지 포함해 종목과 상태의 겹침을 검사한다.
+          let badgeFrame = cell.positionBadgeView.convert(cell.positionBadgeView.bounds, to: cell.contentView)
+          // 종료 상태가 별도 행으로 내려가지 않았는지 비교한다.
+          let statusFrame = cell.statusLabel.convert(cell.statusLabel.bounds, to: cell.contentView)
+          XCTAssertEqual(marketFrame.midY, badgeFrame.midY, accuracy: 1)
+          XCTAssertEqual(marketFrame.midY, statusFrame.midY, accuracy: 1)
+          XCTAssertLessThanOrEqual(marketFrame.maxX, badgeFrame.minX)
+          XCTAssertLessThanOrEqual(badgeFrame.maxX, statusFrame.minX)
+          XCTAssertEqual(cell.positionBadgeLabel.text, "\(FuturesText.side(record.side)) \(record.leverage)×")
+          XCTAssertEqual(cell.statusLabel.text, FuturesText.text("futures_pnl_closed"))
+          XCTAssertTrue(cell.marginLabel.text?.contains(FuturesText.number(try position.margin)) == true)
+        } else {
+          XCTAssertNil(cell.positionBadgeLabel.text)
+          XCTAssertNil(cell.statusLabel.text)
+          XCTAssertNil(cell.marginLabel.text)
+        }
+        XCTAssertEqual(card.backgroundColor?.resolvedColor(with: cell.traitCollection), UIColor.mobitColors(.backgroundPrimary).resolvedColor(with: cell.traitCollection))
+        XCTAssertEqual(cell.contentView.backgroundColor?.resolvedColor(with: cell.traitCollection), UIColor.mobitColors(.investmentSurface).resolvedColor(with: cell.traitCollection))
       }
     }
   }

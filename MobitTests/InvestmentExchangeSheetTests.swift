@@ -627,7 +627,7 @@ final class InvestmentXIBLayoutTests: XCTestCase {
     for width: CGFloat in [320, 393, 440] {
       // 거래 내역의 실제 nib과 configure 경로로 표시 누락을 검사한다.
       let cell = try XCTUnwrap(try loadNib("PNLTableViewCell") as? PNLTableViewCell)
-      // 큰 가격과 초 단위 시각은 기존 두 열의 값 영역보다 길다.
+      // 긴 가격과 수량도 항목명 옆에 전체 값을 보존한다.
       let history = UserPNLHistoryModel(
         marketName: "BTC/KRW",
         entryPrice: 1_234_567_890_123_456,
@@ -638,7 +638,7 @@ final class InvestmentXIBLayoutTests: XCTestCase {
       )
       cell.configure(pnlHistory: history)
       cell.frame = CGRect(x: 0, y: 0, width: width, height: 200)
-      // 셀의 responsive 배치가 적용된 뒤 자동 높이를 계산한다.
+      // XIB의 한 줄 지표 배치로 필요한 높이가 계산되는지 확인한다.
       let fitting = cell.systemLayoutSizeFitting(
         CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
         withHorizontalFittingPriority: .required,
@@ -648,10 +648,19 @@ final class InvestmentXIBLayoutTests: XCTestCase {
       cell.setNeedsLayout()
       cell.layoutIfNeeded()
       XCTAssertGreaterThan(fitting.height, 0)
-      assertLabelsFit(in: cell.contentView)
-      for label in [cell.quantityLabel, cell.entryPriceLabel, cell.exitPriceLabel, cell.transactionDateLabel] {
+      XCTAssertEqual(cell.metricsStackView.arrangedSubviews.count, 2)
+      XCTAssertEqual(cell.quantityLabel.text, "123,456,789 BTC")
+      XCTAssertEqual(cell.entryPriceLabel.text, "1,234,567,890,123,456 " + FuturesText.text("currency_krw_unit"))
+      XCTAssertEqual(cell.exitPriceLabel.text, "1,234,567,890,123,457 " + FuturesText.text("currency_krw_unit"))
+      XCTAssertEqual(cell.transactionDateLabel.text, "2026.10.20 12:34:56")
+      XCTAssertEqual(cell.transactionDateLabel.accessibilityValue, cell.transactionDateLabel.text)
+      XCTAssertEqual(cell.transactionDateLabel.numberOfLines, 1)
+      XCTAssertGreaterThanOrEqual(cell.shareButton.bounds.height, cell.shareButton.intrinsicContentSize.height)
+      assertPNLLabelsFit(in: cell)
+      for label in [cell.quantityLabel, cell.entryPriceLabel, cell.exitPriceLabel] {
         // 전체 값이 카드의 가로 영역 안에 남아 있어야 한다.
         let value = try XCTUnwrap(label)
+        XCTAssertTrue(value.adjustsFontSizeToFitWidth)
         // 셀 좌표계에서 텍스트 영역이 좌우 가장자리 밖으로 나가지 않는지 확인한다.
         let frame = value.convert(value.bounds, to: cell.contentView)
         XCTAssertGreaterThanOrEqual(frame.minX, 28 - 1)
@@ -696,7 +705,109 @@ final class InvestmentXIBLayoutTests: XCTestCase {
         verticalFittingPriority: .fittingSizeLevel
       )
       XCTAssertGreaterThanOrEqual(table.rectForRow(at: IndexPath(row: 0, section: 0)).height + 1, fitting.height)
-      assertLabelsFit(in: cell.contentView)
+      assertPNLLabelsFit(in: cell)
+    }
+  }
+
+  func testPNLCardsFitProfitLossAndShortWithAccessibilityText() throws {
+    guard #available(iOS 17.0, *) else { throw XCTSkip("Trait overrides require iOS 17") }
+    // 같은 진입 가격과 증거금으로 손익 방향과 포지션 배지를 비교한다.
+    let samples: [(name: String, side: FuturesSide, kind: FuturesTransactionRecord.Kind, pnl: Decimal, exitPrice: Decimal)] = [
+      ("long-profit", .long, .closing, 25_000, 101_250_000),
+      ("long-loss", .long, .closing, -10_000, 99_500_000),
+      ("short-profit", .short, .closing, 10_000, 99_500_000),
+      ("liquidated", .long, .liquidation, -100_000, 95_000_000)
+    ]
+    for (width, category) in [
+      (CGFloat(320), UIContentSizeCategory.large),
+      (CGFloat(393), UIContentSizeCategory.large),
+      (CGFloat(440), UIContentSizeCategory.large),
+      (CGFloat(320), UIContentSizeCategory.accessibilityExtraExtraExtraLarge)
+    ] {
+      for sample in samples {
+        for tableName in ["Localizable(KO)", "Localizable(EN)"] {
+          // 주문을 제출하지 않고 실제 거래 셀에 전달할 포지션만 생성한다.
+          let position = try FuturesCalculator.open(domesticFuturesOrder(side: sample.side, leverage: 20))
+          // 수수료 없는 현재 모의거래 정책의 종료 결과다.
+          let record = FuturesTransactionRecord(
+            eventID: UUID(),
+            positionID: position.id,
+            kind: sample.kind,
+            instrument: position.order.instrument,
+            side: sample.side,
+            leverage: position.order.leverage,
+            quantity: position.quantity,
+            intervalStart: 1_792_562_832_000,
+            intervalEndExclusive: nil,
+            recordedAt: Date(timeIntervalSince1970: 1_792_562_832),
+            price: sample.exitPrice,
+            realizedPnL: sample.pnl,
+            margin: try position.margin,
+            entryPrice: try position.averageEntryPrice
+          )
+          // 실제 XIB의 제약과 폰트 설정을 그대로 검사한다.
+          let cell = try XCTUnwrap(try loadNib("PNLTableViewCell") as? PNLTableViewCell)
+          // 기본·접근성 설정을 실제 표시 환경에 전달한다.
+          let controller = UIViewController()
+          controller.overrideUserInterfaceStyle = .light
+          controller.traitOverrides.preferredContentSizeCategory = category
+          controller.view.addSubview(cell)
+          cell.frame = CGRect(x: 0, y: 0, width: width, height: 2_000)
+          // 접근성 설정이 전달된 실제 창 계층에서 검증한다.
+          let window = host(controller, width: width)
+          defer { window.isHidden = true; window.rootViewController = nil }
+          controller.updateTraitsIfNeeded()
+          cell.configure(record: record, position: position)
+          // 앱 언어를 바꾸지 않고 두 번역의 실제 배지·상태·항목명 길이를 검사한다.
+          let sideKey = sample.side == .long ? "futures_long" : "futures_short"
+          // 청산과 일반 종료의 번역 문구를 같은 한 줄 제약에서 비교한다.
+          let statusKey = sample.kind == .liquidation ? "futures_pnl_liquidated" : "futures_pnl_closed"
+          XCTAssertEqual(cell.statusLabel.text, FuturesText.text(statusKey))
+          cell.positionBadgeLabel.text = "\(NSLocalizedString(sideKey, tableName: tableName, bundle: .main, value: sideKey, comment: "")) 20×"
+          cell.statusLabel.text = NSLocalizedString(statusKey, tableName: tableName, bundle: .main, value: statusKey, comment: "")
+          cell.shareButton.setTitle(
+            NSLocalizedString("media_share", tableName: tableName, bundle: .main, value: "media_share", comment: ""),
+            for: .normal
+          )
+          // 네 지표의 항목명도 현재 언어와 독립적으로 번역 길이를 검사한다.
+          let detailKeys = ["trade_executed_quantity", "futures_entry_price", sample.kind == .liquidation ? "futures_liquidation_exit_price" : "futures_exit_price", "futures_margin"]
+          // 실제 값 라벨의 부모에서 항목명을 찾아 기존 outlet 범위를 유지한다.
+          let detailValues: [UILabel] = [cell.quantityLabel, cell.entryPriceLabel, cell.exitPriceLabel, cell.marginLabel]
+          for (value, key) in zip(detailValues, detailKeys) {
+            // XIB의 각 지표는 항목명과 값 순서를 유지한다.
+            let title = try XCTUnwrap((value.superview as? UIStackView)?.arrangedSubviews.first as? UILabel)
+            title.text = NSLocalizedString(key, tableName: tableName, bundle: .main, value: key, comment: "")
+          }
+          // 접근성 설정에서도 손익과 상세 지표의 한 줄 배치를 유지한다.
+          let fitting = cell.systemLayoutSizeFitting(
+            CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
+            withHorizontalFittingPriority: .required,
+            verticalFittingPriority: .fittingSizeLevel
+          )
+          cell.frame.size.height = ceil(fitting.height)
+          cell.setNeedsLayout()
+          cell.layoutIfNeeded()
+
+          XCTAssertGreaterThan(fitting.height, 0)
+          XCTAssertFalse(cell.contentView.hasAmbiguousLayout)
+          XCTAssertEqual(cell.marketNameLabel.text, FuturesText.symbol(record.instrument))
+          XCTAssertEqual(cell.positionBadgeLabel.text, "\(NSLocalizedString(sideKey, tableName: tableName, bundle: .main, value: sideKey, comment: "")) 20×")
+          XCTAssertEqual(cell.statusLabel.text, NSLocalizedString(statusKey, tableName: tableName, bundle: .main, value: statusKey, comment: ""))
+          XCTAssertEqual(cell.quantityLabel.text, FuturesText.number(record.quantity) + " BTC")
+          XCTAssertEqual(cell.entryPriceLabel.text, FuturesText.number(try position.averageEntryPrice) + " " + FuturesText.text("currency_krw_unit"))
+          XCTAssertEqual(cell.exitPriceLabel.text, FuturesText.number(record.price) + " " + FuturesText.text("currency_krw_unit"))
+          XCTAssertEqual(cell.marginLabel.text, FuturesText.number(try position.margin) + " " + FuturesText.text("currency_krw_unit"))
+          XCTAssertEqual(cell.transactionDateLabel.accessibilityValue, cell.transactionDateLabel.text)
+          XCTAssertGreaterThanOrEqual(cell.shareButton.bounds.height, cell.shareButton.intrinsicContentSize.height)
+          assertPNLLabelsFit(in: cell)
+          // 통화 단위와 구분한 금액 숫자의 실제 굵기와 크기를 확인한다.
+          let amountFont = try XCTUnwrap(cell.pnlLabel.attributedText?.attribute(.font, at: 0, effectiveRange: nil) as? UIFont)
+          XCTAssertEqual(amountFont.pointSize, cell.quantityLabel.font.pointSize)
+          XCTAssertEqual(cell.roiLabel.font.pointSize, cell.quantityLabel.font.pointSize)
+          XCTAssertTrue(amountFont.fontDescriptor.symbolicTraits.contains(.traitBold))
+          attach(cell, name: "PNLCard-\(sample.name)-\(Int(width))-\(tableName)-\(category.isAccessibilityCategory ? "accessibility" : "normal")")
+        }
+      }
     }
   }
 
@@ -827,14 +938,106 @@ final class InvestmentXIBLayoutTests: XCTestCase {
     return window
   }
 
-  private func assertLabelsFit(in root: UIView) {
+  private func assertPNLLabelsFit(in cell: PNLTableViewCell) {
+    // 실현손익과 수익률도 제목 옆에서 값을 한 줄로 표시한다.
+    let summaryValues: [UILabel] = [cell.pnlLabel, cell.roiLabel]
+    // 상세 지표의 항목명·값은 한 줄 축소를 허용한다.
+    let detailValues: [UILabel] = [cell.quantityLabel, cell.entryPriceLabel, cell.exitPriceLabel, cell.marginLabel]
+    // 요약과 상세 지표에 같은 행 정렬 검증을 적용한다.
+    let inlineValues = summaryValues + detailValues
+    // 숨겨진 증거금 항목은 일반 라벨 검사와 같은 가시성 규칙을 따른다.
+    let inlineLabels = inlineValues.flatMap { ($0.superview as? UIStackView)?.arrangedSubviews.compactMap { $0 as? UILabel } ?? [] }
+    // 헤더와 날짜의 기존 한 줄 배치도 계속 검사한다.
+    let compactLabels: [UILabel] = [cell.marketNameLabel, cell.positionBadgeLabel, cell.statusLabel, cell.transactionDateLabel] + inlineLabels
+    assertLabelsFit(
+      in: cell.contentView,
+      scaledSingleLineLabels: compactLabels
+    )
+    for value in inlineValues where isVisible(value) {
+      guard let title = (value.superview as? UIStackView)?.arrangedSubviews.first as? UILabel else {
+        XCTFail("지표 항목명과 값은 같은 스택에 있어야 한다.")
+        continue
+      }
+      // 셀 좌표계에서 두 라벨이 같은 행에 있고 겹치지 않는지 확인한다.
+      let titleFrame = title.convert(title.bounds, to: cell.contentView)
+      // 값은 각 지표 영역의 오른쪽에 정렬한다.
+      let valueFrame = value.convert(value.bounds, to: cell.contentView)
+      XCTAssertEqual(titleFrame.midY, valueFrame.midY, accuracy: 1)
+      XCTAssertLessThanOrEqual(titleFrame.maxX, valueFrame.minX)
+      XCTAssertEqual(value.textAlignment, .right)
+    }
+    for (summaryValue, detailValue) in zip(summaryValues, [cell.quantityLabel, cell.entryPriceLabel]) {
+      // 요약 두 열은 바로 아래 상세 지표의 좌우 경계를 따라야 한다.
+      guard let summaryMetric = summaryValue.superview, let detailMetric = detailValue?.superview else {
+        XCTFail("요약과 상세 지표의 열이 모두 있어야 한다.")
+        continue
+      }
+      // 서로 다른 부모의 좌우 경계를 셀 좌표계에서 비교한다.
+      let summaryFrame = summaryMetric.convert(summaryMetric.bounds, to: cell.contentView)
+      // 같은 열에 놓인 상세 지표의 전체 영역이다.
+      let detailFrame = detailMetric.convert(detailMetric.bounds, to: cell.contentView)
+      XCTAssertEqual(summaryFrame.minX, detailFrame.minX, accuracy: 1)
+      XCTAssertEqual(summaryFrame.maxX, detailFrame.maxX, accuracy: 1)
+    }
+    // 서로 다른 컨테이너의 행 정렬을 동일한 셀 좌표계에서 비교한다.
+    let marketFrame = cell.marketNameLabel.convert(cell.marketNameLabel.bounds, to: cell.contentView)
+    // 날짜와 공유 버튼은 글자 크기와 관계없이 같은 푸터 행에 남아야 한다.
+    let dateFrame = cell.transactionDateLabel.convert(cell.transactionDateLabel.bounds, to: cell.contentView)
+    // 버튼의 최소 터치 영역을 포함한 실제 프레임이다.
+    let shareFrame = cell.shareButton.convert(cell.shareButton.bounds, to: cell.contentView)
+    XCTAssertEqual(dateFrame.midY, shareFrame.midY, accuracy: 1)
+    XCTAssertLessThanOrEqual(dateFrame.maxX, shareFrame.minX)
+    if !cell.positionBadgeView.isHidden && !cell.statusLabel.isHidden {
+      // 배경 여백까지 포함한 배지 영역이 이웃 텍스트와 겹치면 안 된다.
+      let badgeFrame = cell.positionBadgeView.convert(cell.positionBadgeView.bounds, to: cell.contentView)
+      // 종료 상태는 종목·배지와 같은 행의 오른쪽에 배치한다.
+      let statusFrame = cell.statusLabel.convert(cell.statusLabel.bounds, to: cell.contentView)
+      XCTAssertEqual(marketFrame.midY, badgeFrame.midY, accuracy: 1)
+      XCTAssertEqual(marketFrame.midY, statusFrame.midY, accuracy: 1)
+      XCTAssertLessThanOrEqual(marketFrame.maxX, badgeFrame.minX)
+      XCTAssertLessThanOrEqual(badgeFrame.maxX, statusFrame.minX)
+    }
+  }
+
+  private func assertLabelsFit(
+    in root: UIView,
+    scaledSingleLineLabels: [UILabel] = []
+  ) {
     for label in descendants(root).compactMap({ $0 as? UILabel }) where isVisible(label) && !(label.text ?? "").isEmpty {
       XCTAssertGreaterThan(label.bounds.width, 0, label.text ?? "")
-      XCTAssertGreaterThanOrEqual(
-        label.bounds.height + 1,
-        label.sizeThatFits(CGSize(width: label.bounds.width, height: .greatestFiniteMagnitude)).height,
-        label.text ?? ""
-      )
+      if scaledSingleLineLabels.contains(where: { $0 === label }) {
+        XCTAssertEqual(label.numberOfLines, 1)
+        XCTAssertTrue(label.adjustsFontSizeToFitWidth)
+        XCTAssertFalse(label.adjustsFontForContentSizeCategory)
+        XCTAssertGreaterThan(label.minimumScaleFactor, 0)
+        // 숫자와 단위의 개별 글씨 크기에 같은 최소 축소 비율을 적용한다.
+        let minimumText = NSMutableAttributedString(
+          string: label.text ?? "",
+          attributes: [.font: label.font.withSize(label.font.pointSize * label.minimumScaleFactor)]
+        )
+        label.attributedText?.enumerateAttribute(
+          .font,
+          in: NSRange(location: 0, length: minimumText.length)
+        ) { value, range, _ in
+          // 단위에 지정한 작은 폰트도 실제 표시 비율로 측정한다.
+          guard let font = value as? UIFont else { return }
+          minimumText.addAttribute(
+            .font,
+            value: font.withSize(font.pointSize * label.minimumScaleFactor),
+            range: range
+          )
+        }
+        // 허용된 최소 글씨에서도 전체 문자열을 표시할 수 있는지 검사한다.
+        let minimumTextSize = minimumText.size()
+        XCTAssertLessThanOrEqual(minimumTextSize.width, label.bounds.width + 1, label.text ?? "")
+        XCTAssertLessThanOrEqual(minimumTextSize.height, label.bounds.height + 1, label.text ?? "")
+      } else {
+        XCTAssertGreaterThanOrEqual(
+          label.bounds.height + 1,
+          label.sizeThatFits(CGSize(width: label.bounds.width, height: .greatestFiniteMagnitude)).height,
+          label.text ?? ""
+        )
+      }
       XCTAssertFalse(label.hasAmbiguousLayout, label.text ?? "")
     }
   }

@@ -11,7 +11,7 @@ import RxSwift
 
 class PNLViewController: MobitBaseViewController {
   
-  @IBOutlet weak var pnlTableView: SelfSizingTableView!
+  @IBOutlet weak var pnlTableView: UITableView!
     @IBOutlet weak var noResultView: UIView!
     @IBOutlet weak var emptyLabel: UILabel!
 
@@ -71,8 +71,8 @@ class PNLViewController: MobitBaseViewController {
 
   private func applyThemeColors() {
 	self.view.backgroundColor = .mobitColors(.backgroundPrimary)
-	self.pnlTableView.backgroundColor = .mobitColors(.backgroundPrimary)
-	self.noResultView.backgroundColor = .mobitColors(.backgroundPrimary)
+	self.pnlTableView.backgroundColor = .mobitColors(.investmentSurface)
+	self.noResultView.backgroundColor = .mobitColors(.investmentSurface)
   }
 
   func setData() {
