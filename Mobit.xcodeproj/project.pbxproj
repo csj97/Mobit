@@ -1022,8 +1022,8 @@
 			isa = PBXGroup;
 			children = (
 				31F33FCD2DDA1C09003D533A /* MoreViewController.swift */,
-				A3D6F0311A804D2686E0E8C2 /* MoreAccountResetViewController.swift */,
 				31F33FCE2DDA1C09003D533A /* MoreViewController.xib */,
+				A3D6F0311A804D2686E0E8C2 /* MoreAccountResetViewController.swift */,
 				C1CD3A602E28C3CD0049699B /* MobitCommunityViewController.swift */,
 				C1CD3A612E28C3CD0049699B /* MobitCommunityViewController.xib */,
 				C1CCE8632EDEDC9B002D5DF9 /* LeaderBoardViewController.swift */,
@@ -2088,7 +2088,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 9;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = L8AX56G69N;
 				ENABLE_TESTING_SEARCH_PATHS = YES;
@@ -2130,7 +2130,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = L8AX56G69N;
 				ENABLE_TESTING_SEARCH_PATHS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
