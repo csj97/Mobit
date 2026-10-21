@@ -211,13 +211,13 @@
                                                                     <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="purchase-row">
                                                                         <rect key="frame" x="0.0" y="0.0" width="172.66666666666666" height="17"/>
                                                                         <subviews>
-                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="총 매수" lineBreakMode="wordWrap" numberOfLines="0" translatesAutoresizingMaskIntoConstraints="NO" id="purchase-title">
-                                                                                <rect key="frame" x="0.0" y="0.0" width="82.333333333333329" height="17"/>
+                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="총 매수" lineBreakMode="wordWrap" translatesAutoresizingMaskIntoConstraints="NO" id="purchase-title">
+                                                                                <rect key="frame" x="0.0" y="0.0" width="40.333333333333336" height="17"/>
                                                                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                                                                 <color key="textColor" name="investment_text_secondary"/>
                                                                             </label>
                                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" text="0" textAlignment="right" lineBreakMode="wordWrap" numberOfLines="0" translatesAutoresizingMaskIntoConstraints="NO" id="purchase-value">
-                                                                                <rect key="frame" x="90.333333333333343" y="0.0" width="82.333333333333343" height="17"/>
+                                                                                <rect key="frame" x="48.333333333333336" y="0.0" width="124.33333333333331" height="17"/>
                                                                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="14"/>
                                                                                 <color key="textColor" name="investment_text_primary"/>
                                                                             </label>
@@ -226,13 +226,13 @@
                                                                     <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="evaluation-row">
                                                                         <rect key="frame" x="0.0" y="25" width="172.66666666666666" height="17"/>
                                                                         <subviews>
-                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="총 평가" lineBreakMode="wordWrap" numberOfLines="0" translatesAutoresizingMaskIntoConstraints="NO" id="evaluation-title">
-                                                                                <rect key="frame" x="0.0" y="0.0" width="82.333333333333329" height="17"/>
+                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="총 평가" lineBreakMode="wordWrap" translatesAutoresizingMaskIntoConstraints="NO" id="evaluation-title">
+                                                                                <rect key="frame" x="0.0" y="0.0" width="40.333333333333336" height="17"/>
                                                                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                                                                 <color key="textColor" name="investment_text_secondary"/>
                                                                             </label>
                                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" text="0" textAlignment="right" lineBreakMode="wordWrap" numberOfLines="0" translatesAutoresizingMaskIntoConstraints="NO" id="evaluation-value">
-                                                                                <rect key="frame" x="90.333333333333343" y="0.0" width="82.333333333333343" height="17"/>
+                                                                                <rect key="frame" x="48.333333333333336" y="0.0" width="124.33333333333331" height="17"/>
                                                                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="14"/>
                                                                                 <color key="textColor" name="investment_text_primary"/>
                                                                             </label>
@@ -246,13 +246,13 @@
                                                                     <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="pnl-row">
                                                                         <rect key="frame" x="0.0" y="0.0" width="172.33333333333334" height="17"/>
                                                                         <subviews>
-                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="평가손익" lineBreakMode="wordWrap" numberOfLines="0" translatesAutoresizingMaskIntoConstraints="NO" id="pnl-title">
-                                                                                <rect key="frame" x="0.0" y="0.0" width="82" height="17"/>
+                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="평가손익" lineBreakMode="wordWrap" translatesAutoresizingMaskIntoConstraints="NO" id="pnl-title">
+                                                                                <rect key="frame" x="0.0" y="0.0" width="48.666666666666664" height="17"/>
                                                                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                                                                 <color key="textColor" name="investment_text_secondary"/>
                                                                             </label>
                                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" text="0" textAlignment="right" lineBreakMode="wordWrap" numberOfLines="0" translatesAutoresizingMaskIntoConstraints="NO" id="pnl-value">
-                                                                                <rect key="frame" x="90.000000000000028" y="0.0" width="82.333333333333343" height="17"/>
+                                                                                <rect key="frame" x="56.666666666666664" y="0.0" width="115.66666666666669" height="17"/>
                                                                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="14"/>
                                                                                 <color key="textColor" name="investment_text_primary"/>
                                                                             </label>
@@ -261,13 +261,13 @@
                                                                     <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="rate-row">
                                                                         <rect key="frame" x="0.0" y="25" width="172.33333333333334" height="17"/>
                                                                         <subviews>
-                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="수익률" lineBreakMode="wordWrap" numberOfLines="0" translatesAutoresizingMaskIntoConstraints="NO" id="rate-title">
-                                                                                <rect key="frame" x="0.0" y="0.0" width="82" height="17"/>
+                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="수익률" lineBreakMode="wordWrap" translatesAutoresizingMaskIntoConstraints="NO" id="rate-title">
+                                                                                <rect key="frame" x="0.0" y="0.0" width="36.333333333333336" height="17"/>
                                                                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                                                                 <color key="textColor" name="investment_text_secondary"/>
                                                                             </label>
                                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" text="0" textAlignment="right" lineBreakMode="wordWrap" numberOfLines="0" translatesAutoresizingMaskIntoConstraints="NO" id="rate-value">
-                                                                                <rect key="frame" x="90.000000000000028" y="0.0" width="82.333333333333343" height="17"/>
+                                                                                <rect key="frame" x="44.333333333333343" y="0.0" width="128" height="17"/>
                                                                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="14"/>
                                                                                 <color key="textColor" name="investment_text_primary"/>
                                                                             </label>

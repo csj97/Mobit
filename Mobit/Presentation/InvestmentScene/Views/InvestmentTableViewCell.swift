@@ -32,16 +32,8 @@ final class InvestmentTableViewCell: UITableViewCell {
   @IBOutlet private weak var headerDividerView: UIView!
   // 미지원 안내까지 포함해 셀 높이를 콘텐츠에 맞춘다.
   @IBOutlet private weak var bodyStackView: UIStackView!
-  // 큰 글씨에서는 종목 정보와 손익을 위아래로 배치한다.
-  @IBOutlet private weak var headerStackView: UIStackView!
   // 종목명, 마켓, 포지션 배지를 한 묶음으로 배치한다.
   @IBOutlet private weak var identityStackView: UIStackView!
-  // 평가손익과 수익률을 같은 정렬 기준으로 표시한다.
-  @IBOutlet private weak var profitStackView: UIStackView!
-  // 큰 글씨에서는 수익률 제목과 값을 나누어 같은 묶음 안에서 표시한다.
-  @IBOutlet private weak var profitRateStackView: UIStackView!
-  // 일반 글씨에서 종목명과 손익의 공간을 나눈다.
-  @IBOutlet private var identityWidthConstraint: NSLayoutConstraint!
   // 현물에서는 숨기고 선물의 방향과 레버리지만 표시한다.
   @IBOutlet private weak var positionBadgesStackView: UIStackView!
   // 포지션 방향을 색상 외에 텍스트로도 구분한다.
@@ -62,8 +54,6 @@ final class InvestmentTableViewCell: UITableViewCell {
   @IBOutlet private weak var purchaseUnitLabel: UILabel!
   // 손익 숫자 옆에 로컬라이즈된 원화 단위를 표시한다.
   @IBOutlet private weak var profitLossUnitLabel: UILabel!
-  // 접근성 글씨에서는 두 지표를 한 줄씩 펼친다.
-  @IBOutlet private var metricRows: [UIStackView]!
   private var currentProfitRate: Double?
   // 테마 변경 시 포지션 배지의 방향 색상을 다시 반영한다.
   private var currentSide: FuturesSide?
@@ -77,7 +67,6 @@ final class InvestmentTableViewCell: UITableViewCell {
   override func awakeFromNib() {
     super.awakeFromNib()
     setupUnsupportedStatusViews()
-    setupTypography()
     evaluationTitle.text = FuturesText.text("investment_valuation_gain_loss")
     evaluationAmountTitle.text = FuturesText.text("investment_evaluation_amount")
     profitLossUnitLabel.text = FuturesText.text("currency_krw_unit")
@@ -101,30 +90,8 @@ final class InvestmentTableViewCell: UITableViewCell {
     setTradingUnsupported(false)
   }
 
-  override func layoutSubviews() {
-    updateResponsiveLayout(for: bounds.width)
-    super.layoutSubviews()
-  }
-
-  override func systemLayoutSizeFitting(
-    _ targetSize: CGSize,
-    withHorizontalFittingPriority horizontalFittingPriority: UILayoutPriority,
-    verticalFittingPriority: UILayoutPriority
-  ) -> CGSize {
-    updateResponsiveLayout(for: targetSize.width)
-    return super.systemLayoutSizeFitting(
-      targetSize,
-      withHorizontalFittingPriority: horizontalFittingPriority,
-      verticalFittingPriority: verticalFittingPriority
-    )
-  }
-
   override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
     super.traitCollectionDidChange(previousTraitCollection)
-    if previousTraitCollection?.preferredContentSizeCategory != traitCollection.preferredContentSizeCategory {
-      setupTypography()
-      updateResponsiveLayout(for: contentView.bounds.width)
-    }
     if previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true {
       updateThemeColors()
     }
@@ -172,7 +139,6 @@ final class InvestmentTableViewCell: UITableViewCell {
     setTradingUnsupported(isTradingUnsupported)
     dividerView.isHidden = isLast
     updateThemeColors()
-    updateResponsiveLayout(for: contentView.bounds.width)
   }
 
   func configure(position: FuturesPosition, valuation: FuturesValuation?, isLast: Bool) {
@@ -211,102 +177,6 @@ final class InvestmentTableViewCell: UITableViewCell {
     setTradingUnsupported(false)
     dividerView.isHidden = isLast
     updateThemeColors()
-    updateResponsiveLayout(for: contentView.bounds.width)
-  }
-
-  private func setupTypography() {
-    setFont(cryptoName, size: 17, weight: .bold, style: .subheadline)
-    setFont(cryptoEvalLoss, size: 19, weight: .bold, style: .headline)
-    [cryptoAmount, cryptoAveragePrice, cryptoEvalPrice, cryptoBuyPrice].forEach {
-      setFont($0, size: 14, weight: .bold, style: .caption1)
-    }
-    [profitRateTitle, cryptoProfitRate, sideBadgeLabel, leverageBadgeLabel].forEach {
-      setFont($0, size: 12, weight: .semibold, style: .caption2)
-      $0?.numberOfLines = 1
-    }
-    [
-      marketSymbolLabel, evaluationTitle, evaluationAmountTitle, amountTitle, averagePriceTitle,
-      buyPriceTitle, quantityUnitLabel, averagePriceUnitLabel, evaluationUnitLabel, purchaseUnitLabel,
-      profitLossUnitLabel
-    ].forEach { setFont($0, size: 12, weight: .regular, style: .caption2) }
-    [cryptoAmount, cryptoAveragePrice, cryptoEvalPrice, cryptoBuyPrice, cryptoEvalLoss].forEach {
-      $0?.numberOfLines = 1
-      $0?.lineBreakMode = .byClipping
-      $0?.adjustsFontSizeToFitWidth = true
-      $0?.minimumScaleFactor = 0.75
-      $0?.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-    }
-    [quantityUnitLabel, averagePriceUnitLabel, evaluationUnitLabel, purchaseUnitLabel, profitLossUnitLabel].forEach {
-      $0?.numberOfLines = 1
-      $0?.setContentCompressionResistancePriority(.required, for: .horizontal)
-      $0?.setContentHuggingPriority(.required, for: .horizontal)
-    }
-  }
-
-  private func setFont(_ label: UILabel?, size: CGFloat, weight: UIFont.Weight, style: UIFont.TextStyle) {
-    label?.font = UIFontMetrics(forTextStyle: style).scaledFont(for: .systemFont(ofSize: size, weight: weight))
-    label?.adjustsFontForContentSizeCategory = true
-    label?.numberOfLines = 0
-  }
-
-  private func updateResponsiveLayout(for width: CGFloat) {
-    guard width > 32 else { return }
-    // 접근성 크기에서는 숫자를 축소하지 않고 한 열로 펼친다.
-    let isAccessibilitySize = traitCollection.preferredContentSizeCategory.isAccessibilityCategory
-    // 셀 안쪽 여백과 두 지표 사이 간격을 제외한 기본 열 너비다.
-    let columnWidth = (width - 48) / 2
-    headerStackView.axis = isAccessibilitySize ? .vertical : .horizontal
-    headerStackView.alignment = isAccessibilitySize ? .fill : .top
-    identityWidthConstraint.isActive = !isAccessibilitySize
-    profitStackView.alignment = isAccessibilitySize ? .leading : .trailing
-    profitRateStackView.axis = isAccessibilitySize ? .vertical : .horizontal
-    profitRateStackView.alignment = isAccessibilitySize ? .leading : .firstBaseline
-    profitRateTitle.numberOfLines = isAccessibilitySize ? 0 : 1
-    for row in metricRows {
-      // 숫자 자체가 한 열보다 길면 두 지표를 세로로 펼쳐 한 줄 너비를 확보한다.
-      let needsFullWidth = isAccessibilitySize || row.arrangedSubviews.contains { view in
-        guard let item = view as? UIStackView,
-              let values = item.arrangedSubviews.last as? UIStackView,
-              let numberLabel = values.arrangedSubviews.first as? UILabel else { return false }
-        return naturalWidth(of: numberLabel) > columnWidth
-      }
-      // 확대된 행은 셀의 전체 콘텐츠 너비를 사용한다.
-      let itemWidth = needsFullWidth ? width - 32 : columnWidth
-      row.axis = needsFullWidth ? .vertical : .horizontal
-      row.distribution = needsFullWidth ? .fill : .fillEqually
-      row.spacing = needsFullWidth ? 10 : 16
-      for case let item as UIStackView in row.arrangedSubviews {
-        guard let title = item.arrangedSubviews.first as? UILabel,
-              let values = item.arrangedSubviews.last as? UIStackView else { continue }
-        // 현재 줄바꿈 결과가 아닌 숫자와 단위의 원래 한 줄 너비를 사용한다.
-        let valueWidth = values.arrangedSubviews.reduce(CGFloat(0)) { $0 + naturalWidth(of: $1) }
-          + values.spacing * CGFloat(max(values.arrangedSubviews.count - 1, 0))
-        // 긴 수량이나 번역 문구는 제목 아래로 내려 숫자의 전체 자릿수를 보존한다.
-        let requiredWidth = naturalWidth(of: title) + valueWidth + 6
-        item.axis = requiredWidth > itemWidth ? .vertical : .horizontal
-        item.alignment = item.axis == .vertical ? .fill : .firstBaseline
-        item.spacing = item.axis == .vertical ? 3 : 6
-        values.axis = valueWidth > itemWidth ? .vertical : .horizontal
-        values.alignment = values.axis == .vertical ? .trailing : .firstBaseline
-        // 가로 기준선 묶음은 콘텐츠 높이에 맞추고 세로 배치에서는 높이 제약을 완화한다.
-        item.constraints.first {
-          $0.firstItem === item && $0.firstAttribute == .height && $0.secondItem === values
-        }?.priority = UILayoutPriority(item.axis == .horizontal ? 249 : 1)
-        item.constraints.first {
-          $0.firstItem === values && $0.firstAttribute == .top && $0.secondItem === item
-        }?.priority = UILayoutPriority(item.axis == .horizontal ? 999 : 1)
-        values.constraints.first {
-          $0.firstItem === values && $0.firstAttribute == .height && $0.secondItem === values.arrangedSubviews.first
-        }?.priority = UILayoutPriority(values.axis == .horizontal ? 999 : 1)
-      }
-    }
-  }
-
-  private func naturalWidth(of view: UIView) -> CGFloat {
-    guard let label = view as? UILabel else { return max(view.intrinsicContentSize.width, 0) }
-    // 이전 줄바꿈 결과에 따라 배치가 반복 전환되지 않도록 한 줄 텍스트 폭만 사용한다.
-    let textWidth = ((label.text ?? "") as NSString).size(withAttributes: [.font: label.font as Any]).width
-    return ceil(textWidth)
   }
 
   private func updateThemeColors() {
