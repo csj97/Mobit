@@ -793,16 +793,22 @@ final class TradingScreenReleaseQATests: XCTestCase {
     XCTAssertGreaterThan(delegate.finishCount, 0)
     XCTAssertTrue(main.coordinator === coordinator)
     // 로딩 실패 알럿의 확인과 재시도가 모두 제공되어야 한다.
-    let alert = try XCTUnwrap(main.presentedViewController as? UIAlertController)
-    XCTAssertEqual(alert.message, FuturesText.text("market_data_error"))
-    XCTAssertEqual(alert.actions.map(\.title), [FuturesText.text("common_confirm"), FuturesText.text("data_retry")])
-    // 닫힌 알럿이 남아 재시도 로딩을 막지 않도록 완료를 기다린다.
-    let dismissed = expectation(description: "Explicit layout main error dismissed")
-    main.dismiss(animated: false) { dismissed.fulfill() }
-    wait(for: [dismissed], timeout: 2)
-    flush()
+    let alert = try XCTUnwrap(main.presentedViewController as? MobitAlertViewController)
+    XCTAssertEqual(alert.content, FuturesText.text("market_data_error"))
+    XCTAssertEqual(alert.cancelButton.configuration?.title ?? alert.cancelButton.title(for: .normal), FuturesText.text("common_confirm"))
+    XCTAssertEqual(alert.confirmButton.configuration?.title ?? alert.confirmButton.title(for: .normal), FuturesText.text("data_retry"))
+    XCTAssertFalse(alert.cancelButton.isHidden)
+    // 실제 재시도 버튼이 알럿 해제 이후 새 요청을 시작해야 한다.
+    expectation(for: NSPredicate(format: "isBeingPresented == false"), evaluatedWith: alert)
+    waitForExpectations(timeout: 2)
     useCase.response = .never()
-    main.retryMainData()
+    alert.confirmButton.sendActions(for: .touchUpInside)
+    // 알럿이 남아 있거나 콜백이 누락되면 재시도 완료 조건에 도달하지 못한다.
+    let dismissed = XCTNSPredicateExpectation(
+      predicate: NSPredicate { _, _ in main.presentedViewController == nil && useCase.requests == 2 },
+      object: nil
+    )
+    wait(for: [dismissed], timeout: 2)
     flush()
     XCTAssertEqual(useCase.requests, 2)
     XCTAssertTrue(market.currentState.isLoading)

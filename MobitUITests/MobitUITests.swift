@@ -38,47 +38,53 @@ final class MobitUITests: XCTestCase {
         sleep(6)
 
         func tapSelector() {
-            let selector = app.buttons.matching(
-                NSPredicate(format: "label CONTAINS %@ OR label CONTAINS %@", "업비트", "빗썸")
-            ).firstMatch
+            // 거래소명은 접근성 value에 표시되므로 공통 선택 버튼을 식별한다.
+            let selector = app.buttons["main.exchange"]
             XCTAssertTrue(selector.waitForExistence(timeout: 10), "거래소 셀렉터 버튼을 찾지 못함")
             selector.tap()
         }
 
-        // Upbit -> Bithumb (액션시트 라벨은 한글: "빗썸")
+        // 공통 거래소 시트에서 빗썸을 선택하고 확정한다.
         tapSelector()
         sleep(1)
         let btnLabels = app.buttons.allElementsBoundByIndex.map { $0.label }.joined(separator: " ⎮ ")
-        let sheetExists = app.sheets.firstMatch.exists
+        let sheetExists = app.buttons["investment.exchangeConfirm"].exists
         XCTContext.runActivity(named: "AFTER_SELECTOR_TAP sheet=\(sheetExists) buttons=[\(btnLabels)]") { _ in }
-        let bithumbAction = app.buttons.matching(
-            NSPredicate(format: "label CONTAINS %@", "빗썸")
-        ).firstMatch
+        // 선택 행과 상단 거래소 버튼의 이름이 같아도 행만 누른다.
+        let bithumbAction = app.buttons["investment.exchangeOption.bithumb"]
         XCTAssertTrue(bithumbAction.waitForExistence(timeout: 5), "빗썸 액션 없음")
         bithumbAction.tap()
+        app.buttons["investment.exchangeConfirm"].tap()
         sleep(8)
         // 빗썸 전환 직후 알럿(있으면 닫기)
-        if app.alerts.firstMatch.waitForExistence(timeout: 2) {
-            let msg1 = app.alerts.firstMatch.staticTexts.allElementsBoundByIndex.map { $0.label }.joined(separator: " | ")
+        if app.buttons["mobitAlert.confirm"].waitForExistence(timeout: 2) {
+            // 공통 알림의 본문만 기록해 화면의 다른 문자열을 섞지 않는다.
+            let msg1 = app.staticTexts["mobitAlert.content"].label
             XCTContext.runActivity(named: "ALERT_AFTER_UPBIT_TO_BITHUMB: \(msg1)") { _ in }
-            app.alerts.buttons.firstMatch.tap()
+            if app.buttons["mobitAlert.cancel"].exists {
+                app.buttons["mobitAlert.cancel"].tap()
+            } else {
+                app.buttons["mobitAlert.confirm"].tap()
+            }
             sleep(1)
         }
 
-        // Bithumb -> Upbit (액션시트 라벨: "업비트")
+        // 공통 거래소 시트에서 업비트로 돌아간다.
         tapSelector()
-        let upbitAction = app.buttons.matching(
-            NSPredicate(format: "label CONTAINS %@", "업비트")
-        ).firstMatch
+        // 선택을 확정하기 전에는 현재 계좌가 바뀌지 않는다.
+        let upbitAction = app.buttons["investment.exchangeOption.upbit"]
         XCTAssertTrue(upbitAction.waitForExistence(timeout: 5), "업비트 액션 없음")
         upbitAction.tap()
+        app.buttons["investment.exchangeConfirm"].tap()
         sleep(8)
 
         // 시세 로드 실패 알럿이 뜨는지 + 텍스트(원인 포함) 확인
-        let alert = app.alerts.firstMatch
-        let appeared = alert.waitForExistence(timeout: 5)
+        // 공통 알림은 시스템 alert가 아닌 앱의 확인 버튼으로 찾는다.
+        let confirmButton = app.buttons["mobitAlert.confirm"]
+        let appeared = confirmButton.waitForExistence(timeout: 5)
+        // 전환 후 새로 표시된 오류 본문을 실패 메시지에 남긴다.
         let msg = appeared
-            ? alert.staticTexts.allElementsBoundByIndex.map { $0.label }.joined(separator: " | ")
+            ? app.staticTexts["mobitAlert.content"].label
             : "no-alert"
         XCTContext.runActivity(named: "ALERT_AFTER_BITHUMB_TO_UPBIT(appeared=\(appeared)): \(msg)") { _ in }
         XCTAssertFalse(appeared, "빗썸→업비트 전환 후 시세 로드 실패 알럿 발생: \(msg)")
@@ -95,17 +101,18 @@ final class MobitUITests: XCTestCase {
     private func verifyTradeScreenEntry(exchangeName: String) throws {
         let app = XCUIApplication()
         app.launch()
-        let selector = app.buttons.matching(
-            NSPredicate(format: "label CONTAINS %@ OR label CONTAINS %@", "업비트", "빗썸")
-        ).firstMatch
+        // 공통 거래소 선택 버튼은 현재 거래소명과 무관한 식별자로 찾는다.
+        let selector = app.buttons["main.exchange"]
         XCTAssertTrue(selector.waitForExistence(timeout: 20))
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "hittable == true"), object: selector
         )], timeout: 20), .completed)
         selector.tap()
-        let action = app.sheets.buttons.matching(NSPredicate(format: "label CONTAINS %@", exchangeName)).firstMatch
+        // 앱의 거래소 시트에서 선택한 행을 별도 확인 버튼으로 확정한다.
+        let action = app.buttons[exchangeName == "업비트" ? "investment.exchangeOption.upbit" : "investment.exchangeOption.bithumb"]
         XCTAssertTrue(action.waitForExistence(timeout: 5))
         action.tap()
+        app.buttons["investment.exchangeConfirm"].tap()
         let search = app.searchFields.firstMatch
         XCTAssertTrue(search.waitForExistence(timeout: 10))
         search.tap()

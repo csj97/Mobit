@@ -102,18 +102,15 @@ final class FuturesCoordinator: NSObject, BaseCoordinator, UINavigationControlle
   private func showEntryAlert(_ key: String, from navigation: UINavigationController, retry: Bool = false) {
     guard let presenter = navigation.topViewController, presenter.presentedViewController == nil else { return }
     // 준비되지 않은 상세 화면 대신 표시하는 안내이며 뒤의 내비게이션 상태는 유지한다.
-    let alert = UIAlertController(title: FuturesText.text("common_notice"), message: FuturesText.text(key), preferredStyle: .alert)
-    if retry {
-      alert.addAction(
-        UIAlertAction(title: FuturesText.text("futures_trade_retry"), style: .default) { [weak self] _ in
-          self?.marketReactor.action.onNext(.loadCryptoList)
-        }
-      )
-      alert.addAction(UIAlertAction(title: FuturesText.text("common_cancel"), style: .cancel))
-    } else {
-      alert.addAction(UIAlertAction(title: FuturesText.text("common_confirm"), style: .default))
+    presenter.show(
+      alertType: retry ? .canCancel : .onlyConfirm,
+      title: FuturesText.text("common_notice"),
+      content: FuturesText.text(key),
+      confirmTitle: FuturesText.text(retry ? "futures_trade_retry" : "common_confirm")
+    ) { [weak self] confirmed in
+      guard retry, confirmed else { return }
+      self?.marketReactor.action.onNext(.loadCryptoList)
     }
-    presenter.present(alert, animated: true)
   }
 
   func navigationController(

@@ -939,6 +939,20 @@ final class InvestmentXIBLayoutTests: XCTestCase {
   }
 
   private func assertPNLLabelsFit(in cell: PNLTableViewCell) {
+    // 현물에서 증거금을 숨겨도 매도가격은 체결수량과 같은 왼쪽 열을 유지한다.
+    let quantityColumn = cell.quantityLabel.superview
+    // 현물·선물 모두 종료 가격의 열 너비를 재사용 전후로 비교한다.
+    let exitColumn = cell.exitPriceLabel.superview
+    if let quantityColumn, let exitColumn {
+      // 서로 다른 행의 좌우 경계를 같은 셀 좌표계에서 비교한다.
+      let quantityFrame = quantityColumn.convert(quantityColumn.bounds, to: cell.contentView)
+      // 매도가격이 행 전체로 늘어나 값이 오른쪽 끝으로 이동하면 실패한다.
+      let exitFrame = exitColumn.convert(exitColumn.bounds, to: cell.contentView)
+      XCTAssertEqual(exitFrame.minX, quantityFrame.minX, accuracy: 1)
+      XCTAssertEqual(exitFrame.maxX, quantityFrame.maxX, accuracy: 1)
+    } else {
+      XCTFail("체결수량과 종료 가격의 열이 모두 있어야 한다.")
+    }
     // 실현손익과 수익률도 제목 옆에서 값을 한 줄로 표시한다.
     let summaryValues: [UILabel] = [cell.pnlLabel, cell.roiLabel]
     // 상세 지표의 항목명·값은 한 줄 축소를 허용한다.

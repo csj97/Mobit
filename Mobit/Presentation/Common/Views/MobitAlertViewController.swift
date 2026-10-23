@@ -24,7 +24,10 @@ class MobitAlertViewController: UIViewController {
   @IBOutlet weak var dimView: UIView!
   
   var callBack: ((Bool) -> ())? = nil
-  var delegate: MobitAlertDelegate?
+  // 재시도처럼 화면마다 다른 확인 동작의 문구를 유지한다.
+  private let confirmTitle: String
+  // 닫기 동작에도 호출 화면에서 지정한 문구를 사용한다.
+  private let cancelTitle: String
   
   var alertType: AlertType
   var titleString: String
@@ -38,7 +41,9 @@ class MobitAlertViewController: UIViewController {
 	title: String,
 	contentAlignment: NSTextAlignment = .left,
 	content: String,
-	callBack: ((Bool) -> ())?
+    confirmTitle: String = FuturesText.text("common_confirm"),
+    cancelTitle: String = FuturesText.text("common_cancel"),
+	callBack: ((Bool) -> ())? = nil
   ) {
 	self.alertType = alertType
 	self.titleString = title
@@ -46,9 +51,12 @@ class MobitAlertViewController: UIViewController {
 	self.callBack = callBack
 	self.titleAlignment = titleAlignment
 	self.contentAlignment = contentAlignment
+    self.confirmTitle = confirmTitle
+    self.cancelTitle = cancelTitle
 
 	super.init(nibName: "MobitAlertViewController", bundle: nil)
-
+    modalPresentationStyle = .overFullScreen
+    modalTransitionStyle = .crossDissolve
   }
   
   required init?(coder: NSCoder) {
@@ -57,7 +65,11 @@ class MobitAlertViewController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    self.view.accessibilityIdentifier = "mobitAlert"
     self.view.accessibilityViewIsModal = true
+    self.contentLabel.accessibilityIdentifier = "mobitAlert.content"
+    self.cancelButton.accessibilityIdentifier = "mobitAlert.cancel"
+    self.confirmButton.accessibilityIdentifier = "mobitAlert.confirm"
     self.cancelButton.configurationUpdateHandler = { [weak self] button in
       self?.applyButtonStyle(button)
     }
@@ -171,8 +183,9 @@ class MobitAlertViewController: UIViewController {
       for: .systemFont(ofSize: 14, weight: .semibold),
       compatibleWith: traitCollection
     )
-    // XIB에 설정한 취소·확인 제목을 보존한다.
+    // 상태나 테마가 바뀌어도 호출 화면의 동작 문구를 보존한다.
     var style = button.configuration ?? .plain()
+    style.title = primaryAction ? confirmTitle : cancelTitle
     style.baseForegroundColor = foregroundColor
     style.background.backgroundColor = backgroundColor.withAlphaComponent(button.isHighlighted ? 0.85 : 1)
     style.background.cornerRadius = 14
@@ -213,45 +226,50 @@ class MobitAlertViewController: UIViewController {
   }
   
   @IBAction func tapOnCancelButton(_ sender: UIButton) {
-	self.dismiss(animated: true) {
-	  self.callBack?(false)
-	}
+    dismissAlert(confirmed: false)
   }
   
   @IBAction func tapOnConfirmButton(_ sender: UIButton) {
-	self.dismiss(animated: true) {
-	  self.callBack?(true)
-	}
+    dismissAlert(confirmed: true)
+  }
+
+  private func dismissAlert(confirmed: Bool) {
+    guard confirmButton.isEnabled else { return }
+    confirmButton.isEnabled = false
+    cancelButton.isEnabled = false
+    // 빠른 연속 입력에도 화면이 닫힌 뒤 선택 결과를 한 번만 전달한다.
+    let completion = callBack
+    callBack = nil
+    dismiss(animated: true) { completion?(confirmed) }
   }
 }
 
-protocol MobitAlertDelegate {
-//  func show(alertType: AlertType, title: String, content: String, callBack: ((Bool) -> ())?)
-}
-
-extension MobitAlertDelegate where Self: UIViewController {
+extension UIViewController {
+  @discardableResult
   func show(
 	alertType: AlertType,
 	titleAlignment: NSTextAlignment = .left,
 	title: String? = nil,
 	contentAlignment: NSTextAlignment = .left,
 	content: String,
+    confirmTitle: String = FuturesText.text("common_confirm"),
+    cancelTitle: String = FuturesText.text("common_cancel"),
+    completion: (() -> Void)? = nil,
 	callBack: ((Bool) -> ())?
-  ) {
-	
+  ) -> MobitAlertViewController? {
+    guard presentedViewController == nil, !isBeingDismissed else { return nil }
+	// 모든 화면이 같은 표시 방식과 중복 방지 경로를 사용한다.
 	let mobitAlertViewController = MobitAlertViewController(
 	  alertType: alertType,
 	  titleAlignment: titleAlignment,
 	  title: title ?? "",
 	  contentAlignment: contentAlignment,
 	  content: content,
+      confirmTitle: confirmTitle,
+      cancelTitle: cancelTitle,
 	  callBack: callBack
 	)
-	mobitAlertViewController.delegate = self
-	
-	mobitAlertViewController.modalPresentationStyle = .overFullScreen
-	mobitAlertViewController.modalTransitionStyle = .crossDissolve
-	
-	self.present(mobitAlertViewController, animated: true, completion: nil)
+	self.present(mobitAlertViewController, animated: true, completion: completion)
+    return mobitAlertViewController
   }
 }

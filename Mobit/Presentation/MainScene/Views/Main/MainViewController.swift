@@ -74,7 +74,7 @@ class MainViewController: MobitBaseViewController {
   // 같은 보류 결과의 자동 재시도가 오류 안내를 반복하지 않도록 한다.
   private var lastPresentedDataError: String?
   // 자동 복구 때 이 화면이 띄운 오류 알럿만 닫는다.
-  private weak var dataErrorAlert: UIAlertController?
+  private weak var dataErrorAlert: MobitAlertViewController?
   var isSocketUpdating = false
   var prevSortedButton: UIButton?
   let defaultTitles = ["현재가 ↑↓", "전일대비 ↑↓", "거래대금 ↑↓"]
@@ -1395,7 +1395,7 @@ extension MainViewController: View {
         if case .storageFailed = reactor.currentState.status { return FuturesText.text("futures_storage_error") }
         return FuturesText.text("futures_data_held")
       }
-    if let alert = dataErrorAlert, alert.message != errorMessage || networkLostView != nil {
+    if let alert = dataErrorAlert, alert.content != errorMessage || networkLostView != nil {
       // 표시 전환 중의 닫기는 UIKit이 무시할 수 있어 표시 완료에서 다시 확인한다.
       guard !alert.isBeingPresented, !alert.isBeingDismissed else { return }
       if alert.presentingViewController != nil {
@@ -1454,14 +1454,17 @@ extension MainViewController: View {
     }
     lastPresentedDataError = errorMessage
     // 요약 아래 상태 행 대신 실패 시에만 표시하는 재시도 안내다.
-    let alert = UIAlertController(title: nil, message: errorMessage, preferredStyle: .alert)
-    dataErrorAlert = alert
-    alert.view.accessibilityIdentifier = "main.data.error"
-    alert.addAction(UIAlertAction(title: FuturesText.text("common_confirm"), style: .cancel))
-    alert.addAction(UIAlertAction(title: FuturesText.text("data_retry"), style: .default) { [weak self] _ in
+    dataErrorAlert = show(
+      alertType: .canCancel,
+      content: errorMessage,
+      confirmTitle: FuturesText.text("data_retry"),
+      cancelTitle: FuturesText.text("common_confirm"),
+      completion: { [weak self] in self?.updateLoadingIndicator() }
+    ) { [weak self] confirmed in
+      guard confirmed else { return }
       self?.retryMainData()
-    })
-    present(alert, animated: true) { [weak self] in self?.updateLoadingIndicator() }
+    }
+    dataErrorAlert?.view.accessibilityIdentifier = "main.data.error"
   }
 
   private func updateMarketListSkeleton() {
@@ -1930,7 +1933,7 @@ extension MainViewController {
           self.stopLoadingIndicatorWait()
           self.hideLoadingIndicator()
           self.updateMarketListSkeleton()
-          if let alert = self.presentedViewController as? UIAlertController,
+          if let alert = self.presentedViewController as? MobitAlertViewController,
             alert.view.accessibilityIdentifier == "main.data.error" {
             alert.dismiss(animated: false)
           }

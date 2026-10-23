@@ -524,11 +524,7 @@ class TradeViewController: MobitBaseViewController {
   
   func showDefaultAlert(title: String, message: String) {
     guard presentedViewController == nil else { return }
-	let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-	let okAction = UIAlertAction(title: FuturesText.text("common_confirm"), style: .default, handler: nil)
-	
-	alert.addAction(okAction)
-	self.present(alert, animated: true, completion: nil)
+    show(alertType: .onlyConfirm, title: title, content: message, callBack: nil)
   }
 
   private func showSettlementRateRetryAlert() {

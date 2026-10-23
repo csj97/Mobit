@@ -294,3 +294,5 @@
 "settings_apply" = "Apply changes";
 "settings_cancel" = "Cancel";
 "settings_close" = "Close";
+"chart_settings_info_title" = "Chart settings";
+"chart_settings_info_message" = "Your selected period is kept when you reopen the app.\nThe chart follows the app theme.\n\nIndicators and drawings added inside the chart are not saved.";

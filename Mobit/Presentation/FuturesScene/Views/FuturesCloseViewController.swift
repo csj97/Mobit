@@ -795,8 +795,6 @@ final class FuturesCloseViewController: UIViewController, UIAdaptivePresentation
     guard presentedViewController == nil else { return }
     view.endEditing(true)
     // 제출을 막은 이유를 스크롤 위치와 무관하게 바로 안내한다.
-    let alert = UIAlertController(title: FuturesText.text("futures_close"), message: message, preferredStyle: .alert)
-    alert.addAction(UIAlertAction(title: FuturesText.text("common_confirm"), style: .default))
-    present(alert, animated: true)
+    show(alertType: .onlyConfirm, title: FuturesText.text("futures_close"), content: message, callBack: nil)
   }
 }

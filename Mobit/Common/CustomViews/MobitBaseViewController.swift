@@ -18,7 +18,7 @@ extension Notification.Name {
   @objc optional func hideLoadingIndicator()
 }
 
-class MobitBaseViewController: UIViewController, MobitAlertDelegate, MobitBottomSheetDelegate, LoadingIndicatorProtocol,
+class MobitBaseViewController: UIViewController, MobitBottomSheetDelegate, LoadingIndicatorProtocol,
   ViewRule
 {
   // 같은 창의 인디케이터에 등록한 자신의 표시 요청만 종료한다.

@@ -2852,13 +2852,15 @@ final class FuturesPreUIIntegrationTests: XCTestCase {
     let button = try XCTUnwrap(findFormView(controller.view, id: closing ? "futuresCloseSubmit" : "futuresSubmit") as? UIButton)
     func setInput(_ text: String) { input.text = text; input.sendActions(for: .editingChanged) }
     func dismissAlert(_ key: String) throws {
-      waitForForm { controller.presentedViewController is UIAlertController && !reactor.currentState.submitting }
+      waitForForm { controller.presentedViewController is MobitAlertViewController && !reactor.currentState.submitting }
       // 표시 애니메이션이 끝나야 실제 확인 이후의 상태와 같아진다.
-      let alert = try XCTUnwrap(controller.presentedViewController as? UIAlertController)
+      let alert = try XCTUnwrap(controller.presentedViewController as? MobitAlertViewController)
       waitForForm { !alert.isBeingPresented }
-      XCTAssertEqual(alert.message, FuturesText.text(key))
+      XCTAssertEqual(alert.content, FuturesText.text(key))
+      XCTAssertTrue(alert.cancelButton.isHidden)
+      XCTAssertEqual(alert.confirmButton.configuration?.title ?? alert.confirmButton.title(for: .normal), FuturesText.text("common_confirm"))
       XCTAssertTrue(button.isEnabled)
-      controller.dismiss(animated: false)
+      alert.confirmButton.sendActions(for: .touchUpInside)
       waitForForm { controller.presentedViewController == nil }
     }
     setInput("0")

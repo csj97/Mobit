@@ -694,12 +694,16 @@ final class FuturesAccountReactorTests: XCTestCase {
       defer { window.isHidden = true; window.rootViewController = nil }
       coordinator.open(position: position, from: navigation)
       // 화면 이동 대신 나온 안내다.
-      let alert = try XCTUnwrap(root.presentedViewController as? UIAlertController)
+      let alert = try XCTUnwrap(root.presentedViewController as? MobitAlertViewController)
       // 조회 단계에 맞는 안내 문구다.
       let key = condition == "loading" ? "futures_trade_loading" : condition == "failed" ? "futures_trade_load_failed" : "futures_trade_unavailable"
-      XCTAssertEqual(alert.message, FuturesText.text(key))
-      XCTAssertNotEqual(alert.message, key)
-      XCTAssertEqual(alert.actions.count, condition == "loading" ? 1 : 2)
+      XCTAssertEqual(alert.content, FuturesText.text(key))
+      XCTAssertNotEqual(alert.content, key)
+      XCTAssertEqual(alert.cancelButton.isHidden, condition == "loading")
+      XCTAssertEqual(alert.confirmButton.configuration?.title ?? alert.confirmButton.title(for: .normal), FuturesText.text(condition == "loading" ? "common_confirm" : "futures_trade_retry"))
+      if condition != "loading" {
+        XCTAssertEqual(alert.cancelButton.configuration?.title ?? alert.cancelButton.title(for: .normal), FuturesText.text("common_cancel"))
+      }
       coordinator.open(position: position, from: navigation)
       coordinator.open(coin: .init(cryptoName: "Bitcoin", market: "BTC/KRW", tradePrice: 100), from: navigation)
       XCTAssertTrue(root.presentedViewController === alert)
@@ -1433,7 +1437,7 @@ final class FuturesAccountReactorTests: XCTestCase {
         XCTAssertTrue(submit.isEnabled)
         submit.sendActions(for: .touchUpInside)
         waitForNoticeUpdates(0.35)
-        XCTAssertEqual((controller.presentedViewController as? UIAlertController)?.message, FuturesText.text(key))
+        XCTAssertEqual((controller.presentedViewController as? MobitAlertViewController)?.content, FuturesText.text(key))
         XCTAssertFalse(descendants(controller.view).compactMap { $0 as? UILabel }.contains { $0.text == FuturesText.text(key) })
         XCTAssertFalse(futures.stub.actions.contains { if case .open = $0 { return true }; if case .closeQuantity = $0 { return true }; return false })
         controller.dismiss(animated: false)
@@ -1484,7 +1488,7 @@ final class FuturesAccountReactorTests: XCTestCase {
       futures.stub.state.value = state
       waitForNoticeUpdates(0.35)
       XCTAssertTrue(submit.isEnabled)
-      XCTAssertEqual((controller.presentedViewController as? UIAlertController)?.message, FuturesText.text("futures_retry_order"))
+      XCTAssertEqual((controller.presentedViewController as? MobitAlertViewController)?.content, FuturesText.text("futures_retry_order"))
       XCTAssertFalse(descendants(controller.view).compactMap { $0 as? UILabel }.contains { $0.text == FuturesText.text("futures_retry_order") })
       controller.dismiss(animated: false)
       // 같은 실패 상태를 다시 받아도 폼에 오류를 재출력하거나 알럿을 반복하지 않는다.
@@ -1743,7 +1747,7 @@ final class FuturesAccountReactorTests: XCTestCase {
           button.sendActions(for: .touchUpInside)
           waitForNoticeUpdates(0.35)
           XCTAssertTrue(button.isEnabled)
-          XCTAssertEqual((host.presentedViewController as? UIAlertController)?.message, error.message)
+          XCTAssertEqual((host.presentedViewController as? MobitAlertViewController)?.content, error.message)
           // 같은 알럿이 표시된 상태에서 반복 탭해도 안내 창을 추가하지 않는다.
           let alert = host.presentedViewController
           button.sendActions(for: .touchUpInside)
@@ -1861,7 +1865,7 @@ final class FuturesAccountReactorTests: XCTestCase {
     XCTAssertTrue(submit.isEnabled)
     submit.sendActions(for: .touchUpInside)
     XCTAssertFalse(reactor.stub.actions.contains { if case .closeQuantity = $0 { return true }; return false })
-    XCTAssertEqual((controller.presentedViewController as? UIAlertController)?.message, FuturesText.text("futures_close_invalid"))
+    XCTAssertEqual((controller.presentedViewController as? MobitAlertViewController)?.content, FuturesText.text("futures_close_invalid"))
     dismissAlert()
     amount.text = "12abc"
     amount.sendActions(for: .editingChanged)
@@ -1879,7 +1883,7 @@ final class FuturesAccountReactorTests: XCTestCase {
     XCTAssertEqual(summary.text, lastSummary)
     submit.sendActions(for: .touchUpInside)
     XCTAssertFalse(reactor.stub.actions.contains { if case .closeQuantity = $0 { return true }; return false })
-    XCTAssertEqual((controller.presentedViewController as? UIAlertController)?.message, FuturesText.text("futures_socket_wait"))
+    XCTAssertEqual((controller.presentedViewController as? MobitAlertViewController)?.content, FuturesText.text("futures_socket_wait"))
     dismissAlert()
     connected = true
     priceUpdates.onNext(())
@@ -1892,7 +1896,7 @@ final class FuturesAccountReactorTests: XCTestCase {
     XCTAssertTrue(submit.isEnabled)
     submit.sendActions(for: .touchUpInside)
     XCTAssertFalse(reactor.stub.actions.contains { if case .closeQuantity = $0 { return true }; return false })
-    XCTAssertEqual((controller.presentedViewController as? UIAlertController)?.message, FuturesText.text("futures_retry_order"))
+    XCTAssertEqual((controller.presentedViewController as? MobitAlertViewController)?.content, FuturesText.text("futures_retry_order"))
     dismissAlert()
     for nextPrice in [131, 132, 133, 130] {
       price = Decimal(nextPrice)
@@ -1941,7 +1945,7 @@ final class FuturesAccountReactorTests: XCTestCase {
     failedState.submitting = false
     failedState.message = FuturesText.text("futures_retry_order")
     reactor.stub.state.value = failedState
-    XCTAssertEqual((controller.presentedViewController as? UIAlertController)?.message, FuturesText.text("futures_retry_order"))
+    XCTAssertEqual((controller.presentedViewController as? MobitAlertViewController)?.content, FuturesText.text("futures_retry_order"))
     dismissAlert()
     submit.sendActions(for: .touchUpInside)
     XCTAssertEqual(reactor.stub.actions.filter { if case .closeQuantity = $0 { return true }; return false }.count, 2)
@@ -3175,7 +3179,7 @@ final class FuturesAccountReactorTests: XCTestCase {
     XCTAssertFalse(futures.canSubmit)
     // 같은 오류가 지속되었을 때에만 최초 알럿을 표시한다.
     render(.dataFailure(.init(id: failureID, account: account, attempts: 3, hold: .requestFailed)))
-    XCTAssertEqual((main.presentedViewController as? UIAlertController)?.message, FuturesText.text("futures_data_held"))
+    XCTAssertEqual((main.presentedViewController as? MobitAlertViewController)?.content, FuturesText.text("futures_data_held"))
     // 알럿을 확인하지 않아도 실제 복구가 먼저 끝나면 자동으로 닫는다.
     render(.dataFailure(nil))
     XCTAssertFalse(futures.needsDataRetry)
@@ -3320,7 +3324,7 @@ final class FuturesAccountReactorTests: XCTestCase {
       XCTAssertTrue(submit.isEnabled)
       XCTAssertTrue(closeSubmit.isEnabled)
       if hold == .missingHistory {
-        XCTAssertEqual((main.presentedViewController as? UIAlertController)?.message, FuturesText.text("futures_data_held"))
+        XCTAssertEqual((main.presentedViewController as? MobitAlertViewController)?.content, FuturesText.text("futures_data_held"))
         // UIKit의 실제 닫기 완료를 기다려 표시 전환 중인 알럿을 중복으로 오인하지 않는다.
         let dismissed = expectation(description: "Data error dismissed")
         main.dismiss(animated: false) { dismissed.fulfill() }
@@ -3732,7 +3736,7 @@ final class FuturesAccountReactorTests: XCTestCase {
       if ending != "completed" { XCTAssertFalse(futures.canSubmit, ending) }
       if ending == "failed" { XCTAssertNil(main.presentedViewController) }
       if ending == "storage" {
-        XCTAssertNotNil(main.presentedViewController as? UIAlertController)
+        XCTAssertNotNil(main.presentedViewController as? MobitAlertViewController)
         // 실제 알럿 전환이 완료된 뒤 재시도·탭 이동을 재현한다.
         let dismissed = expectation(description: "Foreground error dismissed")
         main.dismiss(animated: false) { dismissed.fulfill() }
@@ -4094,14 +4098,23 @@ final class FuturesAccountReactorTests: XCTestCase {
     XCTAssertGreaterThan(delegate.finishCount, 0)
     XCTAssertTrue(main.coordinator === coordinator)
     // 실패를 숨기지 않고 기존 입력·탐색으로 돌아가거나 재시도할 수 있다.
-    let alert = try XCTUnwrap(main.presentedViewController as? UIAlertController)
-    XCTAssertEqual(alert.message, FuturesText.text("market_data_error"))
-    XCTAssertEqual(alert.actions.map(\.title), [FuturesText.text("common_confirm"), FuturesText.text("data_retry")])
-    // 알럿이 실제로 닫힌 뒤 중복 표시 여부를 확인한다.
-    let dismissed = expectation(description: "Main error dismissed")
-    main.dismiss(animated: false) { dismissed.fulfill() }
+    let alert = try XCTUnwrap(main.presentedViewController as? MobitAlertViewController)
+    XCTAssertEqual(alert.content, FuturesText.text("market_data_error"))
+    XCTAssertEqual(alert.cancelButton.configuration?.title ?? alert.cancelButton.title(for: .normal), FuturesText.text("common_confirm"))
+    XCTAssertEqual(alert.confirmButton.configuration?.title ?? alert.confirmButton.title(for: .normal), FuturesText.text("data_retry"))
+    XCTAssertFalse(alert.cancelButton.isHidden)
+    // 표시 완료 후 확인 버튼으로 닫아 재시도 콜백이 실행되지 않는지 검사한다.
+    expectation(for: NSPredicate(format: "isBeingPresented == false"), evaluatedWith: alert)
+    waitForExpectations(timeout: 2)
+    alert.cancelButton.sendActions(for: .touchUpInside)
+    // 해제 애니메이션과 콜백이 모두 끝난 다음 요청 횟수를 확인한다.
+    let dismissed = XCTNSPredicateExpectation(
+      predicate: NSPredicate { _, _ in main.presentedViewController == nil },
+      object: nil
+    )
     wait(for: [dismissed], timeout: 2)
     flush()
+    XCTAssertEqual(useCase.marketRequests, 1)
     market.action.onNext(.loadUserCryptos)
     flush()
     XCTAssertNil(main.presentedViewController)
@@ -4220,12 +4233,12 @@ final class FuturesAccountReactorTests: XCTestCase {
     submit.sendActions(for: .touchUpInside)
     waitForNoticeUpdates(0.35)
     // 시세 갱신은 사용자가 읽고 있는 알럿을 지우거나 폼에 같은 오류를 추가하지 않는다.
-    let alert = try XCTUnwrap(controller.presentedViewController as? UIAlertController)
+    let alert = try XCTUnwrap(controller.presentedViewController as? MobitAlertViewController)
     updates.onNext(())
     flush()
     XCTAssertTrue(controller.presentedViewController === alert)
-    XCTAssertEqual(alert.message, FuturesText.text("futures_input_error"))
-    XCTAssertFalse(descendants(controller.view).compactMap { $0 as? UILabel }.contains { $0.text == alert.message })
+    XCTAssertEqual(alert.content, FuturesText.text("futures_input_error"))
+    XCTAssertFalse(descendants(controller.view).compactMap { $0 as? UILabel }.contains { $0.text == alert.content })
     // UIKit의 알럿 해제 완료 이후 도착하는 시세 이벤트를 재현한다.
     let dismissed = expectation(description: "Validation alert dismissed")
     controller.dismiss(animated: false) { dismissed.fulfill() }
@@ -4233,7 +4246,7 @@ final class FuturesAccountReactorTests: XCTestCase {
     updates.onNext(())
     flush()
     XCTAssertNil(controller.presentedViewController)
-    XCTAssertFalse(descendants(controller.view).compactMap { $0 as? UILabel }.contains { $0.text == alert.message })
+    XCTAssertFalse(descendants(controller.view).compactMap { $0 as? UILabel }.contains { $0.text == alert.content })
     XCTAssertFalse(futures.stub.actions.contains { if case .open = $0 { return true }; return false })
   }
 
@@ -5849,7 +5862,7 @@ extension FuturesAccountReactorTests {
         }
         @MainActor func dismissAlert(_ error: TradeOrderValidator.ValidationError) {
           waitForNoticeUpdates(0.4)
-          XCTAssertEqual((host.presentedViewController as? UIAlertController)?.message, error.message)
+          XCTAssertEqual((host.presentedViewController as? MobitAlertViewController)?.content, error.message)
           host.dismiss(animated: false)
           waitForNoticeUpdates(0.05)
           XCTAssertNil(host.presentedViewController)
@@ -5966,7 +5979,7 @@ extension FuturesAccountReactorTests {
         // 첫 확인의 재조회도 실패하며 거래와 입력은 그대로 남아야 한다.
         let firstAlert = try XCTUnwrap(
           host.presentedViewController as? MobitAlertViewController,
-          "Unexpected alert: \((host.presentedViewController as? UIAlertController)?.message ?? String(describing: host.presentedViewController))"
+          "Unexpected alert: \((host.presentedViewController as? MobitAlertViewController)?.content ?? String(describing: host.presentedViewController))"
         )
         firstAlert.confirmButton.sendActions(for: .touchUpInside)
         waitForNoticeUpdates(0.6)
@@ -6116,7 +6129,7 @@ extension FuturesAccountReactorTests {
       bid.inputAmount = 20
       bid.tapOnBidButton(bid.orderButton)
       waitForNoticeUpdates(0.35)
-      XCTAssertEqual((host.presentedViewController as? UIAlertController)?.message, TradeOrderValidator.ValidationError.insufficientBalance(currency: .krw).message)
+      XCTAssertEqual((host.presentedViewController as? MobitAlertViewController)?.content, TradeOrderValidator.ValidationError.insufficientBalance(currency: .krw).message)
       XCTAssertFalse(host.view.subviews.contains { $0.accessibilityIdentifier == "mobitToast" })
       host.dismiss(animated: false)
       waitForNoticeUpdates(0.05)
@@ -6127,7 +6140,7 @@ extension FuturesAccountReactorTests {
       ask.inputAmount = 3
       ask.tapOnAskButton(ask.orderButton)
       waitForNoticeUpdates(0.35)
-      XCTAssertEqual((host.presentedViewController as? UIAlertController)?.message, TradeOrderValidator.ValidationError.insufficientHolding.message)
+      XCTAssertEqual((host.presentedViewController as? MobitAlertViewController)?.content, TradeOrderValidator.ValidationError.insufficientHolding.message)
       XCTAssertFalse(host.view.subviews.contains { $0.accessibilityIdentifier == "mobitToast" })
       XCTAssertFalse(descendants(host.view).contains { $0 is MobitLottieView })
       XCTAssertEqual(UserDataManager.userInformation?.userAvailableBalance, 8_000)
@@ -6992,7 +7005,7 @@ extension FuturesAccountReactorTests {
     futures.stub.state.value = state
     XCTAssertEqual(completionCount, 2)
     waitForNoticeUpdates(0.35)
-    XCTAssertEqual((order.presentedViewController as? UIAlertController)?.message, FuturesText.text("futures_retry_order"))
+    XCTAssertEqual((order.presentedViewController as? MobitAlertViewController)?.content, FuturesText.text("futures_retry_order"))
     XCTAssertFalse(descendants(order.view).compactMap { $0 as? UILabel }.contains { $0.text == FuturesText.text("futures_retry_order") })
     futures.stub.state.value = state
     XCTAssertEqual(completionCount, 2)

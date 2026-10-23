@@ -9,7 +9,7 @@ import AdSupport
 import UIKit
 import WebKit
 
-class MobitCommunityViewController: UIViewController, UIScrollViewDelegate, MobitAlertDelegate {
+class MobitCommunityViewController: UIViewController, UIScrollViewDelegate {
   
   @IBOutlet weak var baseView: UIView!
   

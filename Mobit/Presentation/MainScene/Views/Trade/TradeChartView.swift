@@ -140,13 +140,12 @@ class TradeChartView: UIView, WKScriptMessageHandler {
   }
 
   @objc private func didTapChartInfoButton() {
-	let alert = UIAlertController(
-	  title: "차트 설정 안내",
-	  message: "기간 설정은 앱을 종료했다가 다시 들어와도 그대로 유지돼요.\n차트 테마는 앱 테마를 따라가요.\n\n차트 안에서 추가한 지표·그림은 저장되지 않아요.",
-	  preferredStyle: .alert
+    self.ownerViewController()?.show(
+      alertType: .onlyConfirm,
+      title: FuturesText.text("chart_settings_info_title"),
+      content: FuturesText.text("chart_settings_info_message"),
+      callBack: nil
 	)
-	alert.addAction(UIAlertAction(title: "확인", style: .default))
-	self.ownerViewController()?.present(alert, animated: true)
   }
 
   // UIView에서 알럿을 present하기 위해 responder chain으로 소유 뷰컨트롤러를 찾는다.

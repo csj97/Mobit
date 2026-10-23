@@ -54,7 +54,7 @@
 "trade_sell_price" = "매도 가격" ;
 "trade_execution_time" = "체결 시간" ;
 "trade_average_buy_price" = "매수평균가" ;
-"trade_executed_quantity" = "체결 수량" ;
+"trade_executed_quantity" = "체결수량" ;
 "trade_time" = "거래 시간" ;
 "trade_no_coins" = "보유중인 코인이 없습니다." ;
 "media_share" = "공유하기" ;
@@ -146,8 +146,8 @@
 "futures_pnl_liquidated" = "강제 청산";
 "futures_price" = "가격";
 "futures_occurrence" = "발생 구간";
-"futures_entry_price" = "진입 가격";
-"futures_liquidation_exit_price" = "청산 가격";
+"futures_entry_price" = "진입가격";
+"futures_liquidation_exit_price" = "청산가격";
 "futures_settled" = "정산 시각";
 "futures_realized" = "실현손익";
 "futures_no_history" = "거래내역이 없습니다.";
@@ -184,7 +184,7 @@
 "futures_position_quantity" = "포지션 수량";
 "futures_position_size" = "포지션 규모";
 "futures_roe" = "수익률";
-"futures_exit_price" = "종료 가격";
+"futures_exit_price" = "종료가격";
 "futures_sort_name" = "이름순";
 "futures_sort_roe_high" = "수익률 높은순";
 "futures_sort_roe_low" = "수익률 낮은순";
@@ -197,8 +197,8 @@
 "investment_average_price" = "매수평균가";
 "investment_buy_amount" = "매수금액";
 "investment_profit_rate" = "수익률";
-"investment_entry_price" = "매수 가격";
-"investment_exit_price" = "매도 가격";
+"investment_entry_price" = "매수가격";
+"investment_exit_price" = "매도가격";
 "investment_execution_time" = "체결 시간";
 
 "futures_liquidation_notice" = "%1$@ · %2$@ %3$@ %4$d배 포지션이 청산되었습니다.\n투자내역에서 결과를 확인하세요.";
@@ -294,3 +294,5 @@
 "settings_apply" = "변경하기";
 "settings_cancel" = "취소";
 "settings_close" = "닫기";
+"chart_settings_info_title" = "차트 설정 안내";
+"chart_settings_info_message" = "기간 설정은 앱을 종료했다가 다시 들어와도 그대로 유지돼요.\n차트 테마는 앱 테마를 따라가요.\n\n차트 안에서 추가한 지표·그림은 저장되지 않아요.";

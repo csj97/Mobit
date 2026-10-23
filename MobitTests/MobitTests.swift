@@ -215,8 +215,8 @@ final class XIBLayoutTests: XCTestCase {
                 XCTAssertEqual(alert.labelStackView.spacing, 10)
                 XCTAssertEqual(alert.buttonStackView.spacing, 10)
                 XCTAssertGreaterThanOrEqual(alert.confirmButton.bounds.height, 50)
-                XCTAssertEqual(alert.cancelButton.configuration?.title ?? alert.cancelButton.title(for: .normal), "취소")
-                XCTAssertEqual(alert.confirmButton.configuration?.title ?? alert.confirmButton.title(for: .normal), "확인")
+                XCTAssertEqual(alert.cancelButton.configuration?.title ?? alert.cancelButton.title(for: .normal), FuturesText.text("common_cancel"))
+                XCTAssertEqual(alert.confirmButton.configuration?.title ?? alert.confirmButton.title(for: .normal), FuturesText.text("common_confirm"))
                 if alertType == .canCancel {
                     XCTAssertEqual(alert.cancelButton.bounds.width, alert.confirmButton.bounds.width, accuracy: 1)
                     XCTAssertEqual(alert.cancelButton.bounds.height, alert.confirmButton.bounds.height, accuracy: 1)
@@ -424,28 +424,35 @@ final class XIBLayoutTests: XCTestCase {
             // dismiss 완료 뒤 기존 Bool 콜백이 호출되어야 한다.
             let completed = expectation(description: "Alert dismissed before callback")
             completed.assertForOverFulfill = true
-            // 실제 앱과 같은 전체 화면 위 알럿을 표시한다.
-            let alert = MobitAlertViewController(
+            // 버튼을 누르기 전에 표시 전환이 끝났음을 확인한다.
+            let presented = expectation(description: "Alert presentation completed")
+            // 일반 UIViewController에서도 동일한 공통 표시 경로를 사용한다.
+            let alert = try XCTUnwrap(presenter.show(
                 alertType: alertType,
                 title: "알림 검증",
                 content: "테스트용 안내입니다.",
+                confirmTitle: FuturesText.text("data_retry"),
+                cancelTitle: FuturesText.text("common_confirm"),
+                completion: { presented.fulfill() },
                 callBack: { value in
                     XCTAssertNil(presenter.presentedViewController)
                     results.append(value)
                     completed.fulfill()
                 }
-            )
-            alert.modalPresentationStyle = .overFullScreen
-            alert.modalTransitionStyle = .crossDissolve
-            // 버튼을 누르기 전에 표시 전환이 끝났음을 확인한다.
-            let presented = expectation(description: "Alert presentation completed")
-            presenter.present(alert, animated: false) { presented.fulfill() }
+            ))
             wait(for: [presented], timeout: 3)
             XCTAssertTrue(presenter.presentedViewController === alert)
+            XCTAssertEqual(alert.modalPresentationStyle, .overFullScreen)
+            XCTAssertEqual(alert.confirmButton.configuration?.title, FuturesText.text("data_retry"))
+            XCTAssertEqual(alert.cancelButton.configuration?.title, FuturesText.text("common_confirm"))
+            XCTAssertNil(presenter.show(alertType: .onlyConfirm, content: "중복 안내", callBack: nil))
             // IBAction 연결을 포함하는 실제 사용자 입력 경로다.
             let button = try XCTUnwrap(confirmed ? alert.confirmButton : alert.cancelButton)
             XCTAssertFalse(button.isHidden)
             button.sendActions(for: .touchUpInside)
+            button.sendActions(for: .touchUpInside)
+            alert.tapOnConfirmButton(alert.confirmButton)
+            alert.tapOnCancelButton(alert.cancelButton)
             wait(for: [completed], timeout: 3)
             XCTAssertEqual(results, [confirmed])
             XCTAssertNil(presenter.presentedViewController)

@@ -353,30 +353,15 @@ final class FuturesAccountViewController: MobitBaseViewController, UITableViewDa
   }
 
   private func chooseExchange() {
-	let sheet = UIAlertController(
-	  title: FuturesText.text("futures_exchange"),
-	  message: nil,
-	  preferredStyle: .actionSheet
-	)
-	for exchange in [Exchange.upbit, .bithumb] {
-	  sheet.addAction(
-		UIAlertAction(
-		  title: FuturesText.text(exchange == .upbit ? "futures_upbit" : "futures_bithumb"),
-		  style: .default
-		) { [weak self] _ in
-		  self?.coordinator?.switchExchange(exchange)
-		}
-	  )
+    guard presentedViewController == nil else { return }
+    // 선택을 확정하고 시트가 닫힌 뒤 기존 Coordinator로 거래소를 전환한다.
+	let controller = ExchangeSelectionSheetViewController(
+	  selectedExchange: reactor.account.exchange
+	) { [weak self] exchange in
+	  self?.coordinator?.switchExchange(exchange)
 	}
-	sheet.addAction(UIAlertAction(title: FuturesText.text("futures_cancel"), style: .cancel))
-	sheet.popoverPresentationController?.sourceView = view
-	sheet.popoverPresentationController?.sourceRect = CGRect(
-	  x: view.bounds.midX,
-	  y: view.safeAreaInsets.top,
-	  width: 1,
-	  height: 1
-	)
-	present(sheet, animated: true)
+	controller.prepareSheet(for: view.safeAreaLayoutGuide.layoutFrame.width)
+	present(controller, animated: true)
   }
 }
 

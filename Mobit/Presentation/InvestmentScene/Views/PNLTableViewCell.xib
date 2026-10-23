@@ -151,7 +151,7 @@
                                                     <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="lsZ-O8-swA">
                                                         <rect key="frame" x="0.0" y="0.0" width="152.66666666666666" height="15.666666666666666"/>
                                                         <subviews>
-                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="252" verticalHuggingPriority="251" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="1000" text="체결 수량" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.45000000000000001" translatesAutoresizingMaskIntoConstraints="NO" id="qKk-gF-bm4">
+                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="252" verticalHuggingPriority="251" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="1000" text="체결수량" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.45000000000000001" translatesAutoresizingMaskIntoConstraints="NO" id="qKk-gF-bm4">
                                                                 <rect key="frame" x="0.0" y="0.66666666666665719" width="45" height="14.333333333333334"/>
                                                                 <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                                 <color key="textColor" name="investment_text_secondary"/>
@@ -172,7 +172,7 @@
                                                     <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="9Bj-5y-I04">
                                                         <rect key="frame" x="168.66666666666663" y="0.0" width="152.33333333333337" height="15.666666666666666"/>
                                                         <subviews>
-                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="252" verticalHuggingPriority="251" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="1000" text="진입 가격" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.45000000000000001" translatesAutoresizingMaskIntoConstraints="NO" id="Uef-80-Ii2">
+                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="252" verticalHuggingPriority="251" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="1000" text="진입가격" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.45000000000000001" translatesAutoresizingMaskIntoConstraints="NO" id="Uef-80-Ii2">
                                                                 <rect key="frame" x="0.0" y="0.66666666666665719" width="45" height="14.333333333333334"/>
                                                                 <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                                 <color key="textColor" name="investment_text_secondary"/>
@@ -198,7 +198,7 @@
                                                     <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="OVA-q5-sWd">
                                                         <rect key="frame" x="0.0" y="0.0" width="152.66666666666666" height="15.666666666666666"/>
                                                         <subviews>
-                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="252" verticalHuggingPriority="251" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="1000" text="종료 가격" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.45000000000000001" translatesAutoresizingMaskIntoConstraints="NO" id="OTn-Sv-BTj">
+                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="252" verticalHuggingPriority="251" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="1000" text="종료가격" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.45000000000000001" translatesAutoresizingMaskIntoConstraints="NO" id="OTn-Sv-BTj">
                                                                 <rect key="frame" x="0.0" y="0.66666666666665719" width="45" height="14.333333333333334"/>
                                                                 <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                                 <color key="textColor" name="investment_text_secondary"/>
@@ -216,27 +216,38 @@
                                                             <constraint firstItem="OTn-Sv-BTj" firstAttribute="width" relation="greaterThanOrEqual" secondItem="OVA-q5-sWd" secondAttribute="width" multiplier="0.22" priority="999" id="OVA-q5-sWd-title-minimum"/>
                                                         </constraints>
                                                     </stackView>
-                                                    <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="pnl-margin-view">
+                                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="pnl-margin-column" userLabel="Margin Column">
                                                         <rect key="frame" x="168.66666666666663" y="0.0" width="152.33333333333337" height="15.666666666666666"/>
                                                         <subviews>
-                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="252" verticalHuggingPriority="251" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="1000" text="증거금" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.45000000000000001" translatesAutoresizingMaskIntoConstraints="NO" id="pnl-margin-title">
-                                                                <rect key="frame" x="0.0" y="0.66666666666665719" width="33.333333333333336" height="14.333333333333334"/>
-                                                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                                                                <color key="textColor" name="investment_text_secondary"/>
-                                                                <nil key="highlightedColor"/>
-                                                            </label>
-                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" verticalCompressionResistancePriority="1000" text="5,000,000 원" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.34999999999999998" translatesAutoresizingMaskIntoConstraints="NO" id="pnl-margin-label">
-                                                                <rect key="frame" x="37.333333333333343" y="0.0" width="115" height="15.666666666666666"/>
-                                                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="13"/>
-                                                                <color key="textColor" name="text_primary"/>
-                                                                <nil key="highlightedColor"/>
-                                                            </label>
+                                                            <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="pnl-margin-view">
+                                                                <rect key="frame" x="0.0" y="0.0" width="152.33333333333337" height="15.666666666666666"/>
+                                                                <subviews>
+                                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="252" verticalHuggingPriority="251" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="1000" text="증거금" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.45000000000000001" translatesAutoresizingMaskIntoConstraints="NO" id="pnl-margin-title">
+                                                                        <rect key="frame" x="0.0" y="0.66666666666665719" width="33.333333333333336" height="14.333333333333334"/>
+                                                                        <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                                                        <color key="textColor" name="investment_text_secondary"/>
+                                                                        <nil key="highlightedColor"/>
+                                                                    </label>
+                                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" verticalCompressionResistancePriority="1000" text="5,000,000 원" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.34999999999999998" translatesAutoresizingMaskIntoConstraints="NO" id="pnl-margin-label">
+                                                                        <rect key="frame" x="37.333333333333343" y="0.0" width="115" height="15.666666666666666"/>
+                                                                        <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="13"/>
+                                                                        <color key="textColor" name="text_primary"/>
+                                                                        <nil key="highlightedColor"/>
+                                                                    </label>
+                                                                </subviews>
+                                                                <constraints>
+                                                                    <constraint firstItem="pnl-margin-title" firstAttribute="width" relation="lessThanOrEqual" secondItem="pnl-margin-view" secondAttribute="width" multiplier="0.45" priority="999" id="pnl-margin-view-title-maximum"/>
+                                                                    <constraint firstItem="pnl-margin-title" firstAttribute="width" relation="greaterThanOrEqual" secondItem="pnl-margin-view" secondAttribute="width" multiplier="0.22" priority="999" id="pnl-margin-view-title-minimum"/>
+                                                                </constraints>
+                                                            </stackView>
                                                         </subviews>
                                                         <constraints>
-                                                            <constraint firstItem="pnl-margin-title" firstAttribute="width" relation="lessThanOrEqual" secondItem="pnl-margin-view" secondAttribute="width" multiplier="0.45" priority="999" id="pnl-margin-view-title-maximum"/>
-                                                            <constraint firstItem="pnl-margin-title" firstAttribute="width" relation="greaterThanOrEqual" secondItem="pnl-margin-view" secondAttribute="width" multiplier="0.22" priority="999" id="pnl-margin-view-title-minimum"/>
+                                                            <constraint firstItem="pnl-margin-view" firstAttribute="top" secondItem="pnl-margin-column" secondAttribute="top" id="pnl-margin-column-top"/>
+                                                            <constraint firstItem="pnl-margin-view" firstAttribute="leading" secondItem="pnl-margin-column" secondAttribute="leading" id="pnl-margin-column-leading"/>
+                                                            <constraint firstAttribute="trailing" secondItem="pnl-margin-view" secondAttribute="trailing" id="pnl-margin-column-trailing"/>
+                                                            <constraint firstAttribute="bottom" secondItem="pnl-margin-view" secondAttribute="bottom" id="pnl-margin-column-bottom"/>
                                                         </constraints>
-                                                    </stackView>
+                                                    </view>
                                                 </subviews>
                                             </stackView>
                                         </subviews>

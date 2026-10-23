@@ -491,9 +491,7 @@ final class FuturesOrderViewController: MobitBaseViewController {
     guard presentedViewController == nil, viewIfLoaded?.window != nil else { return }
     view.endEditing(true)
     // 주문 오류는 알럿으로만 안내해 폼 아래에 같은 문구를 남기지 않는다.
-    let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
-    alert.addAction(UIAlertAction(title: FuturesText.text("common_confirm"), style: .default))
-    present(alert, animated: true)
+    show(alertType: .onlyConfirm, content: message, callBack: nil)
   }
 
   private func confirmClose() {
