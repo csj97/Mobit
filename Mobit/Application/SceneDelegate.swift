@@ -45,6 +45,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 	let mobitLaunchScreen = MobitLaunchScreen()
 	self.window?.rootViewController = mobitLaunchScreen
 	self.window?.makeKeyAndVisible()
+	if let response = connectionOptions.notificationResponse {
+	  (UIApplication.shared.delegate as? AppDelegate)?.pushNotificationOpenHandler.handle(response)
+	}
 	FuturesHistoryCheckService.shared.liquidationEvents
 	  .subscribe(onNext: { [weak self] positions in self?.liquidationNotices.receive(positions) })
 	  .disposed(by: disposeBag)
@@ -62,6 +65,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 		self.appCoordinator = AppCoordinator(navigationController: navigationController)
 		self.appCoordinator?.mainScreenShownCallBack = { [weak self] in
 		  self?.mainScreenShown = true
+		  self?.updatePushNotificationHandling()
 		  self?.liquidationNotices.showPendingNotices()
 		}
 		self.appCoordinator?.tradingSelectionChangedCallBack = { [weak self] in
@@ -73,6 +77,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   }
 
   func sceneDidDisconnect(_ scene: UIScene) {
+	(UIApplication.shared.delegate as? AppDelegate)?.pushNotificationOpenHandler.suspend()
 	liquidationNotices.suspend()
 	// Called as the scene is being released by the system.
 	// This occurs shortly after the scene enters the background, or when its session is discarded.
@@ -81,6 +86,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   }
 
   func sceneDidBecomeActive(_ scene: UIScene) {
+	(UIApplication.shared.delegate as? AppDelegate)?.registerForPushNotificationsIfNeeded()
+	updatePushNotificationHandling()
 	liquidationNotices.showPendingNotices()
 	RewardedAdManager.shared.retryPendingRewards()
 	if TradingRules.Futures.HistoryCheck.shouldRefresh(
@@ -92,6 +99,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   }
 
   func sceneWillResignActive(_ scene: UIScene) {
+	(UIApplication.shared.delegate as? AppDelegate)?.pushNotificationOpenHandler.suspend()
 	liquidationNotices.suspend()
 	FuturesHistoryCheckService.shared.suspend()
 	// Called when the scene will move from an active state to an inactive state.
@@ -107,6 +115,19 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 	// Called as the scene transitions from the foreground to the background.
 	// Use this method to save data, release shared resources, and store enough scene-specific state information
 	// to restore the scene back to its current state.
+  }
+
+  private func updatePushNotificationHandling() {
+	guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
+	guard mainScreenShown,
+	  window?.windowScene?.activationState == .foregroundActive,
+	  let appCoordinator else {
+	  appDelegate.pushNotificationOpenHandler.suspend()
+	  return
+	}
+	appDelegate.pushNotificationOpenHandler.resume { [weak appCoordinator] destination in
+	  appCoordinator?.showPushDestination(destination)
+	}
   }
 
 }

@@ -115,6 +115,110 @@ final class MobitAnalyticsTests: XCTestCase {
     XCTAssertTrue(Set(parameters.keys).isDisjoint(with: ["balance", "quantity", "margin", "price", "pnl", "request_id", "position_id", "reward_id"]))
   }
 
+  @MainActor
+  func testPushOpenSendsOneCustomEventWithOnlyNormalizedParameters() {
+    // 실제 탭 호출 한 번이 기본 Firebase 이벤트와 중복되지 않는지 확인한다.
+    let events = captureEvents {
+      MobitAnalyticsUtil.sendPushOpenEvent(
+        destination: "  InVeStMeNt\n",
+        campaignID: "  notice_2026-10.23\n"
+      )
+    }
+    XCTAssertEqual(events.count, 1)
+    XCTAssertEqual(events.first?.name, "push_open")
+    XCTAssertEqual(events.first?.parameters["destination"] as? String, "investment")
+    XCTAssertEqual(events.first?.parameters["campaign_id"] as? String, "notice_2026-10.23")
+    XCTAssertEqual(Set(events.first?.parameters.keys.map { $0 } ?? []), ["destination", "campaign_id"])
+  }
+
+  @MainActor
+  func testPushOpenOmitsMissingOrInvalidCampaignIdentifiers() {
+    // 빈 식별자와 원문·URL 같은 잘못된 캠페인 값은 전송하지 않는다.
+    let campaignIDs: [String?] = [nil, " \n", "notice message", "https://example.com", "notice\n2026"]
+    for campaignID in campaignIDs {
+      // 캠페인이 없어도 한 번의 앱 진입 이벤트는 유지한다.
+      let events = captureEvents {
+        MobitAnalyticsUtil.sendPushOpenEvent(destination: "app", campaignID: campaignID)
+      }
+      XCTAssertEqual(events.count, 1)
+      XCTAssertEqual(events.first?.name, "push_open")
+      XCTAssertEqual(events.first?.parameters["destination"] as? String, "app")
+      XCTAssertEqual(events.first?.parameters.count, 1)
+    }
+  }
+
+  @MainActor
+  func testPushOpenUsesAppForInvalidDestinationAndLimitsCampaignLength() {
+    // Firebase의 최대 문자열 길이보다 긴 운영 캠페인 식별자를 준비한다.
+    let campaignID = String(repeating: "a", count: 120)
+    // 임의 경로는 앱 진입으로 정규화하고 식별자는 앞의 100자만 남긴다.
+    let events = captureEvents {
+      MobitAnalyticsUtil.sendPushOpenEvent(destination: "unknown?token=value", campaignID: campaignID)
+    }
+    XCTAssertEqual(events.count, 1)
+    XCTAssertEqual(events.first?.parameters["destination"] as? String, "app")
+    XCTAssertEqual(events.first?.parameters["campaign_id"] as? String, String(repeating: "a", count: 100))
+  }
+
+  @MainActor
+  func testPushOpenPreservesEveryTabAndNewDestinationIdentifier() {
+    // 지원 화면의 추가가 분석 유틸의 별도 허용 목록을 요구하지 않아야 한다.
+    let destinations = ["exchange", "investment", "news", "more", "new_screen"]
+    for destination in destinations {
+      // 화면 이름의 형식만 정규화하고 값 자체는 유지하는지 확인한다.
+      let events = captureEvents {
+        MobitAnalyticsUtil.sendPushOpenEvent(destination: " \(destination.uppercased())\n", campaignID: nil)
+      }
+      XCTAssertEqual(events.count, 1)
+      XCTAssertEqual(events.first?.name, "push_open")
+      XCTAssertEqual(events.first?.parameters["destination"] as? String, destination)
+      XCTAssertEqual(events.first?.parameters.count, 1)
+    }
+  }
+
+  @MainActor
+  func testPushOpenPreservesNormalizedActionAndMaximumLengthIdentifiers() {
+    // 식별자 규칙의 최대 길이인 40자를 화면과 동작에 동일하게 적용한다.
+    let maximumLengthIdentifier = "a" + String(repeating: "1", count: 39)
+    // 등록된 동작 목록과 무관하게 유효한 식별자를 분석에 남긴다.
+    let actions = ["  SHOW_NOTICE\n", maximumLengthIdentifier]
+    for action in actions {
+      // 선택적인 동작이 다른 푸시 식별자와 함께 한 번만 기록돼야 한다.
+      let events = captureEvents {
+        MobitAnalyticsUtil.sendPushOpenEvent(
+          destination: maximumLengthIdentifier,
+          action: action,
+          campaignID: "action_notice"
+        )
+      }
+      XCTAssertEqual(events.count, 1)
+      XCTAssertEqual(events.first?.parameters["destination"] as? String, maximumLengthIdentifier)
+      XCTAssertEqual(events.first?.parameters["action"] as? String, action.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())
+      XCTAssertEqual(events.first?.parameters["campaign_id"] as? String, "action_notice")
+      XCTAssertEqual(events.first?.parameters.count, 3)
+    }
+  }
+
+  @MainActor
+  func testPushOpenFallsBackForInvalidDestinationAndOmitsInvalidAction() {
+    // 빈 값·문장·URL·숫자 시작·비ASCII·길이 초과를 식별자로 사용하지 않는다.
+    let invalidIdentifiers = ["", " \n", "show notice", "https://example.com", "1screen", "화면", String(repeating: "a", count: 41)]
+    for identifier in invalidIdentifiers {
+      // 잘못된 목적지는 앱 진입으로 대체하고 잘못된 동작은 제외한다.
+      let events = captureEvents {
+        MobitAnalyticsUtil.sendPushOpenEvent(
+          destination: identifier,
+          action: identifier,
+          campaignID: nil
+        )
+      }
+      XCTAssertEqual(events.count, 1)
+      XCTAssertEqual(events.first?.parameters["destination"] as? String, "app")
+      XCTAssertNil(events.first?.parameters["action"])
+      XCTAssertEqual(events.first?.parameters.count, 1)
+    }
+  }
+
   private func captureEvents(_ action: () -> Void) -> [(name: String, parameters: [String: Any])] {
     // 동기식 공통 전송 경계를 검사하고 SDK 업로드는 대체한다.
     var events: [(name: String, parameters: [String: Any])] = []

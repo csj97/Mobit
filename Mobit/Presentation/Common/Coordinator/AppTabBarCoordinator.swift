@@ -68,6 +68,16 @@ class AppTabBarCoordinator: BaseCoordinator {
 	self.configureTabs(selectedIndex: mobitTabBarController.selectedIndex)
 	tradingSelectionChangedCallBack?()
   }
+
+  func showPushDestination(_ destination: PushNotificationDestination) {
+    // 표시 중인 시트·알럿을 닫은 뒤 기존 계좌를 유지하며 목적지 루트로 이동한다.
+    let showDestination: () -> Void = { [weak self] in self?.mobitTabBarController.showPushDestination(destination) }
+    if navigationController.presentedViewController != nil {
+      navigationController.dismiss(animated: false, completion: showDestination)
+    } else {
+      showDestination()
+    }
+  }
   
   private func configureTabs(selectedIndex: Int) {
 	mobitTabBarController.bindForegroundVerification(nil)

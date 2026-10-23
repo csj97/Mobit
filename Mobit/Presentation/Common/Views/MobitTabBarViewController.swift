@@ -289,6 +289,33 @@ class MobitTabBarViewController: MobitBaseViewController {
     mobitTabBar.selectItem(at: index)
     updateProductVisibility()
   }
+
+  func showPushDestination(_ destination: PushNotificationDestination) {
+    // 강제 업데이트 안내는 푸시 이동으로 우회할 수 없다.
+    guard !viewControllers.compactMap({ $0 as? UINavigationController })
+      .flatMap(\.viewControllers).contains(where: { $0 is NoticeForceUpdateViewController }) else { return }
+    // 푸시의 목적지를 앱이 사용하는 하단 탭 항목에 연결한다.
+    let destinationTab: MobitTabItem
+    switch destination {
+    case .exchange: destinationTab = .exchange
+    case .investment: destinationTab = .wallet
+    case .news: destinationTab = .news
+    case .more: destinationTab = .more
+    }
+    // 기존 탭 순서를 사용해 현재 탭 구성을 그대로 유지한다.
+    let destinationIndex = destinationTab.rawValue
+    guard viewControllers.indices.contains(destinationIndex) else { return }
+    // 현재 상세와 목적지에 남은 상세를 닫아 푸시 목적지의 루트를 표시한다.
+    let navigationControllers = [currentViewController, viewControllers[destinationIndex]]
+      .compactMap { $0 as? UINavigationController }
+    for navigation in navigationControllers where navigation.viewControllers.count > 1 {
+      (navigation.topViewController as? SocketControllable)?.pauseSocket()
+      navigation.popToRootViewController(animated: false)
+    }
+    setTradingChromeHidden(false)
+    if selectedIndex != destinationIndex { switchToTab(index: destinationIndex) }
+    controlSocket(appState: .foreground)
+  }
   
   func controlSocket(appState: AppState) {
 	// 현물 투자내역은 자체 소켓이 없어 보유 자산을 갱신하는 메인 소켓을 대신 제어한다.

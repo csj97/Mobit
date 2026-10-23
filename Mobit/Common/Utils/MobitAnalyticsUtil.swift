@@ -306,6 +306,47 @@ class MobitAnalyticsUtil {
     )
   }
 
+  static func sendPushOpenEvent(
+    destination: String,
+    action: String? = nil,
+    campaignID: String?
+  ) {
+    // Firebase 기본 알림 열기 이벤트와 구분해 실제 원격 알림 클릭 유입을 기록한다.
+    let eventName = "push_open"
+    // 화면·동작의 지원 여부와 별개로 분석에 사용할 식별자 형식만 제한한다.
+    let identifierPattern = "^[a-z][a-z0-9_]{0,39}$"
+    // 파서가 전달한 화면 식별자를 공백과 대소문자 차이 없이 기록한다.
+    let normalizedDestination = destination.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    // 푸시 유입 분석에는 이동 대상과 선택적인 동작·캠페인 식별자만 전송한다.
+    var parameters: [String: Any] = [
+      "destination": normalizedDestination.range(of: identifierPattern, options: .regularExpression) != nil
+        ? normalizedDestination : "app"
+    ]
+    // 동작이 없거나 형식이 잘못됐으면 파라미터를 추가하지 않는다.
+    if let normalizedAction = action?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
+       normalizedAction.range(of: identifierPattern, options: .regularExpression) != nil {
+      parameters["action"] = normalizedAction
+    }
+    if let campaignID {
+      // 식별자에 필요한 문자만 허용하고 Firebase 문자열 길이 제한을 지킨다.
+      let normalizedCampaignID = campaignID.trimmingCharacters(in: .whitespacesAndNewlines)
+      // 일반 Firebase 문자열 파라미터의 최대 길이를 적용한다.
+      let campaignIDLengthLimit = 100
+      if !normalizedCampaignID.isEmpty,
+         normalizedCampaignID.range(of: "^[A-Za-z0-9_.-]+$", options: .regularExpression) != nil {
+        parameters["campaign_id"] = String(normalizedCampaignID.prefix(campaignIDLengthLimit))
+      }
+    }
+    #if DEBUG
+    if let eventCallBack {
+      eventCallBack(eventName, parameters)
+      return
+    }
+    #endif
+    Analytics.logEvent(eventName, parameters: parameters)
+    Log.info("MOBIT Analytics [Event Name] - \(eventName)")
+  }
+
   static func sendBaseLegacyEvent<T: MobitAnalyticsEventRule>(
     eventName: String,
     type: T,

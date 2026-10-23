@@ -7,6 +7,125 @@ import SkeletonView
 
 final class TradingScreenReleaseQATests: XCTestCase {
   @MainActor
+  func testPushRoutesCloseCurrentAndTargetDetailsWithoutChangingAccount() throws {
+    // 푸시 이동이 실제 사용자의 거래소 선택을 변경하지 않도록 원본을 보존한다.
+    let previousExchange = ExchangeSelectionStore.currentExchange
+    // 현물·선물 모두 푸시 이동 이전에 선택한 상품을 유지해야 한다.
+    let previousProduct = ExchangeSelectionStore.currentProduct
+    // 서버가 지정한 네 목적지가 실제 하단 탭 순서로 연결되는지 검사한다.
+    let destinations: [(destination: PushNotificationDestination, tab: MobitTabItem)] = [
+      (.exchange, .exchange), (.investment, .wallet), (.news, .news), (.more, .more)
+    ]
+    defer {
+      ExchangeSelectionStore.currentExchange = previousExchange
+      ExchangeSelectionStore.currentProduct = previousProduct
+    }
+    ExchangeSelectionStore.currentExchange = .bithumb
+    for product in [TradingProduct.spot, .perpetual] {
+      ExchangeSelectionStore.currentProduct = product
+      for (destination, destinationTab) in destinations {
+        // 생산 코드의 매핑과 별개로 실제 탭 항목의 인덱스를 기대값으로 사용한다.
+        let destinationIndex = destinationTab.rawValue
+        for currentIndex in 0..<4 {
+          // 실제 탭 컨테이너에서 외부 통신 없이 상세 복귀와 소켓 호출을 관찰한다.
+          let tabs = MobitTabBarViewController()
+          // 각 탭의 루트 인스턴스를 유지한 채 이동하는지 확인한다.
+          let roots = (0..<4).map { _ in ReleaseQAPushSocketViewController() }
+          // 현재 상세와 목적지에 남아 있는 상세를 같은 푸시로 닫는다.
+          let navigations = roots.map { UINavigationController(rootViewController: $0) }
+          // 현재 화면의 자체 시세 구독은 루트 복귀 전에 종료해야 한다.
+          let currentDetail = ReleaseQAPushSocketViewController()
+          navigations[currentIndex].pushViewController(currentDetail, animated: false)
+          // 다른 탭에서 들어올 때 목적지에 남아 있던 상세도 제거한다.
+          let destinationDetail = currentIndex == destinationIndex ? currentDetail : ReleaseQAPushSocketViewController()
+          if currentIndex != destinationIndex {
+            navigations[destinationIndex].pushViewController(destinationDetail, animated: false)
+          }
+          tabs.setViewControllers(navigations, selectedIndex: currentIndex)
+          tabs.setTradingChromeHidden(true)
+
+          tabs.showPushDestination(destination)
+
+          XCTAssertEqual(tabs.selectedIndex, destinationIndex)
+          XCTAssertTrue(navigations[destinationIndex].parent === tabs)
+          XCTAssertEqual(navigations[currentIndex].viewControllers.count, 1)
+          XCTAssertEqual(navigations[destinationIndex].viewControllers.count, 1)
+          XCTAssertTrue(navigations[destinationIndex].topViewController === roots[destinationIndex])
+          XCTAssertEqual(currentDetail.pauseCount, 1)
+          XCTAssertEqual(destinationDetail.pauseCount, 1)
+          XCTAssertEqual(roots[destinationIndex].resumeCount, 1)
+          XCTAssertFalse(tabs.mobitTabBar.isHidden)
+          // 투자모드 전환 컨트롤은 시세·투자내역 목적지에서만 표시한다.
+          let productControl = try XCTUnwrap(
+            tabs.view.subviews.first { $0.accessibilityIdentifier == "tradingProductSelector" }
+          )
+          XCTAssertEqual(productControl.isHidden, destinationIndex >= MobitTabItem.news.rawValue)
+          XCTAssertEqual(ExchangeSelectionStore.currentExchange, .bithumb)
+          XCTAssertEqual(ExchangeSelectionStore.currentProduct, product)
+        }
+      }
+    }
+  }
+
+  @MainActor
+  func testPushRoutesPreserveSpotSocketFallbackForTabsWithoutOwnSocket() {
+    // 자체 소켓이 없는 탭은 기존 현물 복귀 흐름에서만 메인 소켓을 재사용한다.
+    let previousProduct = ExchangeSelectionStore.currentProduct
+    defer { ExchangeSelectionStore.currentProduct = previousProduct }
+    for product in [TradingProduct.spot, .perpetual] {
+      ExchangeSelectionStore.currentProduct = product
+      for destination in [PushNotificationDestination.investment, .news, .more] {
+        // 현물 메인만 시세 소켓을 가지고 투자내역은 화면 갱신만 수행한다.
+        let market = ReleaseQAPushSocketViewController()
+        // 푸시 이전에 상세 화면을 보던 상태를 재현한다.
+        let detail = ReleaseQAPushSocketViewController()
+        // 기존 메인 루트와 시세 구독을 새로 만들지 않고 복구한다.
+        let marketNavigation = UINavigationController(rootViewController: market)
+        marketNavigation.pushViewController(detail, animated: false)
+        // 실제 현물 투자내역·뉴스·더보기처럼 자체 소켓을 가지지 않는 루트다.
+        let otherNavigations = (0..<3).map { _ in UINavigationController(rootViewController: UIViewController()) }
+        // 선택 변경은 앱에서 사용하는 실제 커스텀 탭을 거친다.
+        let tabs = MobitTabBarViewController()
+        tabs.setViewControllers([marketNavigation] + otherNavigations)
+
+        tabs.showPushDestination(destination)
+
+        XCTAssertEqual(detail.pauseCount, 1)
+        XCTAssertEqual(market.resumeCount, product == .spot ? 1 : 0)
+        XCTAssertTrue(otherNavigations.contains { $0.parent === tabs })
+        XCTAssertTrue(marketNavigation.topViewController === market)
+      }
+    }
+  }
+
+  @MainActor
+  func testPushRoutesKeepRequiredUpdateScreenAndTabLock() {
+    for destination in [PushNotificationDestination.exchange, .investment, .news, .more] {
+      for updateTabIndex in 0..<4 {
+        // 강제 업데이트가 있는 기존 탭 스택을 보존해야 한다.
+        let roots = (0..<4).map { _ in ReleaseQAPushSocketViewController() }
+        // 현재 탭과 목적지 어느 쪽에 강제 업데이트가 있어도 이동을 막는다.
+        let navigations = roots.map { UINavigationController(rootViewController: $0) }
+        // 실제 업데이트 안내 타입으로 푸시 우회 회귀를 검사한다.
+        let requiredUpdate = NoticeForceUpdateViewController()
+        navigations[updateTabIndex].pushViewController(requiredUpdate, animated: false)
+        // 강제 업데이트 시 숨겨진 하단 컨트롤도 그대로 유지한다.
+        let tabs = MobitTabBarViewController()
+        tabs.setViewControllers(navigations)
+        tabs.setTradingChromeHidden(true)
+
+        tabs.showPushDestination(destination)
+
+        XCTAssertEqual(tabs.selectedIndex, MobitTabItem.exchange.rawValue)
+        XCTAssertTrue(navigations[updateTabIndex].topViewController === requiredUpdate)
+        XCTAssertEqual(navigations[updateTabIndex].viewControllers.count, 2)
+        XCTAssertTrue(tabs.mobitTabBar.isHidden)
+        XCTAssertTrue(roots.allSatisfy { $0.pauseCount == 0 && $0.resumeCount == 0 })
+      }
+    }
+  }
+
+  @MainActor
   func testInitialTickerAfterSwitchingFromSkeletonToFavorites() throws {
     try verifyInitialTickerDuringSkeletonTabSwitches(tabs: [.favorite])
   }
@@ -1024,6 +1143,16 @@ final class TradingScreenReleaseQATests: XCTestCase {
       )
     )
   }
+}
+
+private final class ReleaseQAPushSocketViewController: UIViewController, SocketControllable {
+  // 푸시로 제거된 상세의 소켓 해제 횟수를 확인한다.
+  private(set) var pauseCount = 0
+  // 투자내역 표시 후 필요한 시세 구독을 재개했는지 확인한다.
+  private(set) var resumeCount = 0
+
+  func pauseSocket() { pauseCount += 1 }
+  func resumeSocket() { resumeCount += 1 }
 }
 
 private final class ReleaseQAPendingMarketsUseCase: MainUseCase {
