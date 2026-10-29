@@ -9,11 +9,11 @@ import UIKit
 
 struct PNLShareUnit {
   let marketName: String
-  let roi: Double
-  let pnl: Double
-  let quantity: Double
-  let entryPrice: Double
-  let exitPrice: Double
+  let roi: Decimal
+  let pnl: Decimal
+  let quantity: Decimal
+  let entryPrice: Decimal
+  let exitPrice: Decimal
   let transactionDate: String
   var currency: String = "KRW"
   var product: TradingProduct = .spot
@@ -22,6 +22,42 @@ struct PNLShareUnit {
   var marketDescription: String {
 	guard product == .perpetual, let exchange else { return marketName }
 	return "\(exchange.rawValue.capitalized) · \(FuturesText.text("futures_product")) · \(currency)\n\(marketName)"
+  }
+}
+
+extension PNLShareUnit {
+  static func spot(_ history: UserPNLHistoryModel) -> PNLShareUnit {
+    // 기존 현물 값은 표시 경계에서 십진수로 변환한다.
+    var entryPrice = PortfolioCalculator.decimal(history.entryPrice)
+    // 원화 원가가 있으면 원본 정밀도로 환산한 종료 가격을 표시한다.
+    var exitPrice = PortfolioCalculator.decimal(history.exitPrice)
+    // 기존 손익값 또는 원화 정산 원본을 공유한다.
+    var pnl = PortfolioCalculator.decimal(history.pnl)
+    // 정산 여부에 따라 공유 화면에 표시할 결제 통화다.
+    var currency = history.settlementCurrency.rawValue
+    if let cost = history.costBasisKRW, let realized = history.realizedProfitLossKRW,
+       history.orderQuantity > 0 {
+      // 원화 원가와 손익을 해당 체결 수량의 단가로 환산한다.
+      let quantity = PortfolioCalculator.decimal(history.orderQuantity)
+      entryPrice = cost / quantity
+      exitPrice = (cost + realized) / quantity
+      pnl = realized
+      currency = "KRW"
+    }
+    // 기존 양수 진입가 조건과 퍼센트 표시 자릿수를 유지한다.
+    let roi: Decimal = !entryPrice.isNaN && entryPrice > 0
+      ? (exitPrice - entryPrice) / entryPrice * 100 : 0
+    return PNLShareUnit(
+      marketName: history.marketName,
+      roi: roi,
+      pnl: pnl,
+      quantity: PortfolioCalculator.decimal(history.orderQuantity),
+      entryPrice: entryPrice,
+      exitPrice: exitPrice,
+      transactionDate: history.transactionDate,
+      currency: currency,
+      exchange: history.exchange
+    )
   }
 }
 
@@ -87,9 +123,9 @@ class PNLShareView: UIView {
     }
     let unit = pnlShareUnit.currency == "KRW" ? " ₩" : " " + pnlShareUnit.currency
 	self.marketName.text = pnlShareUnit.marketDescription
-	self.entryPriceLabel.text = "\(pnlShareUnit.entryPrice.formatTradingValue())".addComma()
-	self.exitPriceLabel.text = "\(pnlShareUnit.exitPrice.formatTradingValue())".addComma()
-	self.quantityLabel.text = "\(pnlShareUnit.quantity.formatTradingValue())".addComma()
+	self.entryPriceLabel.text = TradingNumberFormat.string(pnlShareUnit.entryPrice)
+	self.exitPriceLabel.text = TradingNumberFormat.string(pnlShareUnit.exitPrice)
+	self.quantityLabel.text = TradingNumberFormat.string(pnlShareUnit.quantity)
 	self.transactionDateLabel.text = pnlShareUnit.transactionDate
 	
 	var pnlSign = ""
@@ -103,7 +139,7 @@ class PNLShareView: UIView {
 	  self.pnlLabel.textColor = .mobitColors(.textPrimary)
 	  pnlSign = ""
 	}
-	self.pnlLabel.text = pnlSign + "\(pnlShareUnit.pnl.formatTradingValue())".addComma() + unit
+	self.pnlLabel.text = pnlSign + TradingNumberFormat.string(pnlShareUnit.pnl) + unit
 	
 	var roiSign = ""
 	if pnlShareUnit.roi > 0 {
@@ -117,7 +153,7 @@ class PNLShareView: UIView {
 	  roiSign = ""
 	}
 	
-	self.roiLabel.text = roiSign + "\(pnlShareUnit.roi.formatSignificantDigits(digits: 2)) %"
+	self.roiLabel.text = roiSign + "\(PortfolioCalculator.double(pnlShareUnit.roi).formatSignificantDigits(digits: 2)) %"
   }
   
   @IBAction func tapOnSaveButton(_ sender: UIButton) {

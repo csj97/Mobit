@@ -156,15 +156,20 @@
                                                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="available-stack">
                                                                 <rect key="frame" x="0.0" y="0.0" width="164" height="86"/>
                                                                 <subviews>
-                                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="252" text="주문가능 KRW" lineBreakMode="wordWrap" numberOfLines="0" translatesAutoresizingMaskIntoConstraints="NO" id="available-title">
+                                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="252" text="주문가능" lineBreakMode="wordWrap" numberOfLines="0" translatesAutoresizingMaskIntoConstraints="NO" id="available-title">
                                                                         <rect key="frame" x="0.0" y="0.0" width="164" height="19.333333333333332"/>
                                                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                                         <color key="textColor" name="investment_text_secondary"/>
                                                                     </label>
-                                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="0" lineBreakMode="wordWrap" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="available-value">
+                                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="0" lineBreakMode="middleTruncation" numberOfLines="1" baselineAdjustment="alignCenters" adjustsFontSizeToFit="YES" minimumScaleFactor="0.7" translatesAutoresizingMaskIntoConstraints="NO" id="available-value">
                                                                         <rect key="frame" x="0.0" y="25.333333333333325" width="164" height="60.666666666666657"/>
-                                                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="26"/>
+                                                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="24"/>
                                                                         <color key="textColor" name="investment_text_primary"/>
+                                                                        <userDefinedRuntimeAttributes>
+                                                                            <userDefinedRuntimeAttribute type="number" keyPath="minimumScaleFactor">
+                                                                                <real key="value" value="0.7"/>
+                                                                            </userDefinedRuntimeAttribute>
+                                                                        </userDefinedRuntimeAttributes>
                                                                     </label>
                                                                 </subviews>
                                                             </stackView>
@@ -183,10 +188,15 @@
                                                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                                         <color key="textColor" name="investment_text_secondary"/>
                                                                     </label>
-                                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="0" lineBreakMode="wordWrap" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="total-value">
+                                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="0" lineBreakMode="middleTruncation" numberOfLines="1" baselineAdjustment="alignCenters" adjustsFontSizeToFit="YES" minimumScaleFactor="0.7" translatesAutoresizingMaskIntoConstraints="NO" id="total-value">
                                                                         <rect key="frame" x="0.0" y="25.333333333333325" width="164" height="60.666666666666657"/>
-                                                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="26"/>
+                                                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="24"/>
                                                                         <color key="textColor" name="investment_text_primary"/>
+                                                                        <userDefinedRuntimeAttributes>
+                                                                            <userDefinedRuntimeAttribute type="number" keyPath="minimumScaleFactor">
+                                                                                <real key="value" value="0.7"/>
+                                                                            </userDefinedRuntimeAttribute>
+                                                                        </userDefinedRuntimeAttributes>
                                                                     </label>
                                                                 </subviews>
                                                             </stackView>
@@ -213,7 +223,7 @@
                                                                         <subviews>
                                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="총 매수" lineBreakMode="wordWrap" translatesAutoresizingMaskIntoConstraints="NO" id="purchase-title">
                                                                                 <rect key="frame" x="0.0" y="0.0" width="40.333333333333336" height="17"/>
-                                                                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                                                 <color key="textColor" name="investment_text_secondary"/>
                                                                             </label>
                                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" text="0" textAlignment="right" lineBreakMode="wordWrap" numberOfLines="0" translatesAutoresizingMaskIntoConstraints="NO" id="purchase-value">
@@ -228,7 +238,7 @@
                                                                         <subviews>
                                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="총 평가" lineBreakMode="wordWrap" translatesAutoresizingMaskIntoConstraints="NO" id="evaluation-title">
                                                                                 <rect key="frame" x="0.0" y="0.0" width="40.333333333333336" height="17"/>
-                                                                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                                                 <color key="textColor" name="investment_text_secondary"/>
                                                                             </label>
                                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" text="0" textAlignment="right" lineBreakMode="wordWrap" numberOfLines="0" translatesAutoresizingMaskIntoConstraints="NO" id="evaluation-value">
@@ -248,7 +258,7 @@
                                                                         <subviews>
                                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="평가손익" lineBreakMode="wordWrap" translatesAutoresizingMaskIntoConstraints="NO" id="pnl-title">
                                                                                 <rect key="frame" x="0.0" y="0.0" width="48.666666666666664" height="17"/>
-                                                                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                                                 <color key="textColor" name="investment_text_secondary"/>
                                                                             </label>
                                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" text="0" textAlignment="right" lineBreakMode="wordWrap" numberOfLines="0" translatesAutoresizingMaskIntoConstraints="NO" id="pnl-value">
@@ -263,7 +273,7 @@
                                                                         <subviews>
                                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="수익률" lineBreakMode="wordWrap" translatesAutoresizingMaskIntoConstraints="NO" id="rate-title">
                                                                                 <rect key="frame" x="0.0" y="0.0" width="36.333333333333336" height="17"/>
-                                                                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                                                 <color key="textColor" name="investment_text_secondary"/>
                                                                             </label>
                                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" text="0" textAlignment="right" lineBreakMode="wordWrap" numberOfLines="0" translatesAutoresizingMaskIntoConstraints="NO" id="rate-value">
@@ -442,6 +452,8 @@
                             <outletCollection property="metricRows" destination="evaluation-row" collectionClass="NSMutableArray" id="header-row-1"/>
                             <outletCollection property="metricRows" destination="pnl-row" collectionClass="NSMutableArray" id="header-row-2"/>
                             <outletCollection property="metricRows" destination="rate-row" collectionClass="NSMutableArray" id="header-row-3"/>
+                            <outletCollection property="balanceValueLabels" destination="available-value" collectionClass="NSMutableArray" id="header-balance-available"/>
+                            <outletCollection property="balanceValueLabels" destination="total-value" collectionClass="NSMutableArray" id="header-balance-total"/>
                             <outletCollection property="valueLabels" destination="available-value" collectionClass="NSMutableArray" id="header-value-available-value"/>
                             <outletCollection property="valueLabels" destination="total-value" collectionClass="NSMutableArray" id="header-value-total-value"/>
                             <outletCollection property="valueLabels" destination="purchase-value" collectionClass="NSMutableArray" id="header-value-purchase-value"/>

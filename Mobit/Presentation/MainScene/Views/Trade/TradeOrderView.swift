@@ -376,14 +376,14 @@ class TradeOrderView: UIView, ViewRule {
       self.cryptoAveragePrice.text = data.staticData.averageBuyPrice.formatTradingValue()
     } else {
       self.cryptoAveragePrice.text = valuation.averagePriceKRW.map {
-        $0.formatTradingValue() + " \(FuturesText.text("currency_krw_unit"))"
+        TradingNumberFormat.string($0) + " \(FuturesText.text("currency_krw_unit"))"
       } ?? "-"
     }
     self.cryptoHoldingQuantity.text = data.staticData.holdingQuantity.formatTradingValue()
-    self.cryptoEvalPrice.text = valuation.evaluationKRW.map { $0.formatTradingValue() + " \(FuturesText.text("currency_krw_unit"))" } ?? "-"
-    self.cryptoEvalLoss.text = valuation.profitLossKRW.map { $0.formatTradingValue() + " \(FuturesText.text("currency_krw_unit"))" } ?? "-"
+    self.cryptoEvalPrice.text = valuation.evaluationKRW.map { TradingNumberFormat.string($0) + " \(FuturesText.text("currency_krw_unit"))" } ?? "-"
+    self.cryptoEvalLoss.text = valuation.profitLossKRW.map { TradingNumberFormat.string($0) + " \(FuturesText.text("currency_krw_unit"))" } ?? "-"
     self.cryptoProfitRate.text = valuation.profitRate.map { $0.formatSignificantDigits(digits: 2) + " %" } ?? "-"
-    let textColor = MarketColorPalette.color(forSignedValue: valuation.profitLossKRW ?? 0)
+    let textColor = MarketColorPalette.color(forSignedValue: valuation.profitLossKRW.map { $0 > 0 ? 1 : ($0 < 0 ? -1 : 0) } ?? 0)
     self.cryptoEvalLoss.textColor = textColor
     self.cryptoProfitRate.textColor = textColor
   }

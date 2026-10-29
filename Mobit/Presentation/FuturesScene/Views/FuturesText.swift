@@ -87,11 +87,11 @@ enum FuturesText {
 	let rate = try FuturesDecimal.multiply(FuturesDecimal.divide(pnl, record.margin ?? position.margin), 100)
 	return PNLShareUnit(
 	  marketName: "\(symbol(record.instrument)) · \(side(record.side)) \(record.leverage)×",
-	  roi: NSDecimalNumber(decimal: rate).doubleValue,
-	  pnl: NSDecimalNumber(decimal: pnl).doubleValue,
-	  quantity: NSDecimalNumber(decimal: record.quantity).doubleValue,
-	  entryPrice: NSDecimalNumber(decimal: try record.entryPrice ?? position.averageEntryPrice).doubleValue,
-	  exitPrice: NSDecimalNumber(decimal: record.price).doubleValue,
+	  roi: rate,
+	  pnl: pnl,
+	  quantity: record.quantity,
+	  entryPrice: try record.entryPrice ?? position.averageEntryPrice,
+	  exitPrice: record.price,
 	  transactionDate: record.kind == .liquidation ? occurrenceDate(record) : date(record.recordedAt),
 	  currency: record.instrument.settlementCurrency.rawValue,
 	  product: record.instrument.product,

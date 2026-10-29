@@ -666,3 +666,60 @@ private struct TestPendingInvestmentState: Encodable {
   let pnlHistory: [UserPNLHistoryModel]
   let informationByExchange: [String: MobitUserInformation]
 }
+
+final class ValidTransactionDecimalTests: XCTestCase {
+  func testDecimalQuantitySumClosesFractionalPosition() throws {
+    // 이진 부동소수 합산으로는 양수 잔량이 남을 수 있는 전체 매도 이력이다.
+    let history = ValidTransactionInfo(
+      marketName: "BTC/KRW",
+      transaction: [
+        .init(orderType: .bid, quantity: 0.1, buyPrice: 10),
+        .init(orderType: .bid, quantity: 0.2, buyPrice: 10),
+        .init(orderType: .ask, quantity: 0.3, buyPrice: 10)
+      ]
+    )
+    XCTAssertEqual(history.totalHoldingQuantity, 0)
+    XCTAssertTrue(history.isFullySoldOut)
+
+    // 기존 거래이력의 직렬화 키와 Double 데이터 형식은 그대로 사용한다.
+    let data = try JSONEncoder().encode(history)
+    // 저장 후 복원된 이력에서도 전량 매도가 유지돼야 한다.
+    let decoded = try JSONDecoder().decode(ValidTransactionInfo.self, from: data)
+    XCTAssertEqual(decoded, history)
+    XCTAssertTrue(decoded.isFullySoldOut)
+  }
+
+  func testWeightedBuyAverageUsesDecimalArithmetic() throws {
+    // 이진 곱셈과 수량 합산으로 평단이 달라질 수 있는 매수 이력이다.
+    let history = ValidTransactionInfo(
+      marketName: "BTC/KRW",
+      transaction: [
+        .init(orderType: .bid, quantity: 0.1, buyPrice: 10.1),
+        .init(orderType: .bid, quantity: 0.2, buyPrice: 10.2),
+        .init(orderType: .ask, quantity: 0.1, buyPrice: 12)
+      ]
+    )
+    XCTAssertEqual(history.totalHoldingQuantity, 0.2)
+    XCTAssertEqual(try XCTUnwrap(history.averageBuyPrice), 10.166666666666666)
+  }
+
+  func testNonFiniteValuesKeepExistingFallbackBehavior() throws {
+    // 기존 이력에 비유한 수량이 있으면 이전 Double 계산 결과를 유지한다.
+    let history = ValidTransactionInfo(
+      marketName: "BTC/KRW",
+      transaction: [.init(orderType: .bid, quantity: .infinity, buyPrice: 1)]
+    )
+    XCTAssertEqual(history.totalHoldingQuantity, .infinity)
+    XCTAssertTrue(try XCTUnwrap(history.averageBuyPrice).isNaN)
+    XCTAssertFalse(history.isFullySoldOut)
+  }
+
+  func testWeightedBuyAverageFallsBackWhenProductExceedsDecimalExponentRange() throws {
+    // Decimal 곱셈의 지수가 범위를 벗어나도 기존 Double 결과를 유지한다.
+    let history = ValidTransactionInfo(
+      marketName: "BTC/KRW",
+      transaction: [.init(orderType: .bid, quantity: 1e-100, buyPrice: 1e-100)]
+    )
+    XCTAssertEqual(try XCTUnwrap(history.averageBuyPrice), 1e-100 * 1e-100 / 1e-100)
+  }
+}

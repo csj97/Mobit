@@ -102,6 +102,81 @@ final class TradeOrderServiceTests: XCTestCase {
     XCTAssertEqual(UserDataManager.userTransactionList?.count, 2)
   }
 
+  func testKRWSettlementPreservesDecimalBalanceAcrossBuyAndSell() throws {
+    for exchange in [Exchange.upbit, .bithumb] {
+      ExchangeSelectionStore.currentExchange = exchange
+      XCTAssertTrue(UserDataManager.resetInvestmentData(availableBalance: 1_000.29))
+
+      _ = try TradeOrderService.executeBid(
+        marketName: "BTC/KRW",
+        cryptoName: nil,
+        currentPrice: 500,
+        quantity: 1,
+        exchange: exchange
+      ).get()
+      XCTAssertEqual(UserDataManager.userInformation(for: exchange)?.userAvailableBalance, 500.29)
+
+      _ = try TradeOrderService.executeAsk(
+        marketName: "BTC/KRW",
+        currentPrice: 500,
+        quantity: 1,
+        exchange: exchange
+      ).get()
+      XCTAssertEqual(UserDataManager.userInformation(for: exchange)?.userAvailableBalance, 1_000.29)
+    }
+  }
+
+  func testPartialSalePreservesDecimalQuantityAndCost() throws {
+    for exchange in [Exchange.upbit, .bithumb] {
+      ExchangeSelectionStore.currentExchange = exchange
+      XCTAssertTrue(UserDataManager.resetInvestmentData(availableBalance: 10_000))
+
+      _ = try TradeOrderService.executeBid(
+        marketName: "BTC/KRW",
+        cryptoName: nil,
+        currentPrice: 10_000,
+        quantity: 0.3,
+        exchange: exchange
+      ).get()
+      _ = try TradeOrderService.executeAsk(
+        marketName: "BTC/KRW",
+        currentPrice: 10_000,
+        quantity: 0.1,
+        exchange: exchange
+      ).get()
+
+      // 부분 매도 이후 수량과 기존 원가가 모두 같은 보유분을 나타내야 한다.
+      let holding = try XCTUnwrap(UserDataManager.userCryptoList?.first)
+      XCTAssertEqual(holding.staticData.holdingQuantity, 0.2)
+      XCTAssertEqual(holding.staticData.buyAmount, 2_000)
+      XCTAssertEqual(holding.staticData.costBasisKRW, 2_000)
+      XCTAssertEqual(UserDataManager.userInformation(for: exchange)?.userAvailableBalance, 8_000)
+      XCTAssertEqual(UserDataManager.userPNLHistory?.last?.realizedProfitLossKRW, 0)
+    }
+  }
+
+  func testPartialSaleFallsBackWhenDecimalProductExceedsExponentRange() throws {
+    _ = try TradeOrderService.executeBid(
+      marketName: "BTC/KRW",
+      cryptoName: nil,
+      currentPrice: 10_000,
+      quantity: 0.3
+    ).get()
+    // 구형 저장값의 극단적인 매수금액이 십진수 곱셈에서 거대 값으로 바뀌지 않아야 한다.
+    var holdings = try XCTUnwrap(UserDataManager.userCryptoList)
+    holdings[0].staticData.buyAmount = 1e-128
+    UserDataManager.userCryptoList = holdings
+
+    _ = try TradeOrderService.executeAsk(
+      marketName: "BTC/KRW",
+      currentPrice: 10_000,
+      quantity: 0.1
+    ).get()
+
+    let remainingAmount = try XCTUnwrap(UserDataManager.userCryptoList?.first?.staticData.buyAmount)
+    XCTAssertEqual(remainingAmount, 1e-128 * 0.2 / 0.3)
+  }
+
   func testConcurrentBidRequestsCannotSpendTheSameBalanceTwice() {
     UserDataManager.resetInvestmentData(availableBalance: 500)
     let queue = DispatchQueue(label: "TradeOrderServiceTests.concurrent", attributes: .concurrent)
@@ -659,6 +734,42 @@ final class TradeOrderServiceTests: XCTestCase {
     XCTAssertNil(
       UserDataManager.userCryptoList?.first(where: { $0.staticData.exchangePairID == ethPairID })
     )
+  }
+
+  func testBTCSettlementPreservesDecimalQuantityAndCostOnRebuy() throws {
+    for exchange in [Exchange.upbit, .bithumb] {
+      ExchangeSelectionStore.currentExchange = exchange
+      XCTAssertTrue(UserDataManager.resetInvestmentData(availableBalance: 50_000_000))
+      try seedBTCHolding(quantity: 0.2, btcKRWPrice: 100_000_000, exchange: exchange)
+
+      _ = try TradeOrderService.executeBid(
+        marketName: "ETH/BTC",
+        cryptoName: nil,
+        currentPrice: 0.1,
+        quantity: 1,
+        exchange: exchange,
+        btcKRWPrice: 100_000_000
+      ).get()
+      // BTC 결제 후 남은 수량과 원가는 동일한 비율이어야 한다.
+      var holding = try XCTUnwrap(UserDataManager.userCryptoList?.first { $0.staticData.marketName == "BTC/KRW" })
+      XCTAssertEqual(holding.staticData.holdingQuantity, 0.1)
+      XCTAssertEqual(holding.staticData.buyAmount, 10_000_000)
+      XCTAssertEqual(holding.staticData.costBasisKRW, 10_000_000)
+
+      _ = try TradeOrderService.executeAsk(
+        marketName: "ETH/BTC",
+        currentPrice: 0.2,
+        quantity: 1,
+        exchange: exchange,
+        btcKRWPrice: 100_000_000
+      ).get()
+      holding = try XCTUnwrap(UserDataManager.userCryptoList?.first { $0.staticData.marketName == "BTC/KRW" })
+      XCTAssertEqual(holding.staticData.holdingQuantity, 0.3)
+      XCTAssertEqual(holding.staticData.averageBuyPrice, 100_000_000)
+      XCTAssertEqual(holding.staticData.buyAmount, 30_000_000)
+      XCTAssertEqual(holding.staticData.costBasisKRW, 30_000_000)
+      XCTAssertEqual(UserDataManager.userInformation(for: exchange)?.userAvailableBalance, 30_000_000)
+    }
   }
 
   func testKRWMarketOrderStillSettlesInKRW() throws {

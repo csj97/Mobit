@@ -94,6 +94,7 @@ final class InvestmentTableViewCell: UITableViewCell {
     super.traitCollectionDidChange(previousTraitCollection)
     if previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true {
       updateThemeColors()
+      updateMetricUnitColors()
     }
   }
 
@@ -126,12 +127,12 @@ final class InvestmentTableViewCell: UITableViewCell {
     cryptoBuyPrice.text = Self.krwText(valuation.costBasisKRW)
     cryptoEvalPrice.text = Self.krwText(valuation.evaluationKRW)
     cryptoEvalLoss.text = valuation.profitLossKRW.map {
-      Self.signed($0.formatTradingValue(), isPositive: $0 > 0)
+      Self.signed(TradingNumberFormat.string($0), isPositive: $0 > 0)
     } ?? "—"
     cryptoProfitRate.text = valuation.profitRate.map {
       Self.signed($0.formatSignificantDigits(digits: 2), isPositive: $0 > 0) + "%"
     } ?? "—"
-    currentProfitRate = valuation.profitLossKRW
+    currentProfitRate = valuation.profitLossKRW.map { $0 > 0 ? 1 : ($0 < 0 ? -1 : 0) }
     currentSide = nil
     positionBadgesStackView.isHidden = true
     sideBadgeLabel.text = nil
@@ -139,6 +140,7 @@ final class InvestmentTableViewCell: UITableViewCell {
     setTradingUnsupported(isTradingUnsupported)
     dividerView.isHidden = isLast
     updateThemeColors()
+    updateMetricValues()
   }
 
   func configure(position: FuturesPosition, valuation: FuturesValuation?, isLast: Bool) {
@@ -177,6 +179,7 @@ final class InvestmentTableViewCell: UITableViewCell {
     setTradingUnsupported(false)
     dividerView.isHidden = isLast
     updateThemeColors()
+    updateMetricValues()
   }
 
   private func updateThemeColors() {
@@ -210,6 +213,56 @@ final class InvestmentTableViewCell: UITableViewCell {
     unsupportedNoticeView.layer.borderColor = Self.unsupportedNoticeBorderColor.resolvedColor(with: traitCollection).cgColor
     unsupportedNoticeDot.backgroundColor = Self.unsupportedNoticeTextColor
     unsupportedNoticeLabel.textColor = Self.unsupportedNoticeTextColor
+  }
+
+  private func updateMetricValues() {
+    // 숫자와 단위를 같은 레이블에 넣어 한 줄에 표시한다.
+    let metrics: [(UILabel, UILabel)] = [
+      (cryptoAmount, quantityUnitLabel), (cryptoAveragePrice, averagePriceUnitLabel),
+      (cryptoEvalPrice, evaluationUnitLabel), (cryptoBuyPrice, purchaseUnitLabel)
+    ]
+    for (valueLabel, unitLabel) in metrics {
+      // 접근성에는 생략되기 전의 원문을 전달한다.
+      let value = valueLabel.text ?? ""
+      // 마켓에 따라 달라지는 원래 단위를 그대로 사용한다.
+      let unit = unitLabel.text ?? ""
+      // 단위가 없는 경우에는 불필요한 공백을 넣지 않는다.
+      let separator = unit.isEmpty ? "" : " "
+      // 숫자와 단위의 기존 글꼴·색상을 하나의 레이블에 유지한다.
+      let styledText = NSMutableAttributedString(
+        string: value + separator + unit,
+        attributes: [.font: valueLabel.font ?? UIFont.systemFont(ofSize: 14)]
+      )
+      if !unit.isEmpty, let unitFont = unitLabel.font {
+        // 단위 서식은 표시 문자열의 끝 범위에 적용한다.
+        let unitRange = NSRange(location: ((value + separator) as NSString).length, length: (unit as NSString).length)
+        styledText.addAttributes(
+          [.font: unitFont, .foregroundColor: UIColor.mobitColors(.investmentTextSecondary)],
+          range: unitRange
+        )
+      }
+      valueLabel.attributedText = styledText
+      valueLabel.accessibilityLabel = value + separator + unit
+    }
+  }
+
+  private func updateMetricUnitColors() {
+    // 테마 전환 후 같은 화면의 통화·종목 단위 색상을 다시 반영한다.
+    let metrics: [(UILabel, UILabel)] = [
+      (cryptoAmount, quantityUnitLabel), (cryptoAveragePrice, averagePriceUnitLabel),
+      (cryptoEvalPrice, evaluationUnitLabel), (cryptoBuyPrice, purchaseUnitLabel)
+    ]
+    for (valueLabel, unitLabel) in metrics {
+      guard let unit = unitLabel.text, !unit.isEmpty,
+            let text = valueLabel.attributedText,
+            text.string.hasSuffix(" " + unit) else { continue }
+      // 현재 표시 문자열의 단위 범위만 바꾸어 숫자의 기존 색을 유지한다.
+      let unitRange = NSRange(location: text.length - (unit as NSString).length, length: (unit as NSString).length)
+      // UILabel의 attributedText는 변경 가능한 복사본으로 갱신한다.
+      let styledText = NSMutableAttributedString(attributedString: text)
+      styledText.addAttribute(.foregroundColor, value: UIColor.mobitColors(.investmentTextSecondary), range: unitRange)
+      valueLabel.attributedText = styledText
+    }
   }
 
   private func setupUnsupportedStatusViews() {
@@ -313,7 +366,7 @@ final class InvestmentTableViewCell: UITableViewCell {
     UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 1, green: 0.59, blue: 0.62, alpha: 1) : UIColor(red: 0.82, green: 0.08, blue: 0.20, alpha: 1) }
   }
 
-  private static func krwText(_ amount: Double?) -> String {
-    amount.map { $0.formatTradingValue() } ?? "—"
+  private static func krwText(_ amount: Decimal?) -> String {
+    TradingNumberFormat.string(amount)
   }
 }

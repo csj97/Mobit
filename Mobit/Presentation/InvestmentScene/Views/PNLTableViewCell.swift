@@ -29,6 +29,8 @@ class PNLTableViewCell: UITableViewCell {
   @IBOutlet weak var roiLabel: UILabel!
   // 체결 수량의 원래 표시 정밀도를 유지한다.
   @IBOutlet weak var quantityLabel: UILabel!
+  // 체결수량의 종목 단위에 적용할 XIB 글꼴을 보관한다.
+  @IBOutlet private weak var quantityUnitStyleLabel: UILabel!
   // 현물·선물 손익 내역에 공통으로 표시하는 체결 수량 제목이다.
   @IBOutlet private weak var quantityTitle: UILabel!
   // 현물 매수 가격 또는 선물 진입 가격이다.
@@ -47,7 +49,7 @@ class PNLTableViewCell: UITableViewCell {
   @IBOutlet private weak var marginTitle: UILabel!
   // 전체 잔여 포지션 대신 해당 종료 체결의 증거금을 표시한다.
   @IBOutlet weak var marginLabel: UILabel!
-  // XIB에서 두 열로 구성한 상세 정보 영역이다.
+  // XIB에서 항목별 행으로 구성한 상세 정보 영역이다.
   @IBOutlet weak var metricsStackView: UIStackView!
   // 기존 손익 공유 화면을 여는 버튼이다.
   @IBOutlet weak var shareButton: UIButton!
@@ -110,6 +112,7 @@ class PNLTableViewCell: UITableViewCell {
     statusLabel.text = nil
     marginView.isHidden = true
     marginLabel.text = nil
+    marginLabel.accessibilityLabel = nil
     // 투자내역과 같은 마켓 표기에서 수량의 종목 단위를 구한다.
     let market = pnlHistory.exchangePairID.displayMarket
     // 결제 통화 대신 실제 체결한 종목을 수량 단위로 표시한다.
@@ -122,16 +125,20 @@ class PNLTableViewCell: UITableViewCell {
     // 원화는 다른 손익 항목과 같은 번역 단위로 표시한다.
     let currencyUnit = currency == .krw ? FuturesText.text("currency_krw_unit") : currency.rawValue
     // 레거시 KRW 거래는 기존 손익값을 그대로 사용한다.
-    let realizedKRW = pnlHistory.realizedProfitLossKRW.map(PortfolioCalculator.double)
-      ?? (currency == .krw ? pnlHistory.pnl : nil)
+    let realizedKRW = pnlHistory.realizedProfitLossKRW
+      ?? (currency == .krw ? PortfolioCalculator.decimal(pnlHistory.pnl) : nil)
     // 원화 원가가 있으면 공유 화면과 같은 원화 기준 수익률을 사용한다.
-    let rate: Double?
+    let rate: Decimal?
     if let cost = pnlHistory.costBasisKRW, let realized = pnlHistory.realizedProfitLossKRW,
        pnlHistory.orderQuantity > 0, cost > 0 {
-      rate = PortfolioCalculator.double(realized / cost * 100)
+      rate = realized / cost * 100
     } else {
-      rate = pnlHistory.entryPrice > 0
-        ? (pnlHistory.exitPrice - pnlHistory.entryPrice) / pnlHistory.entryPrice * 100 : nil
+      // 레거시 가격 차이도 십진수에서 계산해 소수점 내림 오차를 줄인다.
+      let entry = PortfolioCalculator.decimal(pnlHistory.entryPrice)
+      // 매도 가격이 유효하지 않으면 기존처럼 수익률을 표시하지 않는다.
+      let exit = PortfolioCalculator.decimal(pnlHistory.exitPrice)
+      rate = pnlHistory.entryPrice > 0 && !entry.isNaN && !exit.isNaN
+        ? (exit - entry) / entry * 100 : nil
     }
     quantityLabel.text = pnlHistory.orderQuantity.formatTradingValue().addComma() + " " + quantityUnit
     entryPriceLabel.text = pnlHistory.entryPrice.formatTradingValue().addComma() + " " + currencyUnit
@@ -139,7 +146,7 @@ class PNLTableViewCell: UITableViewCell {
     transactionDateLabel.text = pnlHistory.transactionDate
     transactionDateLabel.accessibilityValue = transactionDateLabel.text
     updateProfitLoss(
-      amount: realizedKRW.map(PortfolioCalculator.decimal),
+      amount: realizedKRW,
       rate: realizedKRW == nil ? nil : rate
     )
   }
@@ -183,12 +190,12 @@ class PNLTableViewCell: UITableViewCell {
     )
   }
 
-  private func updateProfitLoss(amount: Decimal?, rate: Double?) {
+  private func updateProfitLoss(amount: Decimal?, rate: Decimal?) {
     currentPNL = amount.map { NSDecimalNumber(decimal: $0).doubleValue }
     pnlLabel.text = amount.map {
       ($0 > 0 ? "+" : "") + FuturesText.number($0) + " " + FuturesText.text("currency_krw_unit")
     } ?? "-"
-    roiLabel.text = rate.flatMap { value in
+    roiLabel.text = rate.map(PortfolioCalculator.double).flatMap { value in
       value.isFinite ? (value > 0 ? "+" : "") + value.formatSignificantDigits(digits: 2) + "%" : nil
     } ?? "-"
     updateThemeColors()
@@ -199,9 +206,10 @@ class PNLTableViewCell: UITableViewCell {
     let detailLabels: [UILabel?] = [pnlLabel, roiLabel, quantityLabel, entryPriceLabel, exitPriceLabel, marginLabel]
     for label in detailLabels {
       // 비어 있는 현물 증거금은 이전 재사용 셀의 스타일을 적용하지 않는다.
-      guard let label, let text = label.text, let numberFont = label.font else { continue }
-      // 숫자는 XIB 폰트와 기본 텍스트 색상을 그대로 사용한다.
-      let styledText = NSMutableAttributedString(string: text, attributes: [.font: numberFont])
+      guard let label, let text = label.text else { continue }
+      label.accessibilityLabel = text
+      // 글꼴은 XIB 설정을 사용하고 단위의 색상만 구분한다.
+      let styledText = NSMutableAttributedString(string: text)
       // 수익률의 끝 기호와 공백 뒤의 종목·통화 단위를 구분한다.
       let unitRange: NSRange?
       if text.hasSuffix("%") {
@@ -212,15 +220,10 @@ class PNLTableViewCell: UITableViewCell {
         unitRange = nil
       }
       if let unitRange {
-        // 숫자의 굵기와 무관하게 모든 단위는 같은 10pt로 표시한다.
-        let unitFontSize: CGFloat = 10
-        styledText.addAttributes(
-          [
-            .font: UIFont.systemFont(ofSize: unitFontSize),
-            .foregroundColor: UIColor.mobitColors(.investmentTextTertiary)
-          ],
-          range: unitRange
-        )
+        styledText.addAttribute(.foregroundColor, value: UIColor.mobitColors(.investmentTextTertiary), range: unitRange)
+        if label === quantityLabel, let unitFont = quantityUnitStyleLabel.font {
+          styledText.addAttribute(.font, value: unitFont, range: unitRange)
+        }
       }
       label.attributedText = styledText
     }

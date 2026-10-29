@@ -125,32 +125,7 @@ extension PNLViewController: UITableViewDelegate, UITableViewDataSource {
 	cell.shareCallBack = { [weak self] in
 	  guard let self = self else { return }
 	  
-      var entryPrice = pnlHistory.entryPrice
-      var exitPrice = pnlHistory.exitPrice
-      var pnl = pnlHistory.pnl
-      var currency = pnlHistory.settlementCurrency.rawValue
-      if let cost = pnlHistory.costBasisKRW, let realized = pnlHistory.realizedProfitLossKRW,
-         pnlHistory.orderQuantity > 0 {
-        let quantity = PortfolioCalculator.decimal(pnlHistory.orderQuantity)
-        entryPrice = PortfolioCalculator.double(cost / quantity)
-        exitPrice = PortfolioCalculator.double((cost + realized) / quantity)
-        pnl = PortfolioCalculator.double(realized)
-        currency = "KRW"
-      }
-      let roi = entryPrice > 0 ? ((exitPrice - entryPrice) / entryPrice) * 100 : 0
-	  let pnlShareUnit = PNLShareUnit(
-		marketName: pnlHistory.marketName,
-		roi: roi,
-		pnl: pnl,
-		quantity: pnlHistory.orderQuantity,
-		entryPrice: entryPrice,
-		exitPrice: exitPrice,
-		transactionDate: pnlHistory.transactionDate,
-        currency: currency,
-        exchange: pnlHistory.exchange
-	  )
-	  
-      self.showShare(pnlShareUnit)
+      self.showShare(PNLShareUnit.spot(pnlHistory))
 	}
 
 	return cell
@@ -183,10 +158,10 @@ extension PNLViewController: UITableViewDelegate, UITableViewDataSource {
 		  var roiSign = ""
 		  if pnlShareUnit.roi > 0 { roiSign = "+" }
 		  
-		  let entryPrice = "\(pnlShareUnit.entryPrice.formatTradingValue())".addComma()
-		  let exitPrice = "\(pnlShareUnit.exitPrice.formatTradingValue())".addComma()
-		  let pnl = pnlSign + "\(pnlShareUnit.pnl.formatTradingValue())".addComma() + " ₩"
-		  let roi = roiSign + "\(pnlShareUnit.roi.formatSignificantDigits(digits: 2)) %"
+		  let entryPrice = TradingNumberFormat.string(pnlShareUnit.entryPrice)
+		  let exitPrice = TradingNumberFormat.string(pnlShareUnit.exitPrice)
+		  let pnl = pnlSign + TradingNumberFormat.string(pnlShareUnit.pnl) + " ₩"
+		  let roi = roiSign + "\(PortfolioCalculator.double(pnlShareUnit.roi).formatSignificantDigits(digits: 2)) %"
 		  
 		  let image = shareImg
           let entryTitle = FuturesText.text(pnlShareUnit.product == .perpetual ? "futures_entry" : "investment_average_price")

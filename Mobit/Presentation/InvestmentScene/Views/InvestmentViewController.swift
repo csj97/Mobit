@@ -239,29 +239,28 @@ class InvestmentViewController: MobitBaseViewController {
 	// BTC 마켓 보유분은 BTC 단위로 기록되므로 합산 전에 원화로 환산한다.
 	let btcKRWPrice = AppDataManager.shared.lastBTCKRWPrice()
 	// 총 보유자산
-	let totalUserBalance = PortfolioCalculator.totalAssetValue(
+	let totalUserBalance = PortfolioCalculator.totalAssetValueDecimal(
 	  availableBalance: availableUserBalance,
 	  cryptos: cryptos,
 	  btcKRWPrice: btcKRWPrice
 	)
 	// 평가손익
-	let totalProfitLoss = PortfolioCalculator.totalEvaluationProfitLoss(
+	let totalProfitLoss = PortfolioCalculator.totalEvaluationProfitLossDecimal(
 	  cryptos: cryptos,
 	  btcKRWPrice: btcKRWPrice
 	)
 	// 수익률
 	let totalProfitRate: Double
 	if let totalProfitLoss, let totalUserBalance {
-	  totalProfitRate = PortfolioCalculator.totalProfitRate(
-		totalProfitLoss: totalProfitLoss,
-		totalAssetValue: totalUserBalance
-	  )
+	  // 수익률 표시 정책은 유지하되 합계의 나눗셈까지 십진수로 계산한다.
+	  let rate = totalUserBalance == 0 ? Decimal(0) : totalProfitLoss / totalUserBalance * 100
+	  totalProfitRate = PortfolioCalculator.double(rate)
 	} else {
 	  totalProfitRate = 0
 	}
 
 	// 총 매수
-	let totalBuyPrice = PortfolioCalculator.totalBuyAmount(
+	let totalBuyPrice = PortfolioCalculator.totalBuyAmountDecimal(
 	  cryptos: cryptos,
 	  btcKRWPrice: btcKRWPrice
 	)
@@ -274,11 +273,11 @@ class InvestmentViewController: MobitBaseViewController {
 
 	self.availableUserBalance.text = availableUserBalanceString
 	self.totalUserBalance.text = Self.krwText(totalUserBalance)
-	self.totalEvaluationAmount.text = Self.krwText(PortfolioCalculator.totalEvaluationPrice(cryptos: cryptos, btcKRWPrice: btcKRWPrice))
+	self.totalEvaluationAmount.text = Self.krwText(PortfolioCalculator.totalEvaluationPriceDecimal(cryptos: cryptos, btcKRWPrice: btcKRWPrice))
 	self.totalProfitRate.text = (totalUserBalance == nil || totalProfitLoss == nil) ? Self.unavailableText : totalProfitRateString + "%"
 	self.totalProfitRate.textColor = MarketColorPalette.color(forSignedValue: totalProfitRate)
 	self.totalEvalProfitLoss.text = totalProfitLoss.map { ($0 > 0 ? "+" : "") + Self.krwText($0) } ?? Self.unavailableText
-	self.totalEvalProfitLoss.textColor = MarketColorPalette.color(forSignedValue: totalProfitLoss ?? 0)
+	self.totalEvalProfitLoss.textColor = MarketColorPalette.color(forSignedValue: totalProfitLoss.map { $0 > 0 ? 1 : ($0 < 0 ? -1 : 0) } ?? 0)
 	self.totalBuyPrice.text = Self.krwText(totalBuyPrice)
 	summaryHeaderView.updateLayout(in: transactionTableview)
   }
@@ -286,9 +285,9 @@ class InvestmentViewController: MobitBaseViewController {
   /// BTC/KRW 시세를 아직 받지 못한 상태를 0원으로 보여주면 자산이 사라진 것처럼 읽힌다.
   static let unavailableText = "-"
 
-  private static func krwText(_ value: Double?) -> String {
-	guard let value else { return unavailableText }
-	return value == 0 ? "0" : value.formatTradingValue()
+  private static func krwText(_ value: Decimal?) -> String {
+	guard let value, !value.isNaN else { return unavailableText }
+	return TradingNumberFormat.string(value)
   }
 
   private func isTradingUnsupported(_ crypto: CryptoTransactionDataModel) -> Bool {
@@ -359,17 +358,24 @@ class InvestmentViewController: MobitBaseViewController {
         of: crypto, btcKRWPrice: AppDataManager.shared.lastBTCKRWPrice(for: crypto.staticData.exchange)
       ))
     }
-    func value(_ valuation: PortfolioCalculator.Valuation) -> Double? {
-      switch sortType {
-      case .pnlHighToLow, .pnlLowToHigh: return valuation.profitRate
-      case .evalProfitLossHighToLow, .evalProfitLossLowToHigh: return valuation.profitLossKRW
-      default: return valuation.evaluationKRW
-      }
-    }
     return valued.sorted {
-      let left = value($0.2), right = value($1.2)
+      if sortType == .pnlHighToLow || sortType == .pnlLowToHigh {
+        // 수익률은 기존 표시·정렬 정책에 따라 Double로 비교한다.
+        let left = $0.2.profitRate, right = $1.2.profitRate
+        if left == right { return $0.0 < $1.0 }
+        return PortfolioCalculator.orderedBefore(left, right, ascending: ascending)
+      }
+      // 평가금액과 손익은 저장된 원가의 마지막 1원까지 비교한다.
+      let left = sortType == .evalProfitLossHighToLow || sortType == .evalProfitLossLowToHigh
+        ? $0.2.profitLossKRW : $0.2.evaluationKRW
+      let right = sortType == .evalProfitLossHighToLow || sortType == .evalProfitLossLowToHigh
+        ? $1.2.profitLossKRW : $1.2.evaluationKRW
       if left == right { return $0.0 < $1.0 }
-      return PortfolioCalculator.orderedBefore(left, right, ascending: ascending)
+      switch (left, right) {
+      case let (left?, right?): return ascending ? left < right : left > right
+      case (_?, nil): return true
+      default: return false
+      }
     }.map { $0.1 }
   }
   

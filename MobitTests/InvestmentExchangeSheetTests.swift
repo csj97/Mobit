@@ -424,6 +424,171 @@ private final class MainExchangeSheetDelegate: MainCoordinatorDelegate {
 
 @MainActor
 final class InvestmentXIBLayoutTests: XCTestCase {
+  func testSummaryBalancesScaleAndRemainAccessibleInTwoColumnsAtSmallWidth() throws {
+    // 현물과 선물은 같은 XIB 요약 화면을 공유한다.
+    for product in [TradingProduct.spot, .perpetual] {
+      // IBOutlet의 실제 레이블을 확인할 XIB 소유자다.
+      let owner = InvestmentLayoutNibOwner()
+      // 실제 요약 뷰를 연결한 테이블 헤더를 작은 화면에서 표시한다.
+      let root = try loadNib("InvestmentViewController", owner: owner)
+      // 뷰 계층에 실제 레이아웃 환경을 제공한다.
+      let controller = UIViewController()
+      controller.view = root
+      // 최소 화면 너비의 표시 결과를 확인한다.
+      let window = host(controller, width: 320)
+      defer { window.isHidden = true; window.rootViewController = nil }
+      // 현물·선물이 공유하는 요약 영역이다.
+      let header = try XCTUnwrap(owner.outlets["summaryHeaderView"] as? InvestmentSummaryView)
+      // 요약 높이를 갱신하는 실제 테이블이다.
+      let table = try XCTUnwrap(owner.outlets["transactionTableview"] as? UITableView)
+      // 양쪽 금액에 같은 테스트 데이터를 전달한다.
+      let available = try XCTUnwrap(owner.outlets["availableUserBalance"] as? UILabel)
+      // 주문가능 금액과 별도로 표시되는 총 보유자산이다.
+      let total = try XCTUnwrap(owner.outlets["totalUserBalance"] as? UILabel)
+      // 두 금액을 나란히 배치하는 실제 스택이다.
+      let columns = try XCTUnwrap(available.superview?.superview as? UIStackView)
+      header.configure(product: product)
+
+      for amount in ["1,234,567", "100,000,000,000", "99,999,999,999,999,999", "1,234,567"] {
+        available.text = amount
+        total.text = amount
+        root.layoutIfNeeded()
+        header.updateLayout(in: table)
+        header.layoutIfNeeded()
+        XCTAssertEqual(columns.axis, .horizontal)
+        XCTAssertEqual(available.bounds.width, total.bounds.width, accuracy: 0.5)
+        XCTAssertGreaterThan(available.bounds.width, 0)
+        XCTAssertLessThanOrEqual(
+          available.convert(available.bounds, to: header).maxX,
+          total.convert(total.bounds, to: header).minX
+        )
+        for label in [available, total] {
+          XCTAssertEqual(label.numberOfLines, 1)
+          XCTAssertTrue(label.adjustsFontSizeToFitWidth)
+          XCTAssertEqual(label.minimumScaleFactor, 0.7, accuracy: 0.001)
+          XCTAssertEqual(label.lineBreakMode, .byTruncatingMiddle)
+          XCTAssertEqual(label.font.pointSize, 18, accuracy: 0.01)
+          XCTAssertEqual(label.text, amount)
+          XCTAssertEqual(label.accessibilityLabel ?? label.text, amount)
+          XCTAssertGreaterThanOrEqual(label.bounds.height + 0.5, label.font.lineHeight)
+          XCTAssertFalse(label.hasAmbiguousLayout)
+        }
+        // 원래 크기에서 필요한 숫자의 가로 폭이다.
+        let fullWidth = (amount as NSString).size(withAttributes: [.font: available.font as Any]).width
+        // 70% 축소로 들어가는지 실제 글꼴에서 계산한다.
+        let minimumWidth = (amount as NSString).size(withAttributes: [
+          .font: available.font.withSize(available.font.pointSize * 0.7)
+        ]).width
+        if amount == "100,000,000,000" {
+          XCTAssertGreaterThan(fullWidth, available.bounds.width)
+          XCTAssertLessThanOrEqual(minimumWidth, available.bounds.width)
+        } else if amount == "99,999,999,999,999,999" {
+          XCTAssertGreaterThan(minimumWidth, available.bounds.width)
+        }
+        if product == .spot && amount != "1,234,567" {
+          // 두 열의 실제 축소·생략 결과를 직접 확인할 수 있도록 보관한다.
+          attach(header, name: "InvestmentSummary-two-column-\(amount)-320")
+        }
+      }
+    }
+  }
+
+  func testSummaryBalanceFontTracksScreenWidthAndAccessibility() throws {
+    guard #available(iOS 17.0, *) else { throw XCTSkip("Trait overrides require iOS 17") }
+    for product in [TradingProduct.spot, .perpetual] {
+      // 두 상품에서 동일하게 사용하는 요약 화면이다.
+      let owner = InvestmentLayoutNibOwner()
+      // 실제 XIB와 테이블 헤더의 너비 변경 경로를 사용한다.
+      let root = try loadNib("InvestmentViewController", owner: owner)
+      // 글자 크기 변경을 실제 뷰 계층에 전달한다.
+      let controller = UIViewController()
+      controller.view = root
+      // 여러 화면 너비를 순서대로 재현하는 창이다.
+      let window = host(controller, width: 320)
+      defer { window.isHidden = true; window.rootViewController = nil }
+      // 금액과 전체 배치를 갱신할 요약 헤더다.
+      let header = try XCTUnwrap(owner.outlets["summaryHeaderView"] as? InvestmentSummaryView)
+      // 실제 헤더 너비를 결정하는 테이블이다.
+      let table = try XCTUnwrap(owner.outlets["transactionTableview"] as? UITableView)
+      // 첫 번째 열의 주문가능 금액이다.
+      let available = try XCTUnwrap(owner.outlets["availableUserBalance"] as? UILabel)
+      // 두 번째 열의 총 보유자산이다.
+      let total = try XCTUnwrap(owner.outlets["totalUserBalance"] as? UILabel)
+      // 접근성 글자 크기에 따라 방향이 바뀌는 두 열이다.
+      let columns = try XCTUnwrap(available.superview?.superview as? UIStackView)
+      header.configure(product: product)
+      controller.traitOverrides.preferredContentSizeCategory = .large
+      controller.updateTraitsIfNeeded()
+
+      // 같은 화면에서 경계를 넘나들어도 각 너비에 맞는 기본 글꼴을 복구한다.
+      for width: CGFloat in [320, 360, 375, 376, 390, 393, 320] {
+        window.frame.size.width = width
+        window.setNeedsLayout()
+        window.layoutIfNeeded()
+        root.layoutIfNeeded()
+        header.updateLayout(in: table)
+        header.layoutIfNeeded()
+        XCTAssertEqual(table.bounds.width, width, accuracy: 1)
+        XCTAssertEqual(columns.axis, .horizontal)
+        for label in [available, total] {
+          XCTAssertEqual(label.font.pointSize, width <= 375 ? 18 : 24, accuracy: 0.01)
+          XCTAssertTrue(label.adjustsFontSizeToFitWidth)
+          XCTAssertEqual(label.minimumScaleFactor, 0.7, accuracy: 0.001)
+          XCTAssertTrue(label.adjustsFontForContentSizeCategory)
+        }
+      }
+
+      // 접근성 글자 확대에서는 기존 세로 배치와 확대된 글꼴을 유지한다.
+      controller.traitOverrides.preferredContentSizeCategory = .accessibilityExtraExtraExtraLarge
+      controller.updateTraitsIfNeeded()
+      root.layoutIfNeeded()
+      header.updateLayout(in: table)
+      header.layoutIfNeeded()
+      XCTAssertEqual(columns.axis, .vertical)
+      XCTAssertGreaterThan(available.font.pointSize, 18)
+      XCTAssertGreaterThan(total.font.pointSize, 18)
+      XCTAssertEqual(available.minimumScaleFactor, 0.7, accuracy: 0.001)
+      XCTAssertEqual(total.minimumScaleFactor, 0.7, accuracy: 0.001)
+    }
+  }
+
+  func testFuturesSummaryShowsLongValuesOnSmallScreens() throws {
+    for width: CGFloat in [320, 360, 375] {
+      // 선물 요약의 실제 XIB와 제목·값 연결을 확인한다.
+      let owner = InvestmentLayoutNibOwner()
+      // 사용자에게 보이는 테이블 헤더를 불러온다.
+      let root = try loadNib("InvestmentViewController", owner: owner)
+      // 실제 화면 너비를 헤더에 전달한다.
+      let controller = UIViewController()
+      controller.view = root
+      // 작은 화면에서 예시를 렌더링한다.
+      let window = host(controller, width: width)
+      defer { window.isHidden = true; window.rootViewController = nil }
+      // 선물용 문구와 값을 표시할 요약 뷰다.
+      let header = try XCTUnwrap(owner.outlets["summaryHeaderView"] as? InvestmentSummaryView)
+      // 헤더의 자동 높이를 적용할 테이블이다.
+      let table = try XCTUnwrap(owner.outlets["transactionTableview"] as? UITableView)
+      header.configure(product: .perpetual)
+      (owner.outlets["availableUserBalance"] as? UILabel)?.text = "1,000,000,000"
+      (owner.outlets["totalUserBalance"] as? UILabel)?.text = "1,335,567,890,000"
+      (owner.outlets["totalBuyPrice"] as? UILabel)?.text = "100,000,000,000"
+      (owner.outlets["totalEvaluationAmount"] as? UILabel)?.text = "1,334,567,890,000"
+      (owner.outlets["totalEvalProfitLoss"] as? UILabel)?.text = "+1,234,567,890,000"
+      (owner.outlets["totalProfitRate"] as? UILabel)?.text = "+1,234.57%"
+      root.layoutIfNeeded()
+      header.updateLayout(in: table)
+      header.layoutIfNeeded()
+      // 상품별 번역은 기존 공용 문구와 분리되어 선물 요약에만 적용된다.
+      let titles = ["investment_total_margin", "investment_valuation_gain_loss", "investment_position_evaluation", "investment_return_rate"]
+      for key in titles {
+        // 번역된 각 지표 제목의 실제 XIB 글꼴을 확인한다.
+        let label = try XCTUnwrap(descendants(header).compactMap { $0 as? UILabel }.first { $0.text == FuturesText.text(key) })
+        XCTAssertEqual(label.font.pointSize, 12, accuracy: 0.01)
+      }
+      attach(header, name: "FuturesSummary-long-values-\(Int(width))")
+    }
+  }
+
   func testSummaryAccommodatesAccessibilityTextAndHiddenEmptyState() throws {
     guard #available(iOS 17.0, *) else { throw XCTSkip("Trait overrides require iOS 17") }
     for width: CGFloat in [320, 393, 440] {
@@ -627,7 +792,7 @@ final class InvestmentXIBLayoutTests: XCTestCase {
     for width: CGFloat in [320, 393, 440] {
       // 거래 내역의 실제 nib과 configure 경로로 표시 누락을 검사한다.
       let cell = try XCTUnwrap(try loadNib("PNLTableViewCell") as? PNLTableViewCell)
-      // 긴 가격과 수량도 항목명 옆에 전체 값을 보존한다.
+      // 긴 가격과 수량의 원문과 항목별 한 줄 배치를 확인한다.
       let history = UserPNLHistoryModel(
         marketName: "BTC/KRW",
         entryPrice: 1_234_567_890_123_456,
@@ -638,7 +803,7 @@ final class InvestmentXIBLayoutTests: XCTestCase {
       )
       cell.configure(pnlHistory: history)
       cell.frame = CGRect(x: 0, y: 0, width: width, height: 200)
-      // XIB의 한 줄 지표 배치로 필요한 높이가 계산되는지 확인한다.
+      // XIB의 세로 지표 배치로 필요한 높이가 계산되는지 확인한다.
       let fitting = cell.systemLayoutSizeFitting(
         CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
         withHorizontalFittingPriority: .required,
@@ -648,10 +813,10 @@ final class InvestmentXIBLayoutTests: XCTestCase {
       cell.setNeedsLayout()
       cell.layoutIfNeeded()
       XCTAssertGreaterThan(fitting.height, 0)
-      XCTAssertEqual(cell.metricsStackView.arrangedSubviews.count, 2)
-      XCTAssertEqual(cell.quantityLabel.text, "123,456,789 BTC")
-      XCTAssertEqual(cell.entryPriceLabel.text, "1,234,567,890,123,456 " + FuturesText.text("currency_krw_unit"))
-      XCTAssertEqual(cell.exitPriceLabel.text, "1,234,567,890,123,457 " + FuturesText.text("currency_krw_unit"))
+      XCTAssertEqual(cell.metricsStackView.arrangedSubviews.count, 6)
+      XCTAssertEqual(cell.quantityLabel.accessibilityLabel, "123,456,789 BTC")
+      XCTAssertEqual(cell.entryPriceLabel.accessibilityLabel, "1,234,567,890,123,456 " + FuturesText.text("currency_krw_unit"))
+      XCTAssertEqual(cell.exitPriceLabel.accessibilityLabel, "1,234,567,890,123,457 " + FuturesText.text("currency_krw_unit"))
       XCTAssertEqual(cell.transactionDateLabel.text, "2026.10.20 12:34:56")
       XCTAssertEqual(cell.transactionDateLabel.accessibilityValue, cell.transactionDateLabel.text)
       XCTAssertEqual(cell.transactionDateLabel.numberOfLines, 1)
@@ -661,6 +826,9 @@ final class InvestmentXIBLayoutTests: XCTestCase {
         // 전체 값이 카드의 가로 영역 안에 남아 있어야 한다.
         let value = try XCTUnwrap(label)
         XCTAssertTrue(value.adjustsFontSizeToFitWidth)
+        XCTAssertEqual(value.minimumScaleFactor, 0.7, accuracy: 0.001)
+        XCTAssertEqual(value.numberOfLines, 1)
+        XCTAssertEqual(value.lineBreakMode, .byTruncatingMiddle)
         // 셀 좌표계에서 텍스트 영역이 좌우 가장자리 밖으로 나가지 않는지 확인한다.
         let frame = value.convert(value.bounds, to: cell.contentView)
         XCTAssertGreaterThanOrEqual(frame.minX, 28 - 1)
@@ -669,6 +837,61 @@ final class InvestmentXIBLayoutTests: XCTestCase {
       }
       attach(cell, name: "PNLCell-long-values-\(Int(width))")
     }
+  }
+
+  func testPNLLongQuantityAndProfitFitSingleRowsAtSmallWidth() throws {
+    // 사용자가 요청한 긴 수량과 손익을 실제 현물 표시 경로에 전달한다.
+    let history = UserPNLHistoryModel(
+      marketName: "WAXP/KRW",
+      entryPrice: 100_000_000,
+      exitPrice: 1_440_000_000,
+      transactionDate: "2026.10.20 12:34:56",
+      orderQuantity: 100_000_000_000_000,
+      pnl: 100_000_000_000_000
+    )
+    // 320pt는 작은 화면 및 확대 디스플레이에서 쓰는 시험 너비다.
+    let cell = try XCTUnwrap(try loadNib("PNLTableViewCell") as? PNLTableViewCell)
+    cell.configure(pnlHistory: history)
+    cell.frame = CGRect(x: 0, y: 0, width: 320, height: 1_000)
+    // 콘텐츠의 자동 높이로 실제 카드의 행 정렬과 경계를 검증한다.
+    let fitting = cell.systemLayoutSizeFitting(
+      CGSize(width: 320, height: UIView.layoutFittingCompressedSize.height),
+      withHorizontalFittingPriority: .required,
+      verticalFittingPriority: .fittingSizeLevel
+    )
+    cell.frame.size.height = ceil(fitting.height)
+    cell.setNeedsLayout()
+    cell.layoutIfNeeded()
+    XCTAssertEqual(cell.quantityLabel.accessibilityLabel, "100,000,000,000,000 WAXP")
+    // 긴 수량의 종목 단위에도 숫자보다 작은 XIB 글꼴이 적용돼야 한다.
+    let quantityText = try XCTUnwrap(cell.quantityLabel.attributedText)
+    // 서식을 확인할 실제 종목 단위의 문자열 범위다.
+    let unitRange = (quantityText.string as NSString).range(of: "WAXP", options: .backwards)
+    XCTAssertNotEqual(unitRange.location, NSNotFound)
+    if unitRange.location != NSNotFound {
+      // 숫자는 기본 크기, 종목 단위는 2pt 작은 크기로 유지한다.
+      let numberFont = try XCTUnwrap((quantityText.attribute(.font, at: 0, effectiveRange: nil) as? UIFont) ?? cell.quantityLabel.font)
+      // 단위 전용 글꼴은 재사용 시에도 원문 범위에 적용된다.
+      let unitFont = try XCTUnwrap(quantityText.attribute(.font, at: unitRange.location, effectiveRange: nil) as? UIFont)
+      XCTAssertEqual(numberFont.pointSize, 13, accuracy: 0.01)
+      XCTAssertEqual(unitFont.pointSize, 11, accuracy: 0.01)
+    }
+    XCTAssertEqual(cell.pnlLabel.accessibilityLabel, "+100,000,000,000,000 " + FuturesText.text("currency_krw_unit"))
+    XCTAssertEqual(cell.roiLabel.accessibilityLabel, "+1,340%")
+    XCTAssertEqual(cell.entryPriceLabel.accessibilityLabel, "100,000,000 " + FuturesText.text("currency_krw_unit"))
+    XCTAssertEqual(cell.exitPriceLabel.accessibilityLabel, "1,440,000,000 " + FuturesText.text("currency_krw_unit"))
+    XCTAssertTrue(cell.marginView.isHidden)
+    XCTAssertEqual(cell.metricsStackView.arrangedSubviews.count, 6)
+    assertPNLLabelsFit(in: cell)
+    for value in [cell.quantityLabel, cell.pnlLabel] {
+      // 70% 글꼴에서 실제 전체 문자열이 폭 안에 들어가야 생략되지 않는다.
+      let label = try XCTUnwrap(value)
+      let text = try XCTUnwrap(label.text)
+      let font = try XCTUnwrap(label.font)
+      let width = (text as NSString).size(withAttributes: [.font: font.withSize(font.pointSize * 0.7)]).width
+      XCTAssertLessThanOrEqual(width, label.bounds.width + 0.5, text)
+    }
+    attach(cell, name: "PNL-row-long-quantity-320")
   }
 
   func testPNLAutomaticTableRowsUseResponsiveContentHeight() throws {
@@ -706,6 +929,126 @@ final class InvestmentXIBLayoutTests: XCTestCase {
       )
       XCTAssertGreaterThanOrEqual(table.rectForRow(at: IndexPath(row: 0, section: 0)).height + 1, fitting.height)
       assertPNLLabelsFit(in: cell)
+    }
+  }
+
+  func testPNLValuesShrinkOnOneLineAndUpdateOnResizeAndReuse() throws {
+    // 작은 값부터 70%로도 들어가지 않는 값까지 실제 PNL 설정 경로로 표시한다.
+    let prices: [Double] = [1_234, 1_234_567, 1_234_567_890, 1_234_567_890_123, 1_234_567_890_123_456, 1.23456789e24, 9e30, 9e60]
+    for initialWidth: CGFloat in [320, 375, 393] {
+      // 실제 XIB와 자동 높이 테이블을 이용해 표시 크기를 검증한다.
+      let cell = try XCTUnwrap(try loadNib("PNLTableViewCell") as? PNLTableViewCell)
+      // 재사용 뒤에도 지켜야 하는 XIB의 숫자 글꼴 크기다.
+      let numberSize = try XCTUnwrap(cell.entryPriceLabel.font).pointSize
+      // 콘텐츠 상태를 바꿔도 같은 셀을 재사용한다.
+      let source = InvestmentLayoutTableSource(cell: cell)
+      // 추정 높이가 아닌 콘텐츠 기반 높이를 사용한다.
+      let table = UITableView()
+      table.dataSource = source
+      table.rowHeight = UITableView.automaticDimension
+      table.estimatedRowHeight = 200
+      // 화면 너비가 변해도 셀의 실제 표시 환경을 유지한다.
+      let controller = UIViewController()
+      controller.view = table
+      // Safe Area와 실제 글꼴 메트릭을 제공하는 창이다.
+      let window = host(controller, width: initialWidth)
+      defer { window.isHidden = true; window.rootViewController = nil }
+      // 기본 글꼴, 단일 행 축소, 여러 줄 대체가 각각 실행됐는지 추적한다.
+      var seenModes: Set<String> = []
+      // 테마 전환을 반복할 축소 사례다.
+      var shrunkPrice: Double?
+      for price in prices {
+        cell.prepareForReuse()
+        cell.configure(pnlHistory: UserPNLHistoryModel(
+          marketName: "BTC/KRW",
+          entryPrice: price,
+          exitPrice: price,
+          transactionDate: "2026.10.20 12:34:56",
+          orderQuantity: 1,
+          pnl: 1
+        ))
+        table.reloadData()
+        table.layoutIfNeeded()
+        cell.layoutIfNeeded()
+        // 실제 숫자 및 단위의 서식과 최소 축소 범위를 확인한다.
+        let value = try XCTUnwrap(cell.entryPriceLabel)
+        // 테스트할 내용의 실제 글꼴과 화면 폭에서 세 표시 상태를 판별한다.
+        let mode = try InvestmentValueLayoutAssertions.verify(value, numberSize: numberSize, unitSize: 10)
+        if mode == "shrunk" { shrunkPrice = price }
+        if seenModes.insert(mode).inserted && mode != "boundary" {
+          // 표시 결과를 실제 셀 이미지로도 검토한다.
+          let image = XCTAttachment(image: UIGraphicsImageRenderer(bounds: cell.bounds).image { cell.layer.render(in: $0.cgContext) })
+          image.name = "PNL-auto-size-\(Int(initialWidth))-\(mode)"
+          image.lifetime = .keepAlways
+          add(image)
+        }
+        XCTAssertGreaterThanOrEqual(table.rectForRow(at: IndexPath(row: 0, section: 0)).height + 1, cell.contentView.bounds.height)
+      }
+      XCTAssertTrue(seenModes.contains("original"), "기본 글꼴 사례가 필요합니다.")
+      XCTAssertTrue(seenModes.contains("shrunk"), "0.7~1.0배 축소 사례가 필요합니다.")
+      XCTAssertTrue(seenModes.contains("truncated"), "0.7배에서도 들어가지 않는 사례가 필요합니다.")
+
+      // 다시 로드하지 않고 너비를 변경해도 표시 글꼴과 행 높이가 갱신돼야 한다.
+      for width: CGFloat in [320, 393, 320] {
+        window.frame.size.width = width
+        window.setNeedsLayout()
+        window.layoutIfNeeded()
+        table.layoutIfNeeded()
+        cell.layoutIfNeeded()
+        XCTAssertEqual(cell.bounds.width, width, accuracy: 1)
+        _ = try InvestmentValueLayoutAssertions.verify(XCTUnwrap(cell.entryPriceLabel), numberSize: numberSize, unitSize: 10)
+        // 자동 높이 행이 변경된 콘텐츠의 실제 높이를 수용해야 한다.
+        let fitting = cell.systemLayoutSizeFitting(
+          CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
+          withHorizontalFittingPriority: .required,
+          verticalFittingPriority: .fittingSizeLevel
+        )
+        XCTAssertGreaterThanOrEqual(table.rectForRow(at: IndexPath(row: 0, section: 0)).height + 1, fitting.height)
+      }
+      // 긴 가격을 표시한 같은 셀에 짧은 가격을 넣어 원래 글꼴로 복원한다.
+      cell.prepareForReuse()
+      cell.configure(pnlHistory: UserPNLHistoryModel(
+        marketName: "BTC/KRW",
+        entryPrice: 123,
+        exitPrice: 123,
+        transactionDate: "2026.10.20 12:34:56",
+        orderQuantity: 1,
+        pnl: 1
+      ))
+      // 실제 화면처럼 데이터 갱신을 테이블에 알린다.
+      table.reloadData()
+      table.layoutIfNeeded()
+      cell.layoutIfNeeded()
+      XCTAssertEqual(try InvestmentValueLayoutAssertions.verify(XCTUnwrap(cell.entryPriceLabel), numberSize: numberSize, unitSize: 10), "original")
+      XCTAssertEqual(cell.entryPriceLabel.accessibilityLabel, "123 " + FuturesText.text("currency_krw_unit"))
+      // 이전 긴 값의 행 높이가 재사용 이후에도 남지 않아야 한다.
+      let shortFitting = cell.systemLayoutSizeFitting(
+        CGSize(width: 320, height: UIView.layoutFittingCompressedSize.height),
+        withHorizontalFittingPriority: .required,
+        verticalFittingPriority: .fittingSizeLevel
+      )
+      XCTAssertEqual(table.rectForRow(at: IndexPath(row: 0, section: 0)).height, shortFitting.height, accuracy: 2)
+      // 같은 셀에 축소된 값을 다시 설정하고 테마를 전환해도 원래 글꼴이 보존돼야 한다.
+      let price = try XCTUnwrap(shrunkPrice)
+      window.frame.size.width = initialWidth
+      window.setNeedsLayout()
+      window.layoutIfNeeded()
+      for style in [UIUserInterfaceStyle.light, .dark, .light] {
+        cell.prepareForReuse()
+        cell.configure(pnlHistory: UserPNLHistoryModel(
+          marketName: "BTC/KRW",
+          entryPrice: price,
+          exitPrice: price,
+          transactionDate: "2026.10.20 12:34:56",
+          orderQuantity: 1,
+          pnl: 1
+        ))
+        window.overrideUserInterfaceStyle = style
+        if #available(iOS 17.0, *) { window.updateTraitsIfNeeded() }
+        table.layoutIfNeeded()
+        cell.layoutIfNeeded()
+        XCTAssertEqual(try InvestmentValueLayoutAssertions.verify(XCTUnwrap(cell.entryPriceLabel), numberSize: numberSize, unitSize: 10), "shrunk")
+      }
     }
   }
 
@@ -778,7 +1121,7 @@ final class InvestmentXIBLayoutTests: XCTestCase {
             let title = try XCTUnwrap((value.superview as? UIStackView)?.arrangedSubviews.first as? UILabel)
             title.text = NSLocalizedString(key, tableName: tableName, bundle: .main, value: key, comment: "")
           }
-          // 접근성 설정에서도 손익과 상세 지표의 한 줄 배치를 유지한다.
+          // 접근성 설정에서도 손익과 상세 지표의 세로 배치를 유지한다.
           let fitting = cell.systemLayoutSizeFitting(
             CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
             withHorizontalFittingPriority: .required,
@@ -793,22 +1136,299 @@ final class InvestmentXIBLayoutTests: XCTestCase {
           XCTAssertEqual(cell.marketNameLabel.text, FuturesText.symbol(record.instrument))
           XCTAssertEqual(cell.positionBadgeLabel.text, "\(NSLocalizedString(sideKey, tableName: tableName, bundle: .main, value: sideKey, comment: "")) 20×")
           XCTAssertEqual(cell.statusLabel.text, NSLocalizedString(statusKey, tableName: tableName, bundle: .main, value: statusKey, comment: ""))
-          XCTAssertEqual(cell.quantityLabel.text, FuturesText.number(record.quantity) + " BTC")
-          XCTAssertEqual(cell.entryPriceLabel.text, FuturesText.number(try position.averageEntryPrice) + " " + FuturesText.text("currency_krw_unit"))
-          XCTAssertEqual(cell.exitPriceLabel.text, FuturesText.number(record.price) + " " + FuturesText.text("currency_krw_unit"))
-          XCTAssertEqual(cell.marginLabel.text, FuturesText.number(try position.margin) + " " + FuturesText.text("currency_krw_unit"))
+          XCTAssertEqual(cell.quantityLabel.accessibilityLabel, FuturesText.number(record.quantity) + " BTC")
+          XCTAssertEqual(cell.entryPriceLabel.accessibilityLabel, FuturesText.number(try position.averageEntryPrice) + " " + FuturesText.text("currency_krw_unit"))
+          XCTAssertEqual(cell.exitPriceLabel.accessibilityLabel, FuturesText.number(record.price) + " " + FuturesText.text("currency_krw_unit"))
+          XCTAssertEqual(cell.marginLabel.accessibilityLabel, FuturesText.number(try position.margin) + " " + FuturesText.text("currency_krw_unit"))
           XCTAssertEqual(cell.transactionDateLabel.accessibilityValue, cell.transactionDateLabel.text)
           XCTAssertGreaterThanOrEqual(cell.shareButton.bounds.height, cell.shareButton.intrinsicContentSize.height)
           assertPNLLabelsFit(in: cell)
           // 통화 단위와 구분한 금액 숫자의 실제 굵기와 크기를 확인한다.
-          let amountFont = try XCTUnwrap(cell.pnlLabel.attributedText?.attribute(.font, at: 0, effectiveRange: nil) as? UIFont)
-          XCTAssertEqual(amountFont.pointSize, cell.quantityLabel.font.pointSize)
-          XCTAssertEqual(cell.roiLabel.font.pointSize, cell.quantityLabel.font.pointSize)
+          let amountFont = try XCTUnwrap(cell.pnlLabel.font)
+          // 표시 폰트가 줄어도 XIB에 지정된 숫자 크기를 기준으로 비교한다.
+          let amountBase = try XCTUnwrap(cell.pnlLabel.font)
+          XCTAssertGreaterThanOrEqual(amountFont.pointSize + 0.01, amountBase.pointSize * 0.7)
+          XCTAssertLessThanOrEqual(amountFont.pointSize, amountBase.pointSize + 0.01)
+          XCTAssertEqual(
+            try XCTUnwrap(cell.roiLabel.font).pointSize,
+            try XCTUnwrap(cell.quantityLabel.font).pointSize
+          )
           XCTAssertTrue(amountFont.fontDescriptor.symbolicTraits.contains(.traitBold))
           attach(cell, name: "PNLCard-\(sample.name)-\(Int(width))-\(tableName)-\(category.isAccessibilityCategory ? "accessibility" : "normal")")
         }
       }
     }
+  }
+
+  func testPNLLongAmountsFitAutomaticRowsAcrossAccessibilityAndReuse() throws {
+    guard #available(iOS 17.0, *) else { throw XCTSkip("Trait overrides require iOS 17") }
+    // 현물 가격과 선물 증거금에 같은 16자리 금액을 사용한다.
+    let longAmount: Decimal = 1_234_567_890_123_456
+    // 실제 configure 경로에서 수량·가격·초 단위 시각을 모두 보존할 현물 내역이다.
+    let history = UserPNLHistoryModel(
+      marketName: "BTC/KRW",
+      entryPrice: 1_234_567_890_123_456,
+      exitPrice: 1_234_567_890_123_457,
+      transactionDate: "2026.10.20 12:34:56",
+      orderQuantity: 123_456_789.12345678,
+      pnl: 1
+    )
+    // 큰 증거금을 가진 숏 포지션도 기존 계산기로 구성한다.
+    let position = try FuturesCalculator.open(
+      domesticFuturesOrder(
+        side: .short,
+        leverage: 20,
+        margin: longAmount,
+        price: longAmount
+      )
+    )
+    // 긴 청산 제목과 16자리 종료 가격을 함께 표시할 내역이다.
+    let record = FuturesTransactionRecord(
+      eventID: UUID(),
+      positionID: position.id,
+      kind: .liquidation,
+      instrument: position.order.instrument,
+      side: position.order.side,
+      leverage: position.order.leverage,
+      quantity: position.quantity,
+      intervalStart: 1_792_562_832_000,
+      intervalEndExclusive: nil,
+      recordedAt: Date(timeIntervalSince1970: 1_792_562_832),
+      price: 1_296_296_284_629_629,
+      realizedPnL: -longAmount,
+      margin: longAmount,
+      entryPrice: longAmount
+    )
+    for width: CGFloat in [320, 393, 440] {
+      for style in [UIUserInterfaceStyle.light, .dark] {
+        // 한 셀을 반복 구성해 선물 전용 영역이 현물에 남는지도 검사한다.
+        let cell = try XCTUnwrap(try loadNib("PNLTableViewCell") as? PNLTableViewCell)
+        // 큰 글자 설정이 고정형 PNL의 기존 글꼴·축소 한계를 바꾸면 안 된다.
+        let valueLabels: [UILabel] = [cell.pnlLabel, cell.roiLabel, cell.quantityLabel, cell.entryPriceLabel, cell.exitPriceLabel, cell.marginLabel]
+        // XIB가 정한 기본 숫자 글꼴을 재사용과 trait 전환 뒤에도 비교한다.
+        let fontSizes = valueLabels.map { $0.font.pointSize }
+        XCTAssertEqual(fontSizes.count, valueLabels.count)
+        // 잘림을 숨기려고 최소 축소 비율을 낮추는 변경을 감지한다.
+        let scaleFactors = valueLabels.map(\.minimumScaleFactor)
+        // 실제 자동 높이 테이블에 같은 셀을 전달하는 데이터 소스다.
+        let source = InvestmentLayoutTableSource(cell: cell)
+        // 수동으로 지정한 높이 없이 테이블이 콘텐츠 높이를 결정한다.
+        let table = UITableView()
+        table.dataSource = source
+        table.rowHeight = UITableView.automaticDimension
+        table.estimatedRowHeight = 200
+        // 언어는 앱 실행 설정을 사용하고 글자 크기·테마만 이 계층에서 전환한다.
+        let controller = UIViewController()
+        controller.overrideUserInterfaceStyle = style
+        controller.view = table
+        // Safe Area와 trait 전달을 포함하는 실제 표시 계층이다.
+        let window = host(controller, width: width)
+        window.overrideUserInterfaceStyle = style
+        defer { window.isHidden = true; window.rootViewController = nil }
+        for (categoryIndex, category) in [UIContentSizeCategory.large, .accessibilityExtraExtraExtraLarge, .large].enumerated() {
+          controller.traitOverrides.preferredContentSizeCategory = category
+          controller.updateTraitsIfNeeded()
+          for showsFutures in [false, true, false] {
+            cell.prepareForReuse()
+            if showsFutures {
+              cell.configure(record: record, position: position)
+            } else {
+              cell.configure(pnlHistory: history)
+            }
+            table.reloadData()
+            table.setNeedsLayout()
+            table.layoutIfNeeded()
+            cell.layoutIfNeeded()
+            // 직접 fitting 경로와 UITableView의 자동 행 높이가 같은 콘텐츠를 수용해야 한다.
+            let fitting = cell.systemLayoutSizeFitting(
+              CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
+              withHorizontalFittingPriority: .required,
+              verticalFittingPriority: .fittingSizeLevel
+            )
+            XCTAssertGreaterThan(fitting.height, 0)
+            XCTAssertGreaterThanOrEqual(table.rectForRow(at: IndexPath(row: 0, section: 0)).height + 1, fitting.height)
+            XCTAssertEqual(cell.bounds.width, width, accuracy: 1)
+            XCTAssertEqual(cell.traitCollection.userInterfaceStyle, style)
+            XCTAssertEqual(cell.cardView.traitCollection.userInterfaceStyle, style)
+            XCTAssertEqual(cell.metricsStackView.arrangedSubviews.count, 6)
+            XCTAssertEqual(valueLabels.map { $0.font.pointSize }, fontSizes)
+            XCTAssertEqual(valueLabels.map(\.minimumScaleFactor), scaleFactors)
+            XCTAssertEqual(cell.marginView.isHidden, !showsFutures)
+            XCTAssertEqual(cell.positionBadgeView.isHidden, !showsFutures)
+            XCTAssertEqual(cell.statusLabel.isHidden, !showsFutures)
+            XCTAssertEqual(cell.transactionDateLabel.accessibilityValue, cell.transactionDateLabel.text)
+            XCTAssertEqual(cell.transactionDateLabel.text, showsFutures ? FuturesText.occurrenceDate(record) : history.transactionDate)
+            XCTAssertEqual(cell.entryPriceLabel.accessibilityLabel, FuturesText.number(longAmount) + " " + FuturesText.text("currency_krw_unit"))
+            XCTAssertEqual(
+              cell.exitPriceLabel.accessibilityLabel,
+              showsFutures
+                ? FuturesText.number(record.price) + " " + FuturesText.text("currency_krw_unit")
+                : "1,234,567,890,123,457 " + FuturesText.text("currency_krw_unit")
+            )
+            if showsFutures {
+              XCTAssertEqual(cell.pnlLabel.accessibilityLabel, "-1,234,567,890,123,456 " + FuturesText.text("currency_krw_unit"))
+              XCTAssertEqual(cell.roiLabel.accessibilityLabel, "-100%")
+              XCTAssertEqual(cell.marginLabel.accessibilityLabel, FuturesText.number(longAmount) + " " + FuturesText.text("currency_krw_unit"))
+              XCTAssertEqual(cell.statusLabel.text, FuturesText.text("futures_pnl_liquidated"))
+            } else {
+              XCTAssertEqual(cell.pnlLabel.accessibilityLabel, "+1 " + FuturesText.text("currency_krw_unit"))
+              XCTAssertEqual(cell.roiLabel.accessibilityLabel, "+0%")
+              XCTAssertEqual(cell.quantityLabel.accessibilityLabel, "123,456,789 BTC")
+              XCTAssertNil(cell.marginLabel.text)
+              XCTAssertNil(cell.marginLabel.accessibilityLabel)
+              XCTAssertNil(cell.positionBadgeLabel.text)
+              XCTAssertNil(cell.statusLabel.text)
+            }
+            assertPNLLabelsFit(in: cell)
+            for view in descendants(cell.contentView) where isVisible(view) && (view is UIStackView || view === cell.cardView) {
+              XCTAssertFalse(view.hasAmbiguousLayout)
+            }
+            if showsFutures {
+              window.setNeedsLayout()
+              window.layoutIfNeeded()
+              cell.setNeedsLayout()
+              cell.layoutIfNeeded()
+              cell.traitCollection.performAsCurrent {
+                attach(cell, name: "PNL-layer-render-\(Int(width))-\(style.rawValue)-\(categoryIndex)")
+                guard style == .light else { return }
+                for view in descendants(cell) where isVisible(view) {
+                  view.setNeedsDisplay()
+                  view.layer.displayIfNeeded()
+                }
+                CATransaction.flush()
+                // 재사용 뒤 화면 업데이트를 마친 계층이 정상적으로 렌더되어야 한다.
+                var renderedHierarchy = false
+                // 같은 셀 범위에서 실제 화면 그리기 경로를 사용한 비교 이미지다.
+                let renderedImage = UIGraphicsImageRenderer(bounds: cell.bounds).image { _ in
+                  renderedHierarchy = cell.drawHierarchy(in: cell.bounds, afterScreenUpdates: true)
+                }
+                XCTAssertTrue(renderedHierarchy)
+                // 실제 화면 그리기 경로에서 말줄임과 겹침을 검토할 첨부다.
+                let renderedAttachment = XCTAttachment(image: renderedImage)
+                renderedAttachment.name = "PNL-screen-render-\(Int(width))-\(style.rawValue)-\(categoryIndex)"
+                renderedAttachment.lifetime = .keepAlways
+                add(renderedAttachment)
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  func testSpotPNLRateUsesDecimalBeforeExistingPercentFormatting() throws {
+    // 십진 계산 결과가 정확히 200%인 가격은 이진 오차로 199.99%가 되면 안 된다.
+    let gain = UserPNLHistoryModel(
+      marketName: "BTC/KRW",
+      entryPrice: 0.1,
+      exitPrice: 0.3,
+      transactionDate: "2026.10.20 12:34:56",
+      orderQuantity: 1,
+      pnl: 0.2
+    )
+    // 음수 수익률은 기존과 같이 소수점 둘째 자리에서 내린다.
+    let loss = UserPNLHistoryModel(
+      marketName: "BTC/KRW",
+      entryPrice: 0.3,
+      exitPrice: 0.1,
+      transactionDate: "2026.10.20 12:34:56",
+      orderQuantity: 1,
+      pnl: -0.2
+    )
+    // 목록과 공유 미리보기의 실제 표시 경로를 함께 확인한다.
+    let cell = try XCTUnwrap(try loadNib("PNLTableViewCell") as? PNLTableViewCell)
+    let share = try XCTUnwrap(try loadNib("PNLShareView") as? PNLShareView)
+    cell.configure(pnlHistory: gain)
+    share.configure(pnlShareUnit: .spot(gain))
+    XCTAssertEqual(cell.roiLabel.accessibilityLabel, "+200%")
+    XCTAssertEqual(share.roiLabel.text, "+200 %")
+    cell.configure(pnlHistory: loss)
+    share.configure(pnlShareUnit: .spot(loss))
+    XCTAssertEqual(cell.roiLabel.accessibilityLabel, "-66.67%")
+    XCTAssertEqual(share.roiLabel.text, "-66.67 %")
+  }
+
+  func testSpotPNLRateRetainsZeroAndInvalidPriceHandling() throws {
+    // 진입가가 0이면 목록은 미표시, 공유는 기존처럼 0%다.
+    let zero = UserPNLHistoryModel(
+      marketName: "BTC/KRW",
+      entryPrice: 0,
+      exitPrice: 1,
+      transactionDate: "",
+      orderQuantity: 1,
+      pnl: 0
+    )
+    // 유효하지 않은 종료가는 목록에서 미표시하고 공유에는 NaN을 유지한다.
+    let invalid = UserPNLHistoryModel(
+      marketName: "BTC/KRW",
+      entryPrice: 1,
+      exitPrice: .nan,
+      transactionDate: "",
+      orderQuantity: 1,
+      pnl: 0
+    )
+    // 숫자 및 접근성 표시를 같은 실제 셀에서 검증한다.
+    let cell = try XCTUnwrap(try loadNib("PNLTableViewCell") as? PNLTableViewCell)
+    cell.configure(pnlHistory: zero)
+    XCTAssertEqual(cell.roiLabel.accessibilityLabel, "-")
+    XCTAssertEqual(PNLShareUnit.spot(zero).roi, 0)
+    cell.configure(pnlHistory: invalid)
+    XCTAssertEqual(cell.roiLabel.accessibilityLabel, "-")
+    XCTAssertTrue(PNLShareUnit.spot(invalid).roi.isNaN)
+  }
+
+  func testSpotPNLCellPreservesDecimalRealizedAmountAboveDoublePrecision() throws {
+    // Double의 정수 정밀도 한계를 넘는 실제 정산값을 셀에 전달한다.
+    var history = UserPNLHistoryModel(
+      marketName: "BTC/KRW",
+      entryPrice: 1,
+      exitPrice: 2,
+      transactionDate: "2026.10.20 12:34:56",
+      orderQuantity: 1,
+      pnl: 1
+    )
+    history.realizedProfitLossKRW = 9_007_199_254_740_993
+    history.costBasisKRW = 1
+    // XIB에서 생성한 셀의 실제 접근성 문자열도 원본을 보존해야 한다.
+    let cell = try XCTUnwrap(try loadNib("PNLTableViewCell") as? PNLTableViewCell)
+    cell.configure(pnlHistory: history)
+    XCTAssertEqual(cell.pnlLabel.accessibilityLabel, "+9,007,199,254,740,993 " + FuturesText.text("currency_krw_unit"))
+  }
+
+  func testFuturesSharePreservesDecimalAmountsAboveDoublePrecision() throws {
+    // 거래 기록의 네 숫자가 모두 Double로 표현할 수 없는 값을 포함한다.
+    let amount: Decimal = 9_007_199_254_740_993
+    // 실제 공유 단위 생성 경로에 필요한 선물 포지션이다.
+    let position = try FuturesCalculator.open(domesticFuturesOrder(side: .long, leverage: 20, margin: 100, price: 100))
+    // 저장된 종료 체결값이 화면까지 손실 없이 전달돼야 한다.
+    let record = FuturesTransactionRecord(
+      eventID: UUID(),
+      positionID: position.id,
+      kind: .closing,
+      instrument: position.order.instrument,
+      side: position.order.side,
+      leverage: position.order.leverage,
+      quantity: amount,
+      intervalStart: 1_792_562_832_000,
+      intervalEndExclusive: nil,
+      recordedAt: Date(timeIntervalSince1970: 1_792_562_832),
+      price: amount,
+      realizedPnL: amount,
+      margin: 100,
+      entryPrice: amount
+    )
+    // 원본 Decimal과 공유 화면에서 보이는 문자열을 함께 확인한다.
+    let unit = try FuturesText.shareUnit(record, position: position)
+    XCTAssertEqual(unit.pnl, amount)
+    XCTAssertEqual(unit.quantity, amount)
+    XCTAssertEqual(unit.entryPrice, amount)
+    XCTAssertEqual(unit.exitPrice, amount)
+    let share = try XCTUnwrap(try loadNib("PNLShareView") as? PNLShareView)
+    share.configure(pnlShareUnit: unit)
+    XCTAssertEqual(share.pnlLabel.text, "+9,007,199,254,740,993 ₩")
+    XCTAssertEqual(share.quantityLabel.text, "9,007,199,254,740,993")
+    XCTAssertEqual(share.entryPriceLabel.text, "9,007,199,254,740,993")
+    XCTAssertEqual(share.exitPriceLabel.text, "9,007,199,254,740,993")
   }
 
   func testShareCardBoundsLongValuesAndErrorMessage() throws {
@@ -939,59 +1559,40 @@ final class InvestmentXIBLayoutTests: XCTestCase {
   }
 
   private func assertPNLLabelsFit(in cell: PNLTableViewCell) {
-    // 현물에서 증거금을 숨겨도 매도가격은 체결수량과 같은 왼쪽 열을 유지한다.
-    let quantityColumn = cell.quantityLabel.superview
-    // 현물·선물 모두 종료 가격의 열 너비를 재사용 전후로 비교한다.
-    let exitColumn = cell.exitPriceLabel.superview
-    if let quantityColumn, let exitColumn {
-      // 서로 다른 행의 좌우 경계를 같은 셀 좌표계에서 비교한다.
-      let quantityFrame = quantityColumn.convert(quantityColumn.bounds, to: cell.contentView)
-      // 매도가격이 행 전체로 늘어나 값이 오른쪽 끝으로 이동하면 실패한다.
-      let exitFrame = exitColumn.convert(exitColumn.bounds, to: cell.contentView)
-      XCTAssertEqual(exitFrame.minX, quantityFrame.minX, accuracy: 1)
-      XCTAssertEqual(exitFrame.maxX, quantityFrame.maxX, accuracy: 1)
-    } else {
-      XCTFail("체결수량과 종료 가격의 열이 모두 있어야 한다.")
-    }
-    // 실현손익과 수익률도 제목 옆에서 값을 한 줄로 표시한다.
-    let summaryValues: [UILabel] = [cell.pnlLabel, cell.roiLabel]
-    // 상세 지표의 항목명·값은 한 줄 축소를 허용한다.
-    let detailValues: [UILabel] = [cell.quantityLabel, cell.entryPriceLabel, cell.exitPriceLabel, cell.marginLabel]
-    // 요약과 상세 지표에 같은 행 정렬 검증을 적용한다.
-    let inlineValues = summaryValues + detailValues
-    // 숨겨진 증거금 항목은 일반 라벨 검사와 같은 가시성 규칙을 따른다.
-    let inlineLabels = inlineValues.flatMap { ($0.superview as? UIStackView)?.arrangedSubviews.compactMap { $0 as? UILabel } ?? [] }
-    // 헤더와 날짜의 기존 한 줄 배치도 계속 검사한다.
-    let compactLabels: [UILabel] = [cell.marketNameLabel, cell.positionBadgeLabel, cell.statusLabel, cell.transactionDateLabel] + inlineLabels
-    assertLabelsFit(
-      in: cell.contentView,
-      scaledSingleLineLabels: compactLabels
-    )
-    for value in inlineValues where isVisible(value) {
-      guard let title = (value.superview as? UIStackView)?.arrangedSubviews.first as? UILabel else {
+    // 각 항목의 제목과 값은 같은 한 줄에 좌우로 배치한다.
+    let metricValues: [UILabel] = [
+      cell.pnlLabel, cell.roiLabel, cell.quantityLabel,
+      cell.entryPriceLabel, cell.exitPriceLabel, cell.marginLabel
+    ]
+    // 헤더와 날짜는 기존 한 줄 축소 배치를 유지한다.
+    let compactLabels: [UILabel] = [cell.marketNameLabel, cell.positionBadgeLabel, cell.statusLabel, cell.transactionDateLabel]
+    assertLabelsFit(in: cell.contentView, scaledSingleLineLabels: compactLabels)
+    var previousFrame: CGRect?
+    for value in metricValues where isVisible(value) {
+      guard let stack = value.superview as? UIStackView,
+            let title = stack.arrangedSubviews.first as? UILabel else {
         XCTFail("지표 항목명과 값은 같은 스택에 있어야 한다.")
         continue
       }
-      // 셀 좌표계에서 두 라벨이 같은 행에 있고 겹치지 않는지 확인한다.
+      // 행 제목과 숫자 영역은 같은 셀 좌표계에서 비교한다.
       let titleFrame = title.convert(title.bounds, to: cell.contentView)
-      // 값은 각 지표 영역의 오른쪽에 정렬한다.
+      // 값은 제목과 겹치지 않고 셀의 오른쪽 가장자리까지 사용한다.
       let valueFrame = value.convert(value.bounds, to: cell.contentView)
-      XCTAssertEqual(titleFrame.midY, valueFrame.midY, accuracy: 1)
-      XCTAssertLessThanOrEqual(titleFrame.maxX, valueFrame.minX)
+      XCTAssertEqual(stack.axis, .horizontal)
+      XCTAssertEqual(value.numberOfLines, 1)
+      XCTAssertEqual(value.lineBreakMode, .byTruncatingMiddle)
+      XCTAssertEqual(value.text, value.accessibilityLabel)
+      XCTAssertTrue(value.adjustsFontSizeToFitWidth)
+      XCTAssertEqual(value.minimumScaleFactor, 0.7, accuracy: 0.001)
       XCTAssertEqual(value.textAlignment, .right)
-    }
-    for (summaryValue, detailValue) in zip(summaryValues, [cell.quantityLabel, cell.entryPriceLabel]) {
-      // 요약 두 열은 바로 아래 상세 지표의 좌우 경계를 따라야 한다.
-      guard let summaryMetric = summaryValue.superview, let detailMetric = detailValue?.superview else {
-        XCTFail("요약과 상세 지표의 열이 모두 있어야 한다.")
-        continue
+      XCTAssertEqual(valueFrame.midY, titleFrame.midY, accuracy: 1)
+      XCTAssertGreaterThanOrEqual(valueFrame.minX + 1, titleFrame.maxX)
+      XCTAssertLessThanOrEqual(valueFrame.maxX, cell.contentView.bounds.maxX + 1)
+      XCTAssertLessThanOrEqual(valueFrame.maxY, cell.contentView.bounds.maxY + 1)
+      if let previousFrame {
+        XCTAssertGreaterThanOrEqual(titleFrame.minY + 1, previousFrame.maxY)
       }
-      // 서로 다른 부모의 좌우 경계를 셀 좌표계에서 비교한다.
-      let summaryFrame = summaryMetric.convert(summaryMetric.bounds, to: cell.contentView)
-      // 같은 열에 놓인 상세 지표의 전체 영역이다.
-      let detailFrame = detailMetric.convert(detailMetric.bounds, to: cell.contentView)
-      XCTAssertEqual(summaryFrame.minX, detailFrame.minX, accuracy: 1)
-      XCTAssertEqual(summaryFrame.maxX, detailFrame.maxX, accuracy: 1)
+      previousFrame = titleFrame.union(valueFrame)
     }
     // 서로 다른 컨테이너의 행 정렬을 동일한 셀 좌표계에서 비교한다.
     let marketFrame = cell.marketNameLabel.convert(cell.marketNameLabel.bounds, to: cell.contentView)
@@ -1043,7 +1644,13 @@ final class InvestmentXIBLayoutTests: XCTestCase {
         }
         // 허용된 최소 글씨에서도 전체 문자열을 표시할 수 있는지 검사한다.
         let minimumTextSize = minimumText.size()
-        XCTAssertLessThanOrEqual(minimumTextSize.width, label.bounds.width + 1, label.text ?? "")
+        // 창에 연결되지 않은 nib도 1배율 이상에서 픽셀 경계를 검사한다.
+        let displayScale = max(label.traitCollection.displayScale, 1)
+        // 필요한 폭은 올림해 1pt 미만의 실제 말줄임도 놓치지 않는다.
+        let minimumTextWidthInPixels = ceil(minimumTextSize.width * displayScale)
+        // UIKit이 배치한 경계의 부동소수점 오차만 정수 픽셀로 정규화한다.
+        let availableWidthInPixels = (label.bounds.width * displayScale).rounded()
+        XCTAssertLessThanOrEqual(minimumTextWidthInPixels, availableWidthInPixels, label.text ?? "")
         XCTAssertLessThanOrEqual(minimumTextSize.height, label.bounds.height + 1, label.text ?? "")
       } else {
         XCTAssertGreaterThanOrEqual(
@@ -1084,7 +1691,7 @@ private final class InvestmentLayoutNibOwner: NSObject {
 }
 
 @MainActor
-private final class InvestmentLayoutTableSource: NSObject, UITableViewDataSource {
+final class InvestmentLayoutTableSource: NSObject, UITableViewDataSource {
   // 실제 테이블의 자동 높이 계산에 전달할 구성 완료된 셀이다.
   let cell: UITableViewCell
 
@@ -1095,4 +1702,41 @@ private final class InvestmentLayoutTableSource: NSObject, UITableViewDataSource
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 1 }
 
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell { cell }
+}
+
+@MainActor
+enum InvestmentValueLayoutAssertions {
+  static func verify(_ value: UILabel, numberSize: CGFloat, unitSize: CGFloat) throws -> String {
+    // 자동 축소는 XIB 설정을 따르고 접근성에는 생략하지 않은 문자열을 제공한다.
+    let original = try XCTUnwrap(value.attributedText)
+    XCTAssertEqual(value.accessibilityLabel, original.string)
+    XCTAssertEqual(value.minimumScaleFactor, 0.7, accuracy: 0.001)
+    XCTAssertEqual(value.numberOfLines, 1)
+    XCTAssertEqual(value.lineBreakMode, .byTruncatingMiddle)
+    XCTAssertTrue(value.adjustsFontSizeToFitWidth)
+    XCTAssertEqual(value.font.pointSize, numberSize, accuracy: 0.01)
+    XCTAssertGreaterThan(unitSize, 0)
+    XCTAssertGreaterThan(value.bounds.width, 0)
+    XCTAssertGreaterThan(value.bounds.height, 0)
+
+    // UIKit이 축소를 적용하는 경계와 70%에서도 생략되는 경계를 검증한다.
+    // 레이블의 XIB 기본 글꼴을 적용한 폭이다.
+    let measuredText = NSMutableAttributedString(attributedString: original)
+    measuredText.addAttribute(.font, value: value.font, range: NSRange(location: 0, length: measuredText.length))
+    // 축소 전 한 줄에 필요한 너비다.
+    let originalWidth = measuredText.size().width
+    // 최저 글꼴 크기에서도 표시할 수 있는지 비교한다.
+    let minimumText = NSMutableAttributedString(attributedString: original)
+    minimumText.addAttribute(
+      .font,
+      value: value.font.withSize(value.font.pointSize * value.minimumScaleFactor),
+      range: NSRange(location: 0, length: minimumText.length)
+    )
+    // 70% 글꼴의 전체 문자열 너비다.
+    let minimumWidth = minimumText.size().width
+    if originalWidth <= value.bounds.width - 1 { return "original" }
+    if minimumWidth <= value.bounds.width - 1 { return "shrunk" }
+    if minimumWidth > value.bounds.width + 1 { return "truncated" }
+    return "boundary"
+  }
 }

@@ -1,6 +1,10 @@
 import UIKit
 
 final class InvestmentSummaryView: UIView {
+  // 작은 화면에서 두 금액에 적용하는 기본 글꼴 크기다.
+  private static let compactBalanceFontSize: CGFloat = 18
+  // 아이폰 미니를 포함해 금액 글꼴을 줄이는 화면 너비다.
+  private static let compactBalanceMaximumWidth: CGFloat = 375
   // 요약과 목록의 제목을 현물·선물 계좌에 맞춰 표시한다.
   @IBOutlet private weak var holdingsTitle: UILabel!
   // 큰 글자에서는 자산 제목과 통화 단위를 별도 행으로 배치한다.
@@ -49,16 +53,21 @@ final class InvestmentSummaryView: UIView {
   @IBOutlet private var metricRows: [UIStackView]!
   // 금액 숫자를 같은 폭의 숫자 글꼴로 표시한다.
   @IBOutlet private var valueLabels: [UILabel]!
+  // 화면 너비에 따라 기본 글꼴 크기를 조정할 상단 금액이다.
+  @IBOutlet private var balanceValueLabels: [UILabel]!
   // 현물 빈 목록 메시지를 현지화한다.
   @IBOutlet private weak var emptyMessageLabel: UILabel!
   // 요약 아래 남은 목록 공간을 빈 안내 영역으로 사용한다.
   @IBOutlet private weak var emptyMinimumHeight: NSLayoutConstraint!
+  // XIB의 일반 화면 금액 글꼴을 크기 변경과 Dynamic Type 적용의 기준으로 보관한다.
+  private var balanceBaseFont: UIFont?
 
   override func awakeFromNib() {
     super.awakeFromNib()
     valueLabels.forEach { label in
       label.font = .monospacedDigitSystemFont(ofSize: label.font.pointSize, weight: .bold)
     }
+    balanceBaseFont = balanceValueLabels.first?.font
     prepareLabels(in: self)
     chargeView.layer.cornerRadius = 12
     chargeView.layer.cornerCurve = .continuous
@@ -78,10 +87,10 @@ final class InvestmentSummaryView: UIView {
     unitTitle.text = FuturesText.text("investment_unit_krw")
     availableTitle.text = FuturesText.text("investment_available_krw")
     totalAssetsTitle.text = FuturesText.text("investment_total_assets")
-    purchaseTitle.text = FuturesText.text(product == .spot ? "investment_total_buy" : "futures_total_margin")
+    purchaseTitle.text = FuturesText.text(product == .spot ? "investment_total_buy" : "investment_total_margin")
     evaluationTitle.text = FuturesText.text(product == .spot ? "futures_total_evaluation" : "investment_position_evaluation")
     profitLossTitle.text = FuturesText.text("investment_valuation_gain_loss")
-    rateTitle.text = FuturesText.text(product == .spot ? "investment_return_rate" : "investment_roe")
+    rateTitle.text = FuturesText.text("investment_return_rate")
     chargeNote.text = FuturesText.text("investment_charge_note")
     listTitle.text = FuturesText.text(product == .spot ? "investment_holdings" : "investment_positions")
     emptyMessageLabel.text = FuturesText.text(product == .spot ? "trade_no_coins" : "futures_no_position")
@@ -101,6 +110,16 @@ final class InvestmentSummaryView: UIView {
 
   func updateLayout(in tableView: UITableView) {
     guard tableView.bounds.width > 0 else { return }
+    if let balanceBaseFont {
+      // XIB의 일반 크기와 작은 화면의 크기를 현재 글자 확대 설정에 맞춘다.
+      let baseFont = tableView.bounds.width <= Self.compactBalanceMaximumWidth
+        ? balanceBaseFont.withSize(Self.compactBalanceFontSize) : balanceBaseFont
+      // 크기가 바뀐 경우에만 적용해 반복적인 레이아웃 갱신을 피한다.
+      let scaledFont = UIFontMetrics(forTextStyle: .caption1).scaledFont(for: baseFont, compatibleWith: traitCollection)
+      for label in balanceValueLabels where label.font != scaledFont {
+        label.font = scaledFont
+      }
+    }
     // 접근성 글자 크기에서는 두 열보다 원본 숫자를 모두 읽을 수 있는 배치를 우선한다.
     let expandedText = traitCollection.preferredContentSizeCategory.isAccessibilityCategory
     // 가로 배치의 원래 글자 폭은 유지하고 접근성 행에서는 전체 폭을 사용한다.

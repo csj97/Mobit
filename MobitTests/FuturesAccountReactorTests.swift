@@ -1201,8 +1201,8 @@ final class FuturesAccountReactorTests: XCTestCase {
         UINib(nibName: "InvestmentTableViewCell", bundle: .main).instantiate(withOwner: nil).first as? InvestmentTableViewCell
       )
       investment.configure(position: position, valuation: nil, isLast: true)
-      XCTAssertEqual(investment.cryptoAmount.text, expected)
-      XCTAssertEqual(investment.cryptoBuyPrice.text, expected)
+      XCTAssertEqual(investment.cryptoAmount.accessibilityLabel, expected + " BTC")
+      XCTAssertEqual(investment.cryptoBuyPrice.accessibilityLabel, expected + " KRW")
       investment.prepareForReuse()
       XCTAssertNil(investment.sideBadgeLabel.text)
       XCTAssertNil(investment.leverageBadgeLabel.text)
@@ -1227,8 +1227,8 @@ final class FuturesAccountReactorTests: XCTestCase {
       XCTAssertEqual(history.marketNameLabel.text, FuturesText.symbol(record.instrument))
       XCTAssertEqual(history.positionBadgeLabel.text, "\(FuturesText.side(record.side)) 1×")
       XCTAssertEqual(history.statusLabel.text, FuturesText.text("futures_pnl_closed"))
-      XCTAssertEqual(history.quantityLabel.text, expected + " BTC")
-      XCTAssertEqual(history.pnlLabel.text, "+" + expected + " " + FuturesText.text("currency_krw_unit"))
+      XCTAssertEqual(history.quantityLabel.accessibilityLabel, expected + " BTC")
+      XCTAssertEqual(history.pnlLabel.accessibilityLabel, "+" + expected + " " + FuturesText.text("currency_krw_unit"))
       let share = PNLShareView.instanceFromNib(pnlShareUnit: try FuturesText.shareUnit(record, position: position)) { _ in }
       XCTAssertEqual(share.quantityLabel.text, expected)
       XCTAssertEqual(share.pnlLabel.text, "+" + expected + " ₩")
@@ -4637,7 +4637,7 @@ final class FuturesAccountReactorTests: XCTestCase {
     controller.view.layoutIfNeeded()
     XCTAssertEqual(controller.nibName, "InvestmentViewController")
     try assertInvestmentExchangeButton(in: controller, exchange: account.exchange)
-    XCTAssertEqual(controller.totalBuyTitle.text, FuturesText.text("futures_total_margin"))
+    XCTAssertEqual(controller.totalBuyTitle.text, FuturesText.text("investment_total_margin"))
     XCTAssertEqual(controller.totalEvaluationTitle.text, FuturesText.text("investment_total_assets"))
     XCTAssertNotEqual(controller.totalEvaluationTitle.text, "investment_total_assets")
     flushDisplay()
@@ -4672,8 +4672,8 @@ final class FuturesAccountReactorTests: XCTestCase {
     XCTAssertEqual(cell.marketSymbolLabel.text, "BTC/KRW")
     XCTAssertEqual(cell.sideBadgeLabel.text, FuturesText.text("futures_long"))
     XCTAssertEqual(cell.leverageBadgeLabel.text, "10×")
-    XCTAssertEqual(cell.cryptoBuyPrice.text, "100,000")
-    XCTAssertEqual(cell.cryptoEvalPrice.text, "200,000")
+    XCTAssertEqual(cell.cryptoBuyPrice.accessibilityLabel, "100,000 KRW")
+    XCTAssertEqual(cell.cryptoEvalPrice.accessibilityLabel, "200,000 KRW")
     XCTAssertEqual(cell.cryptoProfitRate.text, "+100%")
     XCTAssertEqual(cell.averagePriceTitle.text, FuturesText.text("futures_entry"))
     // 투자 전용 버튼은 XIB에서 지정한 글꼴 크기를 확대 설정과 무관하게 유지한다.
@@ -4793,6 +4793,12 @@ final class FuturesAccountReactorTests: XCTestCase {
           CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
         ).width
         XCTAssertEqual(badge.bounds.width, naturalWidth + 16, accuracy: 0.5, label.text ?? "")
+        // 배지의 상하 여백을 포함해 텍스트 한 줄이 잘리지 않아야 한다.
+        let requiredHeight = label.sizeThatFits(
+          CGSize(width: label.bounds.width, height: CGFloat.greatestFiniteMagnitude)
+        ).height
+        XCTAssertGreaterThanOrEqual(label.bounds.height + 0.5, requiredHeight, label.text ?? "")
+        XCTAssertGreaterThanOrEqual(badge.bounds.height + 0.5, requiredHeight + 8, label.text ?? "")
         XCTAssertFalse(badge.hasAmbiguousLayout)
       }
       // 값 라벨이 남는 폭을 차지하면 오른쪽 정렬된 글자까지의 간격이 벌어진다.
@@ -4999,116 +5005,480 @@ final class FuturesAccountReactorTests: XCTestCase {
   }
 
   @MainActor
-  func testInvestmentLongQuantityKeepsXIBLayoutAcrossReuseAndTextSizeChanges() throws {
-    // 실제 nib을 화면 계층에 올려 기기 너비별 제약을 검증한다.
-    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
-    // 네트워크와 투자내역 화면의 구독 없이 셀만 배치한다.
-    let host = UIViewController()
-    window.rootViewController = host
+  func testInvestmentMaximumSingleLineAmountKeepsFullHeight() throws {
+    // 320pt 화면에서 두 원화 지표가 동시에 축소되는 실제 포지션이다.
+    let position = try FuturesCalculator.open(
+      domesticFuturesOrder(symbol: "KRW-BTC", leverage: 1, margin: 999_999_999_999_999, price: 1)
+    )
+    // 평가금액과 증거금에 같은 15자리 금액을 사용한다.
+    let valuation = try FuturesCalculator.evaluate(position, markPrice: 1)
+    // 앱에서 사용하는 투자내역 셀을 실제 XIB에서 불러온다.
+    let cell = try XCTUnwrap(
+      UINib(nibName: "InvestmentTableViewCell", bundle: .main)
+        .instantiate(withOwner: nil).first as? InvestmentTableViewCell
+    )
+    cell.configure(position: position, valuation: valuation, isLast: false)
+    // 실제 투자내역과 같은 자동 높이 테이블에 셀을 넣는다.
+    let source = InvestmentLayoutTableSource(cell: cell)
+    // 최종 글꼴 축소가 테이블 행 높이에 반영되어야 한다.
+    let table = UITableView()
+    table.dataSource = source
+    table.rowHeight = UITableView.automaticDimension
+    table.estimatedRowHeight = 200
+    // 작은 화면 폭에서 실제 윈도우의 레이아웃을 사용한다.
+    let controller = UIViewController()
+    controller.view = table
+    // 창에 표시한 셀의 렌더링을 확인한다.
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 852))
+    window.rootViewController = controller
     window.makeKeyAndVisible()
     defer { window.isHidden = true; window.rootViewController = nil }
-    if #available(iOS 17.0, *) {
-      host.traitOverrides.preferredContentSizeCategory = .large
-      host.updateTraitsIfNeeded()
+    table.reloadData()
+    window.layoutIfNeeded()
+    table.layoutIfNeeded()
+    cell.layoutIfNeeded()
+
+    for label in [cell.sideBadgeLabel, cell.leverageBadgeLabel] {
+      // 자동 높이 셀에서도 방향과 레버리지 배지의 글자·여백이 잘리지 않아야 한다.
+      let label = try XCTUnwrap(label)
+      // 배경을 포함한 배지의 표시 높이다.
+      let badge = try XCTUnwrap(label.superview)
+      // 현재 글꼴로 전체 텍스트를 표시하는 데 필요한 높이다.
+      let requiredHeight = label.sizeThatFits(
+        CGSize(width: label.bounds.width, height: CGFloat.greatestFiniteMagnitude)
+      ).height
+      XCTAssertGreaterThanOrEqual(label.bounds.height + 0.5, requiredHeight, label.text ?? "")
+      XCTAssertGreaterThanOrEqual(badge.bounds.height + 0.5, requiredHeight + 8, label.text ?? "")
+      // 배지의 모든 상위 뷰가 글자와 배경을 함께 수용해야 한다.
+      var ancestor = badge.superview
+      while let view = ancestor {
+        // 상위 뷰 좌표계에서 배지 전체가 차지하는 영역이다.
+        let badgeFrame = badge.convert(badge.bounds, to: view)
+        XCTAssertGreaterThanOrEqual(badgeFrame.minY, view.bounds.minY - 0.5, label.text ?? "")
+        XCTAssertLessThanOrEqual(badgeFrame.maxY, view.bounds.maxY + 0.5, label.text ?? "")
+        if view === cell { break }
+        ancestor = view.superview
+      }
     }
-    // 제보된 WAXP 수량 15,527,950를 만드는 실제 진입 가격이다.
-    let executionPrice = try XCTUnwrap(Decimal(string: "6.44"))
-    // 긴 수량과 네 글자 심볼이 같은 열에서 공간을 나누게 한다.
-    let position = try FuturesCalculator.open(
-      domesticFuturesOrder(symbol: "KRW-WAXP", leverage: 20, margin: 5_000_000, price: executionPrice)
-    )
-    // 평가값을 채워 실제 셀과 같은 헤더 및 지표를 배치한다.
-    let valuation = try FuturesCalculator.evaluate(position, markPrice: executionPrice)
-    // 작은 기기부터 일반 기기까지 가로 공간이 달라지는 경우를 확인한다.
-    for width: CGFloat in [320, 375, 393] {
-      // 각 너비에서 최초 로드부터 XIB 설정이 유지되는지 확인한다.
+
+    for label in [cell.cryptoEvalPrice, cell.cryptoBuyPrice] {
+      // 두 금액 모두 숫자와 원화 단위를 빠짐없이 유지한다.
+      let value = try XCTUnwrap(label)
+      XCTAssertEqual(value.accessibilityLabel, "999,999,999,999,999 KRW")
+      XCTAssertEqual(
+        try InvestmentValueLayoutAssertions.verify(value, numberSize: value.font.pointSize, unitSize: 12),
+        "shrunk"
+      )
+      // 축소된 문자에도 원래 글꼴의 한 줄 높이를 보장한다.
+      XCTAssertGreaterThanOrEqual(value.bounds.height + 0.5, ceil(value.font.lineHeight))
+      XCTAssertGreaterThanOrEqual(
+        value.bounds.height + 0.5,
+        value.sizeThatFits(CGSize(width: value.bounds.width, height: .greatestFiniteMagnitude)).height
+      )
+      // 숫자 레이블이 실제 셀 표시 영역을 벗어나지 않아야 한다.
+      let frame = value.convert(value.bounds, to: cell.contentView)
+      XCTAssertLessThanOrEqual(frame.maxY, cell.contentView.bounds.height + 0.5)
+
+      // 각 상위 뷰가 실제 숫자 영역을 모두 수용하는지 검사한다.
+      var ancestor = value.superview
+      while let view = ancestor {
+        // 현재 상위 뷰 좌표계에서 실제 숫자 레이블의 영역이다.
+        let frameInAncestor = value.convert(value.bounds, to: view)
+        XCTAssertGreaterThanOrEqual(frameInAncestor.minY, view.bounds.minY - 0.5)
+        XCTAssertLessThanOrEqual(frameInAncestor.maxY, view.bounds.maxY + 0.5)
+        if view === cell { break }
+        ancestor = view.superview
+      }
+    }
+    // 레이아웃과 숫자 글리프가 함께 표시되는 실제 계층을 보관한다.
+    var rendered = false
+    // 자동 축소된 금액을 포함하는 실제 화면 이미지다.
+    let renderedImage = UIGraphicsImageRenderer(bounds: cell.bounds).image { _ in
+      rendered = cell.drawHierarchy(in: cell.bounds, afterScreenUpdates: true)
+    }
+    XCTAssertTrue(rendered)
+    // 실제 레이블의 위아래 경계까지 숫자가 그려지면 글리프가 잘린 상태다.
+    let cellImage = try XCTUnwrap(renderedImage.cgImage)
+    for label in [cell.sideBadgeLabel, cell.leverageBadgeLabel] {
+      // 잘리지 않은 방향·레버리지 글자의 실제 그리기 높이를 검사한다.
+      let label = try XCTUnwrap(label)
+      // 전체 셀 이미지에서 배지 레이블만 픽셀 단위로 추출한다.
+      let frame = label.convert(label.bounds, to: cell)
+      // 렌더링 배율을 반영한 레이블 이미지의 픽셀 영역이다.
+      let pixelRect = CGRect(
+        x: Int(frame.minX * renderedImage.scale),
+        y: Int(frame.minY * renderedImage.scale),
+        width: Int(frame.width * renderedImage.scale),
+        height: Int(frame.height * renderedImage.scale)
+      )
+      // 실제 화면에서 레이블이 차지한 부분이다.
+      let labelImage = try XCTUnwrap(cellImage.cropping(to: pixelRect))
+      // 배경과 구분되는 글자 색을 실제 테마에 맞춰 확인한다.
+      let color = label.textColor.resolvedColor(with: label.traitCollection)
+      // 글자 색의 RGB 성분을 픽셀 값과 비교한다.
+      var (red, green, blue, alpha): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
+      XCTAssertTrue(color.getRed(&red, green: &green, blue: &blue, alpha: &alpha))
+      // RGBA 버퍼에서 각 줄에 글자색이 실제로 그려졌는지 센다.
+      let bytesPerRow = labelImage.width * 4
+      // 렌더링된 레이블의 색상 채널을 담는다.
+      var pixels = [UInt8](repeating: 0, count: bytesPerRow * labelImage.height)
+      // 픽셀 버퍼 생성의 성공 여부다.
+      let renderedPixels = pixels.withUnsafeMutableBytes { buffer in
+        guard let context = CGContext(
+          data: buffer.baseAddress,
+          width: labelImage.width,
+          height: labelImage.height,
+          bitsPerComponent: 8,
+          bytesPerRow: bytesPerRow,
+          space: CGColorSpaceCreateDeviceRGB(),
+          bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
+        ) else { return false }
+        context.draw(labelImage, in: CGRect(x: 0, y: 0, width: labelImage.width, height: labelImage.height))
+        return true
+      }
+      XCTAssertTrue(renderedPixels)
+      // 안티앨리어싱 색상도 포함해 실제 글자가 차지하는 픽셀 행이다.
+      let foregroundRows = (0..<labelImage.height).filter { row in
+        (0..<labelImage.width).contains { column in
+          // 검사할 픽셀의 RGBA 시작 위치다.
+          let offset = row * bytesPerRow + column * 4
+          // 픽셀과 글자색의 차이로 배경을 제외한다.
+          let difference = zip([red, green, blue], pixels[offset..<offset + 3]).reduce(CGFloat(0)) {
+            $0 + pow($1.0 * 255 - CGFloat($1.1), 2)
+          }
+          return difference < 3 * 60 * 60
+        }
+      }
+      XCTAssertGreaterThanOrEqual(
+        CGFloat(foregroundRows.count),
+        ceil(label.font.lineHeight * renderedImage.scale * 0.3),
+        "배지 텍스트가 잘리거나 보이지 않습니다: \(label.text ?? "")"
+      )
+    }
+    for value in [cell.cryptoEvalPrice, cell.cryptoBuyPrice] {
+      // 두 금액 레이블을 각각 검증한다.
+      let value = try XCTUnwrap(value)
+      // 셀 스냅샷에서 숫자 레이블만 픽셀 단위로 잘라낸다.
+      let frame = value.convert(value.bounds, to: cell)
+      // 렌더링 이미지의 배율을 적용한 픽셀 영역이다.
+      let pixelRect = CGRect(
+        x: Int(frame.minX * renderedImage.scale),
+        y: Int(frame.minY * renderedImage.scale),
+        width: Int(frame.width * renderedImage.scale),
+        height: Int(frame.height * renderedImage.scale)
+      )
+      // 경계에 그려진 숫자를 검사할 레이블 이미지다.
+      let labelImage = try XCTUnwrap(cellImage.cropping(to: pixelRect))
+      // RGBA 형식의 한 줄에 필요한 바이트 수다.
+      let bytesPerRow = labelImage.width * 4
+      // 레이블 이미지를 정규화한 픽셀 버퍼다.
+      var pixels = [UInt8](repeating: 0, count: bytesPerRow * labelImage.height)
+      // 플랫폼의 이미지 저장 형식에 관계없이 RGBA로 변환한다.
+      let renderedPixels = pixels.withUnsafeMutableBytes { buffer in
+        guard let context = CGContext(
+          data: buffer.baseAddress,
+          width: labelImage.width,
+          height: labelImage.height,
+          bitsPerComponent: 8,
+          bytesPerRow: bytesPerRow,
+          space: CGColorSpaceCreateDeviceRGB(),
+          bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
+        ) else { return false }
+        context.draw(labelImage, in: CGRect(x: 0, y: 0, width: labelImage.width, height: labelImage.height))
+        return true
+      }
+      XCTAssertTrue(renderedPixels)
+      for row in [0, labelImage.height - 1] {
+        // 어두운 숫자 픽셀이 경계에 걸친 개수다.
+        let darkPixels = (0..<labelImage.width).filter { column in
+          // 현재 픽셀의 RGBA 시작 위치다.
+          let offset = row * bytesPerRow + column * 4
+          return pixels[offset] < 100 && pixels[offset + 1] < 100 && pixels[offset + 2] < 100
+        }.count
+        XCTAssertEqual(darkPixels, 0, "숫자 글리프가 레이블 경계에서 잘렸습니다.")
+      }
+    }
+    let screenshot = XCTAttachment(image: renderedImage)
+    screenshot.name = "Investment-maximum-amount-320"
+    screenshot.lifetime = .keepAlways
+    add(screenshot)
+    withExtendedLifetime(source) {}
+  }
+
+  @MainActor
+  func testInvestmentValuesShrinkOnOneLineAndUpdateOnResizeAndReuse() throws {
+    // 짧은 수량부터 70%에서도 넘는 수량까지 실제 포지션 구성에 사용한다.
+    let margins = ["12345", "1234567", "1234567890", "1234567890123", "1234567890123456", "1234567890123456789012345"]
+    for initialWidth: CGFloat in [320, 375, 393] {
+      // 앱에서 쓰는 XIB와 테이블 자동 높이를 함께 검증한다.
       let cell = try XCTUnwrap(
         UINib(nibName: "InvestmentTableViewCell", bundle: .main)
           .instantiate(withOwner: nil).first as? InvestmentTableViewCell
       )
-      host.view.addSubview(cell)
-      defer { cell.removeFromSuperview() }
-      cell.frame = CGRect(x: 0, y: 0, width: width, height: 260)
-      // 제목과 숫자 아웃렛이 실제 nib에 연결되어 있어야 한다.
-      let titleLabel = try XCTUnwrap(cell.amountTitle)
-      // 수량 숫자의 XIB 속성과 축소할 수 있는 폭을 검사한다.
-      let amountLabel = try XCTUnwrap(cell.cryptoAmount)
-      // 수량 숫자와 심볼을 포함하는 실제 중첩 스택이다.
-      let valuesStack = try XCTUnwrap(amountLabel.superview as? UIStackView)
-      // 숫자 오른쪽에서 자연 폭을 유지해야 하는 종목 심볼이다.
-      let unitLabel = try XCTUnwrap(valuesStack.arrangedSubviews.last as? UILabel)
-      // 제목과 수량 묶음의 가로 배치를 검증한다.
-      let quantityStack = try XCTUnwrap(valuesStack.superview as? UIStackView)
-      // 수량과 평균 진입가가 나란히 배치되는 지표 행이다.
-      let rowStack = try XCTUnwrap(quantityStack.superview as? UIStackView)
-      // 구성과 재사용 이후에도 원본 속성을 비교할 라벨들이다.
-      let quantityLabels = [titleLabel, amountLabel, unitLabel]
-      // XIB에서 지정한 글꼴을 trait 변경 이후와 비교한다.
-      let nibFonts = quantityLabels.map { $0.font }
-      // 남는 폭을 배분하는 XIB의 우선순위를 보존한다.
-      let nibHugging = quantityLabels.map { $0.contentHuggingPriority(for: .horizontal) }
-      // 숫자보다 제목과 심볼을 우선하는 XIB의 압축 순서다.
-      let nibCompression = quantityLabels.map { $0.contentCompressionResistancePriority(for: .horizontal) }
-      // XIB의 줄바꿈 방식이 구성 코드에서 바뀌지 않아야 한다.
-      let nibLineBreakModes = quantityLabels.map { $0.lineBreakMode }
-      // 확대 설정을 바꿔도 XIB가 지정한 가로 배치와 글꼴을 유지한다.
-      for category in [UIContentSizeCategory.large, .accessibilityExtraExtraExtraLarge, .large] {
+      // 셀을 반복 구성해도 XIB 기준 숫자와 단위 글꼴을 유지해야 한다.
+      let numberSize = try XCTUnwrap(cell.cryptoAmount.font).pointSize
+      // 수량 단위에 사용한 원래 글꼴을 별도로 보존한다.
+      let valueStack = try XCTUnwrap(cell.cryptoAmount.superview as? UIStackView)
+      // 값에 합쳐지는 종목 단위의 글꼴 크기다.
+      let unitSize = try XCTUnwrap(valueStack.arrangedSubviews.last as? UILabel).font.pointSize
+      // 같은 셀을 반복 구성해 재사용과 높이 변경을 검증한다.
+      let source = InvestmentLayoutTableSource(cell: cell)
+      // 실제 투자내역과 동일한 자동 높이 테이블이다.
+      let table = UITableView()
+      table.dataSource = source
+      table.rowHeight = UITableView.automaticDimension
+      table.estimatedRowHeight = 200
+      // 창에 표시해 기기 폭과 글꼴 메트릭을 적용한다.
+      let controller = UIViewController()
+      controller.view = table
+      // 재계산을 검증할 실제 화면 크기다.
+      let window = UIWindow(frame: CGRect(x: 0, y: 0, width: initialWidth, height: 852))
+      window.rootViewController = controller
+      window.makeKeyAndVisible()
+      defer { window.isHidden = true; window.rootViewController = nil }
+      // 세 가지 표시 상태의 실제 진입 여부를 확인한다.
+      var seenModes: Set<String> = []
+      // 같은 축소 사례를 다시 구성해 글꼴 누적을 검사한다.
+      var shrunkMarginText: String?
+      for marginText in margins {
+        // 통화 표시의 정확도를 유지하도록 정밀 십진수로 진입한다.
+        let margin = try XCTUnwrap(Decimal(string: marginText))
+        // 거래 계산을 거친 실제 수량을 셀에 전달한다.
+        let position = try FuturesCalculator.open(
+          domesticFuturesOrder(symbol: "KRW-WAXP", leverage: 1, margin: margin, price: 1)
+        )
         cell.prepareForReuse()
-        cell.configure(position: position, valuation: valuation, isLast: false)
-        if #available(iOS 17.0, *) {
-          cell.traitOverrides.preferredContentSizeCategory = category
-          cell.updateTraitsIfNeeded()
+        cell.configure(position: position, valuation: nil, isLast: false)
+        table.reloadData()
+        table.layoutIfNeeded()
+        cell.layoutIfNeeded()
+        // 레이블의 실제 숫자·단위 글꼴과 읽는 원문을 검증한다.
+        let value = try XCTUnwrap(cell.cryptoAmount)
+        // 기본, 축소, 생략의 기대를 실제 글자 폭으로 구분한다.
+        let mode = try InvestmentValueLayoutAssertions.verify(value, numberSize: numberSize, unitSize: unitSize)
+        if mode == "shrunk" { shrunkMarginText = marginText }
+        if seenModes.insert(mode).inserted && mode != "boundary" {
+          // 셀에 그려진 숫자와 단위가 겹치지 않는지 시각적으로 검토한다.
+          let image = XCTAttachment(image: UIGraphicsImageRenderer(bounds: cell.bounds).image { cell.layer.render(in: $0.cgContext) })
+          image.name = "Investment-auto-size-\(Int(initialWidth))-\(mode)"
+          image.lifetime = .keepAlways
+          add(image)
         }
-        // 테이블과 같은 self-sizing 이후의 최종 프레임을 검사한다.
-        let fittedHeight = cell.systemLayoutSizeFitting(
+        XCTAssertGreaterThanOrEqual(table.rectForRow(at: IndexPath(row: 0, section: 0)).height + 1, cell.contentView.bounds.height)
+      }
+      XCTAssertTrue(seenModes.contains("original"), "기본 글꼴 사례가 필요합니다.")
+      XCTAssertTrue(seenModes.contains("shrunk"), "0.7~1.0배 축소 사례가 필요합니다.")
+      XCTAssertTrue(seenModes.contains("truncated"), "0.7배에서도 들어가지 않는 사례가 필요합니다.")
+
+      // 테이블 데이터를 다시 로드하지 않아도 너비에 맞춰 글꼴과 높이가 갱신돼야 한다.
+      for width: CGFloat in [320, 393, 320] {
+        window.frame.size.width = width
+        window.setNeedsLayout()
+        window.layoutIfNeeded()
+        table.layoutIfNeeded()
+        cell.layoutIfNeeded()
+        XCTAssertEqual(cell.bounds.width, width, accuracy: 1)
+        _ = try InvestmentValueLayoutAssertions.verify(XCTUnwrap(cell.cryptoAmount), numberSize: numberSize, unitSize: unitSize)
+        // 화면 너비에서 필요한 높이를 자동 높이 행과 비교한다.
+        let fitting = cell.systemLayoutSizeFitting(
           CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
           withHorizontalFittingPriority: .required,
           verticalFittingPriority: .fittingSizeLevel
-        ).height
-        cell.frame.size.height = ceil(fittedHeight)
-        cell.setNeedsLayout()
+        )
+        XCTAssertGreaterThanOrEqual(table.rectForRow(at: IndexPath(row: 0, section: 0)).height + 1, fitting.height)
+      }
+      // 매우 긴 수량으로 표시한 셀에서 작은 현물 수량으로 바꿀 때 글꼴을 복원한다.
+      cell.prepareForReuse()
+      cell.configure(crypto: spotOrderLayoutHolding(), isLast: false)
+      // 실제 화면처럼 데이터 갱신을 테이블에 알린다.
+      table.reloadData()
+      table.layoutIfNeeded()
+      cell.layoutIfNeeded()
+      XCTAssertEqual(try InvestmentValueLayoutAssertions.verify(XCTUnwrap(cell.cryptoAmount), numberSize: numberSize, unitSize: unitSize), "original")
+      XCTAssertEqual(cell.cryptoAmount.accessibilityLabel, "0.01 BTC")
+      // 긴 콘텐츠의 자동 높이가 짧은 수량의 셀에 남으면 안 된다.
+      let shortFitting = cell.systemLayoutSizeFitting(
+        CGSize(width: 320, height: UIView.layoutFittingCompressedSize.height),
+        withHorizontalFittingPriority: .required,
+        verticalFittingPriority: .fittingSizeLevel
+      )
+      XCTAssertEqual(table.rectForRow(at: IndexPath(row: 0, section: 0)).height, shortFitting.height, accuracy: 2)
+      // 숫자가 축소된 셀을 테마 전환 후 반복 구성해도 XIB 글꼴을 복원해야 한다.
+      let marginText = try XCTUnwrap(shrunkMarginText)
+      let margin = try XCTUnwrap(Decimal(string: marginText))
+      let position = try FuturesCalculator.open(
+        domesticFuturesOrder(symbol: "KRW-WAXP", leverage: 1, margin: margin, price: 1)
+      )
+      window.frame.size.width = initialWidth
+      window.setNeedsLayout()
+      window.layoutIfNeeded()
+      for style in [UIUserInterfaceStyle.light, .dark, .light] {
+        cell.prepareForReuse()
+        cell.configure(position: position, valuation: nil, isLast: false)
+        window.overrideUserInterfaceStyle = style
+        if #available(iOS 17.0, *) { window.updateTraitsIfNeeded() }
+        table.layoutIfNeeded()
         cell.layoutIfNeeded()
-        XCTAssertEqual(cell.cryptoAmount.text, "15,527,950")
-        XCTAssertEqual(unitLabel.text, "WAXP")
-        XCTAssertEqual(rowStack.axis, .horizontal)
-        XCTAssertEqual(quantityStack.axis, .horizontal)
-        XCTAssertEqual(valuesStack.axis, .horizontal)
-        XCTAssertEqual(quantityLabels.map { $0.font }, nibFonts)
-        XCTAssertEqual(quantityLabels.map { $0.contentHuggingPriority(for: .horizontal) }, nibHugging)
-        XCTAssertEqual(quantityLabels.map { $0.contentCompressionResistancePriority(for: .horizontal) }, nibCompression)
-        XCTAssertEqual(quantityLabels.map { $0.lineBreakMode }, nibLineBreakModes)
-        XCTAssertEqual(cell.cryptoAmount.numberOfLines, 1)
-        XCTAssertEqual(cell.cryptoAmount.lineBreakMode, .byClipping)
-        XCTAssertTrue(cell.cryptoAmount.adjustsFontSizeToFitWidth)
-        XCTAssertEqual(cell.cryptoAmount.minimumScaleFactor, 0.5, accuracy: 0.001)
-        XCTAssertEqual(cell.cryptoAmount.contentCompressionResistancePriority(for: .horizontal).rawValue, 749)
-        XCTAssertEqual(cell.amountTitle.bounds.width, cell.amountTitle.intrinsicContentSize.width, accuracy: 0.5)
-        XCTAssertEqual(unitLabel.bounds.width, unitLabel.intrinsicContentSize.width, accuracy: 0.5)
-        // 실제 글자의 좌우 순서로 제목 아래로 수량이 내려가는 회귀를 잡는다.
-        let titleFrame = cell.amountTitle.convert(cell.amountTitle.bounds, to: cell.contentView)
-        // 숫자가 축소되더라도 제목 오른쪽에서 같은 행을 유지해야 한다.
-        let amountFrame = cell.cryptoAmount.convert(cell.cryptoAmount.bounds, to: cell.contentView)
-        // 심볼도 숫자 오른쪽에서 원래 폭을 유지해야 한다.
-        let unitFrame = unitLabel.convert(unitLabel.bounds, to: cell.contentView)
-        XCTAssertEqual(amountFrame.minX - titleFrame.maxX, quantityStack.spacing, accuracy: 0.5)
-        XCTAssertEqual(unitFrame.minX - amountFrame.maxX, valuesStack.spacing, accuracy: 0.5)
-        XCTAssertGreaterThan(min(titleFrame.maxY, amountFrame.maxY) - max(titleFrame.minY, amountFrame.minY), 0)
-        XCTAssertGreaterThan(min(unitFrame.maxY, amountFrame.maxY) - max(unitFrame.minY, amountFrame.minY), 0)
-        XCTAssertLessThan(cell.cryptoAmount.bounds.width, cell.cryptoAmount.intrinsicContentSize.width)
-        if width >= 375 {
+        XCTAssertEqual(try InvestmentValueLayoutAssertions.verify(XCTUnwrap(cell.cryptoAmount), numberSize: numberSize, unitSize: unitSize), "shrunk")
+      }
+    }
+  }
+
+  @MainActor
+  func testInvestmentLongQuantityKeepsXIBLayoutAcrossReuseAndTextSizeChanges() throws {
+    func assertMetricsAlignRight(_ cell: InvestmentTableViewCell) throws {
+      for value in [cell.cryptoAmount, cell.cryptoAveragePrice, cell.cryptoEvalPrice, cell.cryptoBuyPrice] {
+        // 제목과 값이 동일한 지표 열의 오른쪽 끝에 맞춰지는지 검사한다.
+        let value = try XCTUnwrap(value)
+        // 숫자와 숨겨진 단위를 담은 가로 스택이다.
+        let valueStack = try XCTUnwrap(value.superview as? UIStackView)
+        // 제목과 값을 배치하는 지표 열이다.
+        let column = try XCTUnwrap(valueStack.superview as? UIStackView)
+        // 같은 지표의 제목 레이블이다.
+        let title = try XCTUnwrap(column.arrangedSubviews.last as? UILabel)
+        XCTAssertTrue(column.arrangedSubviews.first === valueStack)
+        XCTAssertEqual(title.font.pointSize, 11, accuracy: 0.01)
+        XCTAssertEqual(title.textAlignment, .right)
+        XCTAssertEqual(value.textAlignment, .right)
+        XCTAssertEqual(title.convert(title.bounds, to: column).maxX, column.bounds.maxX, accuracy: 0.5)
+        XCTAssertEqual(value.convert(value.bounds, to: column).maxX, column.bounds.maxX, accuracy: 0.5)
+        XCTAssertLessThanOrEqual(value.convert(value.bounds, to: column).maxY, title.convert(title.bounds, to: column).minY + 0.5)
+      }
+    }
+
+    // 긴 수량과 증거금을 실제 포지션 계산 경로로 구성한다.
+    let longPosition = try FuturesCalculator.open(
+      domesticFuturesOrder(symbol: "KRW-WAXP", leverage: 1, margin: 1_234_567_890_123_456, price: 1)
+    )
+    // 평가금액도 동일한 자릿수로 표시한다.
+    let longValuation = try FuturesCalculator.evaluate(longPosition, markPrice: 1)
+    // 제보된 기존 수량으로 같은 셀의 재사용을 검사한다.
+    let executionPrice = try XCTUnwrap(Decimal(string: "6.44"))
+    // 기존 수량은 한 줄로 표시할 수 있는 실제 포지션이다.
+    let position = try FuturesCalculator.open(
+      domesticFuturesOrder(symbol: "KRW-WAXP", leverage: 20, margin: 5_000_000, price: executionPrice)
+    )
+    // 수량 표시와 함께 평가금액을 채운다.
+    let valuation = try FuturesCalculator.evaluate(position, markPrice: executionPrice)
+
+    for width: CGFloat in [320, 375, 393] {
+      // 실제 XIB를 UITableView의 자동 높이 경로로 표시한다.
+      let cell = try XCTUnwrap(
+        UINib(nibName: "InvestmentTableViewCell", bundle: .main)
+          .instantiate(withOwner: nil).first as? InvestmentTableViewCell
+      )
+      // 구성한 셀을 실제 자동 높이 테이블에 전달한다.
+      let source = InvestmentLayoutTableSource(cell: cell)
+      // 스크롤 목록과 같은 자동 행 높이를 사용한다.
+      let table = UITableView()
+      table.dataSource = source
+      table.rowHeight = UITableView.automaticDimension
+      table.estimatedRowHeight = 200
+      // 기기 너비에 맞는 표시 계층이다.
+      let controller = UIViewController()
+      controller.view = table
+      // 셀이 창에 부착된 상태에서 최종 높이를 검증한다.
+      let window = UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: 852))
+      window.rootViewController = controller
+      window.makeKeyAndVisible()
+      defer { window.isHidden = true; window.rootViewController = nil }
+
+      for category in [UIContentSizeCategory.large, .accessibilityExtraExtraExtraLarge, .large] {
+        if #available(iOS 17.0, *) {
+          controller.traitOverrides.preferredContentSizeCategory = category
+          controller.updateTraitsIfNeeded()
+        }
+        cell.prepareForReuse()
+        cell.configure(position: longPosition, valuation: longValuation, isLast: false)
+        table.reloadData()
+        table.layoutIfNeeded()
+        cell.layoutIfNeeded()
+        try assertMetricsAlignRight(cell)
+        // 표시 문자열과 VoiceOver 원문을 별도로 비교한다.
+        let values: [(UILabel, String)] = [
+          (cell.cryptoAmount, "1,234,567,890,123,456 WAXP"),
+          (cell.cryptoAveragePrice, "1 KRW"),
+          (cell.cryptoEvalPrice, "1,234,567,890,123,456 KRW"),
+          (cell.cryptoBuyPrice, "1,234,567,890,123,456 KRW")
+        ]
+        for (label, original) in values {
+          XCTAssertEqual(label.accessibilityLabel, original)
+          XCTAssertEqual(label.text, original)
+          XCTAssertEqual(label.lineBreakMode, .byTruncatingMiddle)
+          XCTAssertEqual(label.numberOfLines, 1)
+          XCTAssertTrue(label.adjustsFontSizeToFitWidth)
+          XCTAssertEqual(label.minimumScaleFactor, 0.7, accuracy: 0.001)
+          XCTAssertGreaterThan(label.bounds.width, 0)
           XCTAssertGreaterThanOrEqual(
-            cell.cryptoAmount.bounds.width + 0.5,
-            cell.cryptoAmount.intrinsicContentSize.width * cell.cryptoAmount.minimumScaleFactor
+            label.bounds.height + 1,
+            label.sizeThatFits(CGSize(width: label.bounds.width, height: .greatestFiniteMagnitude)).height,
+            original
           )
+          // 숫자와 단위가 같은 레이블에서 순서대로 표시된다.
+          let frame = label.convert(label.bounds, to: cell.contentView)
+          XCTAssertGreaterThanOrEqual(frame.minX, -1)
+          XCTAssertLessThanOrEqual(frame.maxX, cell.contentView.bounds.width + 1)
+          XCTAssertGreaterThanOrEqual(frame.minY, -1)
+          XCTAssertLessThanOrEqual(frame.maxY, cell.contentView.bounds.height + 1)
+        }
+        // 한 행의 제목이 한 줄이면 짧은 값도 긴 값의 첫 줄과 나란히 표시한다.
+        for (left, right) in [(cell.cryptoAmount, cell.cryptoAveragePrice), (cell.cryptoEvalPrice, cell.cryptoBuyPrice)] {
+          guard let left, let right else { XCTFail("지표 값이 연결되어야 한다."); continue }
+          // 서로 다른 지표 열의 숫자 위치를 셀 좌표계로 비교한다.
+          let leftFrame = left.convert(left.bounds, to: cell.contentView)
+          // 긴 값 옆의 짧은 값이 아래로 밀리면 안 된다.
+          let rightFrame = right.convert(right.bounds, to: cell.contentView)
+          XCTAssertEqual(leftFrame.minY, rightFrame.minY, accuracy: 2)
+          XCTAssertGreaterThan(min(leftFrame.maxY, rightFrame.maxY) - max(leftFrame.minY, rightFrame.minY), 0)
+        }
+        // 숫자와 별도로 배치했던 단위는 더 이상 화면에 나타나지 않는다.
+        let valueStack = try XCTUnwrap(cell.cryptoAmount.superview as? UIStackView)
+        // XIB에서 유지하는 이전 단위 레이블이다.
+        let unitLabel = try XCTUnwrap(valueStack.arrangedSubviews.last as? UILabel)
+        XCTAssertTrue(unitLabel.isHidden)
+        XCTAssertTrue(cell.cryptoAmount.superview?.superview === cell.amountTitle.superview)
+        // 실제 자동 높이 행과 표시 셀의 높이는 같아야 한다.
+        XCTAssertEqual(table.rectForRow(at: IndexPath(row: 0, section: 0)).height, cell.bounds.height, accuracy: 1)
+        // 숫자와 제목 모두 실제 행에서 높이 부족이나 경계 이탈이 없어야 한다.
+        for label in descendants(cell.metricsStackView).compactMap({ $0 as? UILabel })
+          where !(label.text ?? "").isEmpty && !sequence(first: label as UIView, next: { $0.superview }).contains(where: { $0.isHidden }) {
+          // 여러 줄을 포함해 실제 표시 크기에서 필요한 높이다.
+          let required = label.sizeThatFits(CGSize(width: label.bounds.width, height: .greatestFiniteMagnitude))
+          // 셀 기준 좌표로 변환한 실제 표시 영역이다.
+          let frame = label.convert(label.bounds, to: cell.contentView)
+          XCTAssertGreaterThanOrEqual(label.bounds.height + 1, required.height, label.text ?? "")
+          XCTAssertGreaterThanOrEqual(frame.minX, -0.5)
+          XCTAssertLessThanOrEqual(frame.maxX, cell.contentView.bounds.maxX + 0.5)
+          XCTAssertGreaterThanOrEqual(frame.minY, -0.5)
+          XCTAssertLessThanOrEqual(frame.maxY, cell.contentView.bounds.maxY + 0.5)
+        }
+        if category == .large {
+          // 긴 수량의 한 줄 표시를 검토한다.
+          let attachment = XCTAttachment(image: UIGraphicsImageRenderer(bounds: cell.bounds).image {
+            cell.layer.render(in: $0.cgContext)
+          })
+          attachment.name = "FuturesCell-long-grouped-values-\(Int(width))"
+          attachment.lifetime = .keepAlways
+          add(attachment)
         }
       }
-      // 제보된 너비에서 한 줄로 축소된 실제 렌더링을 보관한다.
-      let attachment = XCTAttachment(image: UIGraphicsImageRenderer(bounds: cell.bounds).image {
-        cell.layer.render(in: $0.cgContext)
-      })
-      attachment.name = "FuturesCell-WAXP-Quantity-\(Int(width))"
-      attachment.lifetime = .keepAlways
-      add(attachment)
+      cell.prepareForReuse()
+      cell.configure(position: position, valuation: valuation, isLast: false)
+      table.reloadData()
+      table.layoutIfNeeded()
+      cell.layoutIfNeeded()
+      try assertMetricsAlignRight(cell)
+      XCTAssertEqual(cell.cryptoAmount.accessibilityLabel, "15,527,950 WAXP")
+      XCTAssertEqual(cell.cryptoAmount.text, "15,527,950 WAXP")
+      cell.prepareForReuse()
+      cell.configure(crypto: spotOrderLayoutHolding(), isLast: false)
+      table.reloadData()
+      table.layoutIfNeeded()
+      cell.layoutIfNeeded()
+      try assertMetricsAlignRight(cell)
+      XCTAssertEqual(cell.amountTitle.text, FuturesText.text("investment_quantity"))
+      XCTAssertEqual(cell.cryptoAmount.accessibilityLabel, "0.01 BTC")
+      XCTAssertEqual(cell.cryptoAmount.text, "0.01 BTC")
     }
   }
 
@@ -5147,7 +5517,7 @@ final class FuturesAccountReactorTests: XCTestCase {
     let cell = try XCTUnwrap(
       controller.tableView(controller.pnlTableView, cellForRowAt: IndexPath(row: 0, section: 0)) as? PNLTableViewCell
     )
-    XCTAssertEqual(cell.pnlLabel.text, "-100,000 " + FuturesText.text("currency_krw_unit"))
+    XCTAssertEqual(cell.pnlLabel.accessibilityLabel, "-100,000 " + FuturesText.text("currency_krw_unit"))
     XCTAssertEqual(cell.marketNameLabel.text, FuturesText.symbol(position.order.instrument))
     XCTAssertEqual(cell.positionBadgeLabel.text, "\(FuturesText.text("futures_short")) \(position.order.leverage)×")
     XCTAssertEqual(cell.statusLabel.text, FuturesText.text("futures_pnl_liquidated"))
@@ -6626,7 +6996,7 @@ extension FuturesAccountReactorTests {
 
       cell.configure(record: record, position: position)
 
-      XCTAssertEqual(cell.pnlLabel.text, expected + " " + FuturesText.text("currency_krw_unit"))
+      XCTAssertEqual(cell.pnlLabel.accessibilityLabel, expected + " " + FuturesText.text("currency_krw_unit"))
     }
   }
 
@@ -6665,11 +7035,11 @@ extension FuturesAccountReactorTests {
     XCTAssertFalse(cell.positionBadgeView.isHidden)
     XCTAssertFalse(cell.statusLabel.isHidden)
     XCTAssertFalse(cell.marginView.isHidden)
-    XCTAssertEqual(cell.marginLabel.text, "25,000 " + FuturesText.text("currency_krw_unit"))
-    XCTAssertEqual(cell.entryPriceLabel.text, "90,000,000 " + FuturesText.text("currency_krw_unit"))
-    XCTAssertEqual(cell.exitPriceLabel.text, "110,000,000 " + FuturesText.text("currency_krw_unit"))
-    XCTAssertEqual(cell.pnlLabel.text, "+10,000 " + FuturesText.text("currency_krw_unit"))
-    XCTAssertEqual(cell.roiLabel.text, "+40%")
+    XCTAssertEqual(cell.marginLabel.accessibilityLabel, "25,000 " + FuturesText.text("currency_krw_unit"))
+    XCTAssertEqual(cell.entryPriceLabel.accessibilityLabel, "90,000,000 " + FuturesText.text("currency_krw_unit"))
+    XCTAssertEqual(cell.exitPriceLabel.accessibilityLabel, "110,000,000 " + FuturesText.text("currency_krw_unit"))
+    XCTAssertEqual(cell.pnlLabel.accessibilityLabel, "+10,000 " + FuturesText.text("currency_krw_unit"))
+    XCTAssertEqual(cell.roiLabel.accessibilityLabel, "+40%")
     XCTAssertEqual(try FuturesText.shareUnit(record, position: position).roi, 40)
   }
 
@@ -6677,11 +7047,11 @@ extension FuturesAccountReactorTests {
   func testPNLReusePreservesXIBRowsAndCardColorsAcrossThemes() throws {
     // 현물·선물 구성을 번갈아 적용해도 XIB 행 배치가 바뀌면 안 된다.
     let cell = try XCTUnwrap(UINib(nibName: "PNLTableViewCell", bundle: .main).instantiate(withOwner: nil).first as? PNLTableViewCell)
-    // 날짜 푸터와 두 지표 행은 재사용 중 같은 계층에 남아야 한다.
+    // 날짜 푸터와 지표 행은 재사용 중 같은 계층에 남아야 한다.
     let dateRow = try XCTUnwrap(cell.transactionDateLabel.superview)
     // 날짜 행의 소유 행이 재사용 중 바뀌지 않는지 비교한다.
     let dateParent = try XCTUnwrap(dateRow.superview)
-    // 기존 두 행의 객체와 순서가 유지돼야 한다.
+    // 기존 지표 행의 객체와 순서가 유지돼야 한다.
     let rows = cell.metricsStackView.arrangedSubviews
     // 헤더·날짜만 한 줄 축소를 허용하고 본문 지표의 동적 글씨를 유지한다.
     let compactLabels: [UILabel] = [cell.marketNameLabel, cell.positionBadgeLabel, cell.statusLabel, cell.transactionDateLabel]
@@ -6726,22 +7096,42 @@ extension FuturesAccountReactorTests {
       if #available(iOS 17.0, *) { window.updateTraitsIfNeeded() }
       waitForNoticeUpdates(0.05)
       XCTAssertEqual(cell.traitCollection.userInterfaceStyle, style)
+      // 현물 전환 시 숨겨진 증거금 행이 실제 높이에서도 빠지는지 확인한다.
+      var futuresHeight: CGFloat?
       for isFutures in [true, false, true] {
         if isFutures { cell.configure(record: record, position: position) }
         else { cell.configure(pnlHistory: spot) }
+        // 현물과 선물 모두 체결 수량 원문과 종목 단위 서식을 유지한다.
+        let quantityText = try XCTUnwrap(cell.quantityLabel.attributedText)
+        // 숫자와 단위는 각각 XIB에 지정된 크기를 사용한다.
+        let unitRange = (quantityText.string as NSString).range(of: "BTC", options: .backwards)
+        XCTAssertNotEqual(unitRange.location, NSNotFound)
+        if unitRange.location != NSNotFound {
+          // 숫자 서식이 따로 없으면 레이블의 기본 XIB 글꼴을 사용한다.
+          let numberFont = try XCTUnwrap(
+            (quantityText.attribute(.font, at: 0, effectiveRange: nil) as? UIFont) ?? cell.quantityLabel.font
+          )
+          // 심볼 범위에만 작은 XIB 글꼴을 적용한다.
+          let unitFont = try XCTUnwrap(quantityText.attribute(.font, at: unitRange.location, effectiveRange: nil) as? UIFont)
+          XCTAssertEqual(numberFont.pointSize, 13, accuracy: 0.01)
+          XCTAssertEqual(unitFont.pointSize, 11, accuracy: 0.01)
+        }
+        XCTAssertEqual(cell.quantityLabel.accessibilityLabel, quantityText.string)
         // 배지·증거금 표시 여부에 맞는 자연 높이에서 재사용 결과를 비교한다.
         let fitting = cell.systemLayoutSizeFitting(
           CGSize(width: 320, height: UIView.layoutFittingCompressedSize.height),
           withHorizontalFittingPriority: .required,
           verticalFittingPriority: .fittingSizeLevel
         )
+        if isFutures { futuresHeight = fitting.height }
+        else if let futuresHeight { XCTAssertLessThan(fitting.height, futuresHeight) }
         cell.frame.size.height = ceil(fitting.height)
         cell.setNeedsLayout()
         cell.layoutIfNeeded()
         XCTAssertTrue(cell.transactionDateLabel.superview === dateRow)
         XCTAssertTrue(dateRow.superview === dateParent)
         XCTAssertEqual(cell.metricsStackView.arrangedSubviews, rows)
-        XCTAssertEqual(rows.count, 2)
+        XCTAssertEqual(rows.count, 6)
         for label in compactLabels {
           XCTAssertEqual(label.numberOfLines, 1)
           XCTAssertTrue(label.adjustsFontSizeToFitWidth)
@@ -6760,6 +7150,8 @@ extension FuturesAccountReactorTests {
         XCTAssertEqual(cell.statusLabel.isHidden, !isFutures)
         XCTAssertEqual(cell.marginView.isHidden, !isFutures)
         if isFutures {
+          XCTAssertEqual(cell.entryTitle.text, FuturesText.text("futures_entry_price"))
+          XCTAssertEqual(cell.exitTitle.text, FuturesText.text("futures_exit_price"))
           // 재사용과 테마 전환 뒤에도 종목·배지·상태의 같은 행 정렬을 보존한다.
           let marketFrame = cell.marketNameLabel.convert(cell.marketNameLabel.bounds, to: cell.contentView)
           // 배지의 배경 영역까지 포함해 종목과 상태의 겹침을 검사한다.
@@ -6772,8 +7164,10 @@ extension FuturesAccountReactorTests {
           XCTAssertLessThanOrEqual(badgeFrame.maxX, statusFrame.minX)
           XCTAssertEqual(cell.positionBadgeLabel.text, "\(FuturesText.side(record.side)) \(record.leverage)×")
           XCTAssertEqual(cell.statusLabel.text, FuturesText.text("futures_pnl_closed"))
-          XCTAssertTrue(cell.marginLabel.text?.contains(FuturesText.number(try position.margin)) == true)
+          XCTAssertTrue(cell.marginLabel.accessibilityLabel?.contains(FuturesText.number(try position.margin)) == true)
         } else {
+          XCTAssertEqual(cell.entryTitle.text, FuturesText.text("investment_entry_price"))
+          XCTAssertEqual(cell.exitTitle.text, FuturesText.text("investment_exit_price"))
           XCTAssertNil(cell.positionBadgeLabel.text)
           XCTAssertNil(cell.statusLabel.text)
           XCTAssertNil(cell.marginLabel.text)

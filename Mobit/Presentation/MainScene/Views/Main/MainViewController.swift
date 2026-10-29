@@ -1564,9 +1564,9 @@ extension MainViewController: View {
         let valuation = PortfolioCalculator.valuation(
           of: pricedHolding, btcKRWPrice: AppDataManager.shared.lastBTCKRWPrice(for: currentExchange)
         )
-        enriched.averageBuyPriceKRW = valuation.averagePriceKRW
-        enriched.evaluationPrice = valuation.evaluationKRW
-        enriched.evaluationProfitLoss = valuation.profitLossKRW
+        enriched.averageBuyPriceKRW = valuation.averagePriceKRW.map(PortfolioCalculator.double)
+        enriched.evaluationPrice = valuation.evaluationKRW.map(PortfolioCalculator.double)
+        enriched.evaluationProfitLoss = valuation.profitLossKRW.map(PortfolioCalculator.double)
         enriched.profitRate = valuation.profitRate
 		return enriched
 	  }

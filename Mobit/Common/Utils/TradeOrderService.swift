@@ -158,7 +158,7 @@ enum TradeOrderService {
         currency: currency
       )
 
-      let averageBuyPrice = buyAmount / holdingQuantity
+      let averageBuyPrice = calculateAveragePrice(amount: buyAmount, quantity: holdingQuantity)
       let staticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
         exchange: exchange,
         marketName: marketName,
@@ -396,8 +396,12 @@ enum TradeOrderService {
     )
 
     if !isFullySold {
-      let newHoldingQuantity = staticData.holdingQuantity - executedQuantity
-      let newBuyAmount = staticData.buyAmount * newHoldingQuantity / staticData.holdingQuantity
+      let newHoldingQuantity = calculateDifference(staticData.holdingQuantity, executedQuantity)
+      let newBuyAmount = calculateProportionalAmount(
+        staticData.buyAmount,
+        quantity: newHoldingQuantity,
+        totalQuantity: staticData.holdingQuantity
+      )
       let newStaticData = CryptoTransactionDataModel.CryptoTransactionStaticData(
         exchange: staticData.exchange,
         marketName: staticData.marketName,
@@ -497,7 +501,10 @@ extension TradeOrderService {
   ) -> Double {
     switch currency {
     case .krw:
-      let availableBalance = (UserDataManager.userInformation(for: exchange)?.userAvailableBalance ?? 0) - amount
+      let availableBalance = calculateDifference(
+        UserDataManager.userInformation(for: exchange)?.userAvailableBalance ?? 0,
+        amount
+      )
       UserDataManager.updateUserInformation(
         MobitUserInformation(userAvailableBalance: availableBalance),
         for: exchange
@@ -523,7 +530,10 @@ extension TradeOrderService {
   ) -> Double {
     switch currency {
     case .krw:
-      let availableBalance = (UserDataManager.userInformation(for: exchange)?.userAvailableBalance ?? 0) + amount
+      let availableBalance = calculateSum(
+        UserDataManager.userInformation(for: exchange)?.userAvailableBalance ?? 0,
+        amount
+      )
       UserDataManager.updateUserInformation(
         MobitUserInformation(userAvailableBalance: availableBalance),
         for: exchange
@@ -553,7 +563,7 @@ extension TradeOrderService {
     }
 
     let staticData = holding.staticData
-    let remainingQuantity = PortfolioCalculator.double(PortfolioCalculator.decimal(staticData.holdingQuantity) - PortfolioCalculator.decimal(amount))
+    let remainingQuantity = calculateDifference(staticData.holdingQuantity, amount)
 
     MarketDataServiceUtil.shared.addValidTransactionData(
       for: holdingMarket,
@@ -586,7 +596,11 @@ extension TradeOrderService {
       cryptoName: staticData.cryptoName,
       holdingQuantity: remainingQuantity,
       averageBuyPrice: staticData.averageBuyPrice,
-      buyAmount: staticData.buyAmount * remainingQuantity / staticData.holdingQuantity,
+      buyAmount: calculateProportionalAmount(
+        staticData.buyAmount,
+        quantity: remainingQuantity,
+        totalQuantity: staticData.holdingQuantity
+      ),
       costBasisKRW: PortfolioCalculator.costBasisKRW(of: staticData).map {
         $0 * PortfolioCalculator.decimal(remainingQuantity) / PortfolioCalculator.decimal(staticData.holdingQuantity)
       }
@@ -611,7 +625,7 @@ extension TradeOrderService {
 
     let existingStaticData = self.settlementHolding(currency: .btc, exchange: exchange)?.staticData
     let previousQuantity = existingStaticData?.holdingQuantity ?? 0
-    let newQuantity = previousQuantity + amount
+    let newQuantity = calculateSum(previousQuantity, amount)
     let newAveragePrice = PortfolioCalculator.weightedAverageBuyPrice(
       previousQuantity: previousQuantity,
       previousAveragePrice: existingStaticData?.averageBuyPrice ?? 0,
@@ -638,7 +652,7 @@ extension TradeOrderService {
       cryptoName: existingStaticData?.cryptoName ?? "비트코인",
       holdingQuantity: newQuantity,
       averageBuyPrice: newAveragePrice,
-      buyAmount: newQuantity * newAveragePrice,
+      buyAmount: calculateProduct(newQuantity, newAveragePrice),
       costBasisKRW: (existingStaticData.flatMap { PortfolioCalculator.costBasisKRW(of: $0) } ?? 0)
         + PortfolioCalculator.decimal(amount) * PortfolioCalculator.decimal(btcKRWPrice)
     )
@@ -657,5 +671,66 @@ extension TradeOrderService {
     }
 
     return newQuantity
+  }
+
+  private static func calculateSum(_ lhs: Double, _ rhs: Double) -> Double {
+    guard lhs.isFinite, rhs.isFinite else { return lhs + rhs }
+    // 십진수 범위를 벗어나면 기존 숫자 연산의 오류 흐름을 유지한다.
+    let result = PortfolioCalculator.decimal(lhs) + PortfolioCalculator.decimal(rhs)
+    return result.isNaN ? lhs + rhs : PortfolioCalculator.double(result)
+  }
+
+  private static func calculateDifference(_ lhs: Double, _ rhs: Double) -> Double {
+    guard lhs.isFinite, rhs.isFinite else { return lhs - rhs }
+    // 기존 잔고와 체결 수량의 소수 차이를 십진수로 계산한다.
+    let result = PortfolioCalculator.decimal(lhs) - PortfolioCalculator.decimal(rhs)
+    return result.isNaN ? lhs - rhs : PortfolioCalculator.double(result)
+  }
+
+  private static func calculateProduct(_ lhs: Double, _ rhs: Double) -> Double {
+    guard lhs.isFinite, rhs.isFinite else { return lhs * rhs }
+    // 결제 자산 원가 계산에서 중간 부동소수 오차를 줄인다.
+    let left = PortfolioCalculator.decimal(lhs)
+    let right = PortfolioCalculator.decimal(rhs)
+    guard !left.isNaN, !right.isNaN,
+          (-128...127).contains(left.exponent + right.exponent) else { return lhs * rhs }
+    let result = left * right
+    return result.isNaN ? lhs * rhs : PortfolioCalculator.double(result)
+  }
+
+  private static func calculateAveragePrice(amount: Double, quantity: Double) -> Double {
+    guard amount.isFinite, quantity.isFinite, quantity != 0 else { return amount / quantity }
+    // 기존 체결 금액과 수량의 비율을 저장 경계에서만 Double로 바꾼다.
+    let decimalAmount = PortfolioCalculator.decimal(amount)
+    let decimalQuantity = PortfolioCalculator.decimal(quantity)
+    guard !decimalAmount.isNaN, !decimalQuantity.isNaN,
+          (-128...127).contains(decimalAmount.exponent - decimalQuantity.exponent) else { return amount / quantity }
+    let result = decimalAmount / decimalQuantity
+    return result.isNaN ? amount / quantity : PortfolioCalculator.double(result)
+  }
+
+  private static func calculateProportionalAmount(
+    _ amount: Double,
+    quantity: Double,
+    totalQuantity: Double
+  ) -> Double {
+    guard amount.isFinite, quantity.isFinite, totalQuantity.isFinite, totalQuantity != 0 else {
+      return amount * quantity / totalQuantity
+    }
+    // 부분 매도 후 보유 수량에 비례하는 기존 매수 금액이다.
+    let decimalAmount = PortfolioCalculator.decimal(amount)
+    let decimalQuantity = PortfolioCalculator.decimal(quantity)
+    let decimalTotal = PortfolioCalculator.decimal(totalQuantity)
+    guard !decimalAmount.isNaN, !decimalQuantity.isNaN, !decimalTotal.isNaN,
+          (-128...127).contains(decimalAmount.exponent + decimalQuantity.exponent) else {
+      return amount * quantity / totalQuantity
+    }
+    // 지수 범위를 벗어나는 Decimal 중간값은 잘못된 큰 값으로 바뀔 수 있다.
+    let product = decimalAmount * decimalQuantity
+    guard !product.isNaN, (-128...127).contains(product.exponent - decimalTotal.exponent) else {
+      return amount * quantity / totalQuantity
+    }
+    let result = product / decimalTotal
+    return result.isNaN ? amount * quantity / totalQuantity : PortfolioCalculator.double(result)
   }
 }

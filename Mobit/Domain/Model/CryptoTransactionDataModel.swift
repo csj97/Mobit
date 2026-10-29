@@ -310,28 +310,63 @@ struct ValidTransactionInfo: Codable, Equatable {
 }
 
 extension ValidTransactionInfo {
-  
+
   var totalHoldingQuantity: Double {
-	transaction.reduce(0.0) { result, t in
-	  switch t.orderType {
-	  case .bid:
-		return result + t.quantity
-	  case .ask:
-		return result - t.quantity
-	  }
-	}
+    // 체결 수량을 십진수로 합산해 전량 매도 뒤 미세 잔량이 남지 않게 한다.
+    let total: Decimal? = transaction.reduce(Decimal.zero as Decimal?) { result, item in
+      guard let result, let quantity = Self.decimalValue(item.quantity) else { return nil }
+      // 이력 순서와 매수·매도 부호는 기존 계산을 유지한다.
+      let next = item.orderType == .bid ? result + quantity : result - quantity
+      return next.isNaN ? nil : next
+    }
+    if let total { return PortfolioCalculator.double(total) }
+    // 십진수로 표현할 수 없는 기존 데이터는 기존 부동소수 계산을 유지한다.
+    return transaction.reduce(0.0) { result, item in
+      item.orderType == .bid ? result + item.quantity : result - item.quantity
+    }
   }
-  
+
   var averageBuyPrice: Double? {
-	let buyTransactions = transaction.filter { $0.orderType == .bid }
-	
-	let totalBuyAmount = buyTransactions.reduce(0.0) { $0 + ($1.buyPrice * $1.quantity) }
-	let totalBuyQuantity = buyTransactions.reduce(0.0) { $0 + $1.quantity }
-	
-	return totalBuyQuantity > 0 ? totalBuyAmount / totalBuyQuantity : nil
+    // 매도 내역을 제외한 매수 체결만 기존 가중평균에 사용한다.
+    let buyTransactions = transaction.filter { $0.orderType == .bid }
+    // 체결 금액과 수량을 합산하는 동안 십진수 정밀도를 유지한다.
+    let totals = buyTransactions.reduce(
+      (amount: Decimal.zero, quantity: Decimal.zero) as (amount: Decimal, quantity: Decimal)?
+    ) { result, item in
+      guard let result, let price = Self.decimalValue(item.buyPrice),
+            let quantity = Self.decimalValue(item.quantity) else { return nil }
+      // Decimal 지수 범위를 넘으면 곱셈 결과가 잘못된 거대 값이 될 수 있다.
+      guard (-128...127).contains(price.exponent + quantity.exponent) else { return nil }
+      // 각 체결의 원가와 수량을 같은 십진수 기준으로 합산한다.
+      let amount = result.amount + price * quantity
+      // 가중평균의 분모가 되는 매수 수량이다.
+      let totalQuantity = result.quantity + quantity
+      return amount.isNaN || totalQuantity.isNaN ? nil : (amount, totalQuantity)
+    }
+    if let totals {
+      guard totals.quantity > 0 else { return nil }
+      if (-128...127).contains(totals.amount.exponent - totals.quantity.exponent) {
+        // 결과는 기존 화면과 저장 경계에서 사용하는 Double로 반환한다.
+        let average = totals.amount / totals.quantity
+        if !average.isNaN { return PortfolioCalculator.double(average) }
+      }
+    }
+    // 기존 숫자 범위 밖이나 비유한 데이터는 이전 계산 결과를 유지한다.
+    let totalBuyAmount = buyTransactions.reduce(0.0) { $0 + ($1.buyPrice * $1.quantity) }
+    // 이전 방식으로 계산한 가중평균 분모다.
+    let totalBuyQuantity = buyTransactions.reduce(0.0) { $0 + $1.quantity }
+    return totalBuyQuantity > 0 ? totalBuyAmount / totalBuyQuantity : nil
   }
-  
+
   var isFullySoldOut: Bool {
-	totalHoldingQuantity <= 0
+    totalHoldingQuantity <= 0
+  }
+
+  private static func decimalValue(_ value: Double) -> Decimal? {
+    guard value.isFinite else { return nil }
+    // 기존 Double 저장값의 십진수 문자열을 사용해 변환 오차를 늘리지 않는다.
+    let decimal = PortfolioCalculator.decimal(value)
+    guard !decimal.isNaN else { return nil }
+    return decimal
   }
 }

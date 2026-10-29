@@ -21,8 +21,9 @@
 "investment_recharge_action" = "Recharge Investment Funds" ;
 "investment_my_assets" = "My Assets";
 "investment_unit_krw" = "Unit: KRW";
-"investment_available_krw" = "Available KRW";
+"investment_available_krw" = "Available";
 "investment_total_buy" = "Total Purchase";
+"investment_total_margin" = "Total Margin";
 "investment_position_evaluation" = "Position Value";
 "investment_roe" = "Return (ROE)";
 "investment_charge_note" = "Top up your paper trading balance";

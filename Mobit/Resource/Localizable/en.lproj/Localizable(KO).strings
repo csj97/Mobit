@@ -21,9 +21,10 @@
 "investment_recharge_action" = "투자금 충전하기" ;
 "investment_my_assets" = "내 보유자산";
 "investment_unit_krw" = "단위 KRW";
-"investment_available_krw" = "주문가능 KRW";
+"investment_available_krw" = "주문가능";
 "investment_total_buy" = "총 매수";
-"investment_position_evaluation" = "포지션 평가";
+"investment_total_margin" = "총증거금";
+"investment_position_evaluation" = "포지션평가";
 "investment_roe" = "수익률(ROE)";
 "investment_charge_note" = "모의투자 자산을 충전해 보세요";
 "investment_holdings" = "보유자산";
