@@ -125,7 +125,11 @@ class TradeViewController: MobitBaseViewController {
     if let futuresReactor {
       let instrument = TradingInstrumentID(exchange: futuresReactor.account.exchange, product: .perpetual,
         rawSymbol: MarketFormat.apiMarket(fromDisplayMarket: reactor.selectCrypto.market), settlementCurrency: .krw)
-      let controller = FuturesOrderViewController(reactor: futuresReactor, instrument: instrument)
+      let controller = FuturesOrderViewController(
+        reactor: futuresReactor,
+        instrument: instrument,
+        cryptoName: reactor.selectCrypto.cryptoName
+      )
       controller.tradeCompletedCallBack = { [weak self] in self?.showTradeCompletionToast() }
       addChild(controller)
       futuresOrderController = controller

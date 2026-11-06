@@ -6,6 +6,8 @@ import RxCocoa
 final class FuturesOrderViewController: MobitBaseViewController {
   let reactor: FuturesAccountReactor
   let instrument: TradingInstrumentID
+  // 투자내역에 표시할 거래소 종목명이다.
+  private let cryptoName: String?
   var captureOrderPrice: (() -> FuturesOrderPrice?)?
   // 실제 체결 완료 안내를 주문 패널 밖의 전체 화면으로 전달한다.
   var tradeCompletedCallBack: (() -> Void)?
@@ -51,9 +53,14 @@ final class FuturesOrderViewController: MobitBaseViewController {
   // 현재 포지션의 종료 여부를 확인하는 창을 연다.
   private lazy var closeButton = FuturesText.button("futures_close") { [weak self] in self?.confirmClose() }
 
-  init(reactor: FuturesAccountReactor, instrument: TradingInstrumentID) {
+  init(
+    reactor: FuturesAccountReactor,
+    instrument: TradingInstrumentID,
+    cryptoName: String? = nil
+  ) {
 	self.reactor = reactor
 	self.instrument = instrument
+	self.cryptoName = cryptoName
 	self.expectedPositionID = reactor.position(for: instrument)?.id
 	super.init(nibName: nil, bundle: nil)
   }
@@ -482,7 +489,8 @@ final class FuturesOrderViewController: MobitBaseViewController {
         amount,
         current?.order.leverage ?? Int(leverageControl.value),
         expectedPositionID ?? current?.id,
-        price
+        price,
+        cryptoName
       )
     )
   }

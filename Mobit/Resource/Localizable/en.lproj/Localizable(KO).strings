@@ -22,7 +22,7 @@
 "investment_my_assets" = "내 보유자산";
 "investment_unit_krw" = "단위 KRW";
 "investment_available_krw" = "주문가능";
-"investment_total_buy" = "총 매수";
+"investment_total_buy" = "총매수";
 "investment_total_margin" = "총증거금";
 "investment_position_evaluation" = "포지션평가";
 "investment_roe" = "수익률(ROE)";
@@ -41,7 +41,8 @@
 "investment_futures_assets_description" = "총 보유자산은 주문가능 KRW와 보유 포지션의 평가금액을 합한 금액입니다.\n포지션 평가금액은 증거금에 평가손익을 더한 금액이며, 수익률(ROE)은 투입한 증거금을 기준으로 표시합니다.";
 "investment_evaluation_amount" = "평가금액";
 "investment_unsupported_badge" = "거래지원 종료";
-"investment_unsupported_notice" = "거래소에서 지원하지 않는 코인입니다.";
+"investment_unsupported_notice" = "거래지원이 종료된 자산입니다";
+"investment_unsupported_settlement" = "보유자산으로 돌려받기";
 "sort_method" = "정렬방법" ;
 "sort_name" = "이름순" ;
 "sort_return_high" = "수익률 높은순" ;
@@ -153,7 +154,7 @@
 "futures_realized" = "실현손익";
 "futures_no_history" = "거래내역이 없습니다.";
 "futures_total" = "총 평가자산";
-"futures_total_evaluation" = "총 평가";
+"futures_total_evaluation" = "총평가";
 "futures_valuation_wait" = "평가금액 조회 대기 · 저장된 잔액은 유지됩니다.";
 "futures_zero_balance" = "신규 선물 계좌는 0원입니다. 광고를 보고 투자금을 충전해 주세요.";
 "futures_exchange" = "거래소 선택";

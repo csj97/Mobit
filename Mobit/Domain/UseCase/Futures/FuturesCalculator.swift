@@ -84,6 +84,7 @@ enum FuturesCalculator {
     )
     result.additionalOrders = (position.additionalOrders ?? []) + [added.order]
     result.partialClosings = position.partialClosings
+    result.cryptoName = position.cryptoName
     return result
   }
 
@@ -194,6 +195,7 @@ enum FuturesCalculator {
     )
     result.additionalOrders = position.additionalOrders
     result.partialClosings = (position.partialClosings ?? []) + [closing]
+    result.cryptoName = position.cryptoName
     return result
   }
 

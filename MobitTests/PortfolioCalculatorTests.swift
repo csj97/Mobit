@@ -357,57 +357,216 @@ final class PortfolioCalculatorTests: XCTestCase {
     XCTAssertEqual(cell.cryptoProfitRate.text, "—")
   }
 
-  func testUnsupportedInvestmentCellShowsOpaqueStatusDesign() throws {
-    func descendants(of view: UIView) -> [UIView] {
-      view.subviews.flatMap { [$0] + descendants(of: $0) }
-    }
-    let cell = try XCTUnwrap(UINib(nibName: "InvestmentTableViewCell", bundle: Bundle.main)
-      .instantiate(withOwner: nil).first as? InvestmentTableViewCell)
-    let crypto = makeCrypto(
+  @MainActor
+  func testUnsupportedInvestmentOverlayShowsActionAndResetsAfterReuse() throws {
+    // 지원 종료 여부만 바뀌는 동일한 보유 종목이다.
+    var crypto = makeCrypto(
       evaluationPrice: 5_340,
       evaluationProfitLoss: 340,
       buyAmount: 5_000,
       marketName: "GEOD/KRW",
       costBasisKRW: 5_000
     )
+    crypto.staticData.cryptoName = "지오드넷"
 
-    cell.frame = CGRect(x: 0, y: 0, width: 390, height: 1)
-    cell.configure(crypto: crypto, isLast: true, isTradingUnsupported: false)
-    let normalHeight = cell.contentView.systemLayoutSizeFitting(
-      CGSize(width: 390, height: UIView.layoutFittingCompressedSize.height),
-      withHorizontalFittingPriority: .required,
-      verticalFittingPriority: .fittingSizeLevel
-    ).height
+    for width: CGFloat in [320, 375, 393] {
+      // 화면에 사용하는 실제 셀과 자동 높이 테이블을 사용한다.
+      let cell = try XCTUnwrap(
+        UINib(nibName: "InvestmentTableViewCell", bundle: .main)
+          .instantiate(withOwner: nil).first as? InvestmentTableViewCell
+      )
+      // 정상 셀과 종료 셀을 같은 화면에서 비교한다.
+      let supportedCell = try XCTUnwrap(
+        UINib(nibName: "InvestmentTableViewCell", bundle: .main)
+          .instantiate(withOwner: nil).first as? InvestmentTableViewCell
+      )
+      supportedCell.configure(crypto: crypto, isLast: false, isTradingUnsupported: false)
+      // 구성한 셀을 실제 자동 높이 테이블에 제공한다.
+      let source = InvestmentOverlayTableSource(cells: [supportedCell, cell])
+      // 셀 표시 크기와 터치 경로를 검사한다.
+      let table = UITableView()
+      table.dataSource = source
+      table.rowHeight = UITableView.automaticDimension
+      table.estimatedRowHeight = 200
+      // 테이블의 실제 화면 계층을 제공한다.
+      let controller = UIViewController()
+      controller.view = table
+      // 각 기기 너비에서 표시할 테스트 창이다.
+      let window = UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: 812))
+      window.rootViewController = controller
+      window.makeKeyAndVisible()
+      defer { window.isHidden = true; window.rootViewController = nil }
 
-    cell.configure(crypto: crypto, isLast: true, isTradingUnsupported: true)
-    let unsupportedHeight = cell.contentView.systemLayoutSizeFitting(
-      CGSize(width: 390, height: UIView.layoutFittingCompressedSize.height),
-      withHorizontalFittingPriority: .required,
-      verticalFittingPriority: .fittingSizeLevel
-    ).height
+      cell.configure(crypto: crypto, isLast: true, isTradingUnsupported: false)
+      XCTAssertTrue(cell.unsupportedOverlayView.isHidden)
+      cell.configure(crypto: crypto, isLast: true, isTradingUnsupported: true)
+      table.reloadData()
+      window.layoutIfNeeded()
+      table.layoutIfNeeded()
+      cell.layoutIfNeeded()
 
-    let badge = try XCTUnwrap(
-      descendants(of: cell.bgView).first { $0.accessibilityLabel == FuturesText.text("investment_unsupported_badge") }
-    )
-    let notice = try XCTUnwrap(
-      descendants(of: cell.bgView).first { $0.accessibilityLabel == FuturesText.text("investment_unsupported_notice") }
-    )
-    XCTAssertFalse(badge.isHidden)
-    XCTAssertFalse(notice.isHidden)
-    XCTAssertGreaterThan(unsupportedHeight, normalHeight)
+      // 지원 종료 상태에서 표시할 흐림 표면이다.
+      let overlay = try XCTUnwrap(cell.unsupportedOverlayView)
+      // 사용자가 확인할 거래지원 종료 안내다.
+      let notice = try XCTUnwrap(cell.unsupportedNoticeLabel)
+      // 기존 정산 확인을 여는 버튼이다.
+      let button = try XCTUnwrap(cell.unsupportedSettlementButton)
+      XCTAssertFalse(overlay.isHidden)
+      XCTAssertNotNil(overlay.effect)
+      XCTAssertTrue(supportedCell.unsupportedOverlayView.isHidden)
+      XCTAssertFalse(supportedCell.metricsStackView.superview?.accessibilityElementsHidden ?? true)
+      XCTAssertEqual(supportedCell.cryptoBuyPrice.accessibilityLabel, "5,000 KRW")
+      XCTAssertEqual(notice.accessibilityIdentifier, "investment.unsupported.notice")
+      XCTAssertEqual(button.accessibilityIdentifier, "investment.unsupported.settle")
+      XCTAssertTrue(button.isDescendant(of: overlay))
+      XCTAssertTrue(notice.text?.contains("GEOD/KRW") == true)
+      XCTAssertTrue(cell.metricsStackView.superview?.accessibilityElementsHidden == true)
+      XCTAssertGreaterThanOrEqual(button.bounds.width, 44)
+      XCTAssertGreaterThanOrEqual(button.bounds.height, 44)
+      XCTAssertTrue(overlay.bounds.insetBy(dx: -0.5, dy: -0.5).contains(button.convert(button.bounds, to: overlay)))
 
-    for style in [UIUserInterfaceStyle.light, .dark] {
-      let traits = UITraitCollection(userInterfaceStyle: style)
-      XCTAssertEqual(badge.backgroundColor?.resolvedColor(with: traits).cgColor.alpha, 1)
-      XCTAssertEqual(notice.backgroundColor?.resolvedColor(with: traits).cgColor.alpha, 1)
+      // 안내 버튼이 실제 터치 위치에서 다른 뷰에 가려지지 않아야 한다.
+      let buttonCenter = button.convert(CGPoint(x: button.bounds.midX, y: button.bounds.midY), to: cell)
+      // 버튼 중앙 터치를 실제로 받는 뷰다.
+      let hit = cell.hitTest(buttonCenter, with: nil)
+      XCTAssertTrue(hit === button || hit?.isDescendant(of: button) == true)
+      // 버튼 탭이 셀의 정산 콜백으로 전달된 횟수다.
+      var actionCount = 0
+      cell.unsupportedSettlementCallBack = { actionCount += 1 }
+      button.sendActions(for: .touchUpInside)
+      XCTAssertEqual(actionCount, 1)
+
+      for style in [UIUserInterfaceStyle.light, .dark] {
+        window.overrideUserInterfaceStyle = style
+        window.layoutIfNeeded()
+        cell.layoutIfNeeded()
+        XCTAssertFalse(overlay.isHidden)
+        XCTAssertNotNil(overlay.effect)
+        XCTAssertFalse(button.isHidden)
+      }
+      if #available(iOS 17.0, *) {
+        for category in [UIContentSizeCategory.large, .accessibilityExtraExtraExtraLarge] {
+          controller.traitOverrides.preferredContentSizeCategory = category
+          controller.updateTraitsIfNeeded()
+          table.reloadData()
+          window.layoutIfNeeded()
+          table.layoutIfNeeded()
+          cell.layoutIfNeeded()
+          // 확대된 안내와 버튼도 흐림 영역에 들어가야 한다.
+          let noticeFrame = notice.convert(notice.bounds, to: overlay)
+          // 같은 좌표계에서 안내 아래의 버튼 위치다.
+          let buttonFrame = button.convert(button.bounds, to: overlay)
+          XCTAssertTrue(overlay.bounds.insetBy(dx: -0.5, dy: -0.5).contains(noticeFrame))
+          XCTAssertTrue(overlay.bounds.insetBy(dx: -0.5, dy: -0.5).contains(buttonFrame))
+          XCTAssertLessThanOrEqual(noticeFrame.maxY, buttonFrame.minY)
+          XCTAssertGreaterThanOrEqual(buttonFrame.height, 44)
+        }
+        controller.traitOverrides.preferredContentSizeCategory = .large
+        controller.updateTraitsIfNeeded()
+        table.reloadData()
+        window.layoutIfNeeded()
+        table.layoutIfNeeded()
+        cell.layoutIfNeeded()
+      }
+      if width == 375 {
+        window.overrideUserInterfaceStyle = .light
+        window.layoutIfNeeded()
+        cell.layoutIfNeeded()
+        // 흐림과 버튼을 실제 표시 계층에서 함께 확인한다.
+        let image = UIGraphicsImageRenderer(bounds: cell.bounds).image { _ in
+          cell.drawHierarchy(in: cell.bounds, afterScreenUpdates: true)
+        }
+        // 작은 화면의 실제 표시 결과를 검토할 수 있도록 보관한다.
+        let attachment = XCTAttachment(image: image)
+        attachment.name = "Unsupported-investment-overlay-375"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        // 실제 윈도우에서 일반 셀과 흐림 셀의 겹침을 함께 렌더링한다.
+        let screenImage = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
+          window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+        }
+        // UIVisualEffectView가 적용된 실제 화면을 보관한다.
+        let screenAttachment = XCTAttachment(image: screenImage)
+        screenAttachment.name = "Supported-and-unsupported-investment-375"
+        screenAttachment.lifetime = .keepAlways
+        add(screenAttachment)
+      }
+
+      cell.prepareForReuse()
+      XCTAssertTrue(overlay.isHidden)
+      XCTAssertNil(cell.unsupportedSettlementCallBack)
+      cell.configure(crypto: crypto, isLast: false, isTradingUnsupported: false)
+      XCTAssertTrue(overlay.isHidden)
+      XCTAssertFalse(cell.metricsStackView.superview?.accessibilityElementsHidden ?? true)
+      withExtendedLifetime(source) {}
     }
+  }
 
-    cell.prepareForReuse()
-    XCTAssertTrue(badge.isHidden)
-    XCTAssertTrue(notice.isHidden)
-    cell.configure(crypto: crypto, isLast: false)
-    XCTAssertTrue(badge.isHidden)
-    XCTAssertTrue(notice.isHidden)
+  @MainActor
+  func testUnsupportedInvestmentButtonOpensExistingConfirmationAndCancelKeepsAssets() throws {
+    // 지원이 종료된 보유 종목을 실제 목록의 diffable 데이터로 전달한다.
+    var crypto = makeCrypto(
+      evaluationPrice: 5_340,
+      evaluationProfitLoss: 340,
+      buyAmount: 5_000,
+      marketName: "GEOD/KRW",
+      costBasisKRW: 5_000
+    )
+    crypto.staticData.exchange = ExchangeSelectionStore.currentExchange
+    // 네트워크 없이 거래소 지원 목록을 확정한다.
+    let reactor = InvestReactor(mainUseCase: MainUseCase(mainRepository: MainRepository()))
+    reactor.isStubEnabled = true
+    // 화면이 받을 지원 종료 및 보유 상태다.
+    var state = reactor.initialState
+    state.cryptos = [crypto]
+    state.supportedMarketPairIDs = []
+    reactor.stub.state.value = state
+    // 실제 목록의 셀 제공 및 알림 표시 경로를 사용한다.
+    let controller = InvestmentViewController(reactor: reactor)
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 375, height: 812))
+    window.rootViewController = controller
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true; window.rootViewController = nil }
+
+    // 목록 스냅샷은 메인 큐에서 비동기로 적용된다.
+    let cellReady = expectation(for: NSPredicate { _, _ in
+      controller.transactionTableview.visibleCells.contains { $0 is InvestmentTableViewCell }
+    }, evaluatedWith: nil)
+    wait(for: [cellReady], timeout: 5)
+    // 실제 diffable 목록이 만든 지원 종료 셀이다.
+    let cell = try XCTUnwrap(controller.transactionTableview.visibleCells.first as? InvestmentTableViewCell)
+    XCTAssertFalse(cell.unsupportedOverlayView.isHidden)
+    // 취소 전의 저장 자산을 보존해 정산이 발생하지 않았는지 확인한다.
+    let originalHoldings = UserDataManager.userCryptoList
+    // 취소 전의 원화 주문 가능 잔고다.
+    let originalBalance = UserDataManager.userInformation?.userAvailableBalance
+
+    cell.unsupportedSettlementButton.sendActions(for: .touchUpInside)
+    // 정산은 기존 확인창에서 사용자가 동의한 뒤에만 실행한다.
+    let alert = try XCTUnwrap(controller.presentedViewController as? MobitAlertViewController)
+    XCTAssertEqual(alert.alertType, .canCancel)
+    XCTAssertEqual(alert.titleString, "거래지원 종료")
+    alert.loadViewIfNeeded()
+    alert.cancelButton.sendActions(for: .touchUpInside)
+    // 닫기 애니메이션과 취소 콜백이 처리될 때까지 기다린다.
+    let alertClosed = expectation(for: NSPredicate { _, _ in
+      controller.presentedViewController == nil
+    }, evaluatedWith: nil)
+    wait(for: [alertClosed], timeout: 5)
+    XCTAssertEqual(UserDataManager.userCryptoList, originalHoldings)
+    XCTAssertEqual(UserDataManager.userInformation?.userAvailableBalance, originalBalance)
+
+    // 마켓이 다시 지원되면 예전 셀의 지연된 버튼 동작도 무시한다.
+    let staleCallBack = try XCTUnwrap(cell.unsupportedSettlementCallBack)
+    state.supportedMarketPairIDs = [crypto.staticData.exchangePairID]
+    reactor.stub.state.value = state
+    let supportedCellReady = expectation(for: NSPredicate { _, _ in
+      guard let current = controller.transactionTableview.visibleCells.first as? InvestmentTableViewCell else { return false }
+      return current.unsupportedOverlayView.isHidden
+    }, evaluatedWith: nil)
+    wait(for: [supportedCellReady], timeout: 5)
+    staleCallBack()
+    XCTAssertNil(controller.presentedViewController)
   }
 
   func testTradeHoldingViewDisplaysBTCMarketAveragePriceInBTC() throws {
@@ -613,5 +772,24 @@ final class PortfolioCalculatorTests: XCTestCase {
         evaluationPrice: evaluationPrice
       )
     )
+  }
+}
+
+// 정상·지원 종료 셀을 같은 자동 높이 테이블에 제공한다.
+@MainActor
+private final class InvestmentOverlayTableSource: NSObject, UITableViewDataSource {
+  // 캡처와 터치 검증에 사용하는 순서대로 정렬된 셀이다.
+  private let cells: [UITableViewCell]
+
+  init(cells: [UITableViewCell]) {
+    self.cells = cells
+  }
+
+  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    cells.count
+  }
+
+  func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    cells[indexPath.row]
   }
 }

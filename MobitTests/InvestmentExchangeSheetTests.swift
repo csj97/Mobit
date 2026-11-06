@@ -424,6 +424,156 @@ private final class MainExchangeSheetDelegate: MainCoordinatorDelegate {
 
 @MainActor
 final class InvestmentXIBLayoutTests: XCTestCase {
+  func testSortOverlayKeepsXIBChevronAndBothScreenActions() throws {
+    // 현물 화면의 실제 XIB 연결 대상을 준비한다.
+    let spotReactor = InvestReactor(mainUseCase: MainUseCase(mainRepository: MainRepository()))
+    spotReactor.isStubEnabled = true
+    // 선물 화면도 동일한 XIB의 File's Owner를 사용한다.
+    let futuresReactor = FuturesAccountReactor(account: .init(exchange: .upbit, product: .perpetual, currency: .krw))
+    futuresReactor.isStubEnabled = true
+    // 시세 호출 없이 선물 화면 생성에 필요한 Reactor만 연결한다.
+    let marketReactor = MainReactor(mainUseCase: MainUseCase(mainRepository: MainRepository()))
+    marketReactor.isStubEnabled = true
+    // 두 화면에 동일한 정렬 UI와 액션이 연결되는지 확인한다.
+    let controllers: [UIViewController] = [
+      InvestmentViewController(reactor: spotReactor),
+      FuturesInvestmentViewController(reactor: futuresReactor, marketReactor: marketReactor)
+    ]
+    for controller in controllers {
+      // XIB 자체의 실제 연결을 검사한다.
+      let root = try XCTUnwrap(
+        UINib(nibName: "InvestmentViewController", bundle: Bundle(for: PNLShareView.self))
+          .instantiate(withOwner: controller, options: nil).first as? UIView
+      )
+      root.frame = CGRect(x: 0, y: 0, width: 375, height: 812)
+      // 현물과 선물은 같은 라벨과 요약 헤더를 사용한다.
+      let label = try XCTUnwrap(
+        (controller as? InvestmentViewController)?.sortLabel
+          ?? (controller as? FuturesInvestmentViewController)?.sortLabel
+      )
+      let header = try XCTUnwrap(
+        (controller as? InvestmentViewController)?.summaryHeaderView
+          ?? (controller as? FuturesInvestmentViewController)?.summaryHeaderView
+      )
+      let table = try XCTUnwrap(
+        (controller as? InvestmentViewController)?.transactionTableview
+          ?? (controller as? FuturesInvestmentViewController)?.transactionTableview
+      )
+      root.layoutIfNeeded()
+      header.updateLayout(in: table)
+      root.layoutIfNeeded()
+      header.layoutIfNeeded()
+      // 화살표와 라벨을 담은 스택 위에 투명한 버튼이 놓인다.
+      let stack = try XCTUnwrap(label.superview as? UIStackView)
+      let container = try XCTUnwrap(stack.superview)
+      let arrow = try XCTUnwrap(stack.arrangedSubviews.compactMap { $0 as? UIImageView }.first)
+      let button = try XCTUnwrap(container.subviews.compactMap { $0 as? UIButton }.first)
+      XCTAssertNotNil(arrow.image)
+      XCTAssertTrue(arrow.image?.isSymbolImage == true)
+      XCTAssertNil(button.image(for: .normal))
+      XCTAssertEqual(button.accessibilityLabel, FuturesText.text("sort_method"))
+      XCTAssertTrue(button.actions(forTarget: controller, forControlEvent: .touchUpInside)?.contains("tapOnSortButton:") == true)
+      // 버튼은 글자와 화살표의 전체 터치 영역을 덮는다.
+      let labelFrame = label.convert(label.bounds, to: container)
+      let arrowFrame = arrow.convert(arrow.bounds, to: container)
+      XCTAssertTrue(button.frame.insetBy(dx: -0.5, dy: -0.5).contains(labelFrame))
+      XCTAssertTrue(button.frame.insetBy(dx: -0.5, dy: -0.5).contains(arrowFrame))
+    }
+  }
+
+  func testSummaryAmountsStayOnOneLineAtMiniWidth() throws {
+    // 아이폰 미니 폭에서 모든 요약 지표에 표시할 금액이다.
+    let amount = "999,000,000,000,000"
+    for product in [TradingProduct.spot, .perpetual] {
+      // 실제 투자 요약 XIB를 화면 계층에 연결한다.
+      let owner = InvestmentLayoutNibOwner()
+      // 실제 요약과 테이블이 들어 있는 화면이다.
+      let root = try loadNib("InvestmentViewController", owner: owner)
+      // 레이아웃 환경을 제공하는 표시용 컨트롤러다.
+      let controller = UIViewController()
+      controller.view = root
+      // 아이폰 미니 크기로 뷰를 표시한다.
+      let window = host(controller, width: 375)
+      window.frame.size.height = 812
+      defer { window.isHidden = true; window.rootViewController = nil }
+      // 화면에 표시할 투자 요약이다.
+      let header = try XCTUnwrap(owner.outlets["summaryHeaderView"] as? InvestmentSummaryView)
+      // 요약의 너비와 높이를 결정하는 테이블이다.
+      let table = try XCTUnwrap(owner.outlets["transactionTableview"] as? UITableView)
+      header.configure(product: product)
+      // 손익은 양수 부호까지 포함해 필요한 폭을 검사한다.
+      let amounts = [
+        ("availableUserBalance", amount),
+        ("totalUserBalance", amount),
+        ("totalBuyPrice", amount),
+        ("totalEvaluationAmount", amount),
+        ("totalEvalProfitLoss", "+" + amount)
+      ]
+      for (key, value) in amounts {
+        // 각 요약 금액을 표시하는 라벨이다.
+        let label = try XCTUnwrap(owner.outlets[key] as? UILabel)
+        label.text = value
+      }
+      window.layoutIfNeeded()
+      root.layoutIfNeeded()
+      header.updateLayout(in: table)
+      header.layoutIfNeeded()
+      for (key, value) in amounts {
+        // 각 요약 금액을 표시하는 라벨이다.
+        let label = try XCTUnwrap(owner.outlets[key] as? UILabel)
+        XCTAssertEqual(label.numberOfLines, 1, key)
+        XCTAssertEqual(label.text, value, key)
+        XCTAssertTrue(label.adjustsFontSizeToFitWidth, key)
+        // 최소 축소에서도 원본 숫자를 생략하지 않고 표시할 수 있어야 한다.
+        let minimumFont = label.font.withSize(label.font.pointSize * label.minimumScaleFactor)
+        // 허용된 최소 크기에서 전체 금액에 필요한 폭이다.
+        let minimumWidth = (value as NSString).size(withAttributes: [.font: minimumFont]).width
+        XCTAssertLessThanOrEqual(minimumWidth, label.bounds.width + 0.5, key)
+      }
+      attach(header, name: "InvestmentSummary-999trillion-\(product)-375")
+    }
+  }
+
+  func testSharePnLStaysOnOneLineAtMiniWidth() throws {
+    for product in [TradingProduct.spot, .perpetual] {
+      // 실제 공유 화면에 999조 손익을 설정한다.
+      let share = try XCTUnwrap(try loadNib("PNLShareView") as? PNLShareView)
+      share.configure(pnlShareUnit: PNLShareUnit(
+        marketName: "BTC/KRW",
+        roi: 100,
+        pnl: 999_000_000_000_000,
+        quantity: 999_000_000_000_000,
+        entryPrice: 999_000_000_000_000,
+        exitPrice: 999_000_000_000_000,
+        transactionDate: "2026.11.04 12:34:56",
+        product: product,
+        exchange: .upbit
+      ))
+      // 레이아웃 환경을 제공하는 표시용 컨트롤러다.
+      let controller = UIViewController()
+      controller.view = share
+      // 아이폰 미니 크기로 뷰를 표시한다.
+      let window = host(controller, width: 375)
+      window.frame.size.height = 812
+      defer { window.isHidden = true; window.rootViewController = nil }
+      window.layoutIfNeeded()
+      share.layoutIfNeeded()
+      // 공유 이미지에서 실현 손익을 표시하는 라벨이다.
+      let label = try XCTUnwrap(share.pnlLabel)
+      // 부호와 통화 단위를 포함한 예상 출력이다.
+      let expected = "+999,000,000,000,000 ₩"
+      XCTAssertEqual(label.numberOfLines, 1)
+      XCTAssertEqual(label.text, expected)
+      XCTAssertTrue(label.adjustsFontSizeToFitWidth)
+      // 부호와 통화 단위까지 최소 축소에서 모두 들어가야 한다.
+      let minimumFont = label.font.withSize(label.font.pointSize * label.minimumScaleFactor)
+      // 허용된 최소 크기에서 전체 손익에 필요한 폭이다.
+      let minimumWidth = (expected as NSString).size(withAttributes: [.font: minimumFont]).width
+      XCTAssertLessThanOrEqual(minimumWidth, label.bounds.width + 0.5)
+      attach(share, name: "PNLShare-999trillion-\(product)-375")
+    }
+  }
+
   func testSummaryBalancesScaleAndRemainAccessibleInTwoColumnsAtSmallWidth() throws {
     // 현물과 선물은 같은 XIB 요약 화면을 공유한다.
     for product in [TradingProduct.spot, .perpetual] {

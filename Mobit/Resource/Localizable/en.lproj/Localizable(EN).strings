@@ -41,7 +41,8 @@
 "investment_futures_assets_description" = "Total assets include available KRW and the current value of open positions.\nPosition value is the margin plus unrealized P&L. Return on equity (ROE) is based on the margin used for the positions.";
 "investment_evaluation_amount" = "Valuation";
 "investment_unsupported_badge" = "Trading ended";
-"investment_unsupported_notice" = "This coin is no longer supported by the exchange.";
+"investment_unsupported_notice" = "Trading support for this asset has ended.";
+"investment_unsupported_settlement" = "Return to assets";
 "sort_method" = "Sort Method" ;
 "sort_name" = "By Name" ;
 "sort_return_high" = "Highest Return" ;

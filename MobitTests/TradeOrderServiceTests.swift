@@ -6,6 +6,7 @@
 //
 
 import XCTest
+import UIKit
 @testable import Mobit
 
 final class TradeOrderServiceTests: XCTestCase {
@@ -285,6 +286,68 @@ final class TradeOrderServiceTests: XCTestCase {
     XCTAssertEqual(transaction.executedPrice, 34)
     XCTAssertEqual(transaction.recordType, .delistingSettlement)
     XCTAssertEqual(pnl.realizedProfitLossKRW, -4_660)
+  }
+
+  @MainActor
+  func testDelistingOverlayConfirmationSettlesHoldingOnlyOnce() throws {
+    // 실제 시세 업데이트와 무관한 보유 자산을 정산의 원본으로 준비한다.
+    _ = try TradeOrderService.executeBid(
+      marketName: "ZZQATEST/KRW",
+      cryptoName: "시험코인",
+      currentPrice: 500,
+      quantity: 10
+    ).get()
+    // 시세 갱신이 멈추기 전에 저장된 값이다.
+    var holdings = try XCTUnwrap(UserDataManager.userCryptoList)
+    holdings[0].dynamicData.evaluationProfitLoss = -4_660
+    holdings[0].dynamicData.evaluationPrice = 340
+    UserDataManager.userCryptoList = holdings
+
+    // 외부 네트워크 없이 지원 종료된 보유 종목을 실제 화면에 전달한다.
+    let reactor = InvestReactor(mainUseCase: MainUseCase(mainRepository: MainRepository()))
+    reactor.isStubEnabled = true
+    // 거래지원 목록에 없는 보유 종목의 화면 상태다.
+    var state = reactor.initialState
+    state.cryptos = holdings
+    state.supportedMarketPairIDs = []
+    reactor.stub.state.value = state
+    // 실제 셀 버튼과 확인창의 연결을 확인한다.
+    let controller = InvestmentViewController(reactor: reactor)
+    // 알림과 테이블 터치 계층을 표시할 화면이다.
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 375, height: 812))
+    window.rootViewController = controller
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true; window.rootViewController = nil }
+
+    // 보유 내역 스냅샷이 실제 셀을 만들 때까지 기다린다.
+    let cellReady = expectation(for: NSPredicate { _, _ in
+      controller.transactionTableview.visibleCells.contains { $0 is InvestmentTableViewCell }
+    }, evaluatedWith: nil)
+    wait(for: [cellReady], timeout: 5)
+    // 버튼 이벤트가 실제로 전달될 종료 종목 셀이다.
+    let cell = try XCTUnwrap(controller.transactionTableview.visibleCells.first as? InvestmentTableViewCell)
+    XCTAssertFalse(cell.unsupportedOverlayView.isHidden)
+    cell.unsupportedSettlementButton.sendActions(for: .touchUpInside)
+
+    // 확인 전에는 보유 자산과 잔고가 바뀌지 않아야 한다.
+    let alert = try XCTUnwrap(controller.presentedViewController as? MobitAlertViewController)
+    XCTAssertEqual(alert.alertType, .canCancel)
+    XCTAssertEqual(UserDataManager.userInformation?.userAvailableBalance, 5_000)
+    XCTAssertEqual(UserDataManager.userCryptoList?.count, 1)
+    alert.loadViewIfNeeded()
+    alert.confirmButton.sendActions(for: .touchUpInside)
+    alert.confirmButton.sendActions(for: .touchUpInside)
+
+    // 정산은 확인창이 닫힌 뒤 완료되므로 실제 저장 결과를 기다린다.
+    let settled = expectation(for: NSPredicate { _, _ in
+      UserDataManager.userTransactionList?.last?.recordType == .delistingSettlement
+    }, evaluatedWith: nil)
+    wait(for: [settled], timeout: 5)
+    XCTAssertEqual(UserDataManager.userInformation?.userAvailableBalance, 5_340)
+    XCTAssertTrue(UserDataManager.userCryptoList?.isEmpty == true)
+    XCTAssertEqual(UserDataManager.userTransactionList?.count, 2)
+    XCTAssertEqual(UserDataManager.userPNLHistory?.count, 1)
+    XCTAssertEqual(UserDataManager.userPNLHistory?.last?.realizedProfitLossKRW, -4_660)
   }
 
   func testZeroValueDelistingSettlementStillRemovesHolding() throws {

@@ -8,6 +8,9 @@
 import UIKit
 
 final class InvestmentTableViewCell: UITableViewCell {
+  // 종료 자산의 배경 내용이 흐릿하게 비치도록 블러 강도를 조절한다.
+  private static let unsupportedBlurFraction: CGFloat = 0.3
+
   @IBOutlet weak var cryptoName: UILabel!
   @IBOutlet weak var cryptoAmount: UILabel!
   @IBOutlet weak var cryptoEvalPrice: UILabel!
@@ -22,6 +25,12 @@ final class InvestmentTableViewCell: UITableViewCell {
   @IBOutlet weak var averagePriceTitle: UILabel!
   @IBOutlet weak var buyPriceTitle: UILabel!
   @IBOutlet weak var profitRateTitle: UILabel!
+  // 거래지원 종료 시 보유 내역을 흐리게 가리는 영역이다.
+  @IBOutlet weak var unsupportedOverlayView: UIVisualEffectView!
+  // 거래지원 종료 상태를 안내한다.
+  @IBOutlet weak var unsupportedNoticeLabel: UILabel!
+  // 거래지원 종료 자산의 정산 확인을 연다.
+  @IBOutlet weak var unsupportedSettlementButton: UIButton!
   // 종목명 아래에서 거래 마켓과 결제 통화를 확인한다.
   @IBOutlet weak var marketSymbolLabel: UILabel!
   // 손익 수치의 의미를 헤더 우측에 표시한다.
@@ -30,10 +39,8 @@ final class InvestmentTableViewCell: UITableViewCell {
   @IBOutlet private weak var evaluationAmountTitle: UILabel!
   // 종목 헤더와 보유 지표를 구분한다.
   @IBOutlet private weak var headerDividerView: UIView!
-  // 미지원 안내까지 포함해 셀 높이를 콘텐츠에 맞춘다.
+  // 셀의 본문을 콘텐츠에 맞춰 배치한다.
   @IBOutlet private weak var bodyStackView: UIStackView!
-  // 종목명, 마켓, 포지션 배지를 한 묶음으로 배치한다.
-  @IBOutlet private weak var identityStackView: UIStackView!
   // 현물에서는 숨기고 선물의 방향과 레버리지만 표시한다.
   @IBOutlet private weak var positionBadgesStackView: UIStackView!
   // 포지션 방향을 색상 외에 텍스트로도 구분한다.
@@ -57,16 +64,20 @@ final class InvestmentTableViewCell: UITableViewCell {
   private var currentProfitRate: Double?
   // 테마 변경 시 포지션 배지의 방향 색상을 다시 반영한다.
   private var currentSide: FuturesSide?
-  private let unsupportedBadgeView = UIView()
-  private let unsupportedBadgeIcon = UIImageView()
-  private let unsupportedBadgeLabel = UILabel()
-  private let unsupportedNoticeView = UIView()
-  private let unsupportedNoticeDot = UIView()
-  private let unsupportedNoticeLabel = UILabel()
+  // 거래지원 종료 자산의 정산 확인 동작을 화면에 전달한다.
+  var unsupportedSettlementCallBack: (() -> Void)?
+  // XIB에서 지정한 블러 효과를 원래 강도보다 약하게 적용할 때 사용한다.
+  private var unsupportedBlurEffect: UIVisualEffect?
+  // 효과의 진행 정도를 유지해 안내와 버튼을 선명하게 표시한다.
+  private var unsupportedBlurAnimator: UIViewPropertyAnimator?
 
   override func awakeFromNib() {
     super.awakeFromNib()
-    setupUnsupportedStatusViews()
+    unsupportedBlurEffect = unsupportedOverlayView.effect
+    unsupportedNoticeLabel.text = FuturesText.text("investment_unsupported_notice")
+    unsupportedNoticeLabel.accessibilityIdentifier = "investment.unsupported.notice"
+    unsupportedSettlementButton.setTitle(FuturesText.text("investment_unsupported_settlement"), for: .normal)
+    unsupportedSettlementButton.accessibilityIdentifier = "investment.unsupported.settle"
     evaluationTitle.text = FuturesText.text("investment_valuation_gain_loss")
     evaluationAmountTitle.text = FuturesText.text("investment_evaluation_amount")
     profitLossUnitLabel.text = FuturesText.text("currency_krw_unit")
@@ -88,6 +99,13 @@ final class InvestmentTableViewCell: UITableViewCell {
     sideBadgeLabel.text = nil
     leverageBadgeLabel.text = nil
     setTradingUnsupported(false)
+    unsupportedSettlementCallBack = nil
+  }
+
+  override func didMoveToWindow() {
+    super.didMoveToWindow()
+    guard window != nil, unsupportedOverlayView != nil, !unsupportedOverlayView.isHidden else { return }
+    updateUnsupportedBlur()
   }
 
   override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -143,22 +161,31 @@ final class InvestmentTableViewCell: UITableViewCell {
     updateMetricValues()
   }
 
-  func configure(position: FuturesPosition, valuation: FuturesValuation?, isLast: Bool) {
+  func configure(
+    position: FuturesPosition,
+    valuation: FuturesValuation?,
+    isLast: Bool,
+    cryptoName: String? = nil
+  ) {
     // 거래소 선택 상태가 바뀌어도 포지션에 저장된 마켓을 표시한다.
     let market = MarketFormat.displayMarket(
       fromAPIMarket: position.order.instrument.rawSymbol,
       exchange: position.order.instrument.exchange
     )
-    // 선물 모델에는 이름이 없어 심볼을 제목으로 사용한다.
+    // 종목명을 받지 못한 경우에는 기초자산 심볼을 표시한다.
     let symbol = market.split(separator: "/").first.map(String.init) ?? market
+    // 저장된 이름을 우선하고 없는 경우에만 시세 목록의 이름을 사용한다.
+    let savedName = position.cryptoName?.trimmingCharacters(in: .whitespacesAndNewlines)
+    // 공백뿐인 이름도 없는 이름으로 취급한다.
+    let marketName = cryptoName?.trimmingCharacters(in: .whitespacesAndNewlines)
     // 원시 손실 대신 기존 청산 표시 범위를 적용한 손익을 사용한다.
     let profitLoss = try? valuation?.displayedPnL
-    cryptoName.text = symbol
+    self.cryptoName.text = [savedName, marketName].compactMap { $0 }.first { !$0.isEmpty } ?? symbol
     marketSymbolLabel.text = market
     amountTitle.text = FuturesText.text("futures_position_quantity")
     averagePriceTitle.text = FuturesText.text("futures_entry")
     buyPriceTitle.text = FuturesText.text("futures_margin")
-    profitRateTitle.text = FuturesText.text("futures_roe") + " (ROE)"
+    profitRateTitle.text = FuturesText.text("futures_roe")
     cryptoAmount.text = FuturesText.number(position.quantity)
     quantityUnitLabel.text = symbol
     averagePriceUnitLabel.text = SettlementCurrency.krw.rawValue
@@ -205,14 +232,6 @@ final class InvestmentTableViewCell: UITableViewCell {
     sideBadgeLabel.textColor = sideColor
     leverageBadgeView.backgroundColor = .mobitColors(.investmentSurface)
     leverageBadgeLabel.textColor = .mobitColors(.investmentTextSecondary)
-    unsupportedBadgeView.backgroundColor = Self.unsupportedBadgeBackgroundColor
-    unsupportedBadgeView.layer.borderColor = Self.unsupportedBadgeBorderColor.resolvedColor(with: traitCollection).cgColor
-    unsupportedBadgeIcon.tintColor = Self.unsupportedBadgeTextColor
-    unsupportedBadgeLabel.textColor = Self.unsupportedBadgeTextColor
-    unsupportedNoticeView.backgroundColor = Self.unsupportedNoticeBackgroundColor
-    unsupportedNoticeView.layer.borderColor = Self.unsupportedNoticeBorderColor.resolvedColor(with: traitCollection).cgColor
-    unsupportedNoticeDot.backgroundColor = Self.unsupportedNoticeTextColor
-    unsupportedNoticeLabel.textColor = Self.unsupportedNoticeTextColor
   }
 
   private func updateMetricValues() {
@@ -265,68 +284,39 @@ final class InvestmentTableViewCell: UITableViewCell {
     }
   }
 
-  private func setupUnsupportedStatusViews() {
-    unsupportedBadgeView.layer.cornerRadius = 6
-    unsupportedBadgeView.layer.borderWidth = 1
-    unsupportedBadgeView.isAccessibilityElement = true
-    unsupportedBadgeView.accessibilityLabel = FuturesText.text("investment_unsupported_badge")
-    unsupportedBadgeIcon.translatesAutoresizingMaskIntoConstraints = false
-    unsupportedBadgeIcon.image = UIImage(systemName: "exclamationmark.triangle")
-    unsupportedBadgeIcon.contentMode = .scaleAspectFit
-    unsupportedBadgeLabel.text = FuturesText.text("investment_unsupported_badge")
-    unsupportedBadgeLabel.font = .preferredFont(forTextStyle: .caption2)
-    unsupportedBadgeLabel.adjustsFontForContentSizeCategory = true
-    unsupportedBadgeLabel.numberOfLines = 0
-    // 지원 종료 배지를 종목 영역에 포함해 긴 이름과 겹치지 않게 한다.
-    let badgeStack = UIStackView(arrangedSubviews: [unsupportedBadgeIcon, unsupportedBadgeLabel])
-    badgeStack.translatesAutoresizingMaskIntoConstraints = false
-    badgeStack.alignment = .center
-    badgeStack.spacing = 4
-    unsupportedBadgeView.addSubview(badgeStack)
-    identityStackView.addArrangedSubview(unsupportedBadgeView)
-    unsupportedNoticeView.layer.cornerRadius = 10
-    unsupportedNoticeView.layer.borderWidth = 1
-    unsupportedNoticeView.isAccessibilityElement = true
-    unsupportedNoticeView.accessibilityLabel = FuturesText.text("investment_unsupported_notice")
-    unsupportedNoticeDot.translatesAutoresizingMaskIntoConstraints = false
-    unsupportedNoticeDot.layer.cornerRadius = 3
-    unsupportedNoticeLabel.translatesAutoresizingMaskIntoConstraints = false
-    unsupportedNoticeLabel.text = FuturesText.text("investment_unsupported_notice")
-    unsupportedNoticeLabel.font = .preferredFont(forTextStyle: .caption1)
-    unsupportedNoticeLabel.adjustsFontForContentSizeCategory = true
-    unsupportedNoticeLabel.numberOfLines = 0
-    unsupportedNoticeView.addSubview(unsupportedNoticeDot)
-    unsupportedNoticeView.addSubview(unsupportedNoticeLabel)
-    bodyStackView.addArrangedSubview(unsupportedNoticeView)
-    // 숨겨진 arrangedSubview의 높이 0 제약과 내부 여백이 충돌하지 않게 한다.
-    let badgeBottomConstraint = badgeStack.bottomAnchor.constraint(equalTo: unsupportedBadgeView.bottomAnchor, constant: -4)
-    badgeBottomConstraint.priority = UILayoutPriority(999)
-    // 미지원 안내를 감추면 내부 높이보다 UIStackView의 접힘 제약을 우선한다.
-    let noticeBottomConstraint = unsupportedNoticeLabel.bottomAnchor.constraint(equalTo: unsupportedNoticeView.bottomAnchor, constant: -12)
-    noticeBottomConstraint.priority = UILayoutPriority(999)
-    NSLayoutConstraint.activate([
-      badgeStack.leadingAnchor.constraint(equalTo: unsupportedBadgeView.leadingAnchor, constant: 6),
-      badgeStack.trailingAnchor.constraint(equalTo: unsupportedBadgeView.trailingAnchor, constant: -6),
-      badgeStack.topAnchor.constraint(equalTo: unsupportedBadgeView.topAnchor, constant: 4),
-      badgeBottomConstraint,
-      unsupportedBadgeView.widthAnchor.constraint(lessThanOrEqualTo: identityStackView.widthAnchor),
-      unsupportedBadgeIcon.widthAnchor.constraint(equalToConstant: 12),
-      unsupportedBadgeIcon.heightAnchor.constraint(equalToConstant: 12),
-      unsupportedNoticeDot.leadingAnchor.constraint(equalTo: unsupportedNoticeView.leadingAnchor, constant: 12),
-      unsupportedNoticeDot.centerYAnchor.constraint(equalTo: unsupportedNoticeView.centerYAnchor),
-      unsupportedNoticeDot.widthAnchor.constraint(equalToConstant: 6),
-      unsupportedNoticeDot.heightAnchor.constraint(equalToConstant: 6),
-      unsupportedNoticeLabel.leadingAnchor.constraint(equalTo: unsupportedNoticeDot.trailingAnchor, constant: 8),
-      unsupportedNoticeLabel.trailingAnchor.constraint(equalTo: unsupportedNoticeView.trailingAnchor, constant: -12),
-      unsupportedNoticeLabel.topAnchor.constraint(equalTo: unsupportedNoticeView.topAnchor, constant: 12),
-      noticeBottomConstraint
-    ])
-    setTradingUnsupported(false)
+  private func setTradingUnsupported(_ isUnsupported: Bool) {
+    if isUnsupported, unsupportedOverlayView.isHidden {
+      updateUnsupportedBlur()
+    } else if !isUnsupported {
+      unsupportedBlurAnimator?.stopAnimation(true)
+      unsupportedBlurAnimator = nil
+    }
+    unsupportedOverlayView.isHidden = !isUnsupported
+    bodyStackView.accessibilityElementsHidden = isUnsupported
+    if isUnsupported {
+      // 흐림 처리된 셀에서도 정산할 종목을 구분할 수 있게 한다.
+      let market = marketSymbolLabel.text ?? ""
+      // 거래지원 종료 상태를 마켓명과 함께 표시한다.
+      let notice = FuturesText.text("investment_unsupported_notice")
+      unsupportedNoticeLabel.text = market.isEmpty ? notice : market + " · " + notice
+      unsupportedNoticeLabel.accessibilityLabel = market.isEmpty ? notice : market + ", " + notice
+    }
   }
 
-  private func setTradingUnsupported(_ isUnsupported: Bool) {
-    unsupportedBadgeView.isHidden = !isUnsupported
-    unsupportedNoticeView.isHidden = !isUnsupported
+  private func updateUnsupportedBlur() {
+    guard let unsupportedBlurEffect else { return }
+    unsupportedBlurAnimator?.stopAnimation(true)
+    unsupportedOverlayView.effect = nil
+    // 블러 뷰의 alpha를 변경하면 안내와 버튼까지 반투명해져 효과 진행률만 조절한다.
+    let animator = UIViewPropertyAnimator(duration: 1, curve: .linear) { [weak self] in
+      self?.unsupportedOverlayView.effect = unsupportedBlurEffect
+    }
+    animator.fractionComplete = Self.unsupportedBlurFraction
+    unsupportedBlurAnimator = animator
+  }
+
+  @IBAction private func tapUnsupportedSettlement(_ sender: UIButton) {
+    unsupportedSettlementCallBack?()
   }
 
   private static func signed(_ value: String, isPositive: Bool) -> String {
@@ -340,30 +330,6 @@ final class InvestmentTableViewCell: UITableViewCell {
         ? UIColor.mobitColors(.investmentSeparator).resolvedColor(with: $0)
         : UIColor(red: 214 / 255, green: 222 / 255, blue: 233 / 255, alpha: 1)
     }
-  }
-
-  private static var unsupportedBadgeBackgroundColor: UIColor {
-    UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.29, green: 0.06, blue: 0.08, alpha: 1) : UIColor(red: 1, green: 0.95, blue: 0.96, alpha: 1) }
-  }
-
-  private static var unsupportedBadgeBorderColor: UIColor {
-    UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.70, green: 0.16, blue: 0.17, alpha: 1) : UIColor(red: 1, green: 0.77, blue: 0.81, alpha: 1) }
-  }
-
-  private static var unsupportedBadgeTextColor: UIColor {
-    UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 1, green: 0.64, blue: 0.68, alpha: 1) : UIColor(red: 0.93, green: 0.12, blue: 0.27, alpha: 1) }
-  }
-
-  private static var unsupportedNoticeBackgroundColor: UIColor {
-    UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.14, green: 0.07, blue: 0.09, alpha: 1) : UIColor(red: 1, green: 0.97, blue: 0.97, alpha: 1) }
-  }
-
-  private static var unsupportedNoticeBorderColor: UIColor {
-    UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.20, green: 0.09, blue: 0.11, alpha: 1) : UIColor(red: 1, green: 0.84, blue: 0.86, alpha: 1) }
-  }
-
-  private static var unsupportedNoticeTextColor: UIColor {
-    UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 1, green: 0.59, blue: 0.62, alpha: 1) : UIColor(red: 0.82, green: 0.08, blue: 0.20, alpha: 1) }
   }
 
   private static func krwText(_ amount: Decimal?) -> String {

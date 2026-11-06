@@ -408,8 +408,13 @@ final class FuturesCloseViewController: UIViewController, UIAdaptivePresentation
       value.font = UIFontMetrics(forTextStyle: .subheadline).scaledFont(for: .monospacedDigitSystemFont(ofSize: 15, weight: .semibold))
       value.textColor = .mobitColors(.tradeTextPrimary)
       value.text = "—"
-      if value === holdingLabel { title.textAlignment = .right; value.textAlignment = .right }
-      // 숫자가 길어지면 카드 높이가 자연스럽게 늘어난다.
+      if value === holdingLabel {
+        title.textAlignment = .right
+        value.textAlignment = .right
+        value.numberOfLines = 1
+        value.adjustsFontSizeToFitWidth = true
+        value.minimumScaleFactor = 0.5
+      }
       let column = UIStackView(arrangedSubviews: [title, value])
       column.axis = .vertical
       column.spacing = 5
@@ -461,7 +466,11 @@ final class FuturesCloseViewController: UIViewController, UIAdaptivePresentation
     title.text = FuturesText.text(key)
     hint.textColor = .mobitColors(.tradeTextSecondary)
     hint.textAlignment = .right
-    // 긴 번역·큰 금액은 각 열에서 줄바꿈한다.
+    if hint === maximumQuantityLabel {
+      hint.numberOfLines = 1
+      hint.adjustsFontSizeToFitWidth = true
+      hint.minimumScaleFactor = 0.5
+    }
     let header = UIStackView(arrangedSubviews: [title, hint])
     header.distribution = .fillEqually
     header.alignment = .center

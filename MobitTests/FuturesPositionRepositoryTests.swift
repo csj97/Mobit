@@ -189,12 +189,21 @@ final class FuturesPositionRepositoryTests: XCTestCase {
 // 테스트 데이터도 실제 주문과 동일한 검증·저장 경로를 통과시킨다.
 extension LocalFuturesAccountRepository {
   @discardableResult
-  func openTestPosition(_ order: FuturesOpeningOrder, expectedRevision: UInt64) throws -> FuturesAccountSnapshot {
+  func openTestPosition(
+    _ order: FuturesOpeningOrder,
+    expectedRevision: UInt64,
+    cryptoName: String? = nil
+  ) throws -> FuturesAccountSnapshot {
     let timestamp = try FuturesHistoryCheckState.milliseconds(order.executedAt)
     // 주문 시 확인할 가격·체결 시각·계좌 버전과 포지션 검증 상태다.
     let orderCheck = FuturesOrderCheck(account: order.account, instrument: order.instrument,
       revision: expectedRevision, mark: .init(instrument: order.instrument, price: order.executionPrice, timestamp: timestamp))
-    return try openPosition(order, orderCheck: orderCheck, now: order.executedAt)
+    return try openPosition(
+      order,
+      orderCheck: orderCheck,
+      now: order.executedAt,
+      cryptoName: cryptoName
+    )
   }
 }
 
@@ -206,11 +215,19 @@ final class DomesticFuturesTradingTests: XCTestCase {
   override func tearDownWithError() throws {
     if FileManager.default.fileExists(atPath: directory.path) { try FileManager.default.removeItem(at: directory) }
   }
-  private func open(_ side: FuturesSide = .long, price: Decimal = 100) throws -> FuturesPosition {
+  private func open(
+    _ side: FuturesSide = .long,
+    price: Decimal = 100,
+    cryptoName: String? = nil
+  ) throws -> FuturesPosition {
     let order = domesticFuturesOrder(side: side, margin: 100, price: price)
     try store.ensureAccount(order.account)
     try store.applyAdvertisementReward(AdRewardClaim(account: order.account))
-    return try store.openTestPosition(order, expectedRevision: store.snapshot().revision).positions[0]
+    return try store.openTestPosition(
+      order,
+      expectedRevision: store.snapshot().revision,
+      cryptoName: cryptoName
+    ).positions[0]
   }
   private func verify(_ position: FuturesPosition, end: Int64, price: Decimal = 100) throws -> FuturesReplayResult {
     let snapshot = try store.snapshot()
@@ -398,6 +415,76 @@ extension DomesticFuturesTradingTests {
       order,
       orderCheck: orderCheck(position, time: time, price: price, proof: true),
       now: order.executedAt
+    )
+  }
+
+  func testSavedNameSurvivesRetryPartialCloseAndAdditionalEntry() throws {
+    // 저장·재조회와 부분 종료를 함께 검증할 최초 포지션이다.
+    let first = try open(cryptoName: "  비트코인  ")
+    XCTAssertEqual(first.cryptoName, "비트코인")
+    XCTAssertEqual(try store.snapshot().positions.first?.cryptoName, "비트코인")
+    // 표시명 차이는 같은 주문 재시도의 판정에 영향을 주지 않는다.
+    let retryCheck = FuturesOrderCheck(
+      account: first.order.account,
+      instrument: first.order.instrument,
+      revision: 0,
+      mark: .init(instrument: first.order.instrument, price: first.order.executionPrice, timestamp: 60_000)
+    )
+    // 재시도 전 원자적으로 저장된 데이터가 그대로 유지되어야 한다.
+    let savedBytes = try Data(contentsOf: url)
+    let retried = try store.openPosition(
+      first.order,
+      orderCheck: retryCheck,
+      now: first.order.executedAt,
+      cryptoName: "다른 이름"
+    )
+    XCTAssertEqual(retried.positions.first?.cryptoName, "비트코인")
+    XCTAssertEqual(try Data(contentsOf: url), savedBytes)
+    // 부분 종료 후에도 최초 표시명을 잃지 않는다.
+    let partial = try closePart(first, quantity: 5)
+    XCTAssertEqual(partial.positions.first?.cryptoName, "비트코인")
+    XCTAssertEqual(try store.snapshot().positions.first?.cryptoName, "비트코인")
+    // 추가 진입에서 새로운 이름을 받더라도 기존 표시명을 유지한다.
+    let added = domesticFuturesOrder(margin: 100, price: 200, date: Date(timeIntervalSince1970: 66))
+    let result = try store.openPosition(
+      added,
+      orderCheck: orderCheck(partial.positions[0], time: 66_000, price: 200, proof: true),
+      now: added.executedAt,
+      cryptoName: "새 이름"
+    )
+    XCTAssertEqual(result.positions.first?.cryptoName, "비트코인")
+    XCTAssertEqual(try store.snapshot().positions.first?.cryptoName, "비트코인")
+    XCTAssertNoThrow(try FuturesCalculator.validate(result.positions[0]))
+  }
+
+  func testAdditionalEntryAddsNameOnlyWhenPreviouslyMissing() throws {
+    // 예전 저장 파일처럼 종목명이 없는 포지션이다.
+    let first = try open(cryptoName: " \n ")
+    XCTAssertNil(first.cryptoName)
+    // 기존 포지션의 검증 구간을 끝내고 동일한 포지션에 추가 진입한다.
+    _ = try verify(first, end: 120_000)
+    let added = domesticFuturesOrder(margin: 100, price: 100, date: Date(timeIntervalSince1970: 120))
+    let result = try store.openPosition(
+      added,
+      orderCheck: orderCheck(first, time: 120_000),
+      now: added.executedAt,
+      cryptoName: "비트코인"
+    )
+    XCTAssertEqual(result.positions.first?.cryptoName, "비트코인")
+    XCTAssertEqual(try store.snapshot().positions.first?.cryptoName, "비트코인")
+    XCTAssertEqual(try result.positions[0].margin, 200)
+  }
+
+  func testDisplayNameDoesNotChangePositionVerificationIdentity() throws {
+    // 표시명 유무만 다른 같은 거래 포지션이다.
+    let original = try FuturesCalculator.open(domesticFuturesOrder())
+    var named = original
+    named.cryptoName = "비트코인"
+    XCTAssertEqual(named, original)
+    XCTAssertNoThrow(try FuturesCalculator.validate(named))
+    XCTAssertEqual(
+      try FuturesCalculator.evaluate(named, markPrice: 110_000_000),
+      try FuturesCalculator.evaluate(original, markPrice: 110_000_000)
     )
   }
 

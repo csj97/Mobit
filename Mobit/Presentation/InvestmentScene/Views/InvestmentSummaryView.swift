@@ -37,7 +37,7 @@ final class InvestmentSummaryView: UIView {
   @IBOutlet private weak var toolbarSpace: UIView!
   // 요약 계산 기준을 안내한다.
   @IBOutlet private weak var infoButton: UIButton!
-  // 목록 정렬 버튼의 화살표와 접근성 제목을 설정한다.
+  // 정렬 버튼의 접근성 제목을 설정한다.
   @IBOutlet private weak var sortButton: UIButton!
   // 충전 안내와 버튼을 담는 배너 표면이다.
   @IBOutlet private weak var chargeView: UIView!
@@ -74,8 +74,6 @@ final class InvestmentSummaryView: UIView {
     infoButton.setImage(UIImage(systemName: "info.circle"), for: .normal)
     infoButton.setPreferredSymbolConfiguration(UIImage.SymbolConfiguration(pointSize: 14), forImageIn: .normal)
     infoButton.accessibilityLabel = FuturesText.text("investment_assets_info")
-    sortButton.setImage(UIImage(systemName: "chevron.down"), for: .normal)
-    sortButton.setPreferredSymbolConfiguration(UIImage.SymbolConfiguration(pointSize: 12), forImageIn: .normal)
     sortButton.accessibilityLabel = FuturesText.text("sort_method")
     countLabel.textColor = .mobitColors(.accentPrimary)
     chargeNote.accessibilityIdentifier = "investment.chargeNote"
@@ -105,7 +103,6 @@ final class InvestmentSummaryView: UIView {
     backgroundColor = .mobitColors(.investmentBackground)
     chargeView.backgroundColor = .mobitColors(.investmentSurface)
     infoButton.tintColor = .mobitColors(.investmentTextTertiary)
-    sortButton.tintColor = .mobitColors(.investmentTextTertiary)
   }
 
   func updateLayout(in tableView: UITableView) {
@@ -128,8 +125,6 @@ final class InvestmentSummaryView: UIView {
     unitTitle.setContentHuggingPriority(headingHugging, for: .horizontal)
     listTitle.setContentHuggingPriority(headingHugging, for: .horizontal)
     listTitle.numberOfLines = expandedText ? 0 : 1
-    (sortButton.superview as? UIStackView)?.arrangedSubviews.first?
-      .setContentHuggingPriority(headingHugging, for: .horizontal)
     titleStack.axis = expandedText ? .vertical : .horizontal
     titleStack.alignment = expandedText ? .fill : .center
     titleStack.spacing = expandedText ? 8 : 4

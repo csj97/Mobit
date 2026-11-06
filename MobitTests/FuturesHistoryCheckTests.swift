@@ -1325,11 +1325,29 @@ final class FuturesHistoryCheckTests: XCTestCase {
         side: .long,
         margin: 100_000,
         leverage: 10,
-        price: price
+        price: price,
+        cryptoName: "비트코인"
       )
     )
     XCTAssertEqual(saved.positions[0].order.executionPrice, 123)
     XCTAssertEqual(saved.positions[0].order.executedAt, Date(timeIntervalSince1970: 299))
+    XCTAssertEqual(saved.positions[0].cryptoName, "비트코인")
+    XCTAssertEqual(try repository.snapshot().positions[0].cryptoName, "비트코인")
+    // 표시명이 달라도 같은 요청은 기존 체결 결과를 그대로 반환한다.
+    let retried = try awaitValue(
+      useCase.open(
+        requestID: order.requestID,
+        account: order.account,
+        instrument: order.instrument,
+        side: .long,
+        margin: 100_000,
+        leverage: 10,
+        price: price,
+        cryptoName: "변경된 이름"
+      )
+    )
+    XCTAssertEqual(retried, saved)
+    XCTAssertEqual(retried.positions[0].cryptoName, "비트코인")
     XCTAssertEqual(provider.quoteRequests, 0)
   }
 

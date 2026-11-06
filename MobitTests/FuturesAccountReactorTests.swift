@@ -1569,6 +1569,51 @@ final class FuturesAccountReactorTests: XCTestCase {
   }
 
   @MainActor
+  func testCloseQuantityFitsOneLineOnMiniAt999Trillion() throws {
+    // 1원 진입으로 원금과 보유 수량을 모두 999조로 구성한다.
+    let amount: Decimal = 999_000_000_000_000
+    // 실제 저장 없이 표시할 포지션이다.
+    let position = try FuturesCalculator.open(domesticFuturesOrder(leverage: 1, margin: amount, price: 1))
+    // 화면에 전달할 계좌와 포지션만 고정한다.
+    let futures = reactor()
+    futures.stub.state.value = futures.reduce(
+      state: futures.initialState,
+      mutation: .snapshot(.init(revision: 1, accounts: [.init(id: account, availableBalance: 900)], positions: [position]), [:])
+    )
+    // 포지션 종료 화면을 실제 뷰 계층으로 표시한다.
+    let controller = FuturesCloseViewController(reactor: futures, positionID: position.id) { nil }
+    // 아이폰 미니 논리 해상도로 배치한다.
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 375, height: 812))
+    window.rootViewController = controller
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true; window.rootViewController = nil }
+    controller.view.layoutIfNeeded()
+    // 전체 보유량과 종료 가능한 최대량의 실제 표시 문자열이다.
+    let quantity = FuturesText.number(position.quantity)
+    // 단위를 포함한 보유량과 안내 문구를 각각 검증한다.
+    let texts = [
+      quantity + " BTC",
+      String(format: FuturesText.text("futures_close_maximum"), quantity, "BTC")
+    ]
+    for text in texts {
+      // 다른 필드의 접근성 식별자를 추가하지 않고 표시 결과를 찾는다.
+      let label = try XCTUnwrap(descendants(controller.view).compactMap { $0 as? UILabel }.first { $0.text == text })
+      XCTAssertEqual(label.numberOfLines, 1)
+      XCTAssertTrue(label.adjustsFontSizeToFitWidth)
+      XCTAssertGreaterThan(label.bounds.width, 0)
+      // 최소 글꼴 크기에서도 전체 문자열이 들어가야 말줄임 없이 읽을 수 있다.
+      let minimumFont = label.font.withSize(label.font.pointSize * label.minimumScaleFactor)
+      let minimumWidth = (text as NSString).size(withAttributes: [.font: minimumFont]).width
+      XCTAssertLessThanOrEqual(minimumWidth, label.bounds.width + 1)
+    }
+    // 사용자에게 보이는 첫 화면을 검토할 수 있도록 남긴다.
+    let attachment = XCTAttachment(image: UIGraphicsImageRenderer(bounds: controller.view.bounds).image { controller.view.layer.render(in: $0.cgContext) })
+    attachment.name = "Futures-close-999trillion-mini"
+    attachment.lifetime = .keepAlways
+    add(attachment)
+  }
+
+  @MainActor
   func testCloseCardPresetsUnitsAndLayoutAcrossSizesAndThemes() throws {
     for width in [320, 393] {
       for style in [UIUserInterfaceStyle.light, .dark] {
@@ -4600,6 +4645,171 @@ final class FuturesAccountReactorTests: XCTestCase {
   }
 
   @MainActor
+  func testFuturesInvestmentUsesMarketNameAndUpdatesAfterMarketListLoads() throws {
+    // 시세 Reactor의 거래소를 포지션 계좌와 일치시키고 테스트 후 복구한다.
+    let previousExchange = ExchangeSelectionStore.currentExchange
+    ExchangeSelectionStore.currentExchange = .upbit
+    defer { ExchangeSelectionStore.currentExchange = previousExchange }
+    // 시세 목록보다 먼저 표시되는 현재 계좌의 선물 포지션이다.
+    let position = try FuturesCalculator.open(domesticFuturesOrder(symbol: "KRW-NEAR"))
+    // 실제 계좌 파일을 읽지 않고 포지션을 화면에 제공한다.
+    let futures = reactor()
+    // 포지션과 검증 경계가 함께 저장된 정상 계좌 상태다.
+    let snapshot = FuturesAccountSnapshot(
+      revision: 1,
+      accounts: [.init(id: account, availableBalance: 900_000)],
+      positions: [position],
+      historyCheckStates: [try .initial(for: position)]
+    )
+    futures.stub.state.value = futures.reduce(state: futures.initialState, mutation: .snapshot(snapshot, [:]))
+    // 비동기로 들어오는 시세 목록만 테스트에서 제어한다.
+    let market = MainReactor(mainUseCase: try FuturesMainFixtureUseCase(), tickerSocketService: FuturesMainFixtureSocket())
+    market.isStubEnabled = true
+    // 초기 목록이 없어도 선물 포지션을 표시하는 실제 화면이다.
+    let controller = FuturesInvestmentViewController(reactor: futures, marketReactor: market)
+    // 화면에 표시된 셀이 실제로 갱신되는지 확인할 창이다.
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 375, height: 812))
+    window.rootViewController = controller
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true; window.rootViewController = nil }
+    controller.view.layoutIfNeeded()
+
+    func expectVisibleName(_ expected: String) throws {
+      // Diffable 셀 갱신이 실제 표시 상태에 반영될 때까지 기다린다.
+      let displayed = XCTNSPredicateExpectation(
+        predicate: NSPredicate { _, _ in
+          (controller.transactionTableview.cellForRow(at: IndexPath(row: 0, section: 0)) as? InvestmentTableViewCell)?
+            .cryptoName.text == expected
+        },
+        object: nil
+      )
+      XCTAssertEqual(XCTWaiter.wait(for: [displayed], timeout: 3), .completed, expected)
+      // 이름 변경이 마켓 식별자나 배지에 영향을 주면 안 된다.
+      let cell = try XCTUnwrap(controller.transactionTableview.cellForRow(at: IndexPath(row: 0, section: 0)) as? InvestmentTableViewCell)
+      XCTAssertEqual(cell.marketSymbolLabel.text, "NEAR/KRW")
+      XCTAssertEqual(cell.sideBadgeLabel.text, FuturesText.text("futures_long"))
+    }
+
+    func sendMarkets(_ coins: [CryptoCellInfo]) {
+      // 시세 재조회 결과만 바꿔 현재 화면의 표시 갱신을 재현한다.
+      var state = market.currentState
+      state.totalCryptoList = coins
+      market.stub.state.value = state
+    }
+
+    try expectVisibleName("NEAR")
+    // 같은 심볼의 다른 마켓이나 다른 코인의 이름을 잘못 사용하면 안 된다.
+    sendMarkets([
+      .init(cryptoName: "다른 마켓", market: "NEAR/BTC"),
+      .init(cryptoName: "비트코인", market: "BTC/KRW")
+    ])
+    // 비동기 목록 갱신이 반영된 뒤에도 다른 종목명으로 바뀌지 않아야 한다.
+    let wrongMarketName = XCTNSPredicateExpectation(
+      predicate: NSPredicate { _, _ in
+        guard let cell = controller.transactionTableview.cellForRow(at: IndexPath(row: 0, section: 0)) as? InvestmentTableViewCell else { return false }
+        return cell.cryptoName.text != "NEAR"
+      },
+      object: nil
+    )
+    wrongMarketName.isInverted = true
+    XCTAssertEqual(XCTWaiter.wait(for: [wrongMarketName], timeout: 0.5), .completed)
+    try expectVisibleName("NEAR")
+    sendMarkets([
+      .init(cryptoName: "다른 마켓", market: "NEAR/BTC"),
+      .init(cryptoName: "니어프로토콜", market: "NEAR/KRW")
+    ])
+    try expectVisibleName("니어프로토콜")
+    sendMarkets([.init(cryptoName: "니어 프로토콜", market: "NEAR/KRW")])
+    try expectVisibleName("니어 프로토콜")
+    sendMarkets([.init(cryptoName: "   ", market: "NEAR/KRW")])
+    try expectVisibleName("NEAR")
+    sendMarkets([])
+    try expectVisibleName("NEAR")
+
+    // 동일 셀이 다른 종목으로 재사용될 때 이전 한글명이 남지 않아야 한다.
+    let cell = try XCTUnwrap(controller.transactionTableview.cellForRow(at: IndexPath(row: 0, section: 0)) as? InvestmentTableViewCell)
+    cell.prepareForReuse()
+    let bitcoin = try FuturesCalculator.open(domesticFuturesOrder())
+    cell.configure(position: bitcoin, valuation: nil, isLast: true, cryptoName: nil)
+    XCTAssertEqual(cell.cryptoName.text, "BTC")
+    XCTAssertEqual(cell.marketSymbolLabel.text, "BTC/KRW")
+  }
+
+  @MainActor
+  func testFuturesInvestmentUsesStoredNameBeforeMarketFallback() throws {
+    // 포지션과 시세 목록이 같은 거래소를 사용하도록 기존 선택을 복구한다.
+    let previousExchange = ExchangeSelectionStore.currentExchange
+    ExchangeSelectionStore.currentExchange = .upbit
+    defer { ExchangeSelectionStore.currentExchange = previousExchange }
+    // 저장 이름과 최신 목록 이름이 다른 포지션이다.
+    var position = try FuturesCalculator.open(domesticFuturesOrder(symbol: "KRW-NEAR"))
+    position.cryptoName = "저장된 니어"
+    // 실제 계좌 저장소에 접근하지 않고 화면 상태를 제어한다.
+    let futures = reactor()
+    func sendPosition(_ position: FuturesPosition, revision: UInt64) throws {
+      // 이전 포지션을 안전하게 읽는 것과 같은 계좌 상태를 만든다.
+      let snapshot = FuturesAccountSnapshot(
+        revision: revision,
+        accounts: [.init(id: account, availableBalance: 900_000)],
+        positions: [position],
+        historyCheckStates: [try .initial(for: position)]
+      )
+      futures.stub.state.value = futures.reduce(state: futures.currentState, mutation: .snapshot(snapshot, [:]))
+    }
+    try sendPosition(position, revision: 1)
+    // 시세 목록 이름만 별도로 갱신할 수 있는 Reactor다.
+    let market = MainReactor(mainUseCase: try FuturesMainFixtureUseCase(), tickerSocketService: FuturesMainFixtureSocket())
+    market.isStubEnabled = true
+    func sendMarkets(_ name: String) {
+      // 해당 마켓의 다른 표시 이름을 시세 목록에 넣는다.
+      var state = market.currentState
+      state.totalCryptoList = [.init(cryptoName: name, market: "NEAR/KRW")]
+      market.stub.state.value = state
+    }
+    // 투자내역의 실제 셀 표시를 확인하는 창이다.
+    let controller = FuturesInvestmentViewController(reactor: futures, marketReactor: market)
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 375, height: 812))
+    window.rootViewController = controller
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true; window.rootViewController = nil }
+    controller.view.layoutIfNeeded()
+    func expectVisibleName(_ expected: String) throws {
+      // 목록 재구성이 화면에 적용되기까지 기다린다.
+      let displayed = XCTNSPredicateExpectation(
+        predicate: NSPredicate { _, _ in
+          (controller.transactionTableview.cellForRow(at: IndexPath(row: 0, section: 0)) as? InvestmentTableViewCell)?
+            .cryptoName.text == expected
+        },
+        object: nil
+      )
+      XCTAssertEqual(XCTWaiter.wait(for: [displayed], timeout: 3), .completed, expected)
+      // 이름이 바뀌어도 마켓 식별자는 그대로여야 한다.
+      let cell = try XCTUnwrap(controller.transactionTableview.cellForRow(at: IndexPath(row: 0, section: 0)) as? InvestmentTableViewCell)
+      XCTAssertEqual(cell.marketSymbolLabel.text, "NEAR/KRW")
+    }
+    try expectVisibleName("저장된 니어")
+    sendMarkets("조회된 니어")
+    sendMarkets("변경된 시세 이름")
+    // 비동기 시세 갱신 뒤에도 저장 이름이 우선해야 한다.
+    let wrongName = XCTNSPredicateExpectation(
+      predicate: NSPredicate { _, _ in
+        (controller.transactionTableview.cellForRow(at: IndexPath(row: 0, section: 0)) as? InvestmentTableViewCell)?
+          .cryptoName.text == "변경된 시세 이름"
+      },
+      object: nil
+    )
+    wrongName.isInverted = true
+    XCTAssertEqual(XCTWaiter.wait(for: [wrongName], timeout: 0.5), .completed)
+    try expectVisibleName("저장된 니어")
+    position.cryptoName = nil
+    try sendPosition(position, revision: 2)
+    try expectVisibleName("변경된 시세 이름")
+    position.cryptoName = "   "
+    try sendPosition(position, revision: 3)
+    try expectVisibleName("변경된 시세 이름")
+  }
+
+  @MainActor
   func testFuturesInvestmentReusesSpotLayoutAndShowsOnlyCurrentAccountAssets() throws {
     func flushDisplay() {
       let rendered = expectation(description: "Investment state rendered")
@@ -4768,6 +4978,109 @@ final class FuturesAccountReactorTests: XCTestCase {
     reactor.stub.state.value = reactor.reduce(state: reactor.currentState, mutation: .loadFailed)
     flushDisplay()
     XCTAssertEqual(controller.emptyLabel.text, FuturesText.text("futures_storage_error"))
+  }
+
+  @MainActor
+  func testInvestmentIdentityUsesWidestContentAndLeavesRoomForLargeProfit() throws {
+    // 현물과 선물의 표시 전용 셀을 작은 화면에 연결한다.
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 375, height: 812))
+    // 네트워크와 계좌 접근 없이 실제 XIB의 레이아웃을 확인한다.
+    let host = UIViewController()
+    window.rootViewController = host
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true; window.rootViewController = nil }
+    // 이름과 마켓 중 서로 다른 항목이 가장 넓은 현물 사례다.
+    let spotCases = [("비트코인테스트", "BTC/KRW"), ("가", "LONGCOIN/KRW")]
+    for width: CGFloat in [320, 375] {
+      // 같은 셀을 현물과 선물에 재사용해 이전 배지 상태도 검사한다.
+      let cell = try XCTUnwrap(
+        UINib(nibName: "InvestmentTableViewCell", bundle: .main)
+          .instantiate(withOwner: nil).first as? InvestmentTableViewCell
+      )
+      host.view.addSubview(cell)
+      defer { cell.removeFromSuperview() }
+      cell.frame = CGRect(x: 0, y: 0, width: width, height: 260)
+      // 라벨이 현재 글꼴로 한 줄에 표시될 때 필요한 폭이다.
+      func naturalWidth(_ label: UILabel) -> CGFloat {
+        label.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)).width
+      }
+      // 가장 긴 종목 정보와 남은 손익 영역이 헤더를 빠짐없이 차지해야 한다.
+      func verifyIdentity(isFutures: Bool, name: String) throws {
+        // 실제 테이블 셀처럼 콘텐츠 높이에 맞춰 화면에 표시한다.
+        let fittedSize = cell.systemLayoutSizeFitting(
+          CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
+          withHorizontalFittingPriority: .required,
+          verticalFittingPriority: .fittingSizeLevel
+        )
+        cell.frame.size.height = ceil(fittedSize.height)
+        cell.setNeedsLayout()
+        cell.layoutIfNeeded()
+        // 종목명과 마켓 및 배지의 공통 컨테이너다.
+        let identity = try XCTUnwrap(cell.cryptoName.superview as? UIStackView)
+        // 종목 정보와 손익이 나란히 들어가는 행이다.
+        let header = try XCTUnwrap(identity.superview as? UIStackView)
+        // 남는 가로 공간을 배분받아야 하는 손익 영역이다.
+        let profit = try XCTUnwrap(header.arrangedSubviews.last as? UIStackView)
+        // 표시된 포지션 방향과 배율을 한 행에 묶는다.
+        let badgeStack = try XCTUnwrap(cell.sideBadgeLabel.superview?.superview as? UIStackView)
+        // 종목명과 마켓 문자열 중 더 긴 쪽의 자연 폭이다.
+        let labelWidth = max(naturalWidth(cell.cryptoName), naturalWidth(cell.marketSymbolLabel))
+        // 배지가 표시되면 배지의 자연 폭까지 비교한다.
+        var expectedWidth = labelWidth
+        if isFutures {
+          // 두 배지의 좌우 여백과 배지 사이 간격을 포함한다.
+          let badgeWidth = naturalWidth(cell.sideBadgeLabel) + naturalWidth(cell.leverageBadgeLabel) + 32 + badgeStack.spacing
+          expectedWidth = max(expectedWidth, badgeWidth)
+          XCTAssertFalse(badgeStack.isHidden, name)
+          for label in [cell.sideBadgeLabel, cell.leverageBadgeLabel].compactMap({ $0 }) {
+            XCTAssertGreaterThanOrEqual(label.bounds.width + 0.5, naturalWidth(label), name)
+            XCTAssertFalse(try XCTUnwrap(label.superview).hasAmbiguousLayout, name)
+          }
+        } else {
+          XCTAssertTrue(badgeStack.isHidden, name)
+        }
+        XCTAssertEqual(identity.bounds.width, expectedWidth, accuracy: 1, name)
+        XCTAssertEqual(profit.bounds.width, header.bounds.width - identity.bounds.width - header.spacing, accuracy: 1, name)
+        XCTAssertGreaterThan(cell.cryptoEvalLoss.bounds.width, 0, name)
+        XCTAssertFalse(identity.hasAmbiguousLayout, name)
+        XCTAssertFalse(profit.hasAmbiguousLayout, name)
+        // 999조 손익과 배지의 실제 배치를 보관한다.
+        let capture = XCTAttachment(image: UIGraphicsImageRenderer(bounds: cell.bounds).image {
+          cell.layer.render(in: $0.cgContext)
+        })
+        capture.name = "InvestmentIdentity-999trillion-\(name)-\(Int(width))"
+        capture.lifetime = .keepAlways
+        add(capture)
+      }
+      for (name, market) in spotCases {
+        // 실제 현물 셀 구성 경로에서 종목 이름과 마켓만 바꾼다.
+        let holding = CryptoTransactionDataModel(
+          staticData: .init(marketName: market, cryptoName: name, holdingQuantity: 1, averageBuyPrice: 1, buyAmount: 1),
+          dynamicData: .init(marketName: market, profitRate: 100, evaluationProfitLoss: 999_000_000_000_000, evaluationPrice: 999_000_000_000_000)
+        )
+        cell.prepareForReuse()
+        cell.configure(crypto: holding, isLast: true)
+        cell.cryptoEvalLoss.text = "+999,000,000,000,000"
+        cell.cryptoProfitRate.text = "+100%"
+        cell.setNeedsLayout()
+        cell.layoutIfNeeded()
+        try verifyIdentity(isFutures: false, name: "spot-\(market)")
+      }
+      for side in [FuturesSide.long, .short] {
+        // 짧은 심볼에서는 롱·숏과 100배 배지가 자연 폭을 결정한다.
+        let position = try FuturesCalculator.open(domesticFuturesOrder(side: side, leverage: 100))
+        // 양수 손익 상태의 실제 색상과 배지를 적용한다.
+        let valuation = try FuturesCalculator.evaluate(position, markPrice: 110_000_000)
+        cell.prepareForReuse()
+        cell.configure(position: position, valuation: valuation, isLast: true)
+        XCTAssertEqual(cell.profitRateTitle.text, FuturesText.text("futures_roe"))
+        cell.cryptoEvalLoss.text = "+999,000,000,000,000"
+        cell.cryptoProfitRate.text = "+100%"
+        cell.setNeedsLayout()
+        cell.layoutIfNeeded()
+        try verifyIdentity(isFutures: true, name: "futures-\(side)")
+      }
+    }
   }
 
   @MainActor
@@ -7415,7 +7728,11 @@ extension FuturesAccountReactorTests {
     var state = try readyOrderCompletionState(futures, position: position)
     futures.stub.state.value = state
     // 종료 시트의 콜백이 기존 주문 화면으로 전달되는 실제 경로다.
-    let order = FuturesOrderViewController(reactor: futures, instrument: position.order.instrument)
+    let order = FuturesOrderViewController(
+      reactor: futures,
+      instrument: position.order.instrument,
+      cryptoName: "비트코인"
+    )
     order.captureOrderPrice = {
       // 종료 계산에는 화면 시세와 같은 값 및 현재 요청 시각을 전달한다.
       let timestamp = (try? FuturesHistoryCheckState.milliseconds(Date())) ?? 0
@@ -7480,9 +7797,10 @@ extension FuturesAccountReactorTests {
     open.sendActions(for: .touchUpInside)
     // 이 화면에서 다시 누른 신규 진입 Action만 검사한다.
     let opening = try XCTUnwrap(futures.stub.actions.last { if case .open = $0 { return true }; return false })
-    if case let .open(_, _, amount, _, positionID, _) = opening {
+    if case let .open(_, _, amount, _, positionID, _, cryptoName) = opening {
       XCTAssertEqual(amount, 100)
       XCTAssertNil(positionID)
+      XCTAssertEqual(cryptoName, "비트코인")
     } else {
       XCTFail("Expected a new position opening")
     }

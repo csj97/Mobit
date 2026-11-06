@@ -37,7 +37,8 @@ final class FuturesTradingUseCase {
 	margin: Decimal,
 	leverage: Int,
 	addingTo positionID: UUID? = nil,
-	price: FuturesOrderPrice? = nil
+	price: FuturesOrderPrice? = nil,
+	cryptoName: String? = nil
   ) -> Single<FuturesAccountSnapshot> {
 	Single.deferred { [self] in
 	  // 주문 생성 시 적용할 배수·수량·최소 거래금액을 공통 규약에서 가져온다.
@@ -83,7 +84,13 @@ final class FuturesTradingUseCase {
 		  executedAt: Date(timeIntervalSince1970: Double(orderCheck.executionTime) / 1000),
 		  contractRules: rules
 		)
-		let saved = try repository.openPosition(order, orderCheck: orderCheck, now: now())
+		// 종목명은 주문 동일성에 포함하지 않는 표시용 정보로 전달한다.
+		let saved = try repository.openPosition(
+		  order,
+		  orderCheck: orderCheck,
+		  now: now(),
+		  cryptoName: cryptoName
+		)
 		historyCheck.track(
 		  saved,
 		  openingRequestID: requestID,

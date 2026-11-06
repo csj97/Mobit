@@ -101,9 +101,12 @@ final class LocalFuturesAccountRepository {
 
   // 주문 검증 자료의 시세·계좌 버전을 재확인한 뒤 진입 결과를 저장한다.
   @discardableResult
-  func openPosition(_ order: FuturesOpeningOrder, orderCheck: FuturesOrderCheck, now: Date = Date()) throws
-	-> FuturesAccountSnapshot
-  {
+  func openPosition(
+    _ order: FuturesOpeningOrder,
+    orderCheck: FuturesOrderCheck,
+    now: Date = Date(),
+    cryptoName: String? = nil
+  ) throws -> FuturesAccountSnapshot {
 	Self.lock.lock()
 	defer { Self.lock.unlock() }
 	let current = try fetchSnapshot()
@@ -116,20 +119,29 @@ final class LocalFuturesAccountRepository {
 	  order.executionPrice == orderCheck.mark.price,
 	  (try FuturesHistoryCheckState.milliseconds(order.executedAt)) == orderCheck.executionTime
 	else { throw FuturesOrderCheckError.invalidTarget }
-	return try openPosition(order, expectedRevision: orderCheck.revision, current: current)
+	return try openPosition(
+	  order,
+	  expectedRevision: orderCheck.revision,
+	  current: current,
+	  cryptoName: cryptoName
+	)
   }
 
   private func openPosition(
 	_ order: FuturesOpeningOrder,
 	expectedRevision: UInt64,
-	current: FuturesAccountSnapshot
+	current: FuturesAccountSnapshot,
+	cryptoName: String?
   ) throws -> FuturesAccountSnapshot {
 	if let existing = current.positions.flatMap(\.executions).first(where: { $0.requestID == order.requestID }) {
 	  guard existing == order else { throw StoreError.conflictingOrder }
 	  return current
 	}
 	guard current.revision == expectedRevision else { throw StoreError.revisionConflict }
-	let position = try FuturesCalculator.open(order)
+	var position = try FuturesCalculator.open(order)
+	// 공백 이름은 저장하지 않고 이후 시세 목록에서 조회한다.
+	let displayName = cryptoName?.trimmingCharacters(in: .whitespacesAndNewlines)
+	position.cryptoName = displayName.flatMap { $0.isEmpty ? nil : $0 }
 	let activeIndex = current.positions.firstIndex { existing in
 	  existing.order.account == order.account && existing.order.instrument == order.instrument
 		&& current.isActive(existing)
@@ -153,6 +165,10 @@ final class LocalFuturesAccountRepository {
 	var entry = try FuturesCalculator.openingLedgerEntry(for: position)
 	if let activeIndex {
 	  positions[activeIndex] = try FuturesCalculator.adding(order, to: positions[activeIndex])
+	  // 이전 이름을 유지하고 기존 이름이 없을 때만 새 이름으로 보완한다.
+	  if positions[activeIndex].cryptoName?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false {
+		positions[activeIndex].cryptoName = position.cryptoName
+	  }
 	  guard let stateIndex = historyCheckStates.firstIndex(where: { $0.positionID == positions[activeIndex].id }) else {
 		throw StoreError.invalidStoredData
 	  }

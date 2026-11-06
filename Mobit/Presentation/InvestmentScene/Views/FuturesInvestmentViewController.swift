@@ -80,12 +80,34 @@ final class FuturesInvestmentViewController: MobitBaseViewController, UITableVie
             let cell = table.dequeueReusableCell(withIdentifier: "InvestmentTableViewCell", for: path) as? InvestmentTableViewCell else {
         return UITableViewCell()
       }
-      cell.configure(position: item.position, valuation: item.value, isLast: path.row == items.count - 1)
+      // 포지션과 같은 거래소·마켓의 시세 목록에서 종목명을 찾는다.
+      let market = MarketFormat.displayMarket(
+        fromAPIMarket: item.position.order.instrument.rawSymbol,
+        exchange: item.position.order.instrument.exchange
+      )
+      // 목록이 아직 없거나 종목이 빠진 경우 셀이 심볼을 대신 표시한다.
+      let cryptoName = marketReactor.currentState.totalCryptoList.first { $0.market == market }?.cryptoName
+      cell.configure(
+        position: item.position,
+        valuation: item.value,
+        isLast: path.row == items.count - 1,
+        cryptoName: cryptoName
+      )
       cell.selectionStyle = .none
       return cell
     }
     transactionTableview.delegate = self
     reactor.state.observe(on: MainScheduler.instance)
+      .subscribe(onNext: { [weak self] _ in self?.render() }).disposed(by: disposeBag)
+    // 가격만 바뀌는 틱에서는 다시 그리지 않고 종목명 목록이 바뀔 때만 갱신한다.
+    marketReactor.state
+      .map { state in
+        state.totalCryptoList.reduce(into: [String: String]()) { names, coin in
+          names[coin.market] = coin.cryptoName
+        }
+      }
+      .distinctUntilChanged()
+      .observe(on: MainScheduler.instance)
       .subscribe(onNext: { [weak self] _ in self?.render() }).disposed(by: disposeBag)
   }
 

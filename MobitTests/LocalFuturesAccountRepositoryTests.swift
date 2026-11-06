@@ -145,6 +145,7 @@ final class LocalFuturesAccountRepositoryTests: XCTestCase {
 
     let snapshot = try LocalFuturesAccountRepository(fileURL: fileURL).snapshot()
     let position = try XCTUnwrap(snapshot.positions.first)
+    XCTAssertNil(position.cryptoName)
     XCTAssertEqual(position.entryTradeAmount, 1_000_000)
     XCTAssertEqual(position.order.contractRules.minimumOrderAmount, 500)
     XCTAssertEqual(snapshot.ledger.first?.reservedMarginChange, 100_000)

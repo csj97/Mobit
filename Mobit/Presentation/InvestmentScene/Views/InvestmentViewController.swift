@@ -206,6 +206,14 @@ class InvestmentViewController: MobitBaseViewController {
 		  isLast: isLast,
 		  isTradingUnsupported: self.isTradingUnsupported(crypto)
 		)
+		cell.unsupportedSettlementCallBack = { [weak self] in
+		  // 갱신된 보유 목록에서 버튼에 해당하는 종목을 다시 확인한다.
+		  guard let self, let currentCrypto = self.cryptos.first(where: {
+			$0.staticData.exchangePairID == crypto.staticData.exchangePairID
+		  }),
+			self.isTradingUnsupported(currentCrypto) else { return }
+		  self.showDelistingSettlementAlert(for: currentCrypto)
+		}
 		cell.selectionStyle = .none
 		
 		return cell
@@ -527,10 +535,7 @@ extension InvestmentViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 	guard indexPath.row < self.cryptos.count else { return }
 	let selectedCrypto = self.cryptos[indexPath.row]
-	guard !self.isTradingUnsupported(selectedCrypto) else {
-	  self.showDelistingSettlementAlert(for: selectedCrypto)
-	  return
-	}
+	guard !self.isTradingUnsupported(selectedCrypto) else { return }
 	let selectedCryptoMarketName = self.cryptos[indexPath.row].staticData.marketName
 
 	guard let selectedCryptoName = self.cryptos[indexPath.row].staticData.cryptoName else { return }

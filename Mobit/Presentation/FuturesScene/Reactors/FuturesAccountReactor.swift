@@ -6,7 +6,7 @@ import RxSwift
 final class FuturesAccountReactor: Reactor {
   enum Action {
 	case reload
-	case open(TradingInstrumentID, FuturesSide, Decimal, Int, UUID?, FuturesOrderPrice? = nil)
+	case open(TradingInstrumentID, FuturesSide, Decimal, Int, UUID?, FuturesOrderPrice? = nil, String? = nil)
 	case close(UUID, FuturesOrderPrice? = nil)
     case closeQuantity(UUID, Decimal, Decimal, FuturesOrderPrice)
 	case clearMessage
@@ -187,7 +187,7 @@ final class FuturesAccountReactor: Reactor {
 	  historyCheck.refresh()
 	  return .empty()
 	case .clearMessage: return .just(.message(nil))
-	case let .open(instrument, side, margin, leverage, positionID, price):
+	case let .open(instrument, side, margin, leverage, positionID, price, cryptoName):
 	  // 사용자 금액 없이 진입 방식·방향·배수만 원래 요청 계좌에 연결한다.
 	  let parameters: [String: Any] = [
 		"order_type": positionID != nil || position(for: instrument) != nil ? "추가_진입" : "신규_진입",
@@ -213,7 +213,8 @@ final class FuturesAccountReactor: Reactor {
 		  margin: margin,
 		  leverage: leverage,
 		  addingTo: positionID,
-		  price: price
+		  price: price,
+		  cryptoName: cryptoName
 		),
 		instrument: instrument,
 		parameters: parameters

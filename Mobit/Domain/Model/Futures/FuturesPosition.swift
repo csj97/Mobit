@@ -46,10 +46,20 @@ struct FuturesPosition: Codable, Equatable {
   var additionalOrders: [FuturesOpeningOrder]? = nil
   // 원래 진입 이력을 보존하면서 이미 종료한 수량과 정산 결과를 기록한다.
   var partialClosings: [FuturesClosedPosition]? = nil
+  // 투자내역에서 우선 표시할 저장된 종목명이다.
+  var cryptoName: String? = nil
 
   private enum CodingKeys: String, CodingKey {
-    case order, quantity, entryFee, ruleVersion, additionalOrders, partialClosings
+    case order, quantity, entryFee, ruleVersion, additionalOrders, partialClosings, cryptoName
     case entryTradeAmount = "entryNotional"
+  }
+
+  static func == (lhs: FuturesPosition, rhs: FuturesPosition) -> Bool {
+    // 표시용 종목명은 포지션 검증과 시세 감시의 동일성에 포함하지 않는다.
+    lhs.order == rhs.order && lhs.quantity == rhs.quantity &&
+      lhs.entryTradeAmount == rhs.entryTradeAmount && lhs.entryFee == rhs.entryFee &&
+      lhs.ruleVersion == rhs.ruleVersion && lhs.additionalOrders == rhs.additionalOrders &&
+      lhs.partialClosings == rhs.partialClosings
   }
 
   var executions: [FuturesOpeningOrder] { [order] + (additionalOrders ?? []) }
