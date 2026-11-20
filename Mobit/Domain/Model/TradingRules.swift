@@ -59,6 +59,8 @@ enum TradingRules {
     static let quantityTolerance: Double = 0.00000001
     // 현물 손익률의 기존 소수점 표시·절삭 기준이다.
     static let profitRateFractionDigits = 2
+    // 현물 주문 단가에 보존하는 최대 소수 자릿수다.
+    static let orderPriceFractionDigits = 8
     // 현물 평가금액 원본 계산에 적용하는 기존 소수점 절삭 기준이다.
     static let evaluationFractionDigits = 8
 

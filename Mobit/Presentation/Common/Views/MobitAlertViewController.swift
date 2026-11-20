@@ -22,12 +22,40 @@ class MobitAlertViewController: UIViewController {
   @IBOutlet weak var dividerView: UIView!
   @IBOutlet weak var buttonDividerView: UIView!
   @IBOutlet weak var dimView: UIView!
+  // 거래지원 종료 시에만 정산 대상을 표시한다.
+  @IBOutlet private weak var settlementSummaryView: UIView!
+  // 정산 대상 종목의 의미를 표시한다.
+  @IBOutlet private weak var settlementMarketTitleLabel: UILabel!
+  // 정산 대상 종목을 표시한다.
+  @IBOutlet private weak var settlementMarketLabel: UILabel!
+  // 정산 대상 수량의 의미를 표시한다.
+  @IBOutlet private weak var settlementQuantityTitleLabel: UILabel!
+  // 정산 대상 수량을 표시한다.
+  @IBOutlet private weak var settlementQuantityLabel: UILabel!
+  // 보유 수량의 기초자산 단위를 표시한다.
+  @IBOutlet private weak var settlementQuantityUnitLabel: UILabel!
+  // 반환 금액의 의미를 표시한다.
+  @IBOutlet private weak var settlementAmountTitleLabel: UILabel!
+  // 반환 금액과 통화를 표시한다.
+  @IBOutlet private weak var settlementAmountLabel: UILabel!
+  // 전량 매도 이후 결과가 반영되는 위치를 안내한다.
+  @IBOutlet private weak var settlementFooterLabel: UILabel!
+  // 일반 알림의 버튼 왼쪽 여백을 유지한다.
+  @IBOutlet private var defaultActionLeadingConstraint: NSLayoutConstraint!
+  // 일반 알림의 버튼 오른쪽 여백을 유지한다.
+  @IBOutlet private var defaultActionTrailingConstraint: NSLayoutConstraint!
+  // 정산 알림의 버튼 왼쪽 여백을 줄인다.
+  @IBOutlet private var settlementActionLeadingConstraint: NSLayoutConstraint!
+  // 정산 알림의 버튼 오른쪽 여백을 줄인다.
+  @IBOutlet private var settlementActionTrailingConstraint: NSLayoutConstraint!
   
   var callBack: ((Bool) -> ())? = nil
   // 재시도처럼 화면마다 다른 확인 동작의 문구를 유지한다.
   private let confirmTitle: String
   // 닫기 동작에도 호출 화면에서 지정한 문구를 사용한다.
   private let cancelTitle: String
+  // 정산 확인창에 표시할 검증된 보유 정보다.
+  private var settlementDetails: (market: String, quantity: String, quantityUnit: String, amount: String)?
   
   var alertType: AlertType
   var titleString: String
@@ -77,6 +105,7 @@ class MobitAlertViewController: UIViewController {
       self?.applyButtonStyle(button)
     }
     self.configure(alertType: alertType, title: titleString, content: content, callBack: callBack)
+    applySettlementDetails()
   }
 
   override func viewDidLayoutSubviews() {
@@ -92,6 +121,7 @@ class MobitAlertViewController: UIViewController {
       previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true
         || previousTraitCollection?.preferredContentSizeCategory != traitCollection.preferredContentSizeCategory else { return }
     applyThemeColors()
+    applySettlementNumberTypography()
   }
 
   private func applyThemeColors() {
@@ -133,12 +163,33 @@ class MobitAlertViewController: UIViewController {
       alignment: titleAlignment,
       lineHeight: UIFontMetrics(forTextStyle: .title3).scaledValue(for: 28, compatibleWith: traitCollection)
     )
-    contentLabel.attributedText = makeText(
-      content,
-      label: contentLabel,
-      alignment: contentAlignment,
-      lineHeight: UIFontMetrics(forTextStyle: .body).scaledValue(for: 24, compatibleWith: traitCollection)
+    // 정산 안내의 전량 매도 문구만 강조할 수 있도록 본문 서식을 복사한다.
+    let contentText = NSMutableAttributedString(
+      attributedString: makeText(
+        content,
+        label: contentLabel,
+        alignment: contentAlignment,
+        lineHeight: UIFontMetrics(forTextStyle: .body).scaledValue(for: 24, compatibleWith: traitCollection)
+      )
     )
+    if settlementDetails != nil {
+      // 전량 매도가 포함된 각 언어의 문구만 강조한다.
+      let emphasis = FuturesText.text("spot_delisting_emphasis")
+      // NSString 범위를 사용해 한글과 영문 모두 정확한 글자에 적용한다.
+      let range = (content as NSString).range(of: emphasis)
+      if !emphasis.isEmpty, range.location != NSNotFound {
+        contentText.addAttribute(
+          .font,
+          value: UIFontMetrics(forTextStyle: .body).scaledFont(
+            for: .systemFont(ofSize: 15, weight: .bold),
+            compatibleWith: traitCollection
+          ),
+          range: range
+        )
+        contentText.addAttribute(.foregroundColor, value: UIColor.mobitColors(.accentPrimary), range: range)
+      }
+    }
+    contentLabel.attributedText = contentText
     // 큰 글자에서는 두 동작을 별도 행에 두어 문구가 좁은 반폭에 갇히지 않게 한다.
     buttonStackView.axis = traitCollection.preferredContentSizeCategory.isAccessibilityCategory ? .vertical : .horizontal
   }
@@ -177,7 +228,7 @@ class MobitAlertViewController: UIViewController {
     // 취소 버튼은 시안의 옅은 배경을 사용하고 다크 모드에서는 기존 표면색을 따른다.
     let backgroundColor: UIColor = primaryAction
       ? .mobitColors(.accentPrimary)
-      : (darkAppearance ? .mobitColors(.surfacePrimary) : UIColor(hex: "#EFF4FF"))
+      : (darkAppearance ? .mobitColors(.surfacePrimary) : UIColor(hex: settlementDetails == nil ? "#EFF4FF" : "#F1F2F4"))
     // 상태 갱신마다 기준 글꼴에서 확대해 중복 스케일링을 피한다.
     let font = UIFontMetrics(forTextStyle: .callout).scaledFont(
       for: .systemFont(ofSize: 14, weight: .semibold),
@@ -223,6 +274,64 @@ class MobitAlertViewController: UIViewController {
     self.titleLabel.isHidden = titleString.isEmpty
     self.dividerView.isHidden = true
     applyThemeColors()
+  }
+
+  func setDelistingSettlementDetails(
+    market: String,
+    quantity: String,
+    quantityUnit: String,
+    amount: String
+  ) {
+    settlementDetails = (market, quantity, quantityUnit, amount)
+    guard isViewLoaded else { return }
+    applySettlementDetails()
+    applyThemeColors()
+  }
+
+  private func applySettlementDetails() {
+    // 기존 공통 알림은 원래 여백을 유지하고 정산창에서만 버튼을 넓힌다.
+    let isSettlement = settlementDetails != nil
+    // 비필수 제약의 우선순위를 전환해 정산 유무에 맞는 여백을 적용한다.
+    let selectedPriority = UILayoutPriority(999)
+    defaultActionLeadingConstraint.priority = isSettlement ? .defaultLow : selectedPriority
+    defaultActionTrailingConstraint.priority = isSettlement ? .defaultLow : selectedPriority
+    settlementActionLeadingConstraint.priority = isSettlement ? selectedPriority : .defaultLow
+    settlementActionTrailingConstraint.priority = isSettlement ? selectedPriority : .defaultLow
+    settlementSummaryView.isHidden = settlementDetails == nil
+    settlementFooterLabel.isHidden = settlementDetails == nil
+    guard let settlementDetails else { return }
+    settlementSummaryView.accessibilityIdentifier = "delisting.summary"
+    settlementMarketLabel.accessibilityIdentifier = "delisting.market"
+    settlementQuantityLabel.accessibilityIdentifier = "delisting.quantity"
+    settlementQuantityUnitLabel.accessibilityIdentifier = "delisting.quantity.unit"
+    settlementAmountLabel.accessibilityIdentifier = "delisting.amount"
+    settlementMarketTitleLabel.text = FuturesText.text("spot_delisting_market")
+    settlementQuantityTitleLabel.text = FuturesText.text("spot_delisting_quantity")
+    settlementAmountTitleLabel.text = FuturesText.text("spot_delisting_amount")
+    settlementFooterLabel.text = FuturesText.text("spot_delisting_footer")
+    settlementMarketLabel.text = settlementDetails.market
+    settlementQuantityLabel.text = settlementDetails.quantity
+    settlementQuantityUnitLabel.text = settlementDetails.quantityUnit
+    settlementQuantityLabel.accessibilityLabel = "\(settlementDetails.quantity) \(settlementDetails.quantityUnit)"
+    settlementQuantityUnitLabel.isAccessibilityElement = false
+    settlementAmountLabel.text = settlementDetails.amount
+    applySettlementNumberTypography()
+  }
+
+  private func applySettlementNumberTypography() {
+    guard let settlementDetails else { return }
+    // 두 숫자는 같은 크기와 굵기를 유지하면서 사용자 글자 크기에 맞춘다.
+    let numberFont = UIFontMetrics(forTextStyle: .caption1).scaledFont(
+      for: .systemFont(ofSize: 12, weight: .semibold),
+      compatibleWith: traitCollection
+    )
+    settlementQuantityLabel.font = numberFont
+    // 반환 통화는 XIB 글꼴을 유지하고 마지막 공백 앞의 금액만 강조한다.
+    let amountText = NSMutableAttributedString(string: settlementDetails.amount)
+    let separator = (settlementDetails.amount as NSString).range(of: " ", options: .backwards)
+    let numberLength = separator.location == NSNotFound ? amountText.length : separator.location
+    amountText.addAttribute(.font, value: numberFont, range: NSRange(location: 0, length: numberLength))
+    settlementAmountLabel.attributedText = amountText
   }
   
   @IBAction func tapOnCancelButton(_ sender: UIButton) {

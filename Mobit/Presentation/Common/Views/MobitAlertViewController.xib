@@ -19,6 +19,19 @@
                 <outlet property="dimView" destination="BCl-fP-Gln" id="eVq-cA-Fsh"/>
                 <outlet property="dividerView" destination="sXy-FG-jKx" id="9bx-pB-6oL"/>
                 <outlet property="labelStackView" destination="Hza-Le-BAP" id="msC-Jt-BS6"/>
+                <outlet property="settlementSummaryView" destination="settlement-summary-wrapper" id="outlet-settlement-summary"/>
+                <outlet property="defaultActionLeadingConstraint" destination="YVB-y2-l3r" id="outlet-default-actions-leading"/>
+                <outlet property="defaultActionTrailingConstraint" destination="FGQ-Sj-UuB" id="outlet-default-actions-trailing"/>
+                <outlet property="settlementActionLeadingConstraint" destination="settlement-actions-leading" id="outlet-settlement-actions-leading"/>
+                <outlet property="settlementActionTrailingConstraint" destination="settlement-actions-trailing" id="outlet-settlement-actions-trailing"/>
+                <outlet property="settlementMarketTitleLabel" destination="settlement-market-title" id="outlet-settlement-market-title"/>
+                <outlet property="settlementMarketLabel" destination="settlement-market" id="outlet-settlement-market"/>
+                <outlet property="settlementQuantityTitleLabel" destination="settlement-quantity-title" id="outlet-settlement-quantity-title"/>
+                <outlet property="settlementQuantityLabel" destination="settlement-quantity" id="outlet-settlement-quantity"/>
+                <outlet property="settlementQuantityUnitLabel" destination="settlement-quantity-unit" id="outlet-settlement-quantity-unit"/>
+                <outlet property="settlementAmountTitleLabel" destination="settlement-amount-title" id="outlet-settlement-amount-title"/>
+                <outlet property="settlementAmountLabel" destination="settlement-amount" id="outlet-settlement-amount"/>
+                <outlet property="settlementFooterLabel" destination="settlement-footer" id="outlet-settlement-footer"/>
                 <outlet property="titleLabel" destination="Waz-t0-1lM" id="uTe-wL-hYb"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
@@ -60,6 +73,66 @@
                                                     <fontDescription key="fontDescription" type="system" weight="medium" pointSize="15"/>
                                                     <color key="textColor" red="0.2901960784" green="0.2666666667" blue="0.3333333333" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                 </label>
+                                                <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="settlement-summary-wrapper" userLabel="Settlement Summary Wrapper">
+                                                    <rect key="frame" x="0.0" y="81" width="255" height="0.0"/>
+                                                    <subviews>
+                                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="settlement-summary" userLabel="Settlement Summary">
+                                                            <rect key="frame" x="0.0" y="81" width="255" height="0.0"/>
+                                                            <subviews>
+                                                                <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="settlement-rows">
+                                                                    <rect key="frame" x="16" y="14" width="223" height="108"/>
+                                                                    <subviews>
+                                                                        <stackView opaque="NO" contentMode="scaleToFill" alignment="top" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="settlement-market-row">
+                                                                            <rect key="frame" x="0.0" y="0.0" width="223" height="18"/>
+                                                                            <subviews>
+                                                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalCompressionResistancePriority="751" text="종목" lineBreakMode="wordWrap" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="settlement-market-title"><fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/><color key="textColor" systemColor="secondaryLabelColor"/></label>
+                                                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="right" horizontalHuggingPriority="250" horizontalCompressionResistancePriority="749" text="블라스트 (BLAST)" textAlignment="right" lineBreakMode="characterWrap" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="settlement-market"><fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/><color key="textColor" systemColor="labelColor"/></label>
+                                                                            </subviews>
+                                                                            <constraints><constraint firstItem="settlement-market" firstAttribute="width" relation="greaterThanOrEqual" secondItem="settlement-market-row" secondAttribute="width" multiplier="0.45" priority="999" id="settlement-market-minimum-width"/></constraints>
+                                                                        </stackView>
+                                                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="settlement-divider"><color key="backgroundColor" systemColor="separatorColor"/><constraints><constraint firstAttribute="height" constant="0.5" id="settlement-divider-height"/></constraints></view>
+                                                                        <stackView opaque="NO" contentMode="scaleToFill" alignment="top" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="settlement-quantity-row">
+                                                                            <rect key="frame" x="0.0" y="43" width="223" height="18"/>
+                                                                            <subviews>
+                                                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalCompressionResistancePriority="751" text="보유 수량" lineBreakMode="wordWrap" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="settlement-quantity-title"><fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/><color key="textColor" systemColor="secondaryLabelColor"/></label>
+                                                                                <stackView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="250" horizontalCompressionResistancePriority="749" alignment="bottom" spacing="2" translatesAutoresizingMaskIntoConstraints="NO" id="settlement-quantity-value">
+                                                                                    <subviews>
+                                                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="right" horizontalHuggingPriority="250" horizontalCompressionResistancePriority="749" text="2,217,294" textAlignment="right" lineBreakMode="characterWrap" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="settlement-quantity"><fontDescription key="fontDescription" style="UICTFontTextStyleCaption1"/><color key="textColor" systemColor="labelColor"/></label>
+                                                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="right" horizontalHuggingPriority="251" horizontalCompressionResistancePriority="751" text="BLAST" textAlignment="right" lineBreakMode="tailTruncation" adjustsFontSizeToFit="YES" minimumScaleFactor="0.7" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="settlement-quantity-unit"><fontDescription key="fontDescription" style="UICTFontTextStyleCaption2"/><color key="textColor" systemColor="secondaryLabelColor"/></label>
+                                                                                    </subviews>
+                                                                                </stackView>
+                                                                            </subviews>
+                                                                            <constraints><constraint firstItem="settlement-quantity-value" firstAttribute="width" relation="greaterThanOrEqual" secondItem="settlement-quantity-row" secondAttribute="width" multiplier="0.45" priority="999" id="settlement-quantity-minimum-width"/></constraints>
+                                                                        </stackView>
+                                                                        <stackView opaque="NO" contentMode="scaleToFill" alignment="top" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="settlement-amount-row">
+                                                                            <rect key="frame" x="0.0" y="73" width="223" height="18"/>
+                                                                            <subviews>
+                                                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalCompressionResistancePriority="751" text="반환 금액" lineBreakMode="wordWrap" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="settlement-amount-title"><fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/><color key="textColor" systemColor="secondaryLabelColor"/></label>
+                                                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="right" horizontalHuggingPriority="250" horizontalCompressionResistancePriority="749" text="305,986 KRW" textAlignment="right" lineBreakMode="characterWrap" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="settlement-amount"><fontDescription key="fontDescription" style="UICTFontTextStyleCaption1"/><color key="textColor" systemColor="labelColor"/></label>
+                                                                            </subviews>
+                                                                            <constraints><constraint firstItem="settlement-amount" firstAttribute="width" relation="greaterThanOrEqual" secondItem="settlement-amount-row" secondAttribute="width" multiplier="0.45" priority="999" id="settlement-amount-minimum-width"/></constraints>
+                                                                        </stackView>
+                                                                    </subviews>
+                                                                </stackView>
+                                                            </subviews>
+                                                            <color key="backgroundColor" systemColor="secondarySystemBackgroundColor"/>
+                                                            <constraints>
+                                                                <constraint firstItem="settlement-rows" firstAttribute="top" secondItem="settlement-summary" secondAttribute="top" constant="14" priority="999" id="settlement-rows-top"/>
+                                                                <constraint firstItem="settlement-rows" firstAttribute="leading" secondItem="settlement-summary" secondAttribute="leading" constant="12" id="settlement-rows-leading"/>
+                                                                <constraint firstAttribute="trailing" secondItem="settlement-rows" secondAttribute="trailing" constant="12" id="settlement-rows-trailing"/>
+                                                                <constraint firstAttribute="bottom" secondItem="settlement-rows" secondAttribute="bottom" constant="14" priority="999" id="settlement-rows-bottom"/>
+                                                            </constraints>
+                                                            <userDefinedRuntimeAttributes><userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius"><real key="value" value="16"/></userDefinedRuntimeAttribute></userDefinedRuntimeAttributes>
+                                                        </view>
+                                                    </subviews>
+                                                    <constraints>
+                                                        <constraint firstItem="settlement-summary" firstAttribute="top" secondItem="settlement-summary-wrapper" secondAttribute="top" id="settlement-summary-wrapper-top"/>
+                                                        <constraint firstItem="settlement-summary" firstAttribute="leading" secondItem="settlement-summary-wrapper" secondAttribute="leading" constant="-8" id="settlement-summary-wrapper-leading"/>
+                                                        <constraint firstItem="settlement-summary" firstAttribute="trailing" secondItem="settlement-summary-wrapper" secondAttribute="trailing" constant="8" id="settlement-summary-wrapper-trailing"/>
+                                                        <constraint firstAttribute="bottom" secondItem="settlement-summary" secondAttribute="bottom" id="settlement-summary-wrapper-bottom"/>
+                                                    </constraints>
+                                                </view>
+                                                <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" text="정산 결과는 실현손익과 보유자산에 반영돼요." textAlignment="center" lineBreakMode="wordWrap" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="settlement-footer"><fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/><color key="textColor" systemColor="secondaryLabelColor"/></label>
                                             </subviews>
                                         </stackView>
                                         <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="TUA-TG-ICX" userLabel="Button Stack View">
@@ -116,8 +189,10 @@
                                         <constraint firstItem="Hza-Le-BAP" firstAttribute="leading" secondItem="nEE-H1-Ysh" secondAttribute="leading" constant="24" id="dkw-nu-M1e"/>
                                         <constraint firstAttribute="trailing" secondItem="Hza-Le-BAP" secondAttribute="trailing" constant="24" id="Tbk-VD-3aq"/>
                                         <constraint firstItem="TUA-TG-ICX" firstAttribute="top" secondItem="Hza-Le-BAP" secondAttribute="bottom" constant="28" id="alert-actions-top"/>
-                                        <constraint firstItem="TUA-TG-ICX" firstAttribute="leading" secondItem="nEE-H1-Ysh" secondAttribute="leading" constant="24" id="YVB-y2-l3r"/>
-                                        <constraint firstAttribute="trailing" secondItem="TUA-TG-ICX" secondAttribute="trailing" constant="24" id="FGQ-Sj-UuB"/>
+                                        <constraint firstItem="TUA-TG-ICX" firstAttribute="leading" secondItem="nEE-H1-Ysh" secondAttribute="leading" constant="24" priority="999" id="YVB-y2-l3r"/>
+                                        <constraint firstAttribute="trailing" secondItem="TUA-TG-ICX" secondAttribute="trailing" constant="24" priority="999" id="FGQ-Sj-UuB"/>
+                                        <constraint firstItem="TUA-TG-ICX" firstAttribute="leading" secondItem="nEE-H1-Ysh" secondAttribute="leading" constant="16" priority="250" id="settlement-actions-leading"/>
+                                        <constraint firstAttribute="trailing" secondItem="TUA-TG-ICX" secondAttribute="trailing" constant="16" priority="250" id="settlement-actions-trailing"/>
                                         <constraint firstAttribute="bottom" secondItem="TUA-TG-ICX" secondAttribute="bottom" constant="24" id="ObB-KZ-VmN"/>
                                         <constraint firstAttribute="width" relation="lessThanOrEqual" constant="340" id="alert-card-maximum-width"/>
                                     </constraints>
@@ -170,6 +245,10 @@
         </view>
     </objects>
     <resources>
+        <systemColor name="labelColor"><color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/></systemColor>
+        <systemColor name="secondaryLabelColor"><color white="0.23529411764705882" alpha="0.6" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/></systemColor>
+        <systemColor name="secondarySystemBackgroundColor"><color white="0.94901960784313721" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/></systemColor>
+        <systemColor name="separatorColor"><color white="0.77647058823529413" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/></systemColor>
         <namedColor name="accent_primary">
             <color red="0.0705882353" green="0.2549019608" blue="0.4392156863" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>

@@ -1727,7 +1727,9 @@ extension MainViewController: View {
   
   /// 사용자 매수 목록 업데이트
   private func updateUserCryptoList(from cellInfos: [CryptoCellInfo]) {
-	guard var userCryptoList = UserDataManager.userCryptoList, !userCryptoList.isEmpty else { return }
+	// 전환 전에 예약된 목록 갱신은 새 거래소의 마지막 시세가 될 수 없다.
+	guard reactor.exchange == ExchangeSelectionStore.currentExchange,
+		  var userCryptoList = UserDataManager.userCryptoList, !userCryptoList.isEmpty else { return }
 
 	// pairID -> index 맵 (탐색 O(1))
 	// 거래소가 다르면 같은 marketName(예: "ETH/KRW")이 공존하므로 거래소를 포함한 pairID를 키로 쓴다.
@@ -1736,8 +1738,10 @@ extension MainViewController: View {
 	)
 
 	for cell in cellInfos {
-	  guard let currentPrice = cell.tradePrice,
-			let idx = indexByPairID[cell.exchangePairID] else { continue }
+	  // 시세를 요청한 거래소와 동일한 보유분에만 저장한다.
+	  let pairID = ExchangeMarketCodeConverter.pairID(fromDisplayMarket: cell.market, exchange: reactor.exchange)
+	  guard let currentPrice = cell.tradePrice, currentPrice.isFinite, currentPrice > 0,
+			let idx = indexByPairID[pairID] else { continue }
 
 	  let avg = userCryptoList[idx].staticData.averageBuyPrice
 	  let qty = userCryptoList[idx].staticData.holdingQuantity
@@ -1757,6 +1761,7 @@ extension MainViewController: View {
 		holdingQuantity: qty,
 		averageBuyPrice: avg
 	  )
+	  userCryptoList[idx].updateSettlementPriceSnapshot(currentPrice: currentPrice)
 	}
 
 	// 최종적으로 1회 저장 (반복문 안에서 저장 연산 X)

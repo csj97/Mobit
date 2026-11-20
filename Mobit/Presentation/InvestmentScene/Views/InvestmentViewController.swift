@@ -65,14 +65,20 @@ class InvestmentViewController: MobitBaseViewController {
   var dataSource: UITableViewDiffableDataSource<TableViewSection, CryptoTransactionDataModel>?
   var disposeBag = DisposeBag()
   var reactor: InvestReactor
-  var cryptos: [CryptoTransactionDataModel] = []
+  // 테이블에 마지막으로 표시한 보유 암호화폐 목록이다.
+  private var displayedUserHeldCryptos: [CryptoTransactionDataModel] = []
   var userAvailableBalance: Double = 0
-  var pendingUpdate: [CryptoTransactionDataModel]?
+  // 스크롤이 끝나면 표시할 보유 암호화폐 목록이며, 빈 배열은 보유 종목이 없음을 뜻한다.
+  private(set) var pendingUserHeldCryptos: [CryptoTransactionDataModel]?
   private var supportedMarketPairIDs: Set<ExchangePairID>?
+  // 정산 확인 후 진행 중인 거래소 목록 조회를 화면 수명에 맞춰 취소한다.
+  private let settlementVerification = SerialDisposable()
+  // 정산 전 목록 조회가 끝나기 전의 중복 요청을 막는다.
+  private var isVerifyingSettlement = false
   private var selectedSortType: InvestSortType = .name {
 	didSet {
-	  self.cryptos = self.sortCryptos(sortType: self.selectedSortType, cryptos: cryptos)
-	  self.applySnapshot(cryptoTransacDataModel: self.cryptos)
+	  self.displayedUserHeldCryptos = self.sortCryptos(sortType: self.selectedSortType, cryptos: displayedUserHeldCryptos)
+	  self.applySnapshot(cryptoTransacDataModel: self.displayedUserHeldCryptos)
 	  self.sortLabel.text = FuturesText.text(self.selectedSortType.localizationKey)
 	}
   }
@@ -90,6 +96,7 @@ class InvestmentViewController: MobitBaseViewController {
   
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    showSupportedMarketsRetryIfNeeded()
     MobitAnalyticsUtil.sendScreenEvent(
       location: "투자내역_화면",
       stepDepth01: "투자내역_탭",
@@ -103,8 +110,15 @@ class InvestmentViewController: MobitBaseViewController {
 	
 	self.navigationController?.navigationBar.isHidden = true
 	applyThemeColors()
-	updateTotalDatas(cryptos: cryptos)
+	updateTotalDatas(cryptos: displayedUserHeldCryptos)
 	self.reactor.action.onNext(.loadTransactions)
+  }
+
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    settlementVerification.disposable = Disposables.create()
+    isVerifyingSettlement = false
+    reactor.action.onNext(.invalidateSupportedMarkets)
   }
   
   override func viewDidLoad() {
@@ -128,7 +142,7 @@ class InvestmentViewController: MobitBaseViewController {
   
   func setUI() {
 	summaryHeaderView.configure(product: .spot)
-	summaryHeaderView.updateCount(cryptos.count)
+	summaryHeaderView.updateCount(displayedUserHeldCryptos.count)
 	sortLabel.text = FuturesText.text(selectedSortType.localizationKey)
 	InvestmentSummaryView.configureNavigation(
 	  titleLabel: screenTitleLabel,
@@ -199,7 +213,7 @@ class InvestmentViewController: MobitBaseViewController {
 		  for: indexPath
 		) as? InvestmentTableViewCell else { return UITableViewCell() }
 		
-		let isLast = (indexPath.row == self.cryptos.count - 1)
+		let isLast = (indexPath.row == self.displayedUserHeldCryptos.count - 1)
 		let crypto = cryptoTransacDataModel
 		cell.configure(
 		  crypto: crypto,
@@ -208,7 +222,7 @@ class InvestmentViewController: MobitBaseViewController {
 		)
 		cell.unsupportedSettlementCallBack = { [weak self] in
 		  // 갱신된 보유 목록에서 버튼에 해당하는 종목을 다시 확인한다.
-		  guard let self, let currentCrypto = self.cryptos.first(where: {
+		  guard let self, let currentCrypto = self.displayedUserHeldCryptos.first(where: {
 			$0.staticData.exchangePairID == crypto.staticData.exchangePairID
 		  }),
 			self.isTradingUnsupported(currentCrypto) else { return }
@@ -299,27 +313,139 @@ class InvestmentViewController: MobitBaseViewController {
   }
 
   private func isTradingUnsupported(_ crypto: CryptoTransactionDataModel) -> Bool {
-	guard let supportedMarketPairIDs else { return false }
+	guard crypto.staticData.exchange == reactor.exchange,
+          reactor.exchange == ExchangeSelectionStore.currentExchange,
+          let supportedMarketPairIDs, !supportedMarketPairIDs.isEmpty else { return false }
 	return !supportedMarketPairIDs.contains(crypto.staticData.exchangePairID)
   }
 
   private func showDelistingSettlementAlert(for crypto: CryptoTransactionDataModel) {
-	self.show(
-	  alertType: .canCancel,
-	  title: "거래지원 종료",
-	  content: "거래 지원이 종료된 코인입니다.\n확인을 누르면 마지막으로 저장된 평가손익을 기준으로 전량 매도되며, 실현손익과 보유자산에 반영됩니다."
-	) { [weak self] isConfirmed in
-	  guard let self, isConfirmed else { return }
-	  self.settleDelistedHolding(crypto)
-	}
+    guard !isVerifyingSettlement, presentedViewController == nil, !isBeingDismissed else { return }
+    // 미리보기에는 화면에 남아 있을 수 있는 이전 시세 대신 저장된 정산 기준을 사용한다.
+    guard let holding = UserDataManager.userCryptoList?.first(where: {
+      $0.staticData.exchangePairID == crypto.staticData.exchangePairID
+    }) else {
+      showDelistingSettlementError(TradeOrderValidator.ValidationError.insufficientHolding)
+      return
+    }
+    // 사용자가 확인한 정산 기준을 실제 정산 시 다시 비교한다.
+    let quote: TradeOrderService.DelistingSettlementQuote
+    switch TradeOrderService.delistingSettlementQuote(for: holding) {
+    case .success(let value):
+      quote = value
+    case .failure(let error):
+      showDelistingSettlementError(error)
+      return
+    }
+    // 마켓의 기초자산 심볼은 보유 수량의 단위를 표시한다.
+    let symbol = quote.marketName.split(separator: "/").first.map(String.init) ?? quote.marketName
+    // 종목명이 없는 경우에도 사용자가 정산 대상을 알아볼 수 있다.
+    let marketName = holding.staticData.cryptoName.flatMap { $0.isEmpty ? nil : $0 } ?? symbol
+    // 반환 금액은 결제 통화로 표시해 BTC 마켓을 원화와 구분한다.
+    let currency = quote.currency == .krw ? FuturesText.text("currency_krw_unit") : quote.currency.rawValue
+    // 실제 정산에 앞서 저장된 금액과 대상 자산을 확인한다.
+    let alert = MobitAlertViewController(
+      alertType: .canCancel,
+      title: FuturesText.text("spot_delisting_title"),
+      content: FuturesText.text("spot_delisting_message")
+    ) { [weak self] isConfirmed in
+      guard let self, isConfirmed else { return }
+      guard self.viewIfLoaded?.window != nil,
+            holding.staticData.exchange == ExchangeSelectionStore.currentExchange else { return }
+      guard let current = self.displayedUserHeldCryptos.first(where: {
+        $0.staticData.exchangePairID == holding.staticData.exchangePairID
+      }) else {
+        self.showDelistingSettlementError(.settlementChanged)
+        return
+      }
+      guard let supportedMarketPairIDs = self.supportedMarketPairIDs,
+            !supportedMarketPairIDs.isEmpty else {
+        self.showSupportedMarketsError(message: FuturesText.text("spot_delisting_market_unavailable"))
+        return
+      }
+      guard !supportedMarketPairIDs.contains(current.staticData.exchangePairID) else {
+        self.showSupportedMarketsError(message: FuturesText.text("spot_delisting_support_changed"))
+        return
+      }
+      self.verifyAndSettleDelistedHolding(holding, expectedQuote: quote)
+    }
+    alert.setDelistingSettlementDetails(
+      market: "\(marketName) (\(symbol))",
+      quantity: TradingNumberFormat.string(quote.quantity),
+      quantityUnit: symbol,
+      amount: "\(TradingNumberFormat.string(quote.executedAmount)) \(currency)"
+    )
+    present(alert, animated: true)
   }
 
-  private func settleDelistedHolding(_ crypto: CryptoTransactionDataModel) {
+  private func verifyAndSettleDelistedHolding(
+    _ crypto: CryptoTransactionDataModel,
+    expectedQuote: TradeOrderService.DelistingSettlementQuote
+  ) {
+    guard !isVerifyingSettlement, crypto.staticData.exchange == ExchangeSelectionStore.currentExchange else { return }
+    isVerifyingSettlement = true
+    // 이전 목록과 진행 중이던 목록 요청은 정산의 근거로 다시 사용하지 않는다.
+    reactor.action.onNext(.invalidateSupportedMarkets)
+    settlementVerification.disposable = reactor.verifiedDelistingSettlementRate(
+      for: crypto.staticData.exchangePairID,
+      currency: expectedQuote.currency
+    )
+      .subscribe(onNext: { [weak self] rate in
+        guard let self else { return }
+        self.isVerifyingSettlement = false
+        guard self.viewIfLoaded?.window != nil,
+              crypto.staticData.exchange == ExchangeSelectionStore.currentExchange else { return }
+        self.settleDelistedHolding(crypto, expectedQuote: expectedQuote, btcKRWPrice: rate)
+      }, onError: { [weak self] error in
+        guard let self else { return }
+        self.isVerifyingSettlement = false
+        guard self.viewIfLoaded?.window != nil,
+              crypto.staticData.exchange == ExchangeSelectionStore.currentExchange else { return }
+        // 목록 조회 자체의 통신 오류도 목록 재확인 안내로 연결한다.
+        let reason = error as? InvestReactor.DelistingVerificationError ?? .unavailable
+        self.showSupportedMarketsError(message: reason.message)
+      })
+  }
+
+  private func showSupportedMarketsError(message: String) {
+    show(
+      alertType: .onlyConfirm,
+      title: FuturesText.text("spot_delisting_error_title"),
+      content: message
+    ) { [weak self] _ in
+      self?.reactor.action.onNext(.loadTransactions)
+    }
+  }
+
+  private func showSupportedMarketsRetryIfNeeded() {
+    guard reactor.currentState.supportedMarketsFailed,
+          reactor.exchange == ExchangeSelectionStore.currentExchange,
+          reactor.currentState.cryptos.contains(where: { $0.staticData.exchange == reactor.exchange }),
+          viewIfLoaded?.window != nil, presentedViewController == nil else { return }
+    show(
+      alertType: .canCancel,
+      title: FuturesText.text("spot_delisting_market_check_title"),
+      content: FuturesText.text("spot_delisting_market_check_message"),
+      confirmTitle: FuturesText.text("spot_delisting_market_check_retry"),
+      cancelTitle: FuturesText.text("settings_close")
+    ) { [weak self] retry in
+      guard retry else { return }
+      self?.reactor.action.onNext(.loadTransactions)
+    }
+  }
+
+  private func settleDelistedHolding(
+    _ crypto: CryptoTransactionDataModel,
+    expectedQuote: TradeOrderService.DelistingSettlementQuote,
+    btcKRWPrice: Double?
+  ) {
 	let result = TradeOrderService.executeDelistingSettlement(
 	  marketName: crypto.staticData.marketName,
 	  exchange: crypto.staticData.exchange,
-	  btcKRWPrice: AppDataManager.shared.lastBTCKRWPrice(for: crypto.staticData.exchange)
+	  btcKRWPrice: btcKRWPrice,
+      expectedQuote: expectedQuote
 	)
+    reactor.action.onNext(.loadTransactions)
 
 	switch result {
 	case .success:
@@ -330,20 +456,33 @@ class InvestmentViewController: MobitBaseViewController {
 		callBack: nil
 	  )
 	case .failure(let error):
-	  self.show(
-		alertType: .onlyConfirm,
-		title: "정산 실패",
-		content: error.message,
-		callBack: nil
-	  )
+      showDelistingSettlementError(error)
 	}
   }
 
-  func applyCryptos(_ cryptos: [CryptoTransactionDataModel]) {
-	summaryHeaderView.updateCount(cryptos.count)
-	guard cryptos.count != 0 else {
+  private func showDelistingSettlementError(_ error: TradeOrderValidator.ValidationError) {
+    show(
+      alertType: .onlyConfirm,
+      title: FuturesText.text("spot_delisting_error_title"),
+      content: error.message,
+      callBack: nil
+    )
+  }
+
+  private func refreshDisplayedHoldings() {
+    if isScrolling {
+      // 상태만 바뀐 경우에는 먼저 도착한 최신 보유 목록을 보존한다.
+      pendingUserHeldCryptos = pendingUserHeldCryptos ?? displayedUserHeldCryptos
+    } else {
+      applyHoldings(displayedUserHeldCryptos)
+    }
+  }
+
+  private func applyHoldings(_ holdings: [CryptoTransactionDataModel]) {
+	summaryHeaderView.updateCount(holdings.count)
+	guard holdings.count != 0 else {
 	  self.noResultView.isHidden = false
-      self.cryptos = []
+      self.displayedUserHeldCryptos = []
       self.applySnapshot(cryptoTransacDataModel: [])
 	  self.updateTotalDatas(cryptos: [])
 
@@ -351,9 +490,9 @@ class InvestmentViewController: MobitBaseViewController {
 	}
 
 	self.noResultView.isHidden = true
-	self.cryptos = self.sortCryptos(sortType: self.selectedSortType, cryptos: cryptos)
-	self.updateTotalDatas(cryptos: cryptos)
-	self.applySnapshot(cryptoTransacDataModel: self.cryptos)
+	self.displayedUserHeldCryptos = self.sortCryptos(sortType: self.selectedSortType, cryptos: holdings)
+	self.updateTotalDatas(cryptos: holdings)
+	self.applySnapshot(cryptoTransacDataModel: self.displayedUserHeldCryptos)
   }
 
   func sortCryptos(sortType: InvestSortType, cryptos: [CryptoTransactionDataModel]) -> [CryptoTransactionDataModel] {
@@ -455,9 +594,7 @@ extension InvestmentViewController: View {
       .observe(on: MainScheduler.instance)
       .filter { $0 == ExchangeSelectionStore.currentExchange }
       .subscribe(onNext: { [weak self] _ in
-        guard let self else { return }
-        if self.isScrolling { self.pendingUpdate = self.pendingUpdate ?? self.cryptos }
-        else { self.applyCryptos(self.cryptos) }
+        self?.refreshDisplayedHoldings()
       })
       .disposed(by: self.disposeBag)
 
@@ -465,17 +602,18 @@ extension InvestmentViewController: View {
 	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
-	  .subscribe(onNext: { [weak self] cryptos in
+	  // Reactor가 새로 전달한 보유 암호화폐 목록을 받는다.
+	  .subscribe(onNext: { [weak self] updatedUserHeldCryptos in
 		guard let self else { return }
 
 		// 스크롤 중에는 갱신을 미뤄 두고, 잠금 해제 시 마지막 값만 반영한다.
 		guard !self.isScrolling else {
-		  self.pendingUpdate = cryptos
+		  self.pendingUserHeldCryptos = updatedUserHeldCryptos
 		  return
 		}
 
-		self.pendingUpdate = nil
-		self.applyCryptos(cryptos)
+		self.pendingUserHeldCryptos = nil
+		self.applyHoldings(updatedUserHeldCryptos)
 	  })
 	  .disposed(by: self.disposeBag)
 
@@ -485,13 +623,18 @@ extension InvestmentViewController: View {
 	  .subscribe(onNext: { [weak self] supportedMarketPairIDs in
 		guard let self else { return }
 		self.supportedMarketPairIDs = supportedMarketPairIDs
-		guard !self.isScrolling else {
-		  self.pendingUpdate = self.cryptos
-		  return
-		}
-		self.applyCryptos(self.cryptos)
+		self.refreshDisplayedHoldings()
 	  })
 	  .disposed(by: self.disposeBag)
+
+    reactor.state.map { [exchange = reactor.exchange] state in
+      state.supportedMarketsFailed && state.cryptos.contains { $0.staticData.exchange == exchange }
+    }
+      .distinctUntilChanged()
+      .filter { $0 }
+      .observe(on: MainScheduler.instance)
+      .subscribe(onNext: { [weak self] _ in self?.showSupportedMarketsRetryIfNeeded() })
+      .disposed(by: self.disposeBag)
 	
 	reactor.state.map { $0.userAvailableBalance }
 	  .throttle(.milliseconds(100), scheduler: MainScheduler.instance)
@@ -502,7 +645,7 @@ extension InvestmentViewController: View {
 		self.userAvailableBalance = userAvailableBalance
 		// 값은 항상 보관하고, 스크롤 중에는 합계 표시 갱신만 미룬다.
 		guard !self.isScrolling else { return }
-		self.updateTotalDatas(cryptos: self.cryptos)
+		self.updateTotalDatas(cryptos: self.displayedUserHeldCryptos)
 	  })
 	  .disposed(by: self.disposeBag)
 
@@ -533,12 +676,12 @@ extension InvestmentViewController: View {
 
 extension InvestmentViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-	guard indexPath.row < self.cryptos.count else { return }
-	let selectedCrypto = self.cryptos[indexPath.row]
+	guard indexPath.row < self.displayedUserHeldCryptos.count else { return }
+	let selectedCrypto = self.displayedUserHeldCryptos[indexPath.row]
 	guard !self.isTradingUnsupported(selectedCrypto) else { return }
-	let selectedCryptoMarketName = self.cryptos[indexPath.row].staticData.marketName
+	let selectedCryptoMarketName = selectedCrypto.staticData.marketName
 
-	guard let selectedCryptoName = self.cryptos[indexPath.row].staticData.cryptoName else { return }
+	guard let selectedCryptoName = selectedCrypto.staticData.cryptoName else { return }
 
 	// 티커 조회 후 상세로 이동 (정보 탭 데이터까지 채우기 위함). 이동은 bind의 detailCrypto 구독에서 처리
 	self.reactor.action.onNext(
@@ -565,12 +708,12 @@ extension InvestmentViewController {
   private func releaseScrollLock() {
 	isScrolling = false
 
-	guard let update = pendingUpdate else {
+	guard let pendingUserHeldCryptos else {
 	  // 스크롤 중 잔고만 바뀐 경우에도 합계 표시를 맞춘다.
-	  updateTotalDatas(cryptos: cryptos)
+	  updateTotalDatas(cryptos: displayedUserHeldCryptos)
 	  return
 	}
-	pendingUpdate = nil
-	applyCryptos(update)
+	self.pendingUserHeldCryptos = nil
+	applyHoldings(pendingUserHeldCryptos)
   }
 }

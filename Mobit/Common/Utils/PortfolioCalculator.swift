@@ -11,6 +11,13 @@ enum PortfolioCalculator {
   /// 수량 비교 허용 오차. 소수점 아래가 잘린 입력값 때문에 생기는 미세 잔량을 보유로 취급하지 않기 위한 기준이다.
   static let quantityTolerance = TradingRules.Spot.quantityTolerance
 
+  static func spotOrderPrice(_ price: Double?) -> Double? {
+    guard let price, price > 0, let decimalPrice = finiteDecimal(price) else { return nil }
+    // 이진 부동소수 곱셈으로 정확히 1사토시 단위인 시세까지 깎이지 않게 한다.
+    let orderPrice = roundDown(decimalPrice, digits: TradingRules.Spot.orderPriceFractionDigits)
+    return orderPrice > 0 ? double(orderPrice) : nil
+  }
+
   static func executedAmount(
     price: Double,
     quantity: Double,

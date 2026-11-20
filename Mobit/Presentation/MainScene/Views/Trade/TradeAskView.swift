@@ -196,7 +196,7 @@ class TradeAskView: UIView, ViewRule {
 
   func updateCryptoData() {
 	guard let crypto = self.currentInvestData,
-		  let currentPrice = self.cryptoInfo?.tradePrice
+		  let currentPrice = PortfolioCalculator.spotOrderPrice(self.cryptoInfo?.tradePrice)
 	else {
 	  // crypto를 찾지 못한 것은 이미 모두 매도했다는 의미로 간주
 	  self.availableCrypto.text = "0"
@@ -243,7 +243,7 @@ class TradeAskView: UIView, ViewRule {
 	guard let availableCrypto = UserDataManager.userCryptoList?
 			.compactMap({ $0 })
 			.first(where: { $0.staticData.exchangePairID == targetPairID }),
-		  let currentPrice = self.cryptoInfo?.tradePrice
+		  let currentPrice = PortfolioCalculator.spotOrderPrice(self.cryptoInfo?.tradePrice)
 	else { return }
 
 	let availableSettlementAmount = PortfolioCalculator.executedAmount(
@@ -278,7 +278,7 @@ class TradeAskView: UIView, ViewRule {
 	let vibrator = UIImpactFeedbackGenerator(style: .medium)
 	vibrator.impactOccurred()
 
-	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
+	guard let currentPrice = PortfolioCalculator.spotOrderPrice(self.cryptoInfo?.tradePrice),
           let targetPairID = self.reactor.map({
             ExchangeMarketCodeConverter.pairID(
               fromDisplayMarket: $0.selectCrypto.market,
@@ -427,7 +427,7 @@ extension TradeAskView: UITextFieldDelegate {
   func textFieldDidChangeSelection(_ textField: UITextField) {
 	// 코드로 텍스트를 채울 때도 호출되므로, 반대편 필드 값이 서로를 덮어쓰지 않도록 편집 중인 필드만 반영한다.
 	guard textField.isFirstResponder,
-		  let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
+		  let currentPrice = PortfolioCalculator.spotOrderPrice(self.cryptoInfo?.tradePrice),
 		  let type = inputType(for: textField) else { return }
 
 	switch type {

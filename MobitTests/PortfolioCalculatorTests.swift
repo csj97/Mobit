@@ -7,9 +7,306 @@
 
 import XCTest
 import UIKit
+import RxSwift
 @testable import Mobit
 
 final class PortfolioCalculatorTests: XCTestCase {
+  func testDelistingFetchesBTCRateOnlyWhenMissingOrStale() throws {
+    // 테스트 후 기존 거래소 선택으로 돌아간다.
+    let originalExchange = ExchangeSelectionStore.currentExchange
+    defer { ExchangeSelectionStore.currentExchange = originalExchange }
+    for exchange in [Exchange.upbit, .bithumb] {
+      ExchangeSelectionStore.currentExchange = exchange
+      AppDataManager.shared.invalidateBTCKRWPrice(for: exchange)
+      defer { AppDataManager.shared.invalidateBTCKRWPrice(for: exchange) }
+      // 실제 통신 없이 요청 횟수와 적용된 거래소 시세를 확인한다.
+      let useCase = DelistingMarketFixtureUseCase()
+      // 목록 확인과 시세 조회에 같은 거래소의 저장소를 사용한다.
+      let reactor = InvestReactor(mainUseCase: useCase)
+      useCase.tickerResponse = .just(try JSONDecoder().decode(
+        CryptoTickerListDTO.self,
+        from: Data(#"[{"market":"KRW-BTC","change":"EVEN","trade_price":110000000,"timestamp":1}]"#.utf8)
+      ).toDomain())
+
+      XCTAssertNil(try verifiedRate(reactor, currency: .krw))
+      XCTAssertTrue(useCase.tickerRequests.isEmpty)
+      XCTAssertEqual(try verifiedRate(reactor, currency: .btc), 110_000_000)
+      XCTAssertEqual(useCase.tickerRequests, [["KRW-BTC"]])
+      AppDataManager.shared.updateBTCKRWPrice(105_000_000, for: exchange, updatedAt: Date().addingTimeInterval(-12))
+      XCTAssertEqual(try verifiedRate(reactor, currency: .btc), 105_000_000)
+      XCTAssertEqual(useCase.tickerRequests.count, 1)
+      AppDataManager.shared.updateBTCKRWPrice(95_000_000, for: exchange, updatedAt: Date().addingTimeInterval(-16))
+      XCTAssertEqual(try verifiedRate(reactor, currency: .btc), 110_000_000)
+      XCTAssertEqual(try verifiedRate(reactor, currency: .btc), 110_000_000)
+      XCTAssertEqual(useCase.tickerRequests, [["KRW-BTC"], ["KRW-BTC"]])
+    }
+  }
+
+  func testDelistingRejectsUnverifiedMarketsAndUnusableRateResponses() throws {
+    // 거래소 오류와 잘못된 종목 응답을 차례로 재현한다.
+    let useCase = DelistingMarketFixtureUseCase()
+    // 유효한 새 시세가 도착한 경우에만 정산 콜백으로 전달해야 한다.
+    let reactor = InvestReactor(mainUseCase: useCase)
+    AppDataManager.shared.updateBTCKRWPrice(90_000_000, for: reactor.exchange, updatedAt: Date().addingTimeInterval(-20))
+    defer { AppDataManager.shared.invalidateBTCKRWPrice(for: reactor.exchange) }
+    for markets in [[], ["BTC-ABC"]] {
+      useCase.marketResponse = .just(markets.map(DelistingMarketFixtureUseCase.crypto))
+      XCTAssertThrowsError(try verifiedRate(reactor, currency: .btc))
+      XCTAssertTrue(useCase.tickerRequests.isEmpty)
+    }
+    useCase.marketResponse = .just([DelistingMarketFixtureUseCase.crypto("KRW-BTC")])
+    // BTC/KRW가 누락됐거나 양수가 아닌 응답도 기존 환율로 대체하지 않는다.
+    let invalidTickers = try JSONDecoder().decode(
+      CryptoTickerListDTO.self,
+      from: Data(#"[{"market":"KRW-ETH","change":"EVEN","trade_price":5,"timestamp":1},{"market":"KRW-BTC","change":"EVEN","trade_price":0,"timestamp":1}]"#.utf8)
+    ).toDomain()
+    // 스트림 종료, 통신 실패, 비어 있거나 잘못된 티커를 각각 검증한다.
+    let responses: [Observable<CryptoTickerList>] = [
+      .empty(), .error(URLError(.notConnectedToInternet)), .just([]),
+      .just([invalidTickers[0]]), .just([invalidTickers[1]])
+    ]
+    for response in responses {
+      useCase.tickerResponse = response
+      XCTAssertThrowsError(try verifiedRate(reactor, currency: .btc)) { error in
+        XCTAssertEqual(error as? InvestReactor.DelistingVerificationError, .rateUnavailable)
+      }
+      XCTAssertNil(AppDataManager.shared.freshBTCKRWPrice(for: reactor.exchange))
+    }
+    XCTAssertEqual(useCase.tickerRequests.count, responses.count)
+  }
+
+  private func verifiedRate(_ reactor: InvestReactor, currency: SettlementCurrency) throws -> Double? {
+    // 비동기 정산 경로가 단 한 번 환율 또는 오류를 반환할 때까지 기다린다.
+    let received = expectation(description: "종료 정산 환율 확인")
+    // 원화 정산 성공(nil)과 결과 누락을 구분한다.
+    var result: Result<Double?, Error>?
+    // 목록에는 없는 정산 대상 종목이다.
+    let pairID = ExchangePairID(exchange: reactor.exchange, rawMarketCode: currency.rawValue + "-ABC")
+    // 검증 종료 시 구독을 해제해 다음 조회와 겹치지 않게 한다.
+    let subscription = reactor.verifiedDelistingSettlementRate(for: pairID, currency: currency)
+      .subscribe(
+        onNext: {
+          result = .success($0)
+          received.fulfill()
+        },
+        onError: {
+          result = .failure($0)
+          received.fulfill()
+        }
+      )
+    defer { subscription.dispose() }
+    wait(for: [received], timeout: 2)
+    return try XCTUnwrap(result).get()
+  }
+
+  func testSupportedMarketsRejectEmptyAndMalformedResponses() {
+    // 목록 조회 결과를 직접 제어한다.
+    let useCase = DelistingMarketFixtureUseCase()
+    // 저장소와 같은 거래소를 기준으로 확인한다.
+    let reactor = InvestReactor(mainUseCase: useCase)
+    for markets in [[], [""], ["KRW-"], ["bad"], ["KRW--BTC"], ["BTC/KRW"]] {
+      useCase.marketResponse = .just(markets.map(DelistingMarketFixtureUseCase.crypto))
+      // 유효하지 않은 목록이 반환될 때는 실패만 발생해야 한다.
+      var receivedError = false
+      _ = reactor.fetchSupportedMarketPairIDs(for: reactor.exchange).subscribe(
+        onNext: { _ in XCTFail("유효하지 않은 목록을 허용하면 안 됩니다.") },
+        onError: { _ in receivedError = true }
+      )
+      XCTAssertTrue(receivedError)
+    }
+    useCase.marketResponse = .just([DelistingMarketFixtureUseCase.crypto("KRW-BTC")])
+    // 정상 목록만 해당 거래소의 마켓 집합으로 변환한다.
+    var pairIDs: Set<ExchangePairID>?
+    _ = reactor.fetchSupportedMarketPairIDs(for: reactor.exchange).subscribe(onNext: { pairIDs = $0 })
+    XCTAssertEqual(pairIDs, [ExchangePairID(exchange: reactor.exchange, rawMarketCode: "KRW-BTC")])
+    useCase.marketResponse = .empty()
+    var emptySequenceFailed = false
+    _ = reactor.fetchSupportedMarketPairIDs(for: reactor.exchange).subscribe(onError: { _ in emptySequenceFailed = true })
+    XCTAssertTrue(emptySequenceFailed)
+  }
+
+  func testSupportedMarketFailuresAndLateResponsesClearOldState() {
+    // 응답 순서가 바뀌어도 마지막 요청만 적용한다.
+    let reactor = InvestReactor(mainUseCase: DelistingMarketFixtureUseCase())
+    let exchange = reactor.exchange
+    let firstRequest = UUID()
+    let secondRequest = UUID()
+    let supported: Set<ExchangePairID> = [ExchangePairID(exchange: exchange, rawMarketCode: "KRW-BTC")]
+    var state = reactor.reduce(state: reactor.initialState, mutation: .beginSupportedMarketsRequest(firstRequest, exchange))
+    state = reactor.reduce(state: state, mutation: .setSupportedMarketPairIDs(firstRequest, exchange, supported))
+    XCTAssertEqual(state.supportedMarketPairIDs, supported)
+    state = reactor.reduce(state: state, mutation: .beginSupportedMarketsRequest(secondRequest, exchange))
+    XCTAssertNil(state.supportedMarketPairIDs)
+    state = reactor.reduce(state: state, mutation: .setSupportedMarketPairIDs(firstRequest, exchange, supported))
+    XCTAssertNil(state.supportedMarketPairIDs)
+    state = reactor.reduce(state: state, mutation: .setSupportedMarketPairIDs(secondRequest, exchange, nil))
+    XCTAssertNil(state.supportedMarketPairIDs)
+    XCTAssertTrue(state.supportedMarketsFailed)
+    state = reactor.reduce(state: state, mutation: .setSupportedMarketPairIDs(secondRequest, exchange, supported))
+    XCTAssertNil(state.supportedMarketPairIDs)
+  }
+
+  func testSupportedMarketsDoNotApplyAfterExchangeChanges() {
+    // 거래소 변경으로 현재 응답이 오래된 상태가 되는지 확인한다.
+    let previous = ExchangeSelectionStore.currentExchange
+    defer { ExchangeSelectionStore.currentExchange = previous }
+    ExchangeSelectionStore.currentExchange = .upbit
+    let reactor = InvestReactor(mainUseCase: DelistingMarketFixtureUseCase())
+    let request = UUID()
+    var state = reactor.reduce(state: reactor.initialState, mutation: .beginSupportedMarketsRequest(request, .upbit))
+    ExchangeSelectionStore.currentExchange = .bithumb
+    state = reactor.reduce(
+      state: state,
+      mutation: .setSupportedMarketPairIDs(request, .upbit, [ExchangePairID(exchange: .upbit, rawMarketCode: "KRW-BTC")])
+    )
+    XCTAssertNil(state.supportedMarketPairIDs)
+    state = reactor.reduce(state: state, mutation: .invalidateSupportedMarkets)
+    ExchangeSelectionStore.currentExchange = .upbit
+    state = reactor.reduce(
+      state: state,
+      mutation: .setSupportedMarketPairIDs(request, .upbit, [ExchangePairID(exchange: .upbit, rawMarketCode: "KRW-BTC")])
+    )
+    XCTAssertNil(state.supportedMarketPairIDs)
+  }
+
+  @MainActor
+  func testInvestmentScrollEndsWithLatestHoldingsAndMarketSupport() {
+    // 거래소 응답과 보유 시세의 도착 순서를 독립적으로 제어한다.
+    let reactor = InvestReactor(mainUseCase: DelistingMarketFixtureUseCase())
+    reactor.isStubEnabled = true
+    // 동일 종목의 평가금액만 바꿔 화면과 대기 중인 목록을 구분한다.
+    var holding = makeCrypto(evaluationPrice: 1_000_000, evaluationProfitLoss: 0, buyAmount: 1_000_000)
+    holding.staticData.exchange = reactor.exchange
+    holding.dynamicData.exchange = reactor.exchange
+    // 다른 정상 종목만 목록에 남으면 보유 종목의 거래지원 종료가 표시된다.
+    let otherMarket = ExchangePairID(exchange: reactor.exchange, rawMarketCode: "KRW-ETH")
+    // 최초 상태에서는 보유한 비트코인의 거래가 가능하다.
+    var state = reactor.initialState
+    state.cryptos = [holding]
+    state.supportedMarketPairIDs = [holding.staticData.exchangePairID]
+    reactor.stub.state.value = state
+    // 테이블에 실제로 적용된 행과 거래지원 종료 표시를 함께 확인한다.
+    let controller = InvestmentViewController(reactor: reactor)
+    // 셀의 표시 상태를 확인할 테스트 화면이다.
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 375, height: 812))
+    window.rootViewController = controller
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true; window.rootViewController = nil }
+
+    func waitUntil(_ condition: @escaping () -> Bool) {
+      // 시세 구독의 throttle과 비동기 스냅샷 적용을 기다린다.
+      let ready = expectation(for: NSPredicate { _, _ in condition() }, evaluatedWith: nil)
+      wait(for: [ready], timeout: 5)
+    }
+    func rowMatches(_ expected: CryptoTransactionDataModel, unsupported: Bool) -> Bool {
+      guard controller.dataSource?.snapshot().itemIdentifiers == [expected],
+            let cell = controller.transactionTableview.visibleCells.first as? InvestmentTableViewCell else { return false }
+      return cell.unsupportedOverlayView.isHidden == !unsupported
+        && cell.cryptoEvalPrice.text?.hasPrefix(TradingNumberFormat.string(expected.dynamicData.evaluationPrice)) == true
+    }
+    waitUntil { rowMatches(holding, unsupported: false) }
+
+    for holdingsFirst in [true, false] {
+      // 스크롤 중 화면에는 직전에 표시한 평가금액이 유지된다.
+      let previous = holding
+      holding.dynamicData.evaluationPrice += 10_000
+      holding.dynamicData.evaluationProfitLoss += 10_000
+      controller.scrollViewWillBeginDragging(controller.transactionTableview)
+      func sendMarketSupport() {
+        state.supportedMarketPairIDs = holdingsFirst ? [otherMarket] : [holding.staticData.exchangePairID]
+        reactor.stub.state.value = state
+      }
+      if !holdingsFirst {
+        sendMarketSupport()
+        waitUntil { controller.pendingUserHeldCryptos == [previous] }
+      }
+      state.cryptos = [holding]
+      reactor.stub.state.value = state
+      waitUntil { controller.pendingUserHeldCryptos == [holding] }
+      if holdingsFirst { sendMarketSupport() }
+      XCTAssertEqual(controller.pendingUserHeldCryptos, [holding])
+      XCTAssertTrue(rowMatches(previous, unsupported: !holdingsFirst))
+
+      controller.scrollViewDidEndDragging(controller.transactionTableview, willDecelerate: !holdingsFirst)
+      if !holdingsFirst {
+        XCTAssertTrue(rowMatches(previous, unsupported: true))
+        controller.scrollViewDidEndDecelerating(controller.transactionTableview)
+      }
+      waitUntil { rowMatches(holding, unsupported: holdingsFirst) }
+      XCTAssertNil(controller.pendingUserHeldCryptos)
+    }
+
+    // 시세가 그대로여도 스크롤이 끝나면 같은 행의 거래지원 표시를 다시 그린다.
+    controller.scrollViewWillBeginDragging(controller.transactionTableview)
+    state.supportedMarketPairIDs = [otherMarket]
+    reactor.stub.state.value = state
+    waitUntil { controller.pendingUserHeldCryptos == [holding] }
+    XCTAssertTrue(rowMatches(holding, unsupported: false))
+    controller.scrollViewDidEndDragging(controller.transactionTableview, willDecelerate: false)
+    waitUntil { rowMatches(holding, unsupported: true) }
+
+    controller.scrollViewWillBeginDragging(controller.transactionTableview)
+    state.cryptos = []
+    reactor.stub.state.value = state
+    waitUntil { controller.pendingUserHeldCryptos == [] }
+    state.supportedMarketPairIDs = [holding.staticData.exchangePairID]
+    reactor.stub.state.value = state
+    controller.scrollViewDidEndDragging(controller.transactionTableview, willDecelerate: false)
+    waitUntil { controller.dataSource?.snapshot().numberOfItems == 0 && !controller.noResultView.isHidden }
+  }
+
+  @MainActor
+  func testMarketRetryAlertAppearsOnlyForCurrentExchangeHoldings() throws {
+    // 화면이 확인할 거래소를 고정하고 다른 테스트의 설정은 복구한다.
+    let previousExchange = ExchangeSelectionStore.currentExchange
+    defer { ExchangeSelectionStore.currentExchange = previousExchange }
+    ExchangeSelectionStore.currentExchange = .upbit
+    // 조회 실패와 보유 데이터 도착 순서를 직접 제어한다.
+    let reactor = InvestReactor(mainUseCase: DelistingMarketFixtureUseCase())
+    reactor.isStubEnabled = true
+    var state = reactor.initialState
+    state.supportedMarketsFailed = true
+    reactor.stub.state.value = state
+    // 보유 목록이 없는 상태에서 실제 투자내역 화면을 연다.
+    let controller = InvestmentViewController(reactor: reactor)
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 375, height: 812))
+    window.rootViewController = controller
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true; window.rootViewController = nil }
+    // 메인 큐에 늦게 전달된 실패 상태로도 팝업이 열리지 않아야 한다.
+    let noHoldingsAlert = expectation(for: NSPredicate { _, _ in
+      controller.presentedViewController is MobitAlertViewController
+    }, evaluatedWith: nil)
+    noHoldingsAlert.isInverted = true
+    wait(for: [noHoldingsAlert], timeout: 0.3)
+
+    // 다른 거래소의 보유 종목만으로는 현재 화면에 안내하지 않는다.
+    var otherExchangeHolding = makeCrypto(evaluationPrice: 100, evaluationProfitLoss: 0, buyAmount: 100)
+    otherExchangeHolding.staticData.exchange = .bithumb
+    state.cryptos = [otherExchangeHolding]
+    reactor.stub.state.value = state
+    // 다른 거래소 보유 상태도 비동기 전달이 끝난 뒤까지 확인한다.
+    let otherExchangeAlert = expectation(for: NSPredicate { _, _ in
+      controller.presentedViewController is MobitAlertViewController
+    }, evaluatedWith: nil)
+    otherExchangeAlert.isInverted = true
+    wait(for: [otherExchangeAlert], timeout: 0.3)
+
+    // 조회 실패 뒤 현재 거래소 보유 종목이 도착해도 안내가 나타나야 한다.
+    state.cryptos = [makeCrypto(evaluationPrice: 100, evaluationProfitLoss: 0, buyAmount: 100)]
+    reactor.stub.state.value = state
+    let alertShown = expectation(for: NSPredicate { _, _ in
+      controller.presentedViewController is MobitAlertViewController
+    }, evaluatedWith: nil)
+    wait(for: [alertShown], timeout: 5)
+    let alert = try XCTUnwrap(controller.presentedViewController as? MobitAlertViewController)
+    alert.loadViewIfNeeded()
+    XCTAssertEqual(alert.titleString, FuturesText.text("spot_delisting_market_check_title"))
+    XCTAssertEqual(alert.content, FuturesText.text("spot_delisting_market_check_message"))
+    XCTAssertEqual(alert.cancelButton.configuration?.title, FuturesText.text("settings_close"))
+    XCTAssertEqual(alert.confirmButton.configuration?.title, FuturesText.text("spot_delisting_market_check_retry"))
+  }
+
   func testExecutedAmountFloorsFractionalValue() {
     let amount = PortfolioCalculator.executedAmount(price: 12.34, quantity: 3.2)
 
@@ -513,13 +810,23 @@ final class PortfolioCalculatorTests: XCTestCase {
       costBasisKRW: 5_000
     )
     crypto.staticData.exchange = ExchangeSelectionStore.currentExchange
+    // 확인창은 목록 상태가 아니라 실제 저장된 보유 자산을 기준으로 정산액을 산출한다.
+    let previousHoldings = UserDefaults.standard.object(forKey: UserDataManager.Keys.userCryptoList)
+    UserDataManager.userCryptoList = [crypto]
+    defer {
+      if let previousHoldings {
+        UserDefaults.standard.set(previousHoldings, forKey: UserDataManager.Keys.userCryptoList)
+      } else {
+        UserDefaults.standard.removeObject(forKey: UserDataManager.Keys.userCryptoList)
+      }
+    }
     // 네트워크 없이 거래소 지원 목록을 확정한다.
     let reactor = InvestReactor(mainUseCase: MainUseCase(mainRepository: MainRepository()))
     reactor.isStubEnabled = true
     // 화면이 받을 지원 종료 및 보유 상태다.
     var state = reactor.initialState
     state.cryptos = [crypto]
-    state.supportedMarketPairIDs = []
+    state.supportedMarketPairIDs = [ExchangePairID(exchange: crypto.staticData.exchange, rawMarketCode: "KRW-BTC")]
     reactor.stub.state.value = state
     // 실제 목록의 셀 제공 및 알림 표시 경로를 사용한다.
     let controller = InvestmentViewController(reactor: reactor)
@@ -537,7 +844,7 @@ final class PortfolioCalculatorTests: XCTestCase {
     let cell = try XCTUnwrap(controller.transactionTableview.visibleCells.first as? InvestmentTableViewCell)
     XCTAssertFalse(cell.unsupportedOverlayView.isHidden)
     // 취소 전의 저장 자산을 보존해 정산이 발생하지 않았는지 확인한다.
-    let originalHoldings = UserDataManager.userCryptoList
+    let originalHoldings = UserDefaults.standard.data(forKey: UserDataManager.Keys.userCryptoList)
     // 취소 전의 원화 주문 가능 잔고다.
     let originalBalance = UserDataManager.userInformation?.userAvailableBalance
 
@@ -545,7 +852,7 @@ final class PortfolioCalculatorTests: XCTestCase {
     // 정산은 기존 확인창에서 사용자가 동의한 뒤에만 실행한다.
     let alert = try XCTUnwrap(controller.presentedViewController as? MobitAlertViewController)
     XCTAssertEqual(alert.alertType, .canCancel)
-    XCTAssertEqual(alert.titleString, "거래지원 종료")
+    XCTAssertEqual(alert.titleString, FuturesText.text("spot_delisting_title"))
     alert.loadViewIfNeeded()
     alert.cancelButton.sendActions(for: .touchUpInside)
     // 닫기 애니메이션과 취소 콜백이 처리될 때까지 기다린다.
@@ -553,7 +860,7 @@ final class PortfolioCalculatorTests: XCTestCase {
       controller.presentedViewController == nil
     }, evaluatedWith: nil)
     wait(for: [alertClosed], timeout: 5)
-    XCTAssertEqual(UserDataManager.userCryptoList, originalHoldings)
+    XCTAssertEqual(UserDefaults.standard.data(forKey: UserDataManager.Keys.userCryptoList), originalHoldings)
     XCTAssertEqual(UserDataManager.userInformation?.userAvailableBalance, originalBalance)
 
     // 마켓이 다시 지원되면 예전 셀의 지연된 버튼 동작도 무시한다.
@@ -716,6 +1023,7 @@ final class PortfolioCalculatorTests: XCTestCase {
         at: receivedAt.addingTimeInterval(AppDataManager.btcKRWPriceRefreshAge)
       )
     )
+    XCTAssertEqual(AppDataManager.shared.freshBTCKRWPrice(for: .upbit, at: receivedAt.addingTimeInterval(15)), 120_000_000)
 
     XCTAssertEqual(
       AppDataManager.shared.btcKRWPrice(
@@ -770,6 +1078,45 @@ final class PortfolioCalculatorTests: XCTestCase {
         profitRate: 0,
         evaluationProfitLoss: evaluationProfitLoss,
         evaluationPrice: evaluationPrice
+      )
+    )
+  }
+}
+
+// 거래지원 재조회에서 실제 네트워크 대신 지정한 목록을 사용한다.
+final class DelistingMarketFixtureUseCase: MainUseCase {
+  // 각 검증 단계에서 반환할 거래소 목록이다.
+  var marketResponse: Observable<CryptoList> = .just([crypto("KRW-BTC")])
+  // 정산 환율 조회에 돌려줄 응답이다.
+  var tickerResponse: Observable<CryptoTickerList> = .empty()
+  // 불필요한 재조회와 잘못된 조회 종목을 확인한다.
+  private(set) var tickerRequests: [[String]] = []
+
+  init() {
+    super.init(mainRepository: MainRepository())
+  }
+
+  override func fetchCryptoList() -> Observable<CryptoList> { marketResponse }
+
+  override func fetchCryptoTicker(markets: [String]) -> Observable<CryptoTickerList> {
+    tickerRequests.append(markets)
+    return tickerResponse
+  }
+
+  static func crypto(_ market: String) -> Crypto {
+    Crypto(
+      market: market,
+      koreanName: "테스트",
+      englishName: "Test",
+      marketEvent: .init(
+        warning: false,
+        caution: .init(
+          priceFluctuations: false,
+          tradingVolumeSoaring: false,
+          depositAmountSoaring: false,
+          globalPriceDifferences: false,
+          concentrationOfSmallAccounts: false
+        )
       )
     )
   }

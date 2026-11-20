@@ -182,9 +182,7 @@ class TradeBidView: UIView, ViewRule {
 	// 키보드가 올라온 채로 값을 채우면 편집 콜백이 화면 표시용(소수점 8자리) 값으로 수량을 덮어쓴다.
 	self.endEditing(true)
 
-	guard let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
-		  currentPrice > 0
-	else { return }
+	guard let currentPrice = PortfolioCalculator.spotOrderPrice(self.cryptoInfo?.tradePrice) else { return }
 
 	inputAmount = (self.availableSettlementBalance / currentPrice)
 
@@ -220,7 +218,7 @@ class TradeBidView: UIView, ViewRule {
 	vibrator.impactOccurred()
 
 	guard let marketName = self.cryptoInfo?.market,
-		  let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8)
+		  let currentPrice = PortfolioCalculator.spotOrderPrice(self.cryptoInfo?.tradePrice)
 	else {
 	  callBack?(.alert(title: FuturesText.text("common_notice"), message: TradeOrderValidator.ValidationError.missingPrice.message))
 	  return
@@ -333,8 +331,7 @@ class TradeBidView: UIView, ViewRule {
 
 		self.currentPrice.text = tradePrice.formatTradingValue()
 		// 실제 주문과 같은 정밀도로 계산하며 유효하지 않은 시세로 입력 원본을 바꾸지 않는다.
-		let orderPrice = tradePrice.formatDigits(digits: 8)
-		if orderPrice.isFinite, orderPrice > 0 {
+		if let orderPrice = PortfolioCalculator.spotOrderPrice(tradePrice) {
 		  // 총액 편집 중에는 입력 금액을 유지하고, 그 외에는 실제 주문 수량으로 예상금액을 갱신한다.
 		  if self.totalPriceTextField.isFirstResponder {
 			self.textFieldDidChangeSelection(self.totalPriceTextField)
@@ -383,7 +380,7 @@ extension TradeBidView: UITextFieldDelegate {
   func textFieldDidChangeSelection(_ textField: UITextField) {
 	// 코드로 텍스트를 채울 때도 호출되므로, 반대편 필드 값이 서로를 덮어쓰지 않도록 편집 중인 필드만 반영한다.
 	guard textField.isFirstResponder,
-		  let currentPrice = self.cryptoInfo?.tradePrice?.formatDigits(digits: 8),
+		  let currentPrice = PortfolioCalculator.spotOrderPrice(self.cryptoInfo?.tradePrice),
 		  let type = inputType(for: textField) else { return }
 
 	switch type {

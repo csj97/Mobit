@@ -8,6 +8,36 @@
 import Foundation
 
 enum TradeOrderService {
+  // 거래지원 종료 확인창과 실제 정산에서 동일하게 사용하는 정산 정보다.
+  struct DelistingSettlementQuote: Equatable {
+    // 정산할 마켓이다.
+    let marketName: String
+    // 보유 자산이 속한 거래소다.
+    let exchange: Exchange
+    // 전량 매도할 수량이다.
+    let quantity: Double
+    // 저장 시세 또는 구형 평가금액을 수량으로 나눈 거래내역 단가다.
+    let settlementPrice: Double
+    // 확인 후 매수 기준이 바뀌면 재확인하도록 저장한다.
+    let averageBuyPrice: Double
+    // 확인창 이후 평가손익이 변경됐는지 대조한다.
+    let storedProfitLoss: Double
+    // 구형 데이터의 정산 검증에 사용한 저장 평가금액이다.
+    let storedEvaluationPrice: Double
+    // 마지막 시세와 보유 상태가 함께 저장된 정산 기준이다.
+    let storedPriceSnapshot: CryptoTransactionDataModel.SettlementPriceSnapshot?
+    // 원화 취득원가가 없을 때 사용되는 매수금액 기준이다.
+    let buyAmount: Double
+    // 원화 실현손익의 취득원가 기준이다.
+    let costBasisKRW: Decimal?
+    // 결제 통화의 절삭 규칙을 적용한 반환 금액이다.
+    let executedAmount: Double
+    // 반환액은 정산에 사용할 때까지 십진수로 보존한다.
+    let settlementAmount: Decimal
+    // 반환 금액에 사용할 결제 통화다.
+    let currency: SettlementCurrency
+  }
+
   struct Execution {
     let marketName: String
     let executedAmount: Double
@@ -225,7 +255,7 @@ enum TradeOrderService {
           exchange: exchange,
           executedAt: executedAt,
           btcKRWPrice: btcKRWPrice,
-          isDelistingSettlement: false
+          delistingQuote: nil
         ).get()
       })
     } catch let error as TradeOrderValidator.ValidationError {
@@ -235,12 +265,163 @@ enum TradeOrderService {
     }
   }
 
-  /// 거래지원 종료 종목을 마지막으로 저장된 평가손익 기준 가격으로 전량 정산한다.
+  // 미리보기와 실제 정산은 같은 단가와 결제 통화 절삭 규칙을 사용해야 한다.
+  static func delistingSettlementQuote(
+    for holding: CryptoTransactionDataModel
+  ) -> Result<DelistingSettlementQuote, TradeOrderValidator.ValidationError> {
+    // 저장된 보유 수량과 매수가를 정산 기준으로 사용한다.
+    let staticData = holding.staticData
+    guard let currency = ExchangeMarketCodeConverter.settlementCurrency(
+      fromDisplayMarket: staticData.marketName,
+      exchange: staticData.exchange
+    ) else { return .failure(.unsupportedMarket) }
+    // 해당 마켓의 전체 보유 수량이다.
+    let quantity = staticData.holdingQuantity
+    // 마지막으로 저장된 평가손익이다.
+    let storedProfitLoss = holding.dynamicData.evaluationProfitLoss
+    guard quantity.isFinite, quantity > 0,
+          storedProfitLoss.isFinite, staticData.averageBuyPrice.isFinite,
+          staticData.averageBuyPrice >= 0 else {
+      return .failure(.missingPrice)
+    }
+    // 정산 금액과 손익은 동일 거래소·마켓의 보유분이어야 한다.
+    guard staticData.exchange == holding.dynamicData.exchange,
+          staticData.marketName == holding.dynamicData.marketName else {
+      return .failure(.settlementUnverified)
+    }
+    // 저장 평가금액은 구형 정산 검증과 확인창 이후 변경 비교에 사용한다.
+    let storedEvaluationPrice = holding.dynamicData.evaluationPrice
+    guard storedEvaluationPrice.isFinite, storedEvaluationPrice >= 0 else {
+      return .failure(.settlementUnverified)
+    }
+    // 평가 시세가 함께 저장된 최신 보유분이면 해당 원본으로 정산한다.
+    let priceSnapshot = holding.dynamicData.settlementPriceSnapshot
+    if let priceSnapshot {
+      guard priceSnapshot.price.isFinite, priceSnapshot.price > 0,
+            priceSnapshot.quantity.isFinite, priceSnapshot.quantity == quantity,
+            priceSnapshot.averageBuyPrice.isFinite, priceSnapshot.averageBuyPrice == staticData.averageBuyPrice,
+            priceSnapshot.evaluationProfitLoss.isFinite, priceSnapshot.evaluationProfitLoss == storedProfitLoss,
+            priceSnapshot.evaluationPrice.isFinite, priceSnapshot.evaluationPrice == storedEvaluationPrice else {
+        return .failure(.settlementUnverified)
+      }
+    }
+    // 지급액과 거래내역 단가를 같은 보유 수량으로 계산한다.
+    var decimalQuantity = PortfolioCalculator.decimal(quantity)
+    guard !decimalQuantity.isNaN, decimalQuantity > 0 else { return .failure(.invalidQuantity) }
+    // 절삭 전 반환 금액에서 정산 단가와 최종 반환 금액을 각각 구한다.
+    var grossAmount = Decimal()
+    // 보유 수량 하나당 거래내역에 남길 단가다.
+    var price = Decimal()
+    // 확인창과 거래내역에 공통으로 적용할 결제 통화 금액이다.
+    var settlementAmount = Decimal()
+    if let priceSnapshot {
+      // 평가값을 생성한 두 기존 경로를 재계산해 시세 원본의 손상을 확인한다.
+      let calculatedEvaluation = PortfolioCalculator.evaluationPrice(
+        currentPrice: priceSnapshot.price,
+        holdingQuantity: quantity
+      )
+      let calculatedProfit = PortfolioCalculator.evaluationProfitLoss(
+        currentPrice: priceSnapshot.price,
+        holdingQuantity: quantity,
+        averageBuyPrice: staticData.averageBuyPrice
+      )
+      // 신규 보유 생성은 기존 Double 곱과 내림으로 평가했다.
+      let previousEvaluation = priceSnapshot.price * quantity
+      let previousProfit = previousEvaluation - staticData.averageBuyPrice * quantity
+      let previousRoundedEvaluation = previousEvaluation.formatDigits(digits: TradingRules.Spot.evaluationFractionDigits)
+      guard (calculatedEvaluation == storedEvaluationPrice && calculatedProfit == storedProfitLoss)
+              || (previousRoundedEvaluation == storedEvaluationPrice && previousProfit == storedProfitLoss) else {
+        return .failure(.settlementUnverified)
+      }
+      // 저장된 시세의 Decimal 곱을 마지막 평가에 사용한 수량에 적용한다.
+      var savedPrice = PortfolioCalculator.decimal(priceSnapshot.price)
+      guard !savedPrice.isNaN,
+            (-128...127).contains(savedPrice.exponent + decimalQuantity.exponent),
+            NSDecimalMultiply(&grossAmount, &savedPrice, &decimalQuantity, .plain) == .noError,
+            !grossAmount.isNaN else { return .failure(.settlementUnverified) }
+      price = savedPrice
+      NSDecimalRound(&settlementAmount, &grossAmount, currency.amountFractionDigits, .down)
+    } else {
+      // 구형 손익은 저장 평가금액과 크게 어긋난 기록을 걸러낼 때만 쓴다.
+      var average = PortfolioCalculator.decimal(staticData.averageBuyPrice)
+      // 손익을 매입금액에 더해 이전 평가를 대조한다.
+      var profitLoss = PortfolioCalculator.decimal(storedProfitLoss)
+      // 구형 Double 기록으로 결제 최소 단위 하나를 구분할 수 있는지 확인한다.
+      let minimumUnit = Decimal(sign: .plus, exponent: -currency.amountFractionDigits, significand: 1)
+      // 기존 평단과 수량을 Double로 곱할 때의 정밀도도 함께 확인한다.
+      let previousPurchase = staticData.averageBuyPrice * quantity
+      guard !average.isNaN, !profitLoss.isNaN, previousPurchase.isFinite,
+            2 * (storedEvaluationPrice.ulp + storedProfitLoss.ulp + previousPurchase.ulp)
+              < PortfolioCalculator.double(minimumUnit),
+            (-128...127).contains(average.exponent + decimalQuantity.exponent) else {
+        return .failure(.settlementUnverified)
+      }
+      // 매수가와 수량을 곱한 값은 손익 검증용이며 지급액에 사용하지 않는다.
+      var purchaseAmount = Decimal()
+      guard NSDecimalMultiply(&purchaseAmount, &average, &decimalQuantity, .plain) == .noError else {
+        return .failure(.settlementUnverified)
+      }
+      // 38자리를 넘는 합산의 끝자리 손실은 구형 Double 저장 정밀도보다 작다.
+      let additionResult = NSDecimalAdd(&grossAmount, &purchaseAmount, &profitLoss, .plain)
+      guard (additionResult == .noError || additionResult == .lossOfPrecision),
+            !grossAmount.isNaN else { return .failure(.settlementUnverified) }
+      if grossAmount < 0 {
+        // 종전 정산식의 단가도 0이어야 실제 음수 데이터를 숨기지 않는다.
+        let previousPrice = staticData.averageBuyPrice + storedProfitLoss / quantity
+        guard previousPrice.isFinite, previousPurchase + storedProfitLoss == 0, previousPrice == 0 else {
+          return .failure(.settlementUnverified)
+        }
+        grossAmount = 0
+      }
+      // 사용자가 확인할 금액과 손익에서 역산한 금액을 같은 결제 단위로 대조한다.
+      var inferredSettlement = Decimal()
+      NSDecimalRound(&inferredSettlement, &grossAmount, currency.amountFractionDigits, .down)
+      grossAmount = PortfolioCalculator.decimal(storedEvaluationPrice)
+      guard !grossAmount.isNaN else { return .failure(.settlementUnverified) }
+      // 한 단위 차이는 구형 저장 평가금액을 우선하고, 더 큰 차이는 보류한다.
+      NSDecimalRound(&settlementAmount, &grossAmount, currency.amountFractionDigits, .down)
+      guard abs(settlementAmount - inferredSettlement) <= minimumUnit else {
+        return .failure(.settlementUnverified)
+      }
+      // 거래내역 단가는 Double로 기록하므로 Decimal 몫의 반올림은 반환액에 영향을 주지 않는다.
+      let divisionResult = NSDecimalDivide(&price, &grossAmount, &decimalQuantity, .plain)
+      guard (divisionResult == .noError || divisionResult == .lossOfPrecision),
+            !price.isNaN else { return .failure(.settlementUnverified) }
+    }
+    // 거래내역의 단가는 기존 Double 저장 형식에 맞춘다.
+    let settlementPrice = PortfolioCalculator.double(price)
+    // 화면과 기존 거래내역이 사용할 확정 반환액이다.
+    let amount = PortfolioCalculator.double(settlementAmount)
+    guard settlementPrice.isFinite, amount.isFinite,
+          PortfolioCalculator.decimal(amount) == settlementAmount else {
+      return .failure(.invalidQuantity)
+    }
+    return .success(
+      DelistingSettlementQuote(
+        marketName: staticData.marketName,
+        exchange: staticData.exchange,
+        quantity: quantity,
+        settlementPrice: settlementPrice,
+        averageBuyPrice: staticData.averageBuyPrice,
+        storedProfitLoss: storedProfitLoss,
+        storedEvaluationPrice: storedEvaluationPrice,
+        storedPriceSnapshot: priceSnapshot,
+        buyAmount: staticData.buyAmount,
+        costBasisKRW: staticData.costBasisKRW,
+        executedAmount: amount,
+        settlementAmount: settlementAmount,
+        currency: currency
+      )
+    )
+  }
+
+  /// 거래지원 종료 종목을 검증된 마지막 평가 기준으로 전량 정산한다.
   static func executeDelistingSettlement(
     marketName: String,
     exchange: Exchange = ExchangeSelectionStore.currentExchange,
     executedAt: Date = Date(),
-    btcKRWPrice: Double? = nil
+    btcKRWPrice: Double? = nil,
+    expectedQuote: DelistingSettlementQuote? = nil
   ) -> Result<Execution, TradeOrderValidator.ValidationError> {
     do {
       return .success(try UserDataManager.performAtomicInvestmentUpdate {
@@ -254,27 +435,33 @@ enum TradeOrderService {
           throw TradeOrderValidator.ValidationError.insufficientHolding
         }
 
-        let quantity = holding.staticData.holdingQuantity
-        let storedProfitLoss = holding.dynamicData.evaluationProfitLoss
-        guard quantity.isFinite, quantity > 0,
-              storedProfitLoss.isFinite,
-              holding.staticData.averageBuyPrice.isFinite else {
-          throw TradeOrderValidator.ValidationError.missingPrice
+        if let expectedQuote {
+          // 기준 재계산이 실패하는 변경도 확인창에 안내한 상태 변경으로 처리한다.
+          guard holding.staticData.holdingQuantity == expectedQuote.quantity,
+                holding.staticData.averageBuyPrice == expectedQuote.averageBuyPrice,
+                holding.staticData.buyAmount == expectedQuote.buyAmount,
+                holding.staticData.costBasisKRW == expectedQuote.costBasisKRW,
+                holding.dynamicData.evaluationProfitLoss == expectedQuote.storedProfitLoss,
+                holding.dynamicData.evaluationPrice == expectedQuote.storedEvaluationPrice,
+                holding.dynamicData.settlementPriceSnapshot == expectedQuote.storedPriceSnapshot else {
+            throw TradeOrderValidator.ValidationError.settlementChanged
+          }
         }
-
-        let settlementPrice = holding.staticData.averageBuyPrice + storedProfitLoss / quantity
-        guard settlementPrice.isFinite, settlementPrice >= 0 else {
-          throw TradeOrderValidator.ValidationError.missingPrice
+        // 저장된 현재 상태로 정산 기준을 다시 계산한다.
+        let quote = try delistingSettlementQuote(for: holding).get()
+        // 확인창 이후 보유량이나 정산 기준이 달라지면 안내한 금액으로 재확인해야 한다.
+        if let expectedQuote, quote != expectedQuote {
+          throw TradeOrderValidator.ValidationError.settlementChanged
         }
 
         return try executeAskInTransaction(
           marketName: marketName,
-          currentPrice: settlementPrice,
-          quantity: quantity,
+          currentPrice: quote.settlementPrice,
+          quantity: quote.quantity,
           exchange: exchange,
           executedAt: executedAt,
           btcKRWPrice: btcKRWPrice,
-          isDelistingSettlement: true
+          delistingQuote: quote
         ).get()
       })
     } catch let error as TradeOrderValidator.ValidationError {
@@ -291,7 +478,7 @@ enum TradeOrderService {
     exchange: Exchange,
     executedAt: Date,
     btcKRWPrice: Double?,
-    isDelistingSettlement: Bool
+    delistingQuote: DelistingSettlementQuote?
   ) -> Result<Execution, TradeOrderValidator.ValidationError> {
     guard let currency = ExchangeMarketCodeConverter.settlementCurrency(
       fromDisplayMarket: marketName,
@@ -320,7 +507,7 @@ enum TradeOrderService {
       return .failure(.insufficientHolding)
     }
 
-    if isDelistingSettlement {
+    if delistingQuote != nil {
       // 거래가 끝난 종목은 최소 주문금액 미만이나 0원 가치라도 보유내역을 정리할 수 있어야 한다.
       guard currentPrice.isFinite, currentPrice >= 0 else { return .failure(.missingPrice) }
       guard quantity.isFinite, quantity > 0 else { return .failure(.invalidQuantity) }
@@ -352,7 +539,7 @@ enum TradeOrderService {
       sellQuantity: quantity
     )
     let executedQuantity = isFullySold ? staticData.holdingQuantity : quantity
-    let executedAmount = PortfolioCalculator.executedAmount(
+    let executedAmount = delistingQuote?.executedAmount ?? PortfolioCalculator.executedAmount(
       price: currentPrice,
       quantity: executedQuantity,
       currency: currency
@@ -370,7 +557,7 @@ enum TradeOrderService {
       executedPrice: currentPrice,
       executedQuantity: executedQuantity,
       executedAmount: executedAmount,
-      recordType: isDelistingSettlement ? .delistingSettlement : .userOrder
+      recordType: delistingQuote == nil ? .userOrder : .delistingSettlement
     )
 
     transaction.settlementRateKRW = rate
@@ -421,11 +608,20 @@ enum TradeOrderService {
       UserDataManager.userCryptoList?.remove(at: removeIndex)
     }
 
-    let pnl = PortfolioCalculator.realizedProfitLoss(
-      entryPrice: staticData.averageBuyPrice,
-      exitPrice: currentPrice,
-      quantity: executedQuantity
-    )
+    // 종료 정산의 손익은 단가를 다시 곱하지 않고 확정된 반환액으로 계산한다.
+    let pnl: Double
+    if let delistingQuote {
+      pnl = PortfolioCalculator.double(
+        delistingQuote.settlementAmount
+          - PortfolioCalculator.decimal(staticData.averageBuyPrice) * PortfolioCalculator.decimal(executedQuantity)
+      )
+    } else {
+      pnl = PortfolioCalculator.realizedProfitLoss(
+        entryPrice: staticData.averageBuyPrice,
+        exitPrice: currentPrice,
+        quantity: executedQuantity
+      )
+    }
 
     var pnlHistory = UserPNLHistoryModel(
       exchange: exchange,
@@ -625,6 +821,8 @@ extension TradeOrderService {
 
     let existingStaticData = self.settlementHolding(currency: .btc, exchange: exchange)?.staticData
     let previousQuantity = existingStaticData?.holdingQuantity ?? 0
+    // 0 BTC 반환은 보유 항목이나 매수 기록을 만들지 않는다.
+    guard amount != 0 else { return previousQuantity }
     let newQuantity = calculateSum(previousQuantity, amount)
     let newAveragePrice = PortfolioCalculator.weightedAverageBuyPrice(
       previousQuantity: previousQuantity,

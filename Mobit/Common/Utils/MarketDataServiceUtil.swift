@@ -39,6 +39,7 @@ class MarketDataServiceUtil {
     holdings[index].dynamicData.evaluationPrice = PortfolioCalculator.evaluationPrice(
       currentPrice: currentPrice, holdingQuantity: data.holdingQuantity
     )
+    holdings[index].updateSettlementPriceSnapshot(currentPrice: currentPrice)
     UserDataManager.userCryptoList = holdings
   }
   
@@ -78,10 +79,11 @@ class MarketDataServiceUtil {
 	  evaluationPrice: evalPrice
 	)
 	
-	let newCrypto = CryptoTransactionDataModel(
+	var newCrypto = CryptoTransactionDataModel(
 	  staticData: staticData,
 	  dynamicData: dynamicData
 	)
+	newCrypto.updateSettlementPriceSnapshot(currentPrice: currentPrice)
 	
 	UserDataManager.userCryptoList?.append(newCrypto)
   }
@@ -148,6 +150,7 @@ class MarketDataServiceUtil {
 	  userCryptoList[index].staticData.averageBuyPrice = averageBuyAmount
 	  userCryptoList[index].staticData.holdingQuantity = holdingQuantity
 	  userCryptoList[index].staticData.buyAmount = buyAmount
+	  userCryptoList[index].dynamicData.settlementPriceSnapshot = .invalid
 	  
 	  UserDataManager.userCryptoList = userCryptoList
 	}
@@ -313,6 +316,7 @@ class MarketDataServiceUtil {
        }) {
 	  
 	  userCryptoList[index].dynamicData.evaluationProfitLoss = profitLoss
+	  userCryptoList[index].dynamicData.settlementPriceSnapshot = .invalid
 	  UserDataManager.userCryptoList = userCryptoList
 	}
 	
@@ -339,6 +343,7 @@ class MarketDataServiceUtil {
        }) {
 	  
 	  userCryptoList[index].dynamicData.evaluationPrice = evalPrice
+	  userCryptoList[index].dynamicData.settlementPriceSnapshot = .invalid
 	  UserDataManager.userCryptoList = userCryptoList
 	}
 	

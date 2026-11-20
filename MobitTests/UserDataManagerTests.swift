@@ -509,6 +509,7 @@ final class UserDataManagerTests: XCTestCase {
     XCTAssertEqual(migrated[0].dynamicData.profitRate, 10)
     XCTAssertEqual(migrated[0].dynamicData.evaluationProfitLoss, 20)
     XCTAssertEqual(migrated[0].dynamicData.evaluationPrice, 220)
+    XCTAssertNil(migrated[0].dynamicData.settlementPriceSnapshot)
   }
 
   func testLegacyFavoriteMigrationPreservesCountAndMapsToUpbitPairID() {
@@ -563,6 +564,201 @@ final class UserDataManagerTests: XCTestCase {
     XCTAssertEqual(decoded.staticData.exchange, .upbit)
     XCTAssertEqual(decoded.dynamicData.exchange, .upbit)
     XCTAssertEqual(decoded.staticData.exchangePairID.rawValue, "upbit:KRW-BTC")
+    XCTAssertEqual(decoded.dynamicData.evaluationProfitLoss, 15)
+    XCTAssertEqual(decoded.dynamicData.evaluationPrice, 165)
+    XCTAssertNil(decoded.dynamicData.settlementPriceSnapshot)
+  }
+
+  func testSettlementPriceSnapshotSurvivesEncodingAndStoredRead() throws {
+    XCTAssertTrue(UserDataManager.resetInvestmentData())
+    // 업비트에 저장할 정산 기준 보유분이다.
+    var upbitHolding = makeTransaction(market: "BTC/KRW", exchange: .upbit, quantity: 1.5, buyAmount: 150, evaluationPrice: 165)
+    // 같은 종목의 빗썸 정산 기준 보유분이다.
+    var bithumbHolding = makeTransaction(market: "BTC/KRW", exchange: .bithumb, quantity: 1.5, buyAmount: 150, evaluationPrice: 180)
+    upbitHolding.dynamicData.evaluationProfitLoss = 15
+    bithumbHolding.dynamicData.evaluationProfitLoss = 30
+    upbitHolding.updateSettlementPriceSnapshot(currentPrice: 110)
+    bithumbHolding.updateSettlementPriceSnapshot(currentPrice: 120)
+
+    // 두 보유분을 저장 형식으로 변환한다.
+    let encoded = try JSONEncoder().encode([upbitHolding, bithumbHolding])
+    // 인코딩된 데이터에서 보유분을 복원한다.
+    let decoded = try JSONDecoder().decode([CryptoTransactionDataModel].self, from: encoded)
+    // 업비트에 복원된 정산 기준이다.
+    let upbitSnapshot = try XCTUnwrap(decoded[0].dynamicData.settlementPriceSnapshot)
+    // 빗썸에 복원된 정산 기준이다.
+    let bithumbSnapshot = try XCTUnwrap(decoded[1].dynamicData.settlementPriceSnapshot)
+    XCTAssertEqual(upbitSnapshot.price, 110)
+    XCTAssertEqual(upbitSnapshot.quantity, 1.5)
+    XCTAssertEqual(upbitSnapshot.averageBuyPrice, 100)
+    XCTAssertEqual(upbitSnapshot.evaluationProfitLoss, 15)
+    XCTAssertEqual(upbitSnapshot.evaluationPrice, 165)
+    XCTAssertEqual(bithumbSnapshot.price, 120)
+    XCTAssertEqual(bithumbSnapshot.quantity, 1.5)
+    XCTAssertEqual(bithumbSnapshot.averageBuyPrice, 100)
+    XCTAssertEqual(bithumbSnapshot.evaluationProfitLoss, 30)
+    XCTAssertEqual(bithumbSnapshot.evaluationPrice, 180)
+
+    // 저장소의 원자 갱신과 재조회도 거래소별 기준값을 유지해야 한다.
+    try UserDataManager.performAtomicInvestmentUpdate {
+      UserDataManager.userCryptoList = [upbitHolding, bithumbHolding]
+    }
+    // 저장소에서 다시 읽은 두 거래소의 보유분이다.
+    let restored = try XCTUnwrap(UserDataManager.userCryptoList)
+    XCTAssertEqual(restored.count, 2)
+    XCTAssertEqual(restored[0].staticData.exchange, .upbit)
+    XCTAssertEqual(restored[0].dynamicData.settlementPriceSnapshot, upbitSnapshot)
+    XCTAssertEqual(restored[1].staticData.exchange, .bithumb)
+    XCTAssertEqual(restored[1].dynamicData.settlementPriceSnapshot, bithumbSnapshot)
+  }
+
+  func testCorruptSettlementSnapshotPreservesAccountAndBlocksSettlement() throws {
+    XCTAssertTrue(UserDataManager.resetInvestmentData())
+    // 업비트에 저장할 원본 보유분이다.
+    let upbitHolding = makeTransaction(
+      market: "ETH/KRW",
+      exchange: .upbit,
+      quantity: 1.5,
+      buyAmount: 150,
+      costBasisKRW: 150,
+      evaluationPrice: 165
+    )
+    // 빗썸에 저장할 원본 보유분이다.
+    let bithumbHolding = makeTransaction(
+      market: "ETH/KRW",
+      exchange: .bithumb,
+      quantity: 1.5,
+      buyAmount: 150,
+      costBasisKRW: 150,
+      evaluationPrice: 165
+    )
+    // 저장된 보유 배열에서 새 기준값만 손상시킨다.
+    let encoded = try JSONEncoder().encode([upbitHolding, bithumbHolding])
+    // 손상 전 JSON의 구조를 검사한다.
+    let encodedObject = try JSONSerialization.jsonObject(with: encoded)
+    // 각 손상 사례가 공유하는 원본 보유 배열이다.
+    let initialList = try XCTUnwrap(encodedObject as? [[String: Any]])
+
+    for (index, exchange) in [Exchange.upbit, .bithumb].enumerated() {
+      for invalidSnapshot: Any in ["invalid", ["price": 110], NSNull()] {
+        // 현재 손상 사례에 사용할 독립 보유 배열이다.
+        var list = initialList
+        // 새 기준값만 교체할 평가 데이터다.
+        var dynamicData = try XCTUnwrap(list[index]["dynamicData"] as? [String: Any])
+        dynamicData["settlementPriceSnapshot"] = invalidSnapshot
+        list[index]["dynamicData"] = dynamicData
+        // 기존 JSON 바이트가 조회 또는 정산 시 변경되지 않아야 한다.
+        let corruptedData = try JSONSerialization.data(withJSONObject: list)
+        UserDefaults.standard.set(corruptedData, forKey: UserDataManager.Keys.userCryptoList)
+
+        // 구형 마이그레이션으로 손상 기준값을 버리지 않고 해당 계좌를 복원한다.
+        let restoredList = try XCTUnwrap(UserDataManager.userCryptoList)
+        XCTAssertEqual(restoredList.count, 2)
+        // 이번 사례에서 기준값이 손상된 보유분이다.
+        let restored = restoredList[index]
+        XCTAssertEqual(restored.staticData.exchange, exchange)
+        XCTAssertEqual(restored.staticData.costBasisKRW, 150)
+        XCTAssertEqual(restored.staticData.holdingQuantity, 1.5)
+        XCTAssertEqual(restored.dynamicData.exchange, exchange)
+        XCTAssertEqual(restored.dynamicData.settlementPriceSnapshot, .invalid)
+        XCTAssertEqual(restoredList[1 - index].staticData.exchange, index == 0 ? .bithumb : .upbit)
+        XCTAssertEqual(restoredList[1 - index].staticData.costBasisKRW, 150)
+        XCTAssertNil(restoredList[1 - index].dynamicData.settlementPriceSnapshot)
+        XCTAssertEqual(UserDefaults.standard.data(forKey: UserDataManager.Keys.userCryptoList), corruptedData)
+
+        // 잘못된 정산 기준으로 자산이나 내역을 변경할 수 없다.
+        let balanceBefore = UserDataManager.userInformation(for: exchange)?.userAvailableBalance
+        // 정산 전 거래내역이다.
+        let transactionsBefore = UserDataManager.userTransactionList
+        // 정산 전 실현손익 저장 데이터다.
+        let pnlBefore = UserDefaults.standard.data(forKey: UserDataManager.Keys.userPNLHistory)
+        switch TradeOrderService.executeDelistingSettlement(marketName: "ETH/KRW", exchange: exchange) {
+        case .success:
+          XCTFail("손상된 정산 기준으로 정산하면 안 됩니다.")
+        case .failure(let error):
+          XCTAssertEqual(error, .settlementUnverified)
+        }
+        XCTAssertEqual(UserDataManager.userInformation(for: exchange)?.userAvailableBalance, balanceBefore)
+        XCTAssertEqual(UserDataManager.userTransactionList, transactionsBefore)
+        XCTAssertEqual(UserDefaults.standard.data(forKey: UserDataManager.Keys.userPNLHistory), pnlBefore)
+        XCTAssertEqual(UserDefaults.standard.data(forKey: UserDataManager.Keys.userCryptoList), corruptedData)
+      }
+    }
+  }
+
+  func testIndependentHoldingUpdatesPersistInvalidSnapshotAndBlockSettlement() throws {
+    for exchange in [Exchange.upbit, .bithumb] {
+      for update in 0..<4 {
+        XCTAssertTrue(UserDataManager.resetInvestmentData())
+        // 같은 시점의 보유 정보와 정산 기준이다.
+        var holding = makeTransaction(
+          market: "ETH/KRW",
+          exchange: exchange,
+          quantity: 1.5,
+          buyAmount: 150,
+          costBasisKRW: 150,
+          evaluationPrice: 165
+        )
+        holding.dynamicData.evaluationProfitLoss = 15
+        holding.updateSettlementPriceSnapshot(currentPrice: 110)
+        XCTAssertNotNil(holding.dynamicData.settlementPriceSnapshot)
+        UserDataManager.userCryptoList = [holding]
+
+        switch update {
+        case 0:
+          // 유효하지 않은 시세로 기준을 갱신하면 구형 fallback으로 돌아가면 안 된다.
+          holding.updateSettlementPriceSnapshot(currentPrice: .nan)
+          UserDataManager.userCryptoList = [holding]
+        case 1:
+          MarketDataServiceUtil.shared.updateStaticHoldingData(
+            for: "ETH/KRW",
+            exchange: exchange,
+            cryptoName: "이더리움",
+            averageBuyAmount: 100,
+            holdingQuantity: 2,
+            buyAmount: 200
+          )
+        case 2:
+          MarketDataServiceUtil.shared.updateEvaluationProfitLoss(
+            for: "ETH/KRW",
+            exchange: exchange,
+            currentPrice: 120,
+            holdingQuantity: 1.5,
+            averageBuyPrice: 100
+          )
+        default:
+          MarketDataServiceUtil.shared.updateEvaluationPrice(
+            for: "ETH/KRW",
+            exchange: exchange,
+            currentPrice: 120,
+            holdingQuantity: 1.5
+          )
+        }
+
+        // 저장소를 다시 읽었을 때도 무효 상태가 유지되어야 한다.
+        let restored = try XCTUnwrap(UserDataManager.userCryptoList?.first)
+        XCTAssertEqual(restored.staticData.exchange, exchange)
+        XCTAssertEqual(restored.dynamicData.settlementPriceSnapshot, .invalid)
+        // 정산을 시도해도 보유·현금·원장이 그대로여야 한다.
+        let bytesBefore = UserDefaults.standard.data(forKey: UserDataManager.Keys.userCryptoList)
+        // 정산 전 선택 거래소의 잔고다.
+        let balanceBefore = UserDataManager.userInformation(for: exchange)?.userAvailableBalance
+        // 정산 전 거래내역이다.
+        let transactionBefore = UserDataManager.userTransactionList
+        // 정산 전 실현손익 저장 데이터다.
+        let pnlBefore = UserDefaults.standard.data(forKey: UserDataManager.Keys.userPNLHistory)
+        switch TradeOrderService.executeDelistingSettlement(marketName: "ETH/KRW", exchange: exchange) {
+        case .success:
+          XCTFail("검증되지 않은 기준으로 정산하면 안 됩니다.")
+        case .failure(let error):
+          XCTAssertEqual(error, .settlementUnverified)
+        }
+        XCTAssertEqual(UserDefaults.standard.data(forKey: UserDataManager.Keys.userCryptoList), bytesBefore)
+        XCTAssertEqual(UserDataManager.userInformation(for: exchange)?.userAvailableBalance, balanceBefore)
+        XCTAssertEqual(UserDataManager.userTransactionList, transactionBefore)
+        XCTAssertEqual(UserDefaults.standard.data(forKey: UserDataManager.Keys.userPNLHistory), pnlBefore)
+      }
+    }
   }
 
   func testPNLHistoryDefaultsToUpbitWhenExchangeIsMissing() throws {

@@ -17,7 +17,8 @@ enum SelectedTab: Int {
 }
 
 class MainReactor: Reactor {
-  private let exchange = ExchangeSelectionStore.currentExchange
+  // 거래소 전환 후에도 이 화면이 조회한 시세의 출처를 식별한다.
+  let exchange = ExchangeSelectionStore.currentExchange
   private let mainUseCase: MainUseCase
   private let disposeBag = DisposeBag()
   private let tickerSocketService: TickerSocketServiceProtocol

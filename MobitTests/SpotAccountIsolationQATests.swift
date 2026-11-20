@@ -215,7 +215,8 @@ final class SpotAccountIsolationQATests: XCTestCase {
       // 현금과 보유 BTC를 각각 최대 매수 재원으로 사용한다.
       let markets: [(market: String, firstPrice: Double, nextPrice: Double, availableBalance: Double)] = [
         ("ETH/KRW", 7_000, 8_000, 9_000),
-        ("ETH/BTC", 0.0033, 0.0034, 0.01)
+        ("ETH/BTC", 0.0033, 0.0034, 0.01),
+        ("ETH/BTC", 0.00000003, 0.00000006, 0.01)
       ]
       for scenario in markets {
         // 최대 수량 선택 후에는 네트워크 없이 시세 이벤트만 주입한다.
@@ -236,7 +237,7 @@ final class SpotAccountIsolationQATests: XCTestCase {
         let view = TradeBidView.instanceFromNib(reactor: reactor, disposeBag: disposeBag) { _ in }
         view.tapOnMaxAmount(view.maxAmountButton)
         // 주문에 사용할 수량을 화면의 8자리 표시값과 따로 비교한다.
-        let maximumQuantity = scenario.availableBalance / scenario.firstPrice.formatDigits(digits: 8)
+        let maximumQuantity = scenario.availableBalance / scenario.firstPrice
         XCTAssertEqual(view.inputAmount, maximumQuantity)
         XCTAssertLessThan(view.inputTradeAmount.text?.digitsOnlyDouble ?? 0, maximumQuantity)
 
@@ -248,7 +249,7 @@ final class SpotAccountIsolationQATests: XCTestCase {
         XCTAssertEqual(
           view.totalPriceTextField.text,
           PortfolioCalculator.executedAmount(
-            price: scenario.nextPrice.formatDigits(digits: 8),
+            price: scenario.nextPrice,
             quantity: maximumQuantity,
             currency: reactor.settlementCurrency
           ).formatTradingValue()

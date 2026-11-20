@@ -20,6 +20,8 @@ enum TradeOrderValidator {
     case invalidStoredData
     case missingCostBasis
     case missingSettlementRate
+    case settlementChanged
+    case settlementUnverified
 
     var message: String {
       switch self {
@@ -38,6 +40,8 @@ enum TradeOrderValidator {
       case .invalidStoredData: return FuturesText.text("spot_order_storage_error")
       case .missingCostBasis: return FuturesText.text("spot_order_missing_cost")
       case .missingSettlementRate: return FuturesText.text("spot_order_missing_rate")
+      case .settlementChanged: return FuturesText.text("spot_delisting_settlement_changed")
+      case .settlementUnverified: return FuturesText.text("spot_delisting_settlement_unverified")
       }
     }
   }

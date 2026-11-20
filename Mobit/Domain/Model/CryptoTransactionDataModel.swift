@@ -42,6 +42,29 @@ struct LegacyDynamic: Codable {
 }
 
 struct CryptoTransactionDataModel: Codable, Equatable, Hashable {
+  // 정산 당시 평가값이 어떤 시세와 보유 상태에서 만들어졌는지 보존한다.
+  struct SettlementPriceSnapshot: Codable, Equatable, Hashable {
+    // 평가에 사용된 마지막 시세다.
+    let price: Double
+    // 해당 시세로 평가한 보유 수량이다.
+    let quantity: Double
+    // 평가손익을 계산할 때 사용한 매수 평단이다.
+    let averageBuyPrice: Double
+    // 같은 평가에서 저장한 손익이다.
+    let evaluationProfitLoss: Double
+    // 같은 평가에서 저장한 평가금액이다.
+    let evaluationPrice: Double
+
+    // 손상된 기준값은 구형 데이터와 구분해 자동 정산을 막는다.
+    static let invalid = SettlementPriceSnapshot(
+      price: -1,
+      quantity: 0,
+      averageBuyPrice: 0,
+      evaluationProfitLoss: 0,
+      evaluationPrice: 0
+    )
+  }
+
   var identifier: UUID = UUID()
   var staticData: CryptoTransactionStaticData
   var dynamicData: CryptoTransactionDynamicData
@@ -65,6 +88,27 @@ struct CryptoTransactionDataModel: Codable, Equatable, Hashable {
     self.identifier = try container.decodeIfPresent(UUID.self, forKey: .identifier) ?? UUID()
     self.staticData = try container.decode(CryptoTransactionStaticData.self, forKey: .staticData)
     self.dynamicData = try container.decode(CryptoTransactionDynamicData.self, forKey: .dynamicData)
+  }
+
+  // 시세와 보유·평가값은 같은 데이터에서 함께 저장된 경우에만 정산에 사용한다.
+  mutating func updateSettlementPriceSnapshot(currentPrice: Double) {
+    guard currentPrice.isFinite, currentPrice > 0,
+          staticData.exchange == dynamicData.exchange,
+          staticData.marketName == dynamicData.marketName,
+          staticData.holdingQuantity.isFinite, staticData.holdingQuantity > 0,
+          staticData.averageBuyPrice.isFinite, staticData.averageBuyPrice >= 0,
+          dynamicData.evaluationProfitLoss.isFinite,
+          dynamicData.evaluationPrice.isFinite, dynamicData.evaluationPrice >= 0 else {
+      dynamicData.settlementPriceSnapshot = .invalid
+      return
+    }
+    dynamicData.settlementPriceSnapshot = SettlementPriceSnapshot(
+      price: currentPrice,
+      quantity: staticData.holdingQuantity,
+      averageBuyPrice: staticData.averageBuyPrice,
+      evaluationProfitLoss: dynamicData.evaluationProfitLoss,
+      evaluationPrice: dynamicData.evaluationPrice
+    )
   }
   
   /// 거래 정보 (정적)
@@ -122,9 +166,11 @@ struct CryptoTransactionDataModel: Codable, Equatable, Hashable {
 	var profitRate: Double          // 수익률
 	var evaluationProfitLoss: Double // 평가손익 (얼마 손해, 이익 중인지)
 	var evaluationPrice: Double     // 평가금액	(지금 얼마인지)
+    // 같은 시세에서 계산한 보유 상태의 정산 기준이다.
+    var settlementPriceSnapshot: SettlementPriceSnapshot? = nil
 
 	enum CodingKeys: String, CodingKey {
-	  case identifier, exchange, marketName, profitRate, evaluationProfitLoss, evaluationPrice
+	  case identifier, exchange, marketName, profitRate, evaluationProfitLoss, evaluationPrice, settlementPriceSnapshot
 	}
 
 	init(
@@ -151,6 +197,16 @@ struct CryptoTransactionDataModel: Codable, Equatable, Hashable {
 	  self.profitRate = try container.decode(Double.self, forKey: .profitRate)
 	  self.evaluationProfitLoss = try container.decode(Double.self, forKey: .evaluationProfitLoss)
 	  self.evaluationPrice = try container.decode(Double.self, forKey: .evaluationPrice)
+      if container.contains(.settlementPriceSnapshot) {
+        do {
+          self.settlementPriceSnapshot = try container.decode(SettlementPriceSnapshot.self, forKey: .settlementPriceSnapshot)
+        } catch {
+          // 새 필드의 손상 때문에 정상 보유 전체가 구형 데이터로 오인되지 않게 한다.
+          self.settlementPriceSnapshot = .invalid
+        }
+      } else {
+        self.settlementPriceSnapshot = nil
+      }
 	}
   }
 }
