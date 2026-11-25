@@ -17,8 +17,6 @@
 		3128610F2DFF125A00541A6A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3128610E2DFF125A00541A6A /* PrivacyInfo.xcprivacy */; };
 		3133E2282C3E2355000D4B1A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2272C3E2355000D4B1A /* AppDelegate.swift */; };
 		3133E22A2C3E2355000D4B1A /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E2292C3E2355000D4B1A /* SceneDelegate.swift */; };
-		F10223000000000000000032 /* PushNotificationOpenHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10223000000000000000031 /* PushNotificationOpenHandler.swift */; };
-		F10223000000000000000034 /* PushNotificationOpenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10223000000000000000033 /* PushNotificationOpenTests.swift */; };
 		3133E2312C3E2357000D4B1A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3133E2302C3E2357000D4B1A /* Assets.xcassets */; };
 		3133E2342C3E2357000D4B1A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3133E2322C3E2357000D4B1A /* LaunchScreen.storyboard */; };
 		3133E23F2C3E2357000D4B1A /* MobitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3133E23E2C3E2357000D4B1A /* MobitTests.swift */; };
@@ -77,7 +75,6 @@
 		5FA880E62E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA880E52E1A491B00F22F9C /* NoticeAppUpdateCoordinator.swift */; };
 		5FA880E82E1A58E700F22F9C /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5FA880E72E1A58E700F22F9C /* GoogleService-Info.plist */; };
 		5FA880EB2E1A598100F22F9C /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5FA880EA2E1A598100F22F9C /* FirebaseAnalytics */; };
-		F10223000000000000000012 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = F10223000000000000000011 /* FirebaseMessaging */; };
 		8701DED8D6554070BA46A61A /* FuturesReleaseQATests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D17BEBCE2234E0FB945AF82 /* FuturesReleaseQATests.swift */; };
 		8A906D4747454081993A41E5 /* ReleaseTradingScenarioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F92E78049A9D45938D42C526 /* ReleaseTradingScenarioTests.swift */; };
 		998725022C50944700088C71 /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = 998725012C50944700088C71 /* RxCocoa */; };
@@ -273,6 +270,9 @@
 		F10114000000000000000001 /* MobitToastPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10114000000000000000002 /* MobitToastPresenter.swift */; };
 		F10114000000000000000003 /* MobitToastTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10114000000000000000004 /* MobitToastTests.swift */; };
 		F10116000000000000000001 /* AdBannerLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10116000000000000000002 /* AdBannerLoadingView.swift */; };
+		F10223000000000000000012 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = F10223000000000000000011 /* FirebaseMessaging */; };
+		F10223000000000000000032 /* PushNotificationOpenHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10223000000000000000031 /* PushNotificationOpenHandler.swift */; };
+		F10223000000000000000034 /* PushNotificationOpenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10223000000000000000033 /* PushNotificationOpenTests.swift */; };
 		F592674570AB41C3985E2306 /* FuturesOrderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D479337EF3574613A3F16DFD /* FuturesOrderViewController.swift */; };
 		FAFFBE1989D14FF091DD469B /* FuturesAccountReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2E7252A056E4DF387E0DF7E /* FuturesAccountReactor.swift */; };
 		FEA000000000000000000011 /* FearGreedIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA000000000000000000010 /* FearGreedIndex.swift */; };
@@ -334,12 +334,9 @@
 		3133E2242C3E2355000D4B1A /* Mobit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mobit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3133E2272C3E2355000D4B1A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3133E2292C3E2355000D4B1A /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		F10223000000000000000031 /* PushNotificationOpenHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationOpenHandler.swift; sourceTree = "<group>"; };
-		F10223000000000000000033 /* PushNotificationOpenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationOpenTests.swift; sourceTree = "<group>"; };
 		3133E2302C3E2357000D4B1A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3133E2332C3E2357000D4B1A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3133E2352C3E2357000D4B1A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		F10223000000000000000013 /* Mobit.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Mobit.entitlements; sourceTree = "<group>"; };
 		3133E23A2C3E2357000D4B1A /* MobitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MobitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3133E23E2C3E2357000D4B1A /* MobitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitTests.swift; sourceTree = "<group>"; };
 		3133E2442C3E2357000D4B1A /* MobitUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MobitUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -576,6 +573,9 @@
 		F10114000000000000000002 /* MobitToastPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitToastPresenter.swift; sourceTree = "<group>"; };
 		F10114000000000000000004 /* MobitToastTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobitToastTests.swift; sourceTree = "<group>"; };
 		F10116000000000000000002 /* AdBannerLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdBannerLoadingView.swift; sourceTree = "<group>"; };
+		F10223000000000000000013 /* Mobit.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Mobit.entitlements; sourceTree = "<group>"; };
+		F10223000000000000000031 /* PushNotificationOpenHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationOpenHandler.swift; sourceTree = "<group>"; };
+		F10223000000000000000033 /* PushNotificationOpenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationOpenTests.swift; sourceTree = "<group>"; };
 		F92E78049A9D45938D42C526 /* ReleaseTradingScenarioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseTradingScenarioTests.swift; sourceTree = "<group>"; };
 		FEA000000000000000000010 /* FearGreedIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FearGreedIndex.swift; sourceTree = "<group>"; };
 		FEA000000000000000000020 /* FearGreedIndexResponseDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FearGreedIndexResponseDTO.swift; sourceTree = "<group>"; };
@@ -2126,7 +2126,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7.0;
+				MARKETING_VERSION = 1.8.0;
 				NEW_SETTING = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.kando.Mobit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2168,7 +2168,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7.0;
+				MARKETING_VERSION = 1.8.0;
 				NEW_SETTING = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.kando.Mobit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2448,11 +2448,6 @@
 			package = 5FA880E92E1A598100F22F9C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalytics;
 		};
-		F10223000000000000000011 /* FirebaseMessaging */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5FA880E92E1A598100F22F9C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseMessaging;
-		};
 		998725012C50944700088C71 /* RxCocoa */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 998724FC2C50944700088C71 /* XCRemoteSwiftPackageReference "RxSwift" */;
@@ -2520,6 +2515,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C1B3276E2E85140500E50C50 /* XCRemoteSwiftPackageReference "lottie-ios" */;
 			productName = Lottie;
+		};
+		F10223000000000000000011 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5FA880E92E1A598100F22F9C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
