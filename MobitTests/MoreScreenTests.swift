@@ -13,10 +13,12 @@ final class MoreScreenTests: XCTestCase {
     configuration.protocolClasses = [HoldingAlertFixtureProtocol.self]
     let session = URLSession(configuration: configuration)
     let installation = UUID()
+    // 앱 실행 시 운영 키체인 검색과 겹치지 않는 서비스다.
+    let service = "test." + installation.uuidString
     defer {
       session.invalidateAndCancel()
       SecItemDelete([kSecClass as String: kSecClassGenericPassword, kSecAttrAccount as String: installation.uuidString,
-                     kSecAttrService as String: "bxuirfkxptypevhfnqrx.supabase.co"] as CFDictionary)
+                     kSecAttrService as String: service] as CFDictionary)
       HoldingAlertFixtureProtocol.reply = nil
     }
     // 저장된 새 JWT로 두 번째 RPC가 바로 호출되는지 순서까지 검증한다.
@@ -32,10 +34,287 @@ final class MoreScreenTests: XCTestCase {
       return (request.value(forHTTPHeaderField: "Authorization") == "Bearer renewed" ? 204 : 401, Data())
     }
     for _ in 0..<2 {
-      try await HoldingAlertAPI(transport: session).rpc("mobit_set_push_device", installation: installation, data: Data("{}".utf8))
+      try await HoldingAlertAPI(transport: session, keychainService: service).rpc("mobit_set_push_device", installation: installation, data: Data("{}".utf8))
     }
     XCTAssertEqual(paths, ["/auth/v1/signup", "/rest/v1/rpc/mobit_set_push_device", "/auth/v1/token",
                            "/rest/v1/rpc/mobit_set_push_device", "/rest/v1/rpc/mobit_set_push_device"])
+  }
+
+  @MainActor
+  func testReinstallRetiresOldSessionBeforeRegisteringNewHoldings() async throws {
+    // 실제 키체인과 파일을 쓰되 운영 항목·네트워크와 격리한다.
+    let service = UUID().uuidString
+    let folder = FileManager.default.temporaryDirectory.appendingPathComponent(service)
+    try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+    let journal = folder.appendingPathComponent("holding-alert-sync.json")
+    let configuration = URLSessionConfiguration.ephemeral
+    configuration.protocolClasses = [HoldingAlertFixtureProtocol.self]
+    let session = URLSession(configuration: configuration)
+    let api = HoldingAlertAPI(transport: session, keychainService: service)
+    let previous = HoldingAlertSync.enabled
+    defer {
+      HoldingAlertSync.enabled = previous
+      HoldingAlertFixtureProtocol.reply = nil
+      session.invalidateAndCancel()
+      try? FileManager.default.removeItem(at: folder)
+      SecItemDelete([kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service] as CFDictionary)
+    }
+    // 같은 FCM 토큰을 재사용해도 이전 세션으로 먼저 해제해야 한다.
+    var paths: [String] = []
+    var signups = 0
+    var offline = false
+    HoldingAlertFixtureProtocol.reply = { request in
+      let path = request.url?.lastPathComponent ?? ""
+      paths.append(path)
+      if path == "signup" {
+        signups += 1
+        return (200, Data("{\"access_token\":\"user-\(signups)\",\"refresh_token\":\"fixture\",\"expires_at\":4102444800}".utf8))
+      }
+      if path == "mobit_retire_holding_installation" {
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer user-1")
+        return (offline ? 503 : 204, Data())
+      }
+      XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer user-\(signups)")
+      return (204, Data())
+    }
+    func makeSync() -> HoldingAlertSync {
+      HoldingAlertSync(
+        journalFolder: { folder },
+        notificationPermission: { .authorized },
+        registeredToken: { "fixture:reused-device" },
+        loadHoldings: { [] },
+        retirePreviousInstallations: api.retirePreviousInstallations,
+        sendRPC: api.rpc
+      )
+    }
+    var sync = makeSync()
+    HoldingAlertSync.enabled = false
+    sync.request(immediate: true)
+    await sync.syncTask?.value
+    XCTAssertTrue(paths.isEmpty)
+    sync.setEnabled(true)
+    await sync.syncTask?.value
+    XCTAssertEqual(paths, ["signup", "mobit_set_push_device"])
+    let original = try JSONDecoder().decode(HoldingAlertSync.Journal.self, from: Data(contentsOf: journal))
+    paths.removeAll()
+
+    // 업데이트와 파일 손상은 재설치로 오인하지 않는다.
+    sync = makeSync()
+    sync.request(immediate: true)
+    await sync.syncTask?.value
+    XCTAssertTrue(paths.isEmpty)
+    HoldingAlertSync.enabled = false
+    try Data("incomplete".utf8).write(to: journal)
+    sync = makeSync()
+    sync.request(immediate: true)
+    await sync.syncTask?.value
+    XCTAssertTrue(paths.isEmpty)
+
+    // 재설치 시 알림이 꺼져 있어도 정리를 시도하고, 재실행 후에도 실패한 세션을 재사용한다.
+    try FileManager.default.removeItem(at: journal)
+    offline = true
+    sync.request(immediate: true)
+    await sync.syncTask?.value
+    XCTAssertEqual(paths, ["mobit_retire_holding_installation"])
+    XCTAssertFalse(FileManager.default.fileExists(atPath: journal.path))
+    offline = false
+    sync = makeSync()
+    sync.request(immediate: true)
+    await sync.syncTask?.value
+    XCTAssertEqual(paths, Array(repeating: "mobit_retire_holding_installation", count: 2))
+    XCTAssertFalse(HoldingAlertSync.enabled)
+    paths.removeAll()
+    sync = makeSync()
+    sync.setEnabled(true)
+    await sync.syncTask?.value
+    XCTAssertEqual(paths, ["signup", "mobit_set_push_device"])
+    let replacement = try JSONDecoder().decode(HoldingAlertSync.Journal.self, from: Data(contentsOf: journal))
+    XCTAssertNotEqual(original.installation, replacement.installation)
+    XCTAssertEqual(signups, 2)
+
+    // 일반 인증 오류는 재시도하고, 익명 세션 폐기가 확정되면 새 계정을 만들지 않고 끝낸다.
+    try FileManager.default.removeItem(at: journal)
+    HoldingAlertSync.enabled = false
+    paths.removeAll()
+    var expired = false
+    HoldingAlertFixtureProtocol.reply = { request in
+      let path = request.url?.lastPathComponent ?? ""
+      paths.append(path)
+      if path == "mobit_retire_holding_installation" { return (401, Data()) }
+      XCTAssertEqual(path, "token")
+      return (400, Data((expired ? #"{"code":"refresh_token_not_found"}"# : #"{"code":"request_timeout"}"#).utf8))
+    }
+    sync = makeSync()
+    sync.request(immediate: true)
+    await sync.syncTask?.value
+    XCTAssertEqual(sync.failure, .disable)
+    expired = true
+    sync.request(immediate: true)
+    await sync.syncTask?.value
+    XCTAssertNil(sync.failure)
+    sync = makeSync()
+    sync.request(immediate: true)
+    await sync.syncTask?.value
+    XCTAssertEqual(paths, ["mobit_retire_holding_installation", "token", "mobit_retire_holding_installation", "token"])
+  }
+
+  @MainActor
+  func testHoldingAlertReregistrationSyncsLatestLedgerBeforeToken() async throws {
+    // 파일은 재실행 단계에서만 공유하고 테스트가 끝나면 정리한다.
+    let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+    let previous = HoldingAlertSync.enabled
+    defer {
+      HoldingAlertSync.enabled = previous
+      try? FileManager.default.removeItem(at: folder)
+    }
+    func spot(_ market: String, average: String, id: UUID = UUID()) -> HoldingAlertSnapshot {
+      HoldingAlertSnapshot(id: id, exchange: "upbit", market: market, side: "spot", average: average,
+                           units: nil, cost: nil, margin: nil, effectiveAt: Date(), fill: average)
+    }
+    // 꺼진 동안 BTC는 추가 매수, ETH는 전량 매도, SOL은 신규 매수한다.
+    let btc = spot("KRW-BTC", average: "100")
+    let eth = spot("KRW-ETH", average: "20")
+    let sol = spot("KRW-SOL", average: "10")
+    var holdings = [btc, eth]
+    // 기기 설정과 토큰 교체를 운영 APNs·FCM 접근 없이 재현한다.
+    var permission = UNAuthorizationStatus.authorized
+    var token = "fixture-device-1"
+    var rejectHoldings = false
+    // 실제 동기화 코드가 보내는 기기·보유 RPC와 전송 순서를 기록한다.
+    var calls: [(name: String, installation: UUID, body: [String: Any])] = []
+    func makeSync() -> HoldingAlertSync {
+      HoldingAlertSync(
+        journalFolder: { folder },
+        notificationPermission: { permission },
+        registeredToken: { token },
+        loadHoldings: { holdings },
+        retirePreviousInstallations: {},
+        sendRPC: { name, installation, data in
+          let body = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+          calls.append((name, installation, body))
+          if rejectHoldings && name == "mobit_sync_holding" { throw URLError(.notConnectedToInternet) }
+        }
+      )
+    }
+    var sync = makeSync()
+    sync.setEnabled(true)
+    await sync.syncTask?.value
+    let installation = try XCTUnwrap(calls.first?.installation)
+    XCTAssertEqual(calls.map(\.name), ["mobit_sync_holding", "mobit_sync_holding", "mobit_set_push_device"])
+    XCTAssertEqual(calls.last?.body["p_token"] as? String, token)
+
+    calls.removeAll()
+    sync.setEnabled(false)
+    await sync.syncTask?.value
+    XCTAssertEqual(calls.map(\.name), ["mobit_set_push_device"])
+    XCTAssertTrue(calls.last?.body["p_token"] is NSNull)
+    holdings = [spot("KRW-BTC", average: "110", id: btc.id), sol]
+    calls.removeAll()
+    sync.request(immediate: true)
+    await sync.syncTask?.value
+    XCTAssertTrue(calls.isEmpty)
+
+    sync = makeSync()
+    sync.setEnabled(true)
+    await sync.syncTask?.value
+    XCTAssertEqual(calls.map(\.name), Array(repeating: "mobit_sync_holding", count: 3) + ["mobit_set_push_device"])
+    XCTAssertTrue(calls.allSatisfy { $0.installation == installation })
+    XCTAssertEqual(calls.last?.body["p_token"] as? String, token)
+    func payload(_ id: UUID) -> [String: Any]? {
+      calls.first { $0.body["p_holding"] as? String == id.uuidString }?.body
+    }
+    XCTAssertEqual(payload(btc.id)?["p_average"] as? String, "110")
+    XCTAssertEqual(payload(eth.id)?["p_closed"] as? Bool, true)
+    XCTAssertEqual(payload(sol.id)?["p_market"] as? String, "KRW-SOL")
+
+    // 시스템 설정만 껐다 켜면 앱 선호는 유지하고 변경된 토큰으로 복구한다.
+    calls.removeAll()
+    permission = .denied
+    sync.request(immediate: true)
+    await sync.syncTask?.value
+    XCTAssertTrue(HoldingAlertSync.enabled)
+    XCTAssertEqual(calls.count, 1)
+    XCTAssertTrue(calls.last?.body["p_token"] is NSNull)
+    calls.removeAll()
+    permission = .authorized
+    token = "fixture-device-2"
+    sync.request(immediate: true)
+    await sync.syncTask?.value
+    XCTAssertEqual(calls.map(\.name), ["mobit_set_push_device"])
+    XCTAssertEqual(calls.first?.installation, installation)
+    XCTAssertEqual(calls.first?.body["p_token"] as? String, token)
+    calls.removeAll()
+    sync.request(immediate: true)
+    await sync.syncTask?.value
+    XCTAssertTrue(calls.isEmpty)
+
+    // 자산 동기화 중 통신이 실패하면 토큰 활성화 전에 OFF로 복구한다.
+    sync.setEnabled(false)
+    await sync.syncTask?.value
+    calls.removeAll()
+    holdings.removeAll()
+    rejectHoldings = true
+    sync.setEnabled(true)
+    await sync.syncTask?.value
+    XCTAssertEqual(sync.failure, .enable)
+    XCTAssertFalse(HoldingAlertSync.enabled)
+    XCTAssertFalse(calls.contains { $0.body["p_token"] is String })
+    rejectHoldings = false
+    calls.removeAll()
+    sync.setEnabled(true)
+    await sync.syncTask?.value
+    XCTAssertEqual(calls.map(\.name), ["mobit_sync_holding", "mobit_sync_holding", "mobit_set_push_device"])
+    XCTAssertTrue(calls.dropLast().allSatisfy { $0.body["p_closed"] as? Bool == true })
+    XCTAssertEqual(calls.last?.body["p_token"] as? String, token)
+    XCTAssertNil(sync.failure)
+  }
+
+  @MainActor
+  func testSystemPermissionRevocationOfflineKeepsPreferenceAndRetriesRemoval() async throws {
+    // 다른 테스트의 익명 세션·원장에 접근하지 않는 저장소다.
+    let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+    let previous = HoldingAlertSync.enabled
+    defer {
+      HoldingAlertSync.enabled = previous
+      try? FileManager.default.removeItem(at: folder)
+    }
+    // OS에서 권한을 끈 직후 서버 해제가 실패하고 연결이 복구되는 순서를 재현한다.
+    var permission = UNAuthorizationStatus.authorized
+    var offline = false
+    var tokens: [String?] = []
+    let sync = HoldingAlertSync(
+      journalFolder: { folder },
+      notificationPermission: { permission },
+      registeredToken: { "fixture-device" },
+      loadHoldings: { [] },
+      retirePreviousInstallations: {},
+      sendRPC: { name, _, data in
+        XCTAssertEqual(name, "mobit_set_push_device")
+        if offline { throw URLError(.notConnectedToInternet) }
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        XCTAssertNotNil(body["p_token"])
+        tokens.append(body["p_token"] as? String)
+      }
+    )
+    sync.setEnabled(true)
+    await sync.syncTask?.value
+    permission = .denied
+    offline = true
+    sync.request(immediate: true)
+    await sync.syncTask?.value
+    XCTAssertTrue(HoldingAlertSync.enabled)
+    XCTAssertEqual(sync.failure, .disable)
+    offline = false
+    sync.request(immediate: true)
+    await sync.syncTask?.value
+    XCTAssertEqual(tokens, ["fixture-device", nil])
+    permission = .authorized
+    sync.request(immediate: true)
+    await sync.syncTask?.value
+    XCTAssertEqual(tokens, ["fixture-device", nil, "fixture-device"])
+    XCTAssertNil(sync.failure)
   }
 
   @MainActor
@@ -109,7 +388,7 @@ final class MoreScreenTests: XCTestCase {
     let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     let previous = HoldingAlertSync.enabled
     defer { HoldingAlertSync.enabled = previous }
-    let sync = HoldingAlertSync(journalFolder: { folder }, notificationPermission: { .denied })
+    let sync = HoldingAlertSync(journalFolder: { folder }, notificationPermission: { .denied }, retirePreviousInstallations: {})
     let failed = expectation(description: "개인 알림 활성화 실패")
     let observer = NotificationCenter.default.addObserver(forName: .pushSettingsChanged, object: nil, queue: .main) { _ in
       MainActor.assumeIsolated {

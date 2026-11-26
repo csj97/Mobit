@@ -251,11 +251,6 @@ private extension PushCategory {
 private final class PushSettingsToggle: UIView {
   // 조작과 VoiceOver 상태 전달은 기본 시스템 스위치가 담당한다.
   let control = UISwitch()
-  // 켜진 상태를 색과 함께 표시하는 체크 기호다.
-  private let checkmark = UIImageView(image: UIImage(
-    systemName: "checkmark",
-    withConfiguration: UIImage.SymbolConfiguration(pointSize: 11, weight: .bold)
-  ))
 
   init() {
     super.init(frame: .zero)
@@ -264,14 +259,6 @@ private final class PushSettingsToggle: UIView {
     control.setContentHuggingPriority(.required, for: .horizontal)
     addSubview(control)
     control.snp.makeConstraints { $0.edges.equalToSuperview() }
-    checkmark.isAccessibilityElement = false
-    checkmark.isUserInteractionEnabled = false
-    checkmark.tintColor = control.onTintColor
-    addSubview(checkmark)
-    checkmark.snp.makeConstraints { make in
-      make.centerY.equalTo(control)
-      make.centerX.equalTo(control.snp.trailing).offset(-15)
-    }
   }
 
   @available(*, unavailable)
@@ -280,6 +267,5 @@ private final class PushSettingsToggle: UIView {
   func show(on: Bool, enabled: Bool) {
     control.isEnabled = enabled
     control.setOn(on, animated: window != nil)
-    checkmark.isHidden = !on || UIAccessibility.isOnOffSwitchLabelsEnabled
   }
 }

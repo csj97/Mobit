@@ -5,7 +5,7 @@ enum PushNotificationDestination: String, CaseIterable {
 }
 
 private enum PushNotificationCommand {
-  case route(PushNotificationDestination)
+  case route(PushNotificationDestination, Exchange?)
   case action(identifier: String, data: [String: String])
 
   init?(userInfo: [AnyHashable: Any], registeredActions: Set<String>) {
@@ -18,7 +18,16 @@ private enum PushNotificationCommand {
             let destination = PushNotificationDestination(
               rawValue: value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
             ) else { return nil }
-      self = .route(destination)
+      // 시세·투자내역 푸시에 명시된 국내 거래소만 전환 대상으로 사용한다.
+      let exchange = (userInfo["exchange"] as? String).flatMap {
+        Exchange(rawValue: $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())
+      }
+      switch (destination, exchange) {
+      case (.exchange, .upbit), (.exchange, .bithumb), (.investment, .upbit), (.investment, .bithumb):
+        self = .route(destination, exchange)
+      default:
+        self = .route(destination, nil)
+      }
     case "action":
       guard let value = userInfo["action"] as? String else { return nil }
       // 앱에 등록한 이름만 실행하며 분석에도 같은 식별자를 사용한다.
@@ -50,7 +59,7 @@ final class PushNotificationOpenHandler {
   // 화면 전환과 별개로 실제 알림 클릭만 분석에 전달한다.
   private let trackOpen: (String, String?, String?) -> Void
   // Scene 준비·활성 상태가 충족된 실행 구간에서만 연결한다.
-  private var routeCallBack: ((PushNotificationDestination) -> Void)?
+  private var routeCallBack: ((PushNotificationDestination, Exchange?) -> Void)?
 
   init(
     actionHandlers: [String: ([String: String]) -> Void] = [:],
@@ -62,7 +71,7 @@ final class PushNotificationOpenHandler {
     self.trackOpen = trackOpen
   }
 
-  func resume(routeCallBack: @escaping (PushNotificationDestination) -> Void) {
+  func resume(routeCallBack: @escaping (PushNotificationDestination, Exchange?) -> Void) {
     self.routeCallBack = routeCallBack
     performPendingCommands()
   }
@@ -93,7 +102,7 @@ final class PushNotificationOpenHandler {
     // payload 해석은 실행과 분리하며 등록하지 않은 명령은 일반 앱 열기로 처리한다.
     let command = PushNotificationCommand(userInfo: userInfo, registeredActions: Set(actionHandlers.keys))
     switch command {
-    case .route(let destination):
+    case .route(let destination, _):
       trackOpen(destination.rawValue, nil, userInfo["campaign_id"] as? String)
     case .action(let identifier, _):
       trackOpen("app", identifier, userInfo["campaign_id"] as? String)
@@ -113,8 +122,8 @@ final class PushNotificationOpenHandler {
       // 실행 전에 소비해 재진입하거나 Scene이 다시 활성화돼도 중복 실행하지 않는다.
       let command = pendingCommands.removeFirst()
       switch command {
-      case .route(let destination):
-        routeCallBack(destination)
+      case .route(let destination, let exchange):
+        routeCallBack(destination, exchange)
       case .action(let identifier, let data):
         actionHandlers[identifier]?(data)
       }

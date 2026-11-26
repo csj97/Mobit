@@ -36,7 +36,7 @@ class SupabaseProject:
         for extension in ("pg_cron", "pg_net", "supabase_vault"):
             self.sql(f"create extension if not exists {extension}")
         # 같은 이름으로 배포를 재시도해도 등록된 호출 토큰을 유지한다.
-        if name not in ("mobit_coin_cron_token", "mobit_push_cron_token"):
+        if name not in ("mobit_coin_cron_token", "mobit_push_cron_token", "mobit_community_cron_token"):
             raise ValueError("지원하지 않는 예약 토큰입니다")
         self.sql(f"""do $$ begin
             perform pg_advisory_xact_lock(hashtextextended('{name}', 0));

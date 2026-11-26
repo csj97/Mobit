@@ -125,8 +125,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 	  appDelegate.pushNotificationOpenHandler.suspend()
 	  return
 	}
-	appDelegate.pushNotificationOpenHandler.resume { [weak appCoordinator] destination in
-	  appCoordinator?.showPushDestination(destination)
+	appDelegate.pushNotificationOpenHandler.resume { [weak appCoordinator] destination, exchange in
+	  appCoordinator?.showPushDestination(destination, exchange: exchange)
 	}
   }
 

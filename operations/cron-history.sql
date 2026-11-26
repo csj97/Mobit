@@ -9,7 +9,7 @@ declare
     using cron.job as job
     where run.jobid = job.jobid and run.username = job.username and job.username = current_user
       and job.jobname in ('mobit-refresh-coins', 'mobit-weekly-push', 'mobit-weekly-push-sat',
-        'mobit-price-alerts', 'mobit-holding-alerts', 'mobit-cleanup-cron-history')
+        'mobit-price-alerts', 'mobit-holding-alerts', 'mobit-community-alerts', 'mobit-cleanup-cron-history')
       and run.end_time < now() - interval '7 days'
   $cleanup$;
 begin

@@ -41,7 +41,7 @@ export function priceMessage({ exchange, market, basis, percent, hourLevel, exch
   const venue = exchange === "upbit" ? "업비트" : "빗썸";
   return {
     topic: "mobit_price_alerts",
-    notification: { title: venue + " " + market.slice(4) + " " + direction, body: sentences.join(" ") },
+    notification: { title: `[${venue}] ${market.slice(4)} ${direction}`, body: sentences.join(" ") },
     data: { type: "route", destination: "exchange", exchange, market, basis: comparison, campaign_id: "price_alert_" + comparison },
     apns: { payload: { aps: { sound: "default" } } },
   };

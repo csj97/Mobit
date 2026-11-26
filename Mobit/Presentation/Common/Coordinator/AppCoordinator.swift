@@ -27,7 +27,7 @@ class AppCoordinator: BaseCoordinator {
     appTabBarCoordinator.start()
   }
 
-  func showPushDestination(_ destination: PushNotificationDestination) {
-    childCoordinators.compactMap { $0 as? AppTabBarCoordinator }.first?.showPushDestination(destination)
+  func showPushDestination(_ destination: PushNotificationDestination, exchange: Exchange?) {
+    childCoordinators.compactMap { $0 as? AppTabBarCoordinator }.first?.showPushDestination(destination, exchange: exchange)
   }
 }

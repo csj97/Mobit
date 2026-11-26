@@ -41,6 +41,6 @@ export async function holdingNotification(event, send) {
   const loss = level.startsWith("-");
   return {
     title: loss ? "보유자산 하락" : "보유자산 상승",
-    body: `${exchanges[event.exchange].name} ${coin} ${loss ? level : "+" + level}% ${loss ? "손실" : "수익"}`,
+    body: `[${exchanges[event.exchange].name}] ${coin} ${loss ? level : "+" + level}% ${loss ? "손실" : "수익"}`,
   };
 }

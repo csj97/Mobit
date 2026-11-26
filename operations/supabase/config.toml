@@ -7,3 +7,6 @@ verify_jwt = false
 [functions.send-mobit-push]
 # 푸시 전용 Cron 토큰을 함수 안에서 검사한다.
 verify_jwt = false
+
+[functions.notify-community]
+verify_jwt = false

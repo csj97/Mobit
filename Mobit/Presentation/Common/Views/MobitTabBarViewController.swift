@@ -290,7 +290,7 @@ class MobitTabBarViewController: MobitBaseViewController {
     updateProductVisibility()
   }
 
-  func showPushDestination(_ destination: PushNotificationDestination) {
+  func showPushDestination(_ destination: PushNotificationDestination, rebuildTabs: ((Int) -> Void)? = nil) {
     // 강제 업데이트 안내는 푸시 이동으로 우회할 수 없다.
     guard !viewControllers.compactMap({ $0 as? UINavigationController })
       .flatMap(\.viewControllers).contains(where: { $0 is NoticeForceUpdateViewController }) else { return }
@@ -311,6 +311,11 @@ class MobitTabBarViewController: MobitBaseViewController {
     for navigation in navigationControllers where navigation.viewControllers.count > 1 {
       (navigation.topViewController as? SocketControllable)?.pauseSocket()
       navigation.popToRootViewController(animated: false)
+    }
+    // 강제 업데이트 확인과 상세 소켓 정리를 마친 후 새 거래소의 목적지 탭을 연다.
+    if let rebuildTabs {
+      rebuildTabs(destinationIndex)
+      return
     }
     setTradingChromeHidden(false)
     if selectedIndex != destinationIndex { switchToTab(index: destinationIndex) }

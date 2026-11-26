@@ -51,7 +51,7 @@ class AppTabBarCoordinator: BaseCoordinator {
 	self.navigationController.isNavigationBarHidden = true
   }
   
-  func switchExchange(to exchange: Exchange) {
+  func switchExchange(to exchange: Exchange, selectedIndex: Int? = nil) {
 	guard ExchangeSelectionStore.currentExchange != exchange else { return }
 	// 새 거래소 탭을 구성하기 전에 이전 거래소 소켓 연결을 먼저 종료한다.
 	self.mainCoordinator?.disconnectSocket()
@@ -65,13 +65,22 @@ class AppTabBarCoordinator: BaseCoordinator {
 	UserDataManager.publishCurrentExchangeBalance()
 	// 정보탭 CMC 캐시를 새 거래소 기준으로 갱신한다.
 	AppDataManager.shared.refreshCMCData(for: exchange)
-	self.configureTabs(selectedIndex: mobitTabBarController.selectedIndex)
+	self.configureTabs(selectedIndex: selectedIndex ?? mobitTabBarController.selectedIndex)
 	tradingSelectionChangedCallBack?()
   }
 
-  func showPushDestination(_ destination: PushNotificationDestination) {
-    // 표시 중인 시트·알럿을 닫은 뒤 기존 계좌를 유지하며 목적지 루트로 이동한다.
-    let showDestination: () -> Void = { [weak self] in self?.mobitTabBarController.showPushDestination(destination) }
+  func showPushDestination(_ destination: PushNotificationDestination, exchange: Exchange?) {
+    // 모달이 닫힌 시점의 거래소와 비교하고, 다른 경우 목적지 탭을 새 계좌로 구성한다.
+    let showDestination: () -> Void = { [weak self] in
+      guard let self else { return }
+      if let exchange, exchange != ExchangeSelectionStore.currentExchange {
+        self.mobitTabBarController.showPushDestination(destination) { index in
+          self.switchExchange(to: exchange, selectedIndex: index)
+        }
+      } else {
+        self.mobitTabBarController.showPushDestination(destination)
+      }
+    }
     if navigationController.presentedViewController != nil {
       navigationController.dismiss(animated: false, completion: showDestination)
     } else {

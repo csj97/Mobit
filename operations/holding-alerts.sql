@@ -11,6 +11,8 @@ create table if not exists mobit_ops.holding_watch (
   up_level numeric not null default 0, down_level numeric not null default 0,
   primary key(owner,holding)
 );
+-- 이전 설치의 지연 요청이 보유 건이나 토큰을 되살리지 못하게 한다.
+alter table mobit_ops.push_device add column if not exists retired boolean not null default false;
 create index if not exists holding_watch_market on mobit_ops.holding_watch(exchange,market) where not closed and not paused;
 create table if not exists mobit_ops.holding_event (
   id uuid primary key default gen_random_uuid(), owner uuid not null, holding uuid not null,
@@ -24,11 +26,20 @@ begin
   if auth.uid() is null or p_revision is null or p_revision < 1
     or (p_token is not null and (length(p_token) not between 16 and 4096 or p_token !~ '^[A-Za-z0-9_:-]+$'))
     then raise exception 'Invalid device registration'; end if;
-  insert into mobit_ops.push_device as d values(auth.uid(),p_revision,p_token)
-    on conflict(owner) do update set revision=excluded.revision,token=excluded.token where d.revision < excluded.revision;
+  insert into mobit_ops.push_device as d(owner,revision,token) values(auth.uid(),p_revision,p_token)
+    on conflict(owner) do update set revision=excluded.revision,token=excluded.token where not d.retired and d.revision < excluded.revision;
 exception when unique_violation then
   raise exception 'Device token already registered';
 end $device$;
+
+create or replace function public.mobit_retire_holding_installation()
+returns void language plpgsql security definer set search_path='' as $retire$
+begin
+  if auth.uid() is null then raise exception 'Authentication required'; end if;
+  insert into mobit_ops.push_device(owner,revision,token,retired) values(auth.uid(),0,null,true)
+    on conflict(owner) do update set token=null,retired=true;
+  delete from mobit_ops.holding_watch where owner=auth.uid();
+end $retire$;
 
 create or replace function public.mobit_sync_holding(
   p_holding uuid, p_revision bigint, p_closed boolean, p_effective_at timestamptz,
@@ -52,6 +63,9 @@ begin
     baseline := div((p_fill_price*p_units-p_cost)*100,5*p_margin)*5 * case when p_side='short' then -1 else 1 end;
     if p_side <> 'spot' and baseline <= -100 then raise exception 'Position already liquidated'; end if;
   end if;
+  -- 토큰 등록 전에도 같은 소유자의 설치 해제와 보유 건 갱신 순서를 보장한다.
+  insert into mobit_ops.push_device(owner,revision) values(auth.uid(),0) on conflict(owner) do nothing;
+  if (select retired from mobit_ops.push_device where owner=auth.uid() for share) then return; end if;
   insert into mobit_ops.holding_watch as h(owner,holding,revision,closed,exchange,market,side,units,cost,margin,
     effective_at,checked_until,up_level,down_level)
     values(auth.uid(),p_holding,p_revision,p_closed,p_exchange,p_market,p_side,p_units,p_cost,p_margin,
@@ -68,17 +82,26 @@ end $sync$;
 create or replace function public.mobit_claim_holding_event(p_event uuid) returns jsonb
 language sql volatile security definer set search_path='' as $claim$
   with claimed as (delete from mobit_ops.holding_event where id=p_event returning *)
-  select jsonb_build_object('token',d.token,'holding',h.holding,'exchange',h.exchange,'market',h.market,
+  select jsonb_build_object('token',d.token,'owner',d.owner,'device_revision',d.revision::text,
+    'holding',h.holding,'exchange',h.exchange,'market',h.market,
     'side',h.side,'level',e.level::text)
   from claimed e join mobit_ops.holding_watch h using(owner,holding) join mobit_ops.push_device d using(owner)
   where h.revision=e.revision and not h.closed and not h.paused and d.revision=e.device_revision and d.token is not null
     and e.observed_at >= now()-interval '10 minutes';
 $claim$;
+-- FCM 응답을 기다리는 사이 토큰 교체 또는 다른 설치로 재등록된 경우에는 건드리지 않는다.
+create or replace function public.mobit_clear_invalid_holding_token(p_owner uuid,p_revision bigint,p_token text)
+returns void language sql security definer set search_path='' as $invalid$
+  update mobit_ops.push_device set token=null where owner=p_owner and revision=p_revision and token=p_token;
+$invalid$;
 revoke all on function public.mobit_set_push_device(bigint,text),
+  public.mobit_retire_holding_installation(),public.mobit_clear_invalid_holding_token(uuid,bigint,text),
   public.mobit_sync_holding(uuid,bigint,boolean,timestamptz,text,text,text,numeric,numeric,numeric,numeric,numeric),
   public.mobit_claim_holding_event(uuid) from public,anon,authenticated;
 grant execute on function public.mobit_set_push_device(bigint,text),
+  public.mobit_retire_holding_installation(),
   public.mobit_sync_holding(uuid,bigint,boolean,timestamptz,text,text,text,numeric,numeric,numeric,numeric,numeric)
   to authenticated;
-grant execute on function public.mobit_claim_holding_event(uuid) to service_role;
+grant execute on function public.mobit_claim_holding_event(uuid),
+  public.mobit_clear_invalid_holding_token(uuid,bigint,text) to service_role;
 notify pgrst, 'reload schema';

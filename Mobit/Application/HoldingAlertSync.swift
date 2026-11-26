@@ -20,10 +20,20 @@ final class HoldingAlertSync {
   private var selectionRevision = 0
   // 앱 시작 시 토큰을 기다리는 경우와 사용자가 방금 켠 경우를 구분한다.
   private var awaitingActivation = false
-  // 단일 익명 세션을 소유하는 API 연결이다.
-  private let api = HoldingAlertAPI()
+  // 운영에서는 한 API 인스턴스가 설치별 익명 세션을 재사용한다.
+  private let sendRPC: (String, UUID, Data) async throws -> Void
+  // 이전 설치의 익명 세션으로 해당 설치의 개인 알림만 해제한다.
+  private let retirePreviousInstallations: () async throws -> Void
+  // 거래 때마다 키체인을 검색하지 않고, 실패한 정리만 다시 시도한다.
+  private var checkedPreviousInstallations = false
+  // APNs 등록까지 끝난 기기의 최신 FCM 토큰만 사용한다.
+  private let registeredToken: () -> String?
+  // 전송할 기준은 커밋된 현물·선물 원장에서 다시 읽는다.
+  private let loadHoldings: () async throws -> [HoldingAlertSnapshot]
   // 실행 중 요청과 새 체결의 재검토 여부를 분리한다.
-  private var running = false, requested = false
+  private(set) var syncTask: Task<Void, Never>?
+  // 현재 요청을 마친 뒤 최신 원장을 다시 비교할지 기록한다.
+  private var requested = false
   // 일시적인 통신 오류 뒤 포그라운드에서 다시 전달한다.
   private var retry: Task<Void, Never>?
   // 포그라운드 복귀 후 앱이 검증한 선물 이력을 다시 전달할 기회다.
@@ -40,10 +50,31 @@ final class HoldingAlertSync {
     },
     notificationPermission: @escaping () async -> UNAuthorizationStatus = {
       await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
-    }
+    },
+    registeredToken: @escaping () -> String? = {
+      Messaging.messaging().apnsToken == nil ? nil : Messaging.messaging().fcmToken
+    },
+    loadHoldings: @escaping () async throws -> [HoldingAlertSnapshot] = {
+      try await Task.detached(priority: .utility) {
+        let spot = try UserDataManager.holdingAlertSnapshots()
+        let futures = try LocalFuturesAccountRepository.applicationStore().snapshot()
+        return try spot + HoldingAlertSnapshot.futures(futures)
+      }.value
+    },
+    retirePreviousInstallations: @escaping () async throws -> Void = HoldingAlertAPI.shared.retirePreviousInstallations,
+    sendRPC: @escaping (String, UUID, Data) async throws -> Void = HoldingAlertAPI.shared.rpc
   ) {
     self.journalFolder = journalFolder
     self.notificationPermission = notificationPermission
+    self.registeredToken = registeredToken
+    self.loadHoldings = loadHoldings
+    self.retirePreviousInstallations = retirePreviousInstallations
+    self.sendRPC = sendRPC
+  }
+
+  private struct DeviceRemovalError: Error {
+    // 기기 권한 철회 후 서버 해제 실패는 재시도하되 앱 안의 선택은 보존한다.
+    let cause: Error
   }
 
   struct Entry: Codable {
@@ -110,6 +141,7 @@ final class HoldingAlertSync {
     for name in [Notification.Name.holdingLedgerChanged, .networkStatusChanged, UIApplication.didBecomeActiveNotification] {
       NotificationCenter.default.addObserver(self, selector: #selector(changed(_:)), name: name, object: nil)
     }
+    request(immediate: true)
   }
 
   @objc private func changed(_ notification: Notification) {
@@ -122,10 +154,9 @@ final class HoldingAlertSync {
     requested = true
     retry?.cancel()
     retry = nil
-    guard !running else { return }
-    running = true
-    Task {
-      defer { running = false }
+    guard syncTask == nil else { return }
+    syncTask = Task {
+      defer { syncTask = nil }
       while requested {
         requested = false
         // 비동기 처리 중 사용자가 변경한 설정은 다음 반복에서 반영한다.
@@ -133,8 +164,10 @@ final class HoldingAlertSync {
         do { try await synchronize() }
         catch {
           guard revision == selectionRevision else { continue }
-          Log.warning("개인 알림 동기화 실패: \((error as? HoldingAlertAPI.ResponseError)?.status ?? (error as NSError).code)", tag: "Push")
-          if Self.enabled {
+          // 서버 해제가 실패한 경우에도 원래의 네트워크 오류 코드만 기록한다.
+          let cause = (error as? DeviceRemovalError)?.cause ?? error
+          Log.warning("개인 알림 동기화 실패: \((cause as? HoldingAlertAPI.ResponseError)?.status ?? (cause as NSError).code)", tag: "Push")
+          if Self.enabled && !(error is DeviceRemovalError) {
             Self.enabled = false
             awaitingActivation = false
             failure = .enable
@@ -144,11 +177,11 @@ final class HoldingAlertSync {
           }
           if failure != .enable { failure = .disable }
           requested = false
-          retry = Task {
+          retry = Task { [weak self] in
             try? await Task.sleep(nanoseconds: 60_000_000_000)
-            guard !Task.isCancelled else { return }
-            retry = nil
-            if UIApplication.shared.applicationState == .active { request() }
+            guard !Task.isCancelled, let self else { return }
+            self.retry = nil
+            if UIApplication.shared.applicationState == .active { self.request() }
           }
         }
       }
@@ -160,11 +193,21 @@ final class HoldingAlertSync {
     let folder = try journalFolder()
     // 네트워크 요청 전 보호된 파일에 보유 건과 전송 순번을 보존한다.
     var file = folder.appendingPathComponent("holding-alert-sync.json")
-    // 최초 비활성 기기에서 불필요하게 익명 세션을 만들지 않는다.
-    let exists = FileManager.default.fileExists(atPath: file.path)
-    guard Self.enabled || exists else { return }
-    // 네트워크 요청을 직렬 처리하므로 한 번에 한 작업만 파일을 소유한다.
-    var journal = exists ? try JSONDecoder().decode(Journal.self, from: Data(contentsOf: file)) : Journal()
+    // 파일 부재만 재설치 후보로 취급한다. 보호된 파일이나 디코딩 실패로 세션을 해제하지 않는다.
+    var journal: Journal
+    do {
+      journal = try JSONDecoder().decode(Journal.self, from: Data(contentsOf: file))
+    } catch CocoaError.fileReadNoSuchFile {
+      if !checkedPreviousInstallations {
+        try await retirePreviousInstallations()
+        checkedPreviousInstallations = true
+      }
+      guard Self.enabled else {
+        if failure == .disable { failure = nil }
+        return
+      }
+      journal = Journal()
+    }
     func persist() throws {
       try JSONEncoder().encode(journal).write(to: file, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
       var values = URLResourceValues()
@@ -178,8 +221,8 @@ final class HoldingAlertSync {
     let active = Self.enabled && permission.allowsPush
     if awaitingActivation && !active { throw URLError(.userAuthenticationRequired) }
     // 활성화하는 동안에만 Firebase 등록 토큰을 사용한다.
-    let token = active ? Messaging.messaging().fcmToken : nil
-    if active && (token?.isEmpty != false || Messaging.messaging().apnsToken == nil) {
+    let token = active ? registeredToken() : nil
+    if active && token?.isEmpty != false {
       if awaitingActivation { throw URLError(.resourceUnavailable) }
       return
     }
@@ -193,11 +236,7 @@ final class HoldingAlertSync {
     }
     if active {
       // 계좌 파일 검증과 원장 디코딩은 UI 스레드 밖에서 처리한다.
-      let rows = try await Task.detached(priority: .utility) {
-        let spot = try UserDataManager.holdingAlertSnapshots()
-        let futures = try LocalFuturesAccountRepository.applicationStore().snapshot()
-        return try spot + HoldingAlertSnapshot.futures(futures)
-      }.value
+      let rows = try await loadHoldings()
       if journal.reconcile(rows, verificationSince: verificationSince) { try persist() }
       for (id, entry) in journal.entries.filter({ $0.value.pending }).sorted(by: { $0.value.revision < $1.value.revision }) {
         guard Self.enabled else { return }
@@ -213,7 +252,7 @@ final class HoldingAlertSync {
           payload["p_cost"] = row.cost
           payload["p_margin"] = row.margin
         }
-        try await api.rpc("mobit_sync_holding", installation: journal.installation, data: JSONSerialization.data(withJSONObject: payload))
+        try await sendRPC("mobit_sync_holding", journal.installation, JSONSerialization.data(withJSONObject: payload))
         if entry.snapshot == nil { journal.entries.removeValue(forKey: id) }
         else { journal.entries[id]?.pending = false }
         try persist()
@@ -223,9 +262,14 @@ final class HoldingAlertSync {
     if journal.devicePending && (!active || Self.enabled) {
       let target: Any = token.map { $0 as Any } ?? NSNull()
       let payload: [String: Any] = ["p_revision": journal.deviceRevision, "p_token": target]
-      try await api.rpc("mobit_set_push_device", installation: journal.installation, data: JSONSerialization.data(withJSONObject: payload))
-      journal.devicePending = false
-      try persist()
+      do {
+        try await sendRPC("mobit_set_push_device", journal.installation, JSONSerialization.data(withJSONObject: payload))
+        journal.devicePending = false
+        try persist()
+      } catch {
+        if !active { throw DeviceRemovalError(cause: error) }
+        throw error
+      }
     }
     if !requested {
       awaitingActivation = false

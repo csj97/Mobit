@@ -84,4 +84,78 @@ begin
   if (select paused from mobit_ops.holding_watch where owner=a and holding=position)
     then raise exception 'verified snapshot did not resume'; end if;
 end $qa$;
+-- 동일 토큰 재연결과 토큰 교체 모두 이전 등록의 발송 대기를 무효화한다.
+do $cycle$
+declare
+  owner_id uuid := gen_random_uuid();
+  holding_id uuid := gen_random_uuid();
+  minute_end timestamptz := date_trunc('minute', now());
+  first_minute timestamptz := minute_end - interval '3 minutes';
+  candle jsonb := '{"market":"KRW-SOL","unit":1,"low_price":100,"high_price":106,"trade_price":106}';
+  old_event uuid;
+  new_event uuid;
+begin
+  insert into auth.users values(owner_id);
+  perform set_config('test.uid',owner_id::text,true);
+  perform public.mobit_sync_holding(holding_id,1,false,first_minute,'upbit','KRW-SOL','spot',100,100);
+  perform public.mobit_set_push_device(1,'fixture:initial-sol');
+  perform mobit_ops.apply_holding_quotes('upbit','KRW-SOL',first_minute,first_minute+interval '1 minute',
+    jsonb_build_array(candle||jsonb_build_object('candle_date_time_utc',to_char(first_minute at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS'))));
+  select id into strict old_event from mobit_ops.holding_event where owner=owner_id and level=5;
+
+  perform public.mobit_set_push_device(2,null);
+  perform mobit_ops.apply_holding_quotes('upbit','KRW-SOL',first_minute+interval '1 minute',minute_end-interval '1 minute',
+    jsonb_build_array(candle||jsonb_build_object('high_price',120,'trade_price',120,'candle_date_time_utc',
+      to_char((first_minute+interval '1 minute') at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS'))));
+  if (select count(*) from mobit_ops.holding_event where owner=owner_id) <> 1 then raise exception 'event generated while off'; end if;
+  perform public.mobit_set_push_device(3,'fixture:initial-sol');
+  perform public.mobit_set_push_device(2,null);
+  if public.mobit_claim_holding_event(old_event) is not null then raise exception 'old push after same-token reactivation'; end if;
+  if (select token from mobit_ops.push_device where owner=owner_id) is distinct from 'fixture:initial-sol'
+    then raise exception 'stale opt out superseded reactivation'; end if;
+
+  perform public.mobit_set_push_device(4,'fixture:rotated-sol');
+  perform mobit_ops.apply_holding_quotes('upbit','KRW-SOL',minute_end-interval '1 minute',minute_end,
+    jsonb_build_array(candle||jsonb_build_object('high_price',111,'trade_price',111,'candle_date_time_utc',
+      to_char((minute_end-interval '1 minute') at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS'))));
+  select id into strict new_event from mobit_ops.holding_event where owner=owner_id and level=10;
+  if public.mobit_claim_holding_event(new_event)->>'token' is distinct from 'fixture:rotated-sol'
+    then raise exception 'new alert not routed to latest token'; end if;
+end $cycle$;
+do $reinstall$
+declare
+  old_id uuid:=gen_random_uuid(); new_id uuid:=gen_random_uuid(); position uuid:=gen_random_uuid();
+  event_id uuid:=gen_random_uuid(); shared_token text:='fixture:reinstall-token';
+begin
+  if has_function_privilege('anon','public.mobit_retire_holding_installation()','execute')
+    or not has_function_privilege('authenticated','public.mobit_retire_holding_installation()','execute')
+    or has_function_privilege('authenticated','public.mobit_clear_invalid_holding_token(uuid,bigint,text)','execute')
+    then raise exception 'reinstall RPC grants'; end if;
+  insert into auth.users values(old_id),(new_id);
+  perform set_config('test.uid',old_id::text,true);
+  perform public.mobit_sync_holding(position,1,false,now(),'upbit','KRW-BTC','spot',100,100);
+  perform public.mobit_set_push_device(1,shared_token);
+  insert into mobit_ops.holding_event(id,owner,holding,revision,device_revision,level,observed_at)
+    values(event_id,old_id,position,1,1,5,now());
+  perform public.mobit_retire_holding_installation();
+  perform set_config('test.uid',new_id::text,true);
+  perform public.mobit_set_push_device(1,shared_token);
+  perform public.mobit_sync_holding(position,1,false,now(),'upbit','KRW-ETH','spot',10,10);
+  perform set_config('test.uid',old_id::text,true);
+  perform public.mobit_retire_holding_installation();
+  perform public.mobit_sync_holding(position,1000,false,now(),'upbit','KRW-BTC','spot',100,100);
+  perform public.mobit_set_push_device(1000,'fixture:stale-token');
+  if public.mobit_claim_holding_event(event_id) is not null or exists(select from mobit_ops.holding_watch where owner=old_id)
+    or exists(select from mobit_ops.push_device where owner=old_id and token is not null)
+    or not exists(select from mobit_ops.holding_watch where owner=new_id and market='KRW-ETH')
+    then raise exception 'reinstall owner isolation'; end if;
+  perform public.mobit_clear_invalid_holding_token(old_id,1,shared_token);
+  perform public.mobit_clear_invalid_holding_token(new_id,2,shared_token);
+  perform public.mobit_clear_invalid_holding_token(new_id,1,'fixture:stale-token');
+  if (select token from mobit_ops.push_device where owner=new_id) is distinct from shared_token
+    then raise exception 'outdated FCM rejection disabled new registration'; end if;
+  perform public.mobit_clear_invalid_holding_token(new_id,1,shared_token);
+  if exists(select from mobit_ops.push_device where owner=new_id and token is not null)
+    then raise exception 'invalid token retained'; end if;
+end $reinstall$;
 rollback;

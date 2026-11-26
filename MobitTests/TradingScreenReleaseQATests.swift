@@ -114,7 +114,7 @@ final class TradingScreenReleaseQATests: XCTestCase {
         tabs.setViewControllers(navigations)
         tabs.setTradingChromeHidden(true)
 
-        tabs.showPushDestination(destination)
+        tabs.showPushDestination(destination) { _ in XCTFail("강제 업데이트 중 거래소 변경") }
 
         XCTAssertEqual(tabs.selectedIndex, MobitTabItem.exchange.rawValue)
         XCTAssertTrue(navigations[updateTabIndex].topViewController === requiredUpdate)

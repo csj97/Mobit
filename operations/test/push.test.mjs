@@ -9,7 +9,7 @@ test("실기기 테스트는 단일 토큰만 지정하고 토픽·조건 대상
   const message = testDeviceMessage("test:device");
   assert.equal(message.token, "test:device");
   assert.ok(!("topic" in message) && !("condition" in message));
-  assert.match(message.notification.title, /^\[테스트\]/);
+  assert.equal(message.notification.title, "[테스트] [빗썸] BTC 가격 변동");
   assert.equal(message.data.campaign_id, "device_test_price_alert");
   for (const invalid of ["", "mobit_price_alerts", "/topics/mobit_price_alerts", "one:device,two:device"]) {
     assert.throws(() => testDeviceMessage(invalid));
@@ -86,23 +86,25 @@ test("급등락 기준·거래소·부호를 보존해 공지와 별도 토픽�
       "오전 11시부터 오후 12시까지 5% 이상 올랐어요. 전일 종가보다는 10% 이상 낮아요."],
     [{ basis: "hour", percent: -5 }, "hour", "하락", "1시간 전보다 5% 이상 내렸어요."],
   ];
-  for (const [fields, basis, direction, wording] of cases) {
-    let message;
-    const request = new Request("https://example.test", { method: "POST",
-      headers: { Authorization: "Bearer push-only" },
-      body: JSON.stringify({ mode: "price-alert", market: "KRW-BTC", exchange: "bithumb", ...fields }) });
-    const response = await sendPush(request, env, (url, options) => {
-      if (url.includes("oauth2.")) return Response.json({ access_token: "temporary" });
-      message = JSON.parse(options.body).message;
-      return Response.json({ name: "accepted" });
-    });
-    assert.equal(response.status, 200);
-    assert.equal(message.topic, "mobit_price_alerts");
-    assert.equal(message.data.destination, "exchange");
-    assert.equal(message.data.exchange, "bithumb");
-    assert.equal(message.data.market, "KRW-BTC");
-    assert.equal(message.data.basis, basis);
-    assert.deepEqual(message.notification, { title: "빗썸 BTC " + direction, body: wording });
+  for (const [exchange, name] of [["upbit", "업비트"], ["bithumb", "빗썸"]]) {
+    for (const [fields, basis, direction, wording] of cases) {
+      let message;
+      const request = new Request("https://example.test", { method: "POST",
+        headers: { Authorization: "Bearer push-only" },
+        body: JSON.stringify({ mode: "price-alert", market: "KRW-BTC", exchange, ...fields }) });
+      const response = await sendPush(request, env, (url, options) => {
+        if (url.includes("oauth2.")) return Response.json({ access_token: "temporary" });
+        message = JSON.parse(options.body).message;
+        return Response.json({ name: "accepted" });
+      });
+      assert.equal(response.status, 200);
+      assert.equal(message.topic, "mobit_price_alerts");
+      assert.equal(message.data.destination, "exchange");
+      assert.equal(message.data.exchange, exchange);
+      assert.equal(message.data.market, "KRW-BTC");
+      assert.equal(message.data.basis, basis);
+      assert.deepEqual(message.notification, { title: `[${name}] BTC ${direction}`, body: wording });
+    }
   }
 });
 
@@ -112,10 +114,10 @@ test("개인 알림은 거래소·종목명·수익 단계를 표시하고 인�
   const post = event => new Request("https://example.test", { method: "POST", headers: { Authorization: "Bearer push-only" },
     body: JSON.stringify({ mode: "holding-alert", event, token: "ignored", topic: "ignored" }) });
   const cases = [
-    ["upbit", "KRW-BTC", "spot", "5", "보유자산 상승", "업비트 비트코인(BTC) +5% 수익"],
-    ["bithumb", "KRW-ETH", "short", "-10", "보유자산 하락", "빗썸 이더리움(ETH) -10% 손실"],
-    ["upbit", "KRW-ERA", "short", "15.000", "보유자산 상승", "업비트 테스트코인(ERA) +15% 수익"],
-    ["upbit", "BTC-XYZ", "long", "-5", "보유자산 하락", "업비트 XYZ -5% 손실"],
+    ["upbit", "KRW-BTC", "spot", "5", "보유자산 상승", "[업비트] 비트코인(BTC) +5% 수익"],
+    ["bithumb", "KRW-ETH", "short", "-10", "보유자산 하락", "[빗썸] 이더리움(ETH) -10% 손실"],
+    ["upbit", "KRW-ERA", "short", "15.000", "보유자산 상승", "[업비트] 테스트코인(ERA) +15% 수익"],
+    ["upbit", "BTC-XYZ", "long", "-5", "보유자산 하락", "[업비트] XYZ -5% 손실"],
   ];
   const eventIDs = cases.map(() => crypto.randomUUID());
   const pending = new Map(eventIDs.map((id, index) => [id, cases[index]]));
@@ -152,4 +154,35 @@ test("개인 알림은 거래소·종목명·수익 단계를 표시하고 인�
   assert.equal((await sendPush(post(eventIDs[0]), settings, send)).status, 204);
   assert.equal(messages, cases.length);
   assert.equal(marketRequests, 2);
+});
+
+test("FCM이 개인 기기 토큰의 등록 해제를 확인한 경우에만 해당 등록을 해제한다", async () => {
+  const settings = new Map([...env, ["SUPABASE_URL", "https://local.example"], ["SUPABASE_SERVICE_ROLE_KEY", "server"]]);
+  const detail = { "@type": "type.googleapis.com/google.firebase.fcm.v1.FcmError", errorCode: "UNREGISTERED" };
+  const owner = crypto.randomUUID();
+  const event = { owner, device_revision: "123", token: "fixture:invalid", exchange: "upbit", market: "KRW-BTC",
+    side: "spot", holding: crypto.randomUUID(), level: "5" };
+  for (const [status, details, shouldClear] of [[404, [detail], true], [404, [], false],
+    [404, [{ ...detail, "@type": "unrelated" }], false], [503, [detail], false]]) {
+    let clears = 0;
+    const post = new Request("https://example.test", { method: "POST", headers: { Authorization: "Bearer push-only" },
+      body: JSON.stringify({ mode: "holding-alert", event: crypto.randomUUID() }) });
+    const result = await sendPush(post, settings, async (url, options) => {
+      if (String(url).endsWith("mobit_claim_holding_event")) return Response.json(event);
+      if (String(url).endsWith("/v1/market/all")) return Response.json([]);
+      if (String(url).includes("oauth2.")) return Response.json({ access_token: "temporary" });
+      if (String(url).endsWith("mobit_clear_invalid_holding_token")) {
+        assert.equal(options.headers.Authorization, "Bearer server");
+        assert.deepEqual(JSON.parse(options.body), { p_owner: owner, p_revision: "123", p_token: event.token });
+        clears++;
+        return new Response(null, { status: 204 });
+      }
+      const { message } = JSON.parse(options.body);
+      assert.equal(message.data.owner, undefined);
+      assert.equal(message.data.device_revision, undefined);
+      return Response.json({ error: { details } }, { status });
+    });
+    assert.equal(result.status, shouldClear ? 204 : 502);
+    assert.equal(clears, shouldClear ? 1 : 0);
+  }
 });

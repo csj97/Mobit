@@ -16,17 +16,18 @@ function signedAssertion(account) {
   return unsigned + "." + createSign("RSA-SHA256").update(unsigned).sign(account.private_key, "base64url");
 }
 
-async function claimHoldingMessage(eventID, env, send) {
+async function holdingRPC(name, payload, env, send) {
   const key = env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const claimed = await send(new URL("/rest/v1/rpc/mobit_claim_holding_event", env.get("SUPABASE_URL")), {
+  const response = await send(new URL("/rest/v1/rpc/" + name, env.get("SUPABASE_URL")), {
     method: "POST", redirect: "error", signal: AbortSignal.timeout(8000),
     headers: { apikey: key, Authorization: "Bearer " + key, "Content-Type": "application/json" },
-    body: JSON.stringify({ p_event: eventID }),
+    body: JSON.stringify(payload),
   });
-  if (!claimed.ok) throw Object.assign(new Error(), { stage: "holding-claim", remoteStatus: claimed.status });
-  if (claimed.status === 204) return null;
-  const event = await claimed.json();
-  if (!event) return null;
+  if (!response.ok) throw Object.assign(new Error(), { stage: name, remoteStatus: response.status });
+  return response;
+}
+
+async function holdingMessage(event, send) {
   return {
     token: event.token,
     notification: await holdingNotification(event, send),
@@ -47,18 +48,29 @@ export async function sendPush(request, env, send = fetch) {
   const validateOnly = body.mode === "validate";
   try {
     let message = campaign;
+    let holdingEvent;
     if (body.mode === "holding-alert") {
       if (typeof body.event !== "string" || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(body.event)) {
         return new Response(null, { status: 400 });
       }
-      message = await claimHoldingMessage(body.event, env, send);
-      if (!message) return new Response(null, { status: 204 });
+      const claimed = await holdingRPC("mobit_claim_holding_event", { p_event: body.event }, env, send);
+      holdingEvent = claimed.status === 204 ? null : await claimed.json();
+      if (!holdingEvent) return new Response(null, { status: 204 });
+      message = await holdingMessage(holdingEvent, send);
     } else if (body.mode === "price-alert") {
       message = priceMessage(body);
       if (!message) return new Response(null, { status: 400 });
     }
     const account = JSON.parse(env.get("MOBIT_FCM_SERVICE_ACCOUNT"));
-    await deliverFcmMessage(account, message, validateOnly, send);
+    try {
+      await deliverFcmMessage(account, message, validateOnly, send);
+    } catch (error) {
+      if (!error.unregistered || !holdingEvent?.owner || !holdingEvent.device_revision) throw error;
+      await holdingRPC("mobit_clear_invalid_holding_token", {
+        p_owner: holdingEvent.owner, p_revision: holdingEvent.device_revision, p_token: holdingEvent.token,
+      }, env, send);
+      return new Response(null, { status: 204 });
+    }
     console.info(validateOnly ? "FCM 예약 푸시 검증 성공" : "FCM 예약 푸시 발송 요청 접수");
     return Response.json({ validated: validateOnly });
   } catch (error) {
@@ -72,6 +84,7 @@ export async function sendPush(request, env, send = fetch) {
 export async function deliverFcmMessage(account, message, validateOnly, send = fetch) {
   let stage = "configuration";
   let remoteStatus;
+  let unregistered = false;
   try {
     const assertion = signedAssertion(account);
     stage = "google-oauth";
@@ -90,9 +103,18 @@ export async function deliverFcmMessage(account, message, validateOnly, send = f
       headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
       body: JSON.stringify({ validate_only: validateOnly, message }),
     });
-    if (!response.ok) { remoteStatus = response.status; throw new Error(); }
+    if (!response.ok) {
+      remoteStatus = response.status;
+      if (remoteStatus === 404 && message.token) {
+        const failure = await response.json().catch(() => null);
+        const details = failure?.error?.details;
+        unregistered = Array.isArray(details) && details.some(detail =>
+          detail?.["@type"] === "type.googleapis.com/google.firebase.fcm.v1.FcmError" && detail.errorCode === "UNREGISTERED");
+      }
+      throw new Error();
+    }
     return response;
   } catch {
-    throw Object.assign(new Error("FCM 전송 요청 실패"), { stage, remoteStatus });
+    throw Object.assign(new Error("FCM 전송 요청 실패"), { stage, remoteStatus, unregistered });
   }
 }
