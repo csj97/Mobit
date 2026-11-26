@@ -22,6 +22,7 @@
                 <outlet property="investInitButton" destination="MOR-IN-RST" id="MOR-UI-013"/>
                 <outlet property="investmentTitleLabel" destination="MOR-IN-TTL" id="MOR-UI-011"/>
                 <outlet property="bannerContainerView" destination="MOR-RW-CRD" id="MOR-UI-010"/>
+                <outlet property="notificationsButton" destination="MOR-IN-NTF" id="MOR-NTF-014"/>
                 <outlet property="settingsButton" destination="MOR-IN-SET" id="MOR-UI-014"/>
                 <outlet property="userNoticeButton" destination="MOR-CM-NOT" id="MOR-UI-016"/>
                 <outlet property="versionLabel" destination="MOR-VR-LBL" id="MOR-UI-017"/>
@@ -126,6 +127,19 @@
                                                     <rect key="frame" x="0.0" y="124" width="317" height="82"/>
                                                     <connections>
                                                         <action selector="tapOnSettingsButton:" destination="-1" eventType="touchUpInside" id="MOR-UI-033"/>
+                                                    </connections>
+                                                </button>
+                                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-IN-NTF-D">
+                                                    <rect key="frame" x="0.0" y="123" width="317" height="1"/>
+                                                    <color key="backgroundColor" name="border_primary"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="1" id="MOR-NTF-032"/>
+                                                    </constraints>
+                                                </view>
+                                                <button opaque="NO" contentMode="scaleToFill" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="82" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MOR-IN-NTF" customClass="MoreMenuButton" customModule="Mobit" customModuleProvider="target">
+                                                    <rect key="frame" x="0.0" y="124" width="317" height="82"/>
+                                                    <connections>
+                                                        <action selector="tapOnNotifications:" destination="-1" eventType="touchUpInside" id="MOR-NTF-033"/>
                                                     </connections>
                                                 </button>
                                             </subviews>

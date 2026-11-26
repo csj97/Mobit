@@ -103,6 +103,7 @@
 		99C20AB82C4F775B009276E7 /* Crypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C20AB72C4F775B009276E7 /* Crypto.swift */; };
 		A1452F4050094CEFB328AC3E /* TradingScreenReleaseQATests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AB1E102076495CACE704FB /* TradingScreenReleaseQATests.swift */; };
 		A3D6F0311A804D2686E0E8C1 /* MoreAccountResetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3D6F0311A804D2686E0E8C2 /* MoreAccountResetViewController.swift */; };
+		F77100000000000000000000 /* PushSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77200000000000000000000 /* PushSettingsViewController.swift */; };
 		A3D6F0311A804D2686E0E8C3 /* MoreAccountResetSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3D6F0311A804D2686E0E8C4 /* MoreAccountResetSheetTests.swift */; };
 		A7E29788888F4EF094B2ABE5 /* FuturesAccountReactorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 619158489B6D4A7DABE428B6 /* FuturesAccountReactorTests.swift */; };
 		ABD36466B4D4440EB97EE107 /* SpotAccountIsolationQATests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8E593CDE2934BB4AE8BA120 /* SpotAccountIsolationQATests.swift */; };
@@ -272,6 +273,10 @@
 		F10116000000000000000001 /* AdBannerLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10116000000000000000002 /* AdBannerLoadingView.swift */; };
 		F10223000000000000000012 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = F10223000000000000000011 /* FirebaseMessaging */; };
 		F10223000000000000000032 /* PushNotificationOpenHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10223000000000000000031 /* PushNotificationOpenHandler.swift */; };
+		F77300000000000000000000 /* PushCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77400000000000000000000 /* PushCategory.swift */; };
+		DE8100000000000000000003 /* HoldingAlertSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE8200000000000000000003 /* HoldingAlertSync.swift */; };
+		DE8100000000000000000002 /* HoldingAlertSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE8200000000000000000002 /* HoldingAlertSnapshot.swift */; };
+		DE8100000000000000000001 /* HoldingAlertAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE8200000000000000000001 /* HoldingAlertAPI.swift */; };
 		F10223000000000000000034 /* PushNotificationOpenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10223000000000000000033 /* PushNotificationOpenTests.swift */; };
 		F592674570AB41C3985E2306 /* FuturesOrderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D479337EF3574613A3F16DFD /* FuturesOrderViewController.swift */; };
 		FAFFBE1989D14FF091DD469B /* FuturesAccountReactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2E7252A056E4DF387E0DF7E /* FuturesAccountReactor.swift */; };
@@ -405,6 +410,7 @@
 		99C20AB32C4F7177009276E7 /* CryptoSocketTicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CryptoSocketTicker.swift; path = Mobit/Domain/Model/CryptoSocketTicker.swift; sourceTree = SOURCE_ROOT; };
 		99C20AB72C4F775B009276E7 /* Crypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Crypto.swift; sourceTree = "<group>"; };
 		A3D6F0311A804D2686E0E8C2 /* MoreAccountResetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreAccountResetViewController.swift; sourceTree = "<group>"; };
+		F77200000000000000000000 /* PushSettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushSettingsViewController.swift; sourceTree = "<group>"; };
 		A3D6F0311A804D2686E0E8C4 /* MoreAccountResetSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreAccountResetSheetTests.swift; sourceTree = "<group>"; };
 		A7A1682839BC44FD85A785C7 /* MoreScreenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreScreenTests.swift; sourceTree = "<group>"; };
 		B0E097AE7FC1447BBF425A91 /* FuturesAccountViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuturesAccountViewController.swift; sourceTree = "<group>"; };
@@ -575,6 +581,10 @@
 		F10116000000000000000002 /* AdBannerLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdBannerLoadingView.swift; sourceTree = "<group>"; };
 		F10223000000000000000013 /* Mobit.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Mobit.entitlements; sourceTree = "<group>"; };
 		F10223000000000000000031 /* PushNotificationOpenHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationOpenHandler.swift; sourceTree = "<group>"; };
+		F77400000000000000000000 /* PushCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushCategory.swift; sourceTree = "<group>"; };
+		DE8200000000000000000003 /* HoldingAlertSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingAlertSync.swift; sourceTree = "<group>"; };
+		DE8200000000000000000002 /* HoldingAlertSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingAlertSnapshot.swift; sourceTree = "<group>"; };
+		DE8200000000000000000001 /* HoldingAlertAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingAlertAPI.swift; sourceTree = "<group>"; };
 		F10223000000000000000033 /* PushNotificationOpenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationOpenTests.swift; sourceTree = "<group>"; };
 		F92E78049A9D45938D42C526 /* ReleaseTradingScenarioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseTradingScenarioTests.swift; sourceTree = "<group>"; };
 		FEA000000000000000000010 /* FearGreedIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FearGreedIndex.swift; sourceTree = "<group>"; };
@@ -848,6 +858,10 @@
 				3133E2272C3E2355000D4B1A /* AppDelegate.swift */,
 				3133E2292C3E2355000D4B1A /* SceneDelegate.swift */,
 				F10223000000000000000031 /* PushNotificationOpenHandler.swift */,
+				F77400000000000000000000 /* PushCategory.swift */,
+				DE8200000000000000000003 /* HoldingAlertSync.swift */,
+				DE8200000000000000000002 /* HoldingAlertSnapshot.swift */,
+				DE8200000000000000000001 /* HoldingAlertAPI.swift */,
 				C191ECCD2DA79A6700BBA5EB /* CustomWindow.swift */,
 			);
 			path = Application;
@@ -1034,6 +1048,7 @@
 				31F33FCD2DDA1C09003D533A /* MoreViewController.swift */,
 				31F33FCE2DDA1C09003D533A /* MoreViewController.xib */,
 				A3D6F0311A804D2686E0E8C2 /* MoreAccountResetViewController.swift */,
+				F77200000000000000000000 /* PushSettingsViewController.swift */,
 				C1CD3A602E28C3CD0049699B /* MobitCommunityViewController.swift */,
 				C1CD3A612E28C3CD0049699B /* MobitCommunityViewController.xib */,
 				C1CCE8632EDEDC9B002D5DF9 /* LeaderBoardViewController.swift */,
@@ -1711,6 +1726,7 @@
 			files = (
 				31F33FCF2DDA1C09003D533A /* MoreViewController.swift in Sources */,
 				A3D6F0311A804D2686E0E8C1 /* MoreAccountResetViewController.swift in Sources */,
+				F77100000000000000000000 /* PushSettingsViewController.swift in Sources */,
 				5FA880E32E1A3D0B00F22F9C /* NoticeForceUpdateViewController.swift in Sources */,
 				C17EAE382E374515006ACA44 /* Log.swift in Sources */,
 				C16FAE722E38B530003C5AD1 /* PNLTableViewCell.swift in Sources */,
@@ -1863,6 +1879,10 @@
 				C1B8F3BF2E27619900C46734 /* MobitNeumorphicSegmentedControl.swift in Sources */,
 				3133E22A2C3E2355000D4B1A /* SceneDelegate.swift in Sources */,
 				F10223000000000000000032 /* PushNotificationOpenHandler.swift in Sources */,
+				F77300000000000000000000 /* PushCategory.swift in Sources */,
+				DE8100000000000000000003 /* HoldingAlertSync.swift in Sources */,
+				DE8100000000000000000002 /* HoldingAlertSnapshot.swift in Sources */,
+				DE8100000000000000000001 /* HoldingAlertAPI.swift in Sources */,
 				31D6444F2C72595000C7F96D /* CryptoDetailRepository.swift in Sources */,
 				C17BA2BF2DF5B8FB001AF72D /* MobitLaunchScreen.swift in Sources */,
 				36E7718F2D7595A700739CDE /* CallbackResultEnums.swift in Sources */,

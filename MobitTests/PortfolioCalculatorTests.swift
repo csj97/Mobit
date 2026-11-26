@@ -11,6 +11,59 @@ import RxSwift
 @testable import Mobit
 
 final class PortfolioCalculatorTests: XCTestCase {
+  func testHoldingAlertJournalCoalescesPartialSalesAndPersistsOfflineClosure() throws {
+    // 동일 보유 건 UUID를 분할 매수와 매도에서 계속 사용한다.
+    var holding = CryptoTransactionDataModel(
+      staticData: .init(exchange: .bithumb, marketName: "BTC/KRW", cryptoName: nil, holdingQuantity: 1, averageBuyPrice: 100, buyAmount: 100),
+      dynamicData: .init(exchange: .bithumb, marketName: "BTC/KRW", profitRate: 0, evaluationProfitLoss: 0, evaluationPrice: 100)
+    )
+    // 앱이 종료돼도 갱신과 종료 중 더 최신 요청만 남는지 검사한다.
+    var journal = HoldingAlertSync.Journal()
+    func update() -> Bool {
+      journal.reconcile(HoldingAlertSnapshot.spot([holding], trades: []), verificationSince: nil)
+    }
+    XCTAssertTrue(update())
+    XCTAssertEqual(journal.entries[holding.identifier]?.snapshot?.market, "KRW-BTC")
+    holding.staticData.averageBuyPrice = 90
+    XCTAssertTrue(update())
+    let buyRevision = try XCTUnwrap(journal.entries[holding.identifier]?.revision)
+    holding.staticData.holdingQuantity = 0.5
+    XCTAssertFalse(update())
+    XCTAssertTrue(journal.reconcile([], verificationSince: nil))
+    let restored = try JSONDecoder().decode(HoldingAlertSync.Journal.self, from: JSONEncoder().encode(journal))
+    let closed = try XCTUnwrap(restored.entries[holding.identifier])
+    XCTAssertGreaterThan(closed.revision, buyRevision)
+    XCTAssertNil(closed.snapshot)
+    XCTAssertTrue(closed.pending)
+  }
+
+  func testHoldingAlertUsesNewAverageAndDistinguishesDisplayFromLossBoundary() {
+    // 예시의 동일 수량 분할 매수로 실제 앱 계산기가 산출하는 평단이다.
+    let average = PortfolioCalculator.weightedAverageBuyPrice(
+      previousQuantity: 1,
+      previousAveragePrice: 100_000_000,
+      addedQuantity: 1,
+      addedPrice: 80_000_000
+    )
+    XCTAssertEqual(average, 90_000_000)
+    XCTAssertEqual(PortfolioCalculator.profitRate(currentPrice: 94_500_000, averageBuyPrice: average), 5)
+    XCTAssertEqual(PortfolioCalculator.profitRate(currentPrice: 99_000_000, averageBuyPrice: average), 10)
+    XCTAssertFalse(PortfolioCalculator.isFullySold(holdingQuantity: 2, sellQuantity: 0.5))
+    XCTAssertTrue(PortfolioCalculator.isFullySold(holdingQuantity: 1.5, sellQuantity: 1.5))
+    // 분할 수량이 다르면 산술평균 대신 수량 가중 평단을 전달해야 한다.
+    XCTAssertEqual(
+      PortfolioCalculator.weightedAverageBuyPrice(
+        previousQuantity: 3,
+        previousAveragePrice: 100_000_000,
+        addedQuantity: 1,
+        addedPrice: 80_000_000
+      ),
+      95_000_000
+    )
+    // 실제 손실률은 −4.991%지만 앱의 두 자리 내림 표시는 −5.00%다.
+    XCTAssertEqual(PortfolioCalculator.profitRate(currentPrice: 95_009, averageBuyPrice: 100_000), -5)
+  }
+
   func testDelistingFetchesBTCRateOnlyWhenMissingOrStale() throws {
     // 테스트 후 기존 거래소 선택으로 돌아간다.
     let originalExchange = ExchangeSelectionStore.currentExchange

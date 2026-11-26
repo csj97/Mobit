@@ -374,9 +374,6 @@ class MainViewController: MobitBaseViewController {
 	self.bind(reactor: self.reactor)
     // 이미 오프라인이면 준비한 콘텐츠 위에 유실 안내를 올린다.
     self.checkNetworkStatus()
-
-	// 공포·탐욕 지수는 하루 단위 갱신이므로 진입 시 1회만 조회
-	self.reactor.action.onNext(.loadFearGreedIndex)
   }
 
   override func viewDidAppear(_ animated: Bool) {
@@ -974,6 +971,7 @@ class MainViewController: MobitBaseViewController {
   }
 
   @objc private func didTapFearGreedButton() {
+	guard presentedViewController == nil else { return }
 	let levelTitle = self.analyticsFearGreedLevelTitle()
 	MobitAnalyticsUtil.sendClickEvent(
 	  location: "거래소_화면",
@@ -983,12 +981,10 @@ class MainViewController: MobitBaseViewController {
 	  account: self.analyticsAccount,
 	  extraParameters: [
 		"fear_greed_level": levelTitle,
-		"fear_greed_value": self.reactor.currentState.fearGreedIndex?.value ?? -1
+		"fear_greed_value": self.reactor.currentState.fearGreedState.cachedIndex?.value ?? -1
 	  ]
 	)
-	self.coordinator?.presentFearGreedInfoVC(
-	  fearGreedIndex: self.reactor.currentState.fearGreedIndex
-	)
+	self.coordinator?.presentFearGreedInfoVC(reactor: reactor)
   }
 
   @objc private func didTapExchangeSelectorButton() {
@@ -1141,7 +1137,7 @@ private extension MainViewController {
   }
 
   func analyticsFearGreedLevelTitle() -> String {
-	guard let value = self.reactor.currentState.fearGreedIndex?.value else {
+	guard let value = self.reactor.currentState.fearGreedState.cachedIndex?.value else {
 	  return "데이터없음"
 	}
 	return FearGreedLevel(value: value).title

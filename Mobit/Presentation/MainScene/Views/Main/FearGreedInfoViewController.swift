@@ -8,6 +8,7 @@
 import UIKit
 import SnapKit
 import Then
+import RxSwift
 
 /// 공포·탐욕 지수의 의미를 설명하는 바텀 시트.
 /// 매매 신호가 아닌 '참고용 심리 지표'임을 명확히 안내한다.
@@ -26,10 +27,13 @@ final class FearGreedInfoViewController: UIViewController {
     $0.accessibilityLabel = "닫기"
   }
 
-  private let fearGreedIndex: FearGreedIndex?
+  // 시트를 열 때 메인의 최근 지수를 확인하고 필요한 경우 조회한다.
+  private let reactor: MainReactor
+  // 시트가 닫히면 화면 상태 구독도 해제한다.
+  private let disposeBag = DisposeBag()
 
-  init(fearGreedIndex: FearGreedIndex?) {
-    self.fearGreedIndex = fearGreedIndex
+  init(reactor: MainReactor) {
+    self.reactor = reactor
     super.init(nibName: nil, bundle: nil)
   }
 
@@ -63,14 +67,7 @@ final class FearGreedInfoViewController: UIViewController {
       make.width.equalTo(scrollView.frameLayoutGuide).offset(-40)
     }
 
-    // 지수 값이 있으면 최상단에 게이지 카드를 배치한다.
-    if let index = fearGreedIndex {
-      let gaugeView = FearGreedIndexView()
-      gaugeView.configure(with: index)
-      gaugeView.setInfoButtonHidden(true)
-      gaugeView.snp.makeConstraints { $0.height.equalTo(88) }
-      contentStack.addArrangedSubview(gaugeView)
-    }
+    bindIndexCard()
 
     contentStack.addArrangedSubview(makeTitleLabel("공포·탐욕 지수란?"))
     contentStack.addArrangedSubview(makeBodyLabel(
@@ -88,6 +85,41 @@ final class FearGreedInfoViewController: UIViewController {
     ))
 
     contentStack.addArrangedSubview(makeCaptionLabel("데이터 제공: CoinMarketCap"))
+  }
+
+  private func bindIndexCard() {
+    // 응답을 기다리는 동안 지표 설명을 먼저 읽을 수 있다.
+    let spinner = UIActivityIndicatorView(style: .medium)
+    // 성공한 응답만 게이지에 표시한다.
+    let gauge = FearGreedIndexView()
+    // 실패 후에는 다음 시트 진입 때 재시도한다.
+    let errorLabel = makeBodyLabel(FuturesText.text("fear_greed_load_failed"))
+    gauge.setInfoButtonHidden(true)
+    contentStack.addArrangedSubview(spinner)
+    contentStack.addArrangedSubview(gauge)
+    contentStack.addArrangedSubview(errorLabel)
+    // 숨겨진 스택 뷰의 높이 제약과 충돌하지 않게 한다.
+    gauge.snp.makeConstraints { $0.height.equalTo(88).priority(999) }
+
+    reactor.state.map(\.fearGreedState)
+      .distinctUntilChanged()
+      .observe(on: MainScheduler.instance)
+      .subscribe(onNext: { state in
+        gauge.isHidden = true
+        errorLabel.isHidden = state != .failed
+        switch state {
+        case .idle, .loading:
+          spinner.startAnimating()
+        case .loaded(let index, _):
+          spinner.stopAnimating()
+          gauge.configure(with: index)
+          gauge.isHidden = false
+        case .failed:
+          spinner.stopAnimating()
+        }
+      })
+      .disposed(by: disposeBag)
+    reactor.action.onNext(.loadFearGreedIndex)
   }
 
   @objc private func didTapClose() {

@@ -229,7 +229,6 @@ class MainRepository: MainRepositoryProtocol {
       }
   }
 
-  // 시장 공포·탐욕 지수 (CMC). 하루 단위 갱신이라 화면 진입 시 1회만 조회한다.
   func fetchFearGreedIndex() -> Observable<FearGreedIndex> {
     let decodeTarget = FearGreedIndexResponseDTO.self
 

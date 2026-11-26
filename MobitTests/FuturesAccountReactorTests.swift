@@ -797,6 +797,37 @@ final class FuturesAccountReactorTests: XCTestCase {
   }
 
   @MainActor
+  func testFearGreedFetchesOnlyWhenSheetOpensAndReusesSuccessfulResult() throws {
+    // 지연, 실패, 성공을 순서대로 전달해 실제 요청 수를 확인한다.
+    let useCase = try FuturesMainFixtureUseCase()
+    // 메인 화면과 설명 시트가 공유하는 Reactor다.
+    let market = MainReactor(mainUseCase: useCase, tickerSocketService: FuturesMainFixtureSocket())
+    // 메인만 열어서는 CMC 크레딧을 사용하지 않아야 한다.
+    let main = MainViewController(reactor: market)
+    main.loadViewIfNeeded()
+    XCTAssertEqual(useCase.fearGreedRequests, 0)
+
+    // 첫 호출이 끝나기 전에 다시 열어도 진행 중 요청을 공유한다.
+    let first = FearGreedInfoViewController(reactor: market)
+    first.loadViewIfNeeded()
+    FearGreedInfoViewController(reactor: market).loadViewIfNeeded()
+    XCTAssertEqual(market.currentState.fearGreedState, .loading)
+    XCTAssertEqual(useCase.fearGreedRequests, 1)
+
+    useCase.fearGreedResponse.onError(URLError(.notConnectedToInternet))
+    XCTAssertEqual(market.currentState.fearGreedState, .failed)
+    useCase.fearGreedResponse = PublishSubject()
+    FearGreedInfoViewController(reactor: market).loadViewIfNeeded()
+    useCase.fearGreedResponse.onNext(FearGreedIndex(value: 37))
+    useCase.fearGreedResponse.onCompleted()
+    FearGreedInfoViewController(reactor: market).loadViewIfNeeded()
+    XCTAssertTrue(descendants(first.view).contains { $0 is FearGreedIndexView && !$0.isHidden })
+    XCTAssertEqual(market.currentState.fearGreedState.cachedIndex?.value, 37)
+    XCTAssertEqual(useCase.fearGreedRequests, 2)
+    XCTAssertNil(MainReactor.FearGreedState.loaded(FearGreedIndex(value: 37), .distantPast).cachedIndex)
+  }
+
+  @MainActor
   func testFuturesStartupLoadsMarketsOnceAndRetryClearsPreviousFailure() throws {
     // 초기 조회가 끝나지 않은 상황을 제어하는 응답이다.
     let response = PublishSubject<CryptoList>()
@@ -6982,8 +7013,14 @@ private final class FuturesMainFixtureUseCase: MainUseCase {
   }
   // 네트워크 대신 테스트용 시세 목록을 반환한다.
   override func fetchCryptoTicker(markets: [String]) -> Observable<CryptoTickerList> { tickerResponse ?? .just(tickers) }
-  // 이 테스트에서는 공포·탐욕 지수 이벤트를 발생시키지 않는다.
-  override func fetchFearGreedIndex() -> Observable<FearGreedIndex> { .never() }
+  // 지수 응답을 보류하거나 실패시켜 시트 재진입을 검증한다.
+  var fearGreedResponse = PublishSubject<FearGreedIndex>()
+  // 메인 진입과 지수 시트 열기에서 발생한 호출을 구분한다.
+  private(set) var fearGreedRequests = 0
+  override func fetchFearGreedIndex() -> Observable<FearGreedIndex> {
+    fearGreedRequests += 1
+    return fearGreedResponse.asObservable()
+  }
 }
 
 private final class FuturesMainFixtureSocket: TickerSocketServiceProtocol {

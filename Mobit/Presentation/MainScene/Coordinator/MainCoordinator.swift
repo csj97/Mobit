@@ -87,8 +87,8 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
   }
   
   /// 공포·탐욕 지수 설명 바텀 시트
-  func presentFearGreedInfoVC(fearGreedIndex: FearGreedIndex?) {
-    let infoVC = FearGreedInfoViewController(fearGreedIndex: fearGreedIndex)
+  func presentFearGreedInfoVC(reactor: MainReactor) {
+    let infoVC = FearGreedInfoViewController(reactor: reactor)
     infoVC.modalPresentationStyle = .pageSheet
     if let sheet = infoVC.sheetPresentationController {
       sheet.detents = [.medium(), .large()]

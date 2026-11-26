@@ -1120,11 +1120,15 @@ final class FuturesHistoryCheckTests: XCTestCase {
     var starts: [Int64] = []
     // 최초 완료 가격을 진입 가격과 다르게 만들어 캐시 소실을 검출한다.
     var provider = DetailReplayProvider(instrument: order.instrument, timestamp: 65_123, adverse: 100)
+    // refreshing 표시는 시세 구독보다 먼저 도착할 수 있어 실제 재시도 구독을 기다린다.
+    let retrySubscribed = holdsFirst ? expectation(description: "History retry subscribed to quote") : nil
     provider.quoteOverride = {
       requests += 1
-      return requests == 1
-        ? .just(.init(instrument: order.instrument, price: 105, timestamp: 65_123))
-        : response.take(1).asSingle()
+      if requests == 1 { return .just(.init(instrument: order.instrument, price: 105, timestamp: 65_123)) }
+      if requests == 3 {
+        return response.do(onSubscribed: { retrySubscribed?.fulfill() }).take(1).asSingle()
+      }
+      return response.take(1).asSingle()
     }
     provider.boundaryOverride = { start, end in
       starts.append(start)
@@ -1224,11 +1228,8 @@ final class FuturesHistoryCheckTests: XCTestCase {
       XCTAssertEqual(reactor.valuationQuotes[order.instrument]?.price, 105)
       XCTAssertFalse(reactor.canSubmit)
       // 재시도 구독이 준비된 이후 응답해야 누락된 가격을 재사용할 수 있다.
-      let retry = expectation(description: "History retry subscribes to response")
-      reactor.state.filter { if case .refreshing = $0.status { return true }; return false }
-        .take(1).subscribe(onNext: { _ in retry.fulfill() }).disposed(by: disposeBag)
       service.refresh()
-      wait(for: [retry], timeout: 3)
+      wait(for: [try XCTUnwrap(retrySubscribed)], timeout: 3)
     }
     // 다음 tick이나 화면 재진입 없이 완료 결과가 자동 반영되는지 확인한다.
     let completed = expectation(description: "Foreground result automatically reflected")

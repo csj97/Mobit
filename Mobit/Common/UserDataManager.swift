@@ -375,10 +375,24 @@ class UserDataManager: NSObject {
     }
   }
 
+  static func holdingAlertSnapshots() throws -> [HoldingAlertSnapshot] {
+    try synchronized {
+      guard let holdings = userCryptoList, let trades = userTransactionList else { throw InvestmentStateError.invalidStoredData }
+      // 구버전 보유 건을 디코딩하며 만든 UUID를 다음 실행과 매도 때도 동일하게 사용한다.
+      if let raw = UserDefaults.standard.data(forKey: Keys.userCryptoList),
+         let rows = try JSONSerialization.jsonObject(with: raw) as? [[String: Any]],
+         rows.contains(where: { $0["identifier"] == nil }) {
+        UserDefaults.standard.set(try JSONEncoder().encode(holdings), forKey: Keys.userCryptoList)
+      }
+      return HoldingAlertSnapshot.spot(holdings, trades: trades)
+    }
+  }
+
   private static func publishInvestmentState() {
     DispatchQueue.main.async {
       // 큐 대기 중 주문이나 거래소 선택이 바뀌면 최신 확정 상태를 발행한다.
       userCryptoListSubject.onNext(userCryptoList)
+      NotificationCenter.default.post(name: .holdingLedgerChanged, object: nil)
       publishCurrentExchangeBalance()
     }
   }

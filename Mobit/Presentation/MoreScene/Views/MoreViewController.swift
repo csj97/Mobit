@@ -23,6 +23,7 @@ class MoreViewController: MobitBaseViewController {
   @IBOutlet private weak var investmentTitleLabel: UILabel! // 초기화와 설정 메뉴를 투자 관리 그룹으로 묶는다.
   @IBOutlet private weak var communityTitleLabel: UILabel! // 커뮤니티와 모의투자 안내 메뉴의 그룹 제목이다.
   @IBOutlet private weak var investInitButton: MoreMenuButton! // 거래소별 현물·선물 계좌 선택과 초기화 확인을 연결한다.
+  @IBOutlet private weak var notificationsButton: MoreMenuButton! // 두 종류의 푸시 수신 설정을 연다.
   @IBOutlet private weak var settingsButton: MoreMenuButton! // 아이콘과 설명을 포함한 행 전체에서 설정을 연다.
   @IBOutlet private weak var communityButton: MoreMenuButton! // 기존 Coordinator의 커뮤니티 이동을 연결한다.
   @IBOutlet private weak var userNoticeButton: MoreMenuButton! // 모의투자 유의사항의 기존 안내 흐름을 연결한다.
@@ -149,6 +150,13 @@ class MoreViewController: MobitBaseViewController {
     communityButton.configure(title: "more_mobit_community", subtitle: "more_community_description", icon: "person.3.fill", color: .systemPurple)
     userNoticeButton.configure(title: "more_user", subtitle: "more_notice_description", icon: "info.circle", color: .systemOrange)
     investInitButton.accessibilityIdentifier = "more.reset"
+    notificationsButton.configure(
+      title: "push_settings_title",
+      subtitle: "push_settings_summary",
+      icon: "bell",
+      color: .systemIndigo
+    )
+    notificationsButton.accessibilityIdentifier = "more.notifications"
     settingsButton.accessibilityIdentifier = "more.settings"
     communityButton.accessibilityIdentifier = "more.community"
     userNoticeButton.accessibilityIdentifier = "more.notice"
@@ -249,6 +257,15 @@ class MoreViewController: MobitBaseViewController {
 
   private func accountName(_ account: TradingAccountID) -> String {
     "\(MoreAccountGroupView.exchangeName(account.exchange)) · \(FuturesText.text(account.product == .spot ? "futures_spot" : "futures_product"))"
+  }
+
+  @IBAction private func tapOnNotifications(_ sender: UIButton) {
+    guard presentedViewController == nil else { return }
+    // 더보기 화면 위에 알림 설정 카드를 중앙에 띄운다.
+    let dialog = PushSettingsViewController()
+    dialog.modalPresentationStyle = .overFullScreen
+    dialog.modalTransitionStyle = .crossDissolve
+    present(dialog, animated: true)
   }
 
   @IBAction func tapOnSettingsButton(_ sender: UIButton) {

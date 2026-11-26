@@ -22,10 +22,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   // ATT 완료와 Scene 활성화가 동시에 이어져도 알림 권한은 한 번만 확인한다.
   private var isCheckingPushAuthorization = false
   
+  // 권한·설정·토큰 변경이 겹치면 순서대로 최신 설정을 반영한다.
+  private var topicUpdate: Task<Void, Never>?
+  // 같은 토큰으로 이미 완료한 구독은 앱 실행 중 반복하지 않는다.
+  private var subscribedTokens: [PushCategory: String] = [:]
+
+  // 같은 항목의 구독 변경이 끝날 때까지 두 번째 입력을 막는다.
+  private var topicAttempts: [PushCategory: UUID] = [:]
+  // 진행 중인 사용자 요청만 설정 화면에서 잠시 비활성화한다.
+  var changingTopics: Set<PushCategory> { Set(topicAttempts.keys) }
+  // 실패한 항목의 안내는 해당 사용자가 재시도하거나 해제가 확인될 때 갱신한다.
+  private(set) var topicFailures: [PushCategory: PushSettingFailure] = [:]
+
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 	NetworkMonitor.shared.startNetworkMonitoring()
 	
 	FirebaseApp.configure()
+    HoldingAlertSync.shared.start()
 	UNUserNotificationCenter.current().delegate = self
 	Messaging.messaging().delegate = self
 	
@@ -104,7 +117,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 	  defer { self.isCheckingPushAuthorization = false }
 	  // 기기 설정에서 변경한 알림 권한도 복귀할 때 다시 읽는다.
 	  let notificationCenter = UNUserNotificationCenter.current()
-	  // 거부된 권한을 반복 요청하지 않고 허용된 경우에만 APNs에 등록한다.
+	  // 거부된 권한은 다시 요청하지 않고 이전 구독 해제만 처리한다.
 	  let settings = await notificationCenter.notificationSettings()
 	  guard UIApplication.shared.applicationState == .active else { return }
 	  do {
@@ -114,11 +127,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 		case .authorized, .provisional, .ephemeral:
 		  break
 		case .denied:
-		  return
+		  guard PushCategory.allCases.contains(where: { $0.hasRequestedSubscription }) else { return }
 		@unknown default:
 		  return
 		}
 		UIApplication.shared.registerForRemoteNotifications()
+		updatePushSubscriptions()
 	  } catch {
 		Log.error("푸시 알림 권한 요청에 실패했습니다. code=\((error as NSError).code)", tag: "Push")
 	  }
@@ -130,6 +144,88 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 	didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
 	Messaging.messaging().apnsToken = deviceToken
+	updatePushSubscriptions()
+  }
+
+  func setPushCategory(_ category: PushCategory, enabled: Bool) {
+    guard topicAttempts[category] == nil else { return }
+    // SDK가 오프라인 구독을 계속 재시도해도 화면은 한 번의 선택에만 응답한다.
+    let attempt = UUID()
+    topicAttempts[category] = attempt
+    category.isEnabled = enabled
+    topicFailures[category] = nil
+    NotificationCenter.default.post(name: .pushSettingsChanged, object: nil)
+    updateTopics(for: category, attempt: attempt)
+    Task { @MainActor in
+      try? await Task.sleep(nanoseconds: 15_000_000_000)
+      guard topicAttempts[category] == attempt else { return }
+      topicAttempts[category] = nil
+      recordTopicFailure(category, enabling: enabled)
+      if !enabled && category.hasRequestedSubscription { updateTopics(for: category) }
+      NotificationCenter.default.post(name: .pushSettingsChanged, object: nil)
+    }
+  }
+
+  func updatePushSubscriptions() {
+    HoldingAlertSync.shared.request(immediate: true)
+    updateTopics()
+  }
+
+  private func updateTopics(for target: PushCategory? = nil, attempt: UUID? = nil) {
+    // 기기 등록 콜백과 사용자 선택을 같은 순서로 서버에 반영한다.
+    let previous = topicUpdate
+    topicUpdate = Task { @MainActor in
+      await previous?.value
+      if let target, topicAttempts[target] != attempt { return }
+      defer {
+        if let target, topicAttempts[target] == attempt { topicAttempts[target] = nil }
+        NotificationCenter.default.post(name: .pushSettingsChanged, object: nil)
+      }
+      // 기기 설정 복귀 또는 FCM 토큰 교체 후에도 현재 권한을 확인한다.
+      let permission = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
+      for category in target.map({ [$0] }) ?? PushCategory.allCases {
+        guard topicAttempts[category] == attempt else { continue }
+        // 비동기 응답이 도착하기 전의 구독 의도를 보존한다.
+        let subscribe = permission.allowsPush && category.isEnabled
+        do {
+          guard Messaging.messaging().apnsToken != nil, let token = Messaging.messaging().fcmToken,
+                !token.isEmpty else {
+            if attempt != nil { throw URLError(.resourceUnavailable) }
+            continue
+          }
+          if attempt != nil && (!permission.allowsPush && category.isEnabled || NetworkMonitor.shared.currentAvailability == false) {
+            throw URLError(.cannotConnectToHost)
+          }
+          if subscribe {
+            guard subscribedTokens[category] != token else { continue }
+            category.hasRequestedSubscription = true
+            try await Messaging.messaging().subscribe(toTopic: category.rawValue)
+            subscribedTokens[category] = token
+          } else if category.hasRequestedSubscription {
+            subscribedTokens[category] = nil
+            try await Messaging.messaging().unsubscribe(fromTopic: category.rawValue)
+            category.hasRequestedSubscription = false
+          }
+          if !subscribe && !category.isEnabled && topicFailures[category] == .disable { topicFailures[category] = nil }
+        } catch {
+          Log.warning("푸시 구독 상태 갱신 실패: \((error as NSError).code)", tag: "Push")
+          guard topicAttempts[category] == attempt else { continue }
+          recordTopicFailure(category, enabling: category.isEnabled && (subscribe || attempt != nil))
+        }
+      }
+    }
+  }
+
+  private func recordTopicFailure(_ category: PushCategory, enabling: Bool) {
+    if enabling {
+      category.isEnabled = false
+      subscribedTokens[category] = nil
+      topicFailures[category] = .enable
+      // Firebase에 이미 전달된 구독도 연결이 돌아오면 해제한다.
+      if category.hasRequestedSubscription { updateTopics(for: category) }
+    } else if topicFailures[category] != .enable {
+      topicFailures[category] = .disable
+    }
   }
 
   func application(
@@ -147,6 +243,7 @@ extension AppDelegate: MessagingDelegate {
 	  return
 	}
 	Log.info("FCM 기기 등록이 갱신되었습니다.", tag: "Push")
+	updatePushSubscriptions()
   }
 }
 

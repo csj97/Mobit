@@ -106,9 +106,15 @@ Swift Package Manager 기반으로 외부 라이브러리를 관리한다.
 - PinLayout, FlexLayout, Then
 - Swift-JWT
 
+## 운영 자동화
+
+거래소 코인 정보 배치와 이용자 반복 푸시의 설정과 검증 절차는 [운영 자동화 가이드](operations/README.md)에 정리했다.
+
 ## FCM 푸시 설정
 
 앱은 기존 ATT 요청이 끝난 뒤 활성 상태에서 알림 권한을 요청한다. 거부한 경우 다시 요청하지 않으며, 설정에서 허용한 뒤 앱으로 돌아오면 APNs 등록을 재시도한다. 앱 사용 중에는 배너·알림센터·소리로 표시하고, 알림을 누르면 커스텀 데이터에 지정한 화면으로 이동한다.
+
+**더보기 → 알림**에서 앱 공지와 급등락 알림을 각각 설정한다. 권한 허용 시 기본값은 둘 다 켜짐이며 기기에 선택을 저장한다. Firebase 콘솔에서 직접 발송할 때도 이 선택을 반영하려면 대상 토픽을 앱 공지는 `mobit_announcements`, 급등락은 `mobit_price_alerts`로 지정한다.
 
 실제 발송 전 다음 외부 설정이 필요하다.
 
@@ -120,6 +126,8 @@ Swift Package Manager 기반으로 외부 라이브러리를 관리한다.
 6. Xcode에서 `messaging(_:didReceiveRegistrationToken:)`에 중단점을 걸고 `po fcmToken`으로 테스트 대상 토큰을 확인한 뒤 실행을 재개한다. 토큰은 로그·UserDefaults·저장소에 별도로 남기지 않는다.
 7. Firebase Messaging에서 알림 제목·내용을 작성하고 해당 FCM 토큰으로 테스트 메시지를 발송한다. 앱 사용 중 배너 표시, 백그라운드·종료 상태의 알림 표시, 알림을 눌렀을 때 앱 실행을 각각 확인한다. 권한 거부 후 재실행 시 재요청하지 않는지, 설정에서 허용하고 복귀한 뒤 수신되는지도 확인한다.
 8. TestFlight·App Store 앱은 Production APNs를 사용한다. 배포용 키 등록 후 TestFlight에서 받은 FCM 토큰으로도 수신을 다시 확인한다.
+
+급등락 예시 알림을 내 기기 한 대에 보내는 터미널 명령은 [운영 README의 실기기 테스트 절차](operations/README.md#내-iphone에-급등락-테스트-푸시-보내기)에 있다.
 
 `Mobit/Mobit.entitlements`는 개발용 APNs 환경을 선언한다. 배포 서명 시에는 프로비저닝 프로파일에 따라 `production`이 적용되는지 최종 아카이브에서 확인한다. 일반 표시 알림만 지원하며, 무음 푸시·이미지 알림 확장·개인별 서버 토큰 저장은 별도 구현 범위다.
 

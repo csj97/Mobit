@@ -113,6 +113,18 @@ extension MainReactor {
     case settleLegacyBTCMarketHoldings
   }
 
+  enum FearGreedState: Equatable {
+    case idle, loading, failed
+    case loaded(FearGreedIndex, Date)
+
+    // 같은 메인 화면에서 오늘 조회한 값은 시트를 다시 열 때 재사용한다.
+    var cachedIndex: FearGreedIndex? {
+      guard case let .loaded(index, fetchedAt) = self,
+            Calendar.current.isDateInToday(fetchedAt) else { return nil }
+      return index
+    }
+  }
+
   enum LegacyBTCSettlementState: Equatable {
     case idle
     case loading
@@ -130,7 +142,7 @@ extension MainReactor {
 	case setUserCrypto([CryptoTransactionDataModel]?)	// user cryptos
     case setLoading(isLoading: Bool)
     case setErrorMessage(message: String?)
-	case setFearGreedIndex(FearGreedIndex?)
+	case setFearGreedState(FearGreedState)
     case setLegacyBTCSettlementState(LegacyBTCSettlementState)
   }
   
@@ -148,7 +160,8 @@ extension MainReactor {
 	var userCryptos: [CryptoTransactionDataModel] = []
     var isLoading: Bool = false
     var errorMessage: String?
-	var fearGreedIndex: FearGreedIndex?
+	// 설명 시트의 요청 진행 여부와 최근 성공 값을 함께 관리한다.
+	var fearGreedState: FearGreedState = .idle
     var legacyBTCSettlementState: LegacyBTCSettlementState = .idle
   }
 }
@@ -191,14 +204,16 @@ extension MainReactor {
 	case .loadUserCryptos:
 	  return .just(.setUserCrypto(UserDataManager.userCryptoList))
 
-	case .loadFearGreedIndex:
-	  return self.mainUseCase.fetchFearGreedIndex()
-		.map { MainMutation.setFearGreedIndex($0) }
-		.catch { error in
-		  // 조회 실패 시 카드를 숨긴다(nil). 재시도는 다음 화면 진입에 맡긴다.
-		  Log.error("loadFearGreedIndex failed: \(error.localizedDescription)")
-		  return .just(.setFearGreedIndex(nil))
-		}
+    case .loadFearGreedIndex:
+      guard currentState.fearGreedState != .loading,
+            currentState.fearGreedState.cachedIndex == nil else { return .empty() }
+      return mainUseCase.fetchFearGreedIndex()
+        .map { MainMutation.setFearGreedState(.loaded($0, Date())) }
+        .catch { error in
+          Log.error("loadFearGreedIndex failed: \(error.localizedDescription)")
+          return .just(.setFearGreedState(.failed))
+        }
+        .startWith(.setFearGreedState(.loading))
 
     case .validateBTCKRWPrice:
       return self.validateBTCKRWPrice()
@@ -230,8 +245,8 @@ extension MainReactor {
       newState.isLoading = isLoading
     case .setErrorMessage(let message):
       newState.errorMessage = message
-	case .setFearGreedIndex(let index):
-	  newState.fearGreedIndex = index
+	case .setFearGreedState(let state):
+	  newState.fearGreedState = state
     case .setLegacyBTCSettlementState(let settlementState):
       newState.legacyBTCSettlementState = settlementState
 	}

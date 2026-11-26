@@ -313,3 +313,19 @@
 "spot_delisting_market_check_message" = "Some information could not be loaded.\nSome features are unavailable.\nYour holdings remain unchanged.";
 "spot_delisting_market_check_retry" = "Try again";
 "spot_delisting_support_changed" = "Trading support has changed.\nPlease check again.";
+
+"fear_greed_load_failed" = "Couldn’t load the index. Please open it again later.";
+
+"push_settings_title" = "Notifications";
+"push_settings_summary" = "Manage announcements and price alerts";
+"push_settings_announcement" = "App announcements";
+"push_settings_price" = "Price alerts";
+"push_settings_permission" = "Allow notifications in iOS Settings to manage these alerts.";
+"push_settings_system" = "Open notification settings";
+"holding_sync_title" = "My holding alerts";
+"push_settings_dialog" = "Notification settings";
+"push_settings_intro" = "Manage market and portfolio alerts for your simulated trades.";
+"push_settings_notice_detail" = "App updates and events";
+"push_settings_price_detail" = "Price moves in 5% steps for major coins";
+"push_settings_holding_detail" = "Spot and futures returns in 5% steps";
+"push_settings_failure" = "Couldn’t apply the %@ setting. Please try again shortly.";

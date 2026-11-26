@@ -441,6 +441,7 @@ final class LocalFuturesAccountRepository {
 	values.isExcludedFromBackup = true
 	try directory.setResourceValues(values)
 	try writeSnapshot(data, fileURL)
+    DispatchQueue.main.async { NotificationCenter.default.post(name: .holdingLedgerChanged, object: nil) }
 	return next
   }
 

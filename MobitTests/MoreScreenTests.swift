@@ -1,10 +1,130 @@
 import XCTest
 import GoogleMobileAds
 import UIKit
+import Security
+import UserNotifications
 import RxSwift
 @testable import Mobit
 
 final class MoreScreenTests: XCTestCase {
+  func testHoldingAlertAuthRefreshAndRPCUseSameInstallationAfterRelaunch() async throws {
+    // 실서버와 실기기 토큰을 사용하지 않고 가입·갱신·재실행을 확인한다.
+    let configuration = URLSessionConfiguration.ephemeral
+    configuration.protocolClasses = [HoldingAlertFixtureProtocol.self]
+    let session = URLSession(configuration: configuration)
+    let installation = UUID()
+    defer {
+      session.invalidateAndCancel()
+      SecItemDelete([kSecClass as String: kSecClassGenericPassword, kSecAttrAccount as String: installation.uuidString,
+                     kSecAttrService as String: "bxuirfkxptypevhfnqrx.supabase.co"] as CFDictionary)
+      HoldingAlertFixtureProtocol.reply = nil
+    }
+    // 저장된 새 JWT로 두 번째 RPC가 바로 호출되는지 순서까지 검증한다.
+    var paths: [String] = []
+    HoldingAlertFixtureProtocol.reply = { request in
+      let path = request.url?.path ?? ""
+      paths.append(path)
+      XCTAssertTrue(request.value(forHTTPHeaderField: "apikey")?.hasPrefix("sb_publishable_") == true)
+      if path == "/auth/v1/signup" || path == "/auth/v1/token" {
+        let access = path == "/auth/v1/signup" ? "initial" : "renewed"
+        return (200, Data(#"{"access_token":"ACCESS","refresh_token":"fixture","expires_at":4102444800}"#.replacingOccurrences(of: "ACCESS", with: access).utf8))
+      }
+      return (request.value(forHTTPHeaderField: "Authorization") == "Bearer renewed" ? 204 : 401, Data())
+    }
+    for _ in 0..<2 {
+      try await HoldingAlertAPI(transport: session).rpc("mobit_set_push_device", installation: installation, data: Data("{}".utf8))
+    }
+    XCTAssertEqual(paths, ["/auth/v1/signup", "/rest/v1/rpc/mobit_set_push_device", "/auth/v1/token",
+                           "/rest/v1/rpc/mobit_set_push_device", "/rest/v1/rpc/mobit_set_push_device"])
+  }
+
+  @MainActor
+  func testNotificationMenuAndIndependentDefaultPreferences() throws {
+    // 테스트 후 기기별 사용자 설정을 복원한다.
+    let keys = PushCategory.allCases.map { "push.enabled." + $0.rawValue }
+    // 기존 선호를 보존한 채 최초 설치 상태를 구성한다.
+    let saved = keys.map { UserDefaults.standard.object(forKey: $0) }
+    defer { for (key, value) in zip(keys, saved) { UserDefaults.standard.set(value, forKey: key) } }
+    keys.forEach { UserDefaults.standard.removeObject(forKey: $0) }
+    XCTAssertTrue(PushCategory.allCases.allSatisfy { $0.isEnabled })
+    PushCategory.priceAlert.isEnabled = false
+    XCTAssertTrue(PushCategory.announcement.isEnabled)
+    XCTAssertFalse(PushCategory.priceAlert.isEnabled)
+    XCTAssertFalse(UNAuthorizationStatus.denied.allowsPush)
+    XCTAssertTrue(UNAuthorizationStatus.authorized.allowsPush)
+    // 실제 XIB 메뉴가 알림 설정 시트를 여는지 검사한다.
+    let controller = MoreViewController(accountsUseCase: fixture(), loadBannerAd: { _ in })
+    // 모달을 표시할 창에 더보기 화면을 연결한다.
+    let window = UIWindow(frame: UIScreen.main.bounds)
+    window.rootViewController = controller
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true; window.rootViewController = nil }
+    // 접근성 식별자로 사용자가 누르는 버튼을 찾는다.
+    let button = try XCTUnwrap(find(controller.view, "more.notifications") as? UIButton)
+    button.sendActions(for: .touchUpInside)
+    // 중앙 팝업에서 정상 상태, 개별 실패, 권한 거부, 복구 순서로 확인한다.
+    let dialog = try XCTUnwrap(controller.presentedViewController as? PushSettingsViewController)
+    XCTAssertEqual(dialog.modalPresentationStyle, .overFullScreen)
+    let error = try XCTUnwrap(find(dialog.view, "pushSettings.error") as? UILabel)
+    let price = try XCTUnwrap(find(dialog.view, PushCategory.priceAlert.rawValue) as? UISwitch)
+    let notice = try XCTUnwrap(find(dialog.view, PushCategory.announcement.rawValue) as? UISwitch)
+    XCTAssertNotNil(find(dialog.view, "holdingAlerts") as? UISwitch)
+    dialog.render(permission: .authorized, holdingFailure: nil, topicFailures: [:], changingTopics: [])
+    XCTAssertTrue(error.isHidden)
+    dialog.view.layoutIfNeeded()
+    // 콘텐츠가 보이는 카드 크기와 작은 화면의 좌우 여백을 확인한다.
+    let card = try XCTUnwrap(find(dialog.view, "pushSettings.card") as? UIScrollView)
+    XCTAssertGreaterThan(card.bounds.height, 300)
+    XCTAssertGreaterThanOrEqual(card.frame.minX, 15.5)
+    XCTAssertLessThanOrEqual(card.frame.maxX, dialog.view.bounds.width - 15.5)
+    // 실제 UIKit 레이아웃을 검토할 수 있도록 팝업을 테스트 결과에 남긴다.
+    func capture(_ name: String) {
+      dialog.view.layoutIfNeeded()
+      let preview = UIGraphicsImageRenderer(bounds: dialog.view.bounds).image { context in
+        dialog.view.layer.render(in: context.cgContext)
+      }
+      let attachment = XCTAttachment(image: preview)
+      attachment.name = name
+      attachment.lifetime = .keepAlways
+      add(attachment)
+    }
+    capture("push-settings-normal")
+    dialog.render(permission: .authorized, holdingFailure: nil, topicFailures: [.priceAlert: .enable], changingTopics: [])
+    XCTAssertFalse(error.isHidden)
+    XCTAssertTrue(error.text?.contains(FuturesText.text("push_settings_price")) == true)
+    XCTAssertFalse(price.isOn)
+    XCTAssertTrue(notice.isOn)
+    capture("push-settings-error")
+    dialog.render(permission: .denied, holdingFailure: nil, topicFailures: [:], changingTopics: [])
+    XCTAssertEqual(error.text, FuturesText.text("push_settings_permission"))
+    XCTAssertFalse(notice.isEnabled)
+    dialog.render(permission: .authorized, holdingFailure: nil, topicFailures: [:], changingTopics: [])
+    XCTAssertTrue(error.isHidden)
+    XCTAssertTrue(notice.isOn)
+  }
+
+  @MainActor
+  func testFailedHoldingActivationTurnsOffAndKeepsErrorAfterCleanup() async throws {
+    // 운영 기기 등록과 분리된 경로에서 권한 철회를 재현한다.
+    let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    let previous = HoldingAlertSync.enabled
+    defer { HoldingAlertSync.enabled = previous }
+    let sync = HoldingAlertSync(journalFolder: { folder }, notificationPermission: { .denied })
+    let failed = expectation(description: "개인 알림 활성화 실패")
+    let observer = NotificationCenter.default.addObserver(forName: .pushSettingsChanged, object: nil, queue: .main) { _ in
+      MainActor.assumeIsolated {
+        if sync.failure == .enable { failed.fulfill() }
+      }
+    }
+    defer { NotificationCenter.default.removeObserver(observer) }
+    sync.setEnabled(true)
+    await fulfillment(of: [failed], timeout: 3)
+    XCTAssertFalse(HoldingAlertSync.enabled)
+    XCTAssertEqual(sync.failure, .enable)
+    sync.setEnabled(false)
+    XCTAssertNil(sync.failure)
+  }
+
   func testReadsFourIndependentCashBalancesWithoutChangingSelection() throws {
     // 현재 선택이 목록 조회 결과나 충전 대상에 영향을 주지 않아야 한다.
     let previousExchange = ExchangeSelectionStore.currentExchange
@@ -670,4 +790,20 @@ final class MoreScreenTests: XCTestCase {
   private func descendants(_ view: UIView) -> [UIView] {
     [view] + view.subviews.flatMap { descendants($0) }
   }
+}
+
+private final class HoldingAlertFixtureProtocol: URLProtocol {
+  // 이 테스트 세션에만 등록된 네트워크 응답을 반환한다.
+  static var reply: ((URLRequest) -> (Int, Data))?
+  override class func canInit(with request: URLRequest) -> Bool { true }
+  override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+  override func startLoading() {
+    guard let url = request.url, let (code, data) = Self.reply?(request),
+          let response = HTTPURLResponse(url: url, statusCode: code, httpVersion: "HTTP/1.1", headerFields: nil)
+    else { client?.urlProtocol(self, didFailWithError: URLError(.badServerResponse)); return }
+    client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+    client?.urlProtocol(self, didLoad: data)
+    client?.urlProtocolDidFinishLoading(self)
+  }
+  override func stopLoading() {}
 }

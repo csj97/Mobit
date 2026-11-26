@@ -1,0 +1,9 @@
+project_id = "mobit-operations"
+
+[functions.refresh-mobit-coins]
+# Cron 전용 토큰을 함수 안에서 검사한다.
+verify_jwt = false
+
+[functions.send-mobit-push]
+# 푸시 전용 Cron 토큰을 함수 안에서 검사한다.
+verify_jwt = false

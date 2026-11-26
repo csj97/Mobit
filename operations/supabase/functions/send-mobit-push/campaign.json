@@ -1,0 +1,9 @@
+{
+  "topic": "mobit_announcements",
+  "notification": {
+    "title": "이번 주 모의투자 현황",
+    "body": "모의비트에서 보유 자산과 수익률을 확인하세요."
+  },
+  "data": { "type": "route", "destination": "investment", "campaign_id": "weekly_portfolio" },
+  "apns": { "payload": { "aps": { "sound": "default" } } }
+}

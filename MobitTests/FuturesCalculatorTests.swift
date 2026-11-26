@@ -2,6 +2,38 @@ import XCTest
 @testable import Mobit
 
 final class FuturesCalculatorTests: XCTestCase {
+  func testHoldingAlertWireCoefficientsPreserveExactLeverageBoundary() throws {
+    for side in [FuturesSide.long, .short] {
+      let position = try FuturesCalculator.open(domesticFuturesOrder(side: side, margin: 30_000, price: 30_000_000))
+      let snapshot = FuturesAccountSnapshot(revision: 1, accounts: [], positions: [position])
+      let row = try XCTUnwrap(HoldingAlertSnapshot.futures(snapshot).first)
+      let units = try XCTUnwrap(row.units.flatMap { Decimal(string: $0) })
+      let cost = try XCTUnwrap(row.cost.flatMap { Decimal(string: $0) })
+      let margin = try XCTUnwrap(row.margin.flatMap { Decimal(string: $0) })
+      let mark: Decimal = side == .long ? 30_150_000 : 29_850_000
+      XCTAssertEqual(row.id, position.id)
+      XCTAssertEqual(row.side, side.rawValue)
+      XCTAssertEqual(abs(mark * units - cost) * 100, margin * 5)
+      XCTAssertEqual(try FuturesCalculator.evaluate(position, markPrice: mark).roePercent, 5)
+    }
+  }
+
+  func testHoldingAlertAtFivePercentNeedsAnExactQuantityToMarginRatio() throws {
+    for exchange in [Exchange.bithumb, .upbit] {
+      for side in [FuturesSide.long, .short] {
+        // 평균 진입가 30원, 잔량 1개, 증거금 3원으로 민감도는 순환소수 1/3이다.
+        let position = try FuturesCalculator.open(domesticFuturesOrder(exchange: exchange, side: side, margin: 3, price: 30))
+        // 두 방향 모두 정확히 5% 이익인 체결가를 검사한다.
+        let mark = try XCTUnwrap(Decimal(string: side == .long ? "30.15" : "29.85"))
+        XCTAssertEqual(position.quantity, 1)
+        XCTAssertEqual(try FuturesCalculator.evaluate(position, markPrice: mark).roePercent, 5)
+        // 같은 비율을 소수 8자리로 전송하면 정확한 경계에서 발송이 누락된다.
+        let wireRatio = try XCTUnwrap(Decimal(string: "0.33333333"))
+        XCTAssertLessThan(abs(mark - 30) * wireRatio * 100, 5)
+      }
+    }
+  }
+
   func testLeverageDeterminesQuantityWithoutMultiplyingPnLTwice() throws {
     for leverage in [1, 2, 5, 10] {
       for side in [FuturesSide.long, .short] {
@@ -231,6 +263,13 @@ final class FuturesCalculatorTests: XCTestCase {
     )
     XCTAssertEqual(try FuturesCloseSelection.amount(35).calculateQuantity(position: added), Decimal(string: "2.5"))
     XCTAssertEqual(try FuturesCalculator.calculateClosingMargin(added, quantity: Decimal(string: "2.5")!), 35)
+    // 부분 종료 전후에는 5% 경계가 같고, 평단이 140원으로 바뀐 뒤에는 새 경계가 적용된다.
+    for (snapshot, price) in [(position, "100.5"), (remaining, "100.5"), (added, "140.7")] {
+      // 앱의 실제 손익과 비교할 체결 후 경계 가격이다.
+      let mark = try XCTUnwrap(Decimal(string: price))
+      XCTAssertEqual(try FuturesCalculator.evaluate(snapshot, markPrice: mark).roePercent, 5)
+      XCTAssertEqual(try (mark - snapshot.averageEntryPrice) * snapshot.quantity * 100, try 5 * snapshot.margin)
+    }
   }
 
   func testCloseQuantityRoundsDownAndAllowsSmallExitWithoutEntryMinimumAmount() throws {
