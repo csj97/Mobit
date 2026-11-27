@@ -813,15 +813,35 @@ final class FuturesAccountReactorTests: XCTestCase {
     FearGreedInfoViewController(reactor: market).loadViewIfNeeded()
     XCTAssertEqual(market.currentState.fearGreedState, .loading)
     XCTAssertEqual(useCase.fearGreedRequests, 1)
+    first.view.layoutIfNeeded()
+    // 로딩 중인 카드 안에서 실제 트랙만 스켈레톤을 표시한다.
+    let gauge = try XCTUnwrap(descendants(first.view).compactMap { $0 as? FearGreedIndexView }.first)
+    let track = try XCTUnwrap(descendants(gauge).first { $0.sk.isSkeletonActive })
+    XCTAssertFalse(gauge.isHidden)
+    XCTAssertEqual(gauge.accessibilityValue, FuturesText.text("futures_loading"))
+    XCTAssertFalse(descendants(first.view).contains { $0 is UIActivityIndicatorView })
+    // 응답이 와도 카드 높이와 화면 안의 트랙 위치가 같아야 한다.
+    let loadingFrame = track.convert(track.bounds, to: first.view)
+    XCTAssertGreaterThan(loadingFrame.width, 0)
+    XCTAssertGreaterThan(loadingFrame.height, 0)
 
     useCase.fearGreedResponse.onError(URLError(.notConnectedToInternet))
     XCTAssertEqual(market.currentState.fearGreedState, .failed)
+    XCTAssertTrue(gauge.isHidden)
+    XCTAssertFalse(track.sk.isSkeletonActive)
     useCase.fearGreedResponse = PublishSubject()
     FearGreedInfoViewController(reactor: market).loadViewIfNeeded()
     useCase.fearGreedResponse.onNext(FearGreedIndex(value: 37))
     useCase.fearGreedResponse.onCompleted()
-    FearGreedInfoViewController(reactor: market).loadViewIfNeeded()
-    XCTAssertTrue(descendants(first.view).contains { $0 is FearGreedIndexView && !$0.isHidden })
+    first.view.layoutIfNeeded()
+    XCTAssertFalse(gauge.isHidden)
+    XCTAssertFalse(track.sk.isSkeletonActive)
+    XCTAssertEqual(track.convert(track.bounds, to: first.view), loadingFrame)
+    XCTAssertTrue(gauge.accessibilityLabel?.contains("37") == true)
+    // 캐시된 지수로 연 시트에는 스켈레톤 없이 값이 바로 표시된다.
+    let cached = FearGreedInfoViewController(reactor: market)
+    cached.loadViewIfNeeded()
+    XCTAssertFalse(descendants(cached.view).contains { $0.sk.isSkeletonActive })
     XCTAssertEqual(market.currentState.fearGreedState.cachedIndex?.value, 37)
     XCTAssertEqual(useCase.fearGreedRequests, 2)
     XCTAssertNil(MainReactor.FearGreedState.loaded(FearGreedIndex(value: 37), .distantPast).cachedIndex)
@@ -2834,6 +2854,59 @@ final class FuturesAccountReactorTests: XCTestCase {
     attachment.name = "Futures order compact layout"
     attachment.lifetime = .keepAlways
     add(attachment)
+  }
+
+  func testValuationStartsTwoQuotesBeforeEitherCompletes() throws {
+    // 두 미결제 포지션을 운영 계좌와 분리한다.
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    // 저장된 두 포지션은 동일 거래소의 서로 다른 마켓을 사용한다.
+    let store = LocalFuturesAccountRepository(fileURL: directory.appendingPathComponent("accounts.json"))
+    // 확인하기 쉬운 평가가격을 각각 지정한다.
+    let orders = ["KRW-BTC", "KRW-ETH"].map { domesticFuturesOrder(symbol: $0, margin: 100, price: 100) }
+    try store.applyAdvertisementReward(AdRewardClaim(account: account))
+    for order in orders { try store.openTestPosition(order, expectedRevision: store.snapshot().revision) }
+    // 두 번째 구독까지 확인한 뒤에만 첫 번째 가격을 받을 수 있게 한다.
+    let started = expectation(description: "both independent quote requests started")
+    started.expectedFulfillmentCount = 2
+    // 실제 네트워크 없이 시세 응답 순서를 뒤집는다.
+    let provider = PendingFuturesQuoteProvider()
+    // 재조회가 겹쳐도 같은 종목의 반복 구독을 두 요청으로 세지 않는다.
+    let subscriptions = PublishSubject<TradingInstrumentID>()
+    // 구독이 교체되어도 먼저 받은 가격은 같은 종목에 다시 전달한다.
+    let prices = ReplaySubject<FuturesMarkQuote>.create(bufferSize: orders.count)
+    // 각 종목의 첫 실제 구독을 한 번씩만 관찰한다.
+    let bag = DisposeBag()
+    for order in orders {
+      subscriptions.filter { $0 == order.instrument }.take(1)
+        .subscribe(onNext: { _ in started.fulfill() }).disposed(by: bag)
+    }
+    provider.loadQuote = { instrument in
+      prices.filter { $0.instrument == instrument }.take(1).asSingle()
+        .do(onSubscribed: { subscriptions.onNext(instrument) })
+    }
+    // 검증 서비스가 추가 시세 요청을 시작하지 않도록 감시는 독립시킨다.
+    let service = FuturesHistoryCheckService(store: { store }, provider: { _ in nil }, monitor: FuturesAccountMonitorFixture())
+    defer { service.suspend() }
+    // 화면 진입과 동일한 계좌 조회와 평가 구독 경로다.
+    let reactor = FuturesAccountReactor(
+      account: account,
+      useCase: FuturesTradingUseCase(store: { store }, historyCheck: service),
+      historyCheck: service,
+      provider: provider,
+      networkAvailability: .just(true)
+    )
+    // 두 종목 가격이 뒤바뀌거나 뒤의 결과가 누락되면 완료되지 않는다.
+    let received = expectation(description: "valuation contains both prices")
+    // 최초 로컬 스냅샷 뒤에 완성된 시세 묶음만 검사한다.
+    let subscription = reactor.state.filter {
+      $0.quotes[orders[0].instrument]?.price == 110 && $0.quotes[orders[1].instrument]?.price == 120
+    }.take(1).subscribe(onNext: { _ in received.fulfill() })
+    defer { subscription.dispose() }
+    wait(for: [started], timeout: 3)
+    prices.onNext(.init(instrument: orders[1].instrument, price: 120, timestamp: 70_000))
+    prices.onNext(.init(instrument: orders[0].instrument, price: 110, timestamp: 70_000))
+    wait(for: [received], timeout: 3)
   }
 
   func testSavedBalanceIsPublishedBeforeSlowMarketQuote() throws {
@@ -6951,7 +7024,11 @@ private final class FuturesTradingControlsDelegateFixture: MainCoordinatorDelega
 
 private final class PendingFuturesQuoteProvider: FuturesMarketDataProviding {
   let quotes = PublishSubject<FuturesMarkQuote>()
-  func markQuote(_ instrument: TradingInstrumentID) -> Single<FuturesMarkQuote> { quotes.take(1).asSingle() }
+  // 여러 포지션을 평가할 때 종목별 응답 순서를 제어한다.
+  var loadQuote: ((TradingInstrumentID) -> Single<FuturesMarkQuote>)?
+  func markQuote(_ instrument: TradingInstrumentID) -> Single<FuturesMarkQuote> {
+    loadQuote?(instrument) ?? quotes.take(1).asSingle()
+  }
   func contract(_ instrument: TradingInstrumentID) -> Single<FuturesMarketContract> {
     .error(FuturesMarketDataError.unsupportedInstrument)
   }

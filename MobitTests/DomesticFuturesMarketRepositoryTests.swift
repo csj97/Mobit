@@ -19,6 +19,7 @@ final class DomesticFuturesMarketRepositoryTests: XCTestCase {
     "{\"market\":\"KRW-BTC\",\"candle_date_time_utc\":\"\(text(time))\",\"opening_price\":100,\"high_price\":120,\"low_price\":80,\"trade_price\":\(close)\(seconds ? "" : ",\"unit\":1")}"
   }
   private func repository(status: Int = 200, serverTime: Int64? = nil,
+                          stub: @escaping (DomesticFuturesNetworkService) -> StubBehavior = MoyaProvider.immediatelyStub,
                           body: @escaping (DomesticFuturesNetworkService) -> String) -> DomesticFuturesMarketRepository {
     let time = serverTime ?? base + 40_000_000
     let header = text(time, format: "EEE, dd MMM yyyy HH:mm:ss 'GMT'")
@@ -27,9 +28,14 @@ final class DomesticFuturesMarketRepositoryTests: XCTestCase {
       let response = HTTPURLResponse(url: url, statusCode: status, httpVersion: nil, headerFields: ["Date": header])!
       return Endpoint(url: url.absoluteString, sampleResponseClosure: { .response(response, Data(body(target).utf8)) },
         method: target.method, task: target.task, httpHeaderFields: target.headers)
-    }, stubClosure: MoyaProvider.immediatelyStub)
-    return DomesticFuturesMarketRepository(provider: provider,
-      now: { Date(timeIntervalSince1970: Double(time) / 1000) }, requestDelay: .milliseconds(0))
+    }, stubClosure: stub)
+    // 모의 응답도 운영과 같은 동시 요청 수를 사용한다.
+    let requestQueue = DomesticFuturesRequestQueue(interval: .milliseconds(0))
+    return DomesticFuturesMarketRepository(
+      provider: provider,
+      now: { Date(timeIntervalSince1970: Double(time) / 1000) },
+      requestQueue: { _ in requestQueue }
+    )
   }
   private func value<T>(_ single: Single<T>) throws -> T {
     let finished = expectation(description: "domestic request")
@@ -39,6 +45,37 @@ final class DomesticFuturesMarketRepositoryTests: XCTestCase {
     defer { disposable.dispose() }
     wait(for: [finished], timeout: 20)
     return try XCTUnwrap(result).get()
+  }
+
+  func testQueueSpacesStartsAndSkipsCancelledPendingRequest() {
+    // 두 요청을 열어 둔 상태에서 남은 요청의 대기·취소·재개를 검증한다.
+    let queue = DomesticFuturesRequestQueue(interval: .milliseconds(30))
+    // 첫 두 요청의 시작 시각은 같은 직렬 큐에서 기록한다.
+    var starts: [DispatchTime] = []
+    // 응답 없이도 두 번째 요청까지 시작되어야 한다.
+    let firstTwo = expectation(description: "two concurrent requests")
+    firstTwo.expectedFulfillmentCount = 2
+    // 취소로 슬롯이 비었을 때 다음 작업이 시작되는지 확인한다.
+    let resumed = expectation(description: "next non-cancelled request")
+    // 대기 중 세 번째 요청이 취소될 때 실제 통신을 시작하면 실패한다.
+    let jobs = (0..<4).map { index in
+      queue.perform { () -> Single<Void> in
+        starts.append(.now())
+        if index < 2 { firstTwo.fulfill() }
+        if index == 2 { XCTFail("Cancelled request started") }
+        if index == 3 { resumed.fulfill() }
+        return .never()
+      }.subscribe()
+    }
+    defer { jobs.forEach { $0.dispose() } }
+    wait(for: [firstTwo], timeout: 2)
+    jobs[2].dispose()
+    jobs[0].dispose()
+    wait(for: [resumed], timeout: 2)
+    XCTAssertEqual(starts.count, 3)
+    for (first, next) in zip(starts, starts.dropFirst()) {
+      XCTAssertGreaterThanOrEqual(next.uptimeNanoseconds - first.uptimeNanoseconds, 30_000_000)
+    }
   }
 
   func testExchangeTimeAndParameterNamesAreSeparated() throws {
@@ -400,6 +437,31 @@ final class DomesticFuturesMarketRepositoryTests: XCTestCase {
         XCTAssertEqual($0 as? FuturesMarketDataError, .httpStatus(status))
       }
     }
+  }
+
+  func testBithumbChunksCompleteOutOfOrderAndReplayInTimeOrder() throws {
+    // 첫 요청을 늦춰 뒤의 고정 구간이 먼저 완료되도록 한다.
+    let firstEnd = text(base + 9 * 3_600_000 + 5_000, format: "HHmmss")
+    // 양쪽 응답에 있는 이전 체결은 각 구간의 시작 가격으로만 사용한다.
+    let repo = repository(stub: { target in
+      guard case .trades(let to, _, _) = target.query, to == firstEnd else { return .immediate }
+      return .delayed(seconds: 0.15)
+    }) { target in
+      guard case .trades(let to, _, _) = target.query else { return "[]" }
+      // 경계 앞 체결을 서로 다른 가격으로 구분한다.
+      let row = to == firstEnd ? (self.base, 90) : (self.base + 4_999, 110)
+      return "[{\"market\":\"KRW-BTC\",\"trade_price\":\(row.1),\"timestamp\":\(row.0),\"sequential_id\":1}]"
+    }
+    // 진입한 밀리초부터 마지막 밀리초까지 빠짐없이 이어져야 한다.
+    let batch = try value(repo.boundaryHistory(
+      instrument(.bithumb),
+      start: base + 123,
+      endExclusive: base + 9_000,
+      initialEntry: true
+    ))
+    XCTAssertEqual(batch.candles.map(\.openTime), [base + 123, base + 5_000])
+    XCTAssertEqual(batch.candles.map(\.closeTime), [base + 4_999, base + 8_999])
+    XCTAssertEqual(batch.candles.map(\.close), [90, 110])
   }
 
   func testBithumbRepeatedCursorIDsRetainAllPriceExtremes() throws {

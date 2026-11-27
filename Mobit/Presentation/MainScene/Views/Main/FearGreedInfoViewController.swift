@@ -88,14 +88,11 @@ final class FearGreedInfoViewController: UIViewController {
   }
 
   private func bindIndexCard() {
-    // 응답을 기다리는 동안 지표 설명을 먼저 읽을 수 있다.
-    let spinner = UIActivityIndicatorView(style: .medium)
-    // 성공한 응답만 게이지에 표시한다.
+    // 로딩 중에도 같은 카드와 트랙을 사용해 아래 설명의 위치를 유지한다.
     let gauge = FearGreedIndexView()
     // 실패 후에는 다음 시트 진입 때 재시도한다.
     let errorLabel = makeBodyLabel(FuturesText.text("fear_greed_load_failed"))
     gauge.setInfoButtonHidden(true)
-    contentStack.addArrangedSubview(spinner)
     contentStack.addArrangedSubview(gauge)
     contentStack.addArrangedSubview(errorLabel)
     // 숨겨진 스택 뷰의 높이 제약과 충돌하지 않게 한다.
@@ -105,17 +102,11 @@ final class FearGreedInfoViewController: UIViewController {
       .distinctUntilChanged()
       .observe(on: MainScheduler.instance)
       .subscribe(onNext: { state in
-        gauge.isHidden = true
+        gauge.isHidden = state == .failed
         errorLabel.isHidden = state != .failed
-        switch state {
-        case .idle, .loading:
-          spinner.startAnimating()
-        case .loaded(let index, _):
-          spinner.stopAnimating()
+        gauge.setLoading(state == .idle || state == .loading)
+        if case .loaded(let index, _) = state {
           gauge.configure(with: index)
-          gauge.isHidden = false
-        case .failed:
-          spinner.stopAnimating()
         }
       })
       .disposed(by: disposeBag)

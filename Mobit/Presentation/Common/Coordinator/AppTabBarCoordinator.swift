@@ -25,6 +25,18 @@ class AppTabBarCoordinator: BaseCoordinator {
 	self.navigationController = navigationController
   }
   
+  // 거래소 변경 시 인트로에서 받은 다른 거래소의 목록을 폐기한다.
+  private var launchMarkets: (exchange: Exchange, useCase: MainUseCase)?
+
+  func prefetchLaunchMarketList() {
+    // REST 대상과 결과를 소비할 메인 화면의 거래소를 고정한다.
+    let exchangeProvider = ExchangeAdapterRegistry.default
+    // 같은 UseCase가 진행 중인 요청과 이미 도착한 결과를 모두 이어받는다.
+    let useCase = MainUseCase(mainRepository: MainRepository(exchangeProvider: exchangeProvider))
+    launchMarkets = (exchangeProvider.exchange, useCase)
+    useCase.prefetchLaunchMarketList()
+  }
+
   func start() {
 	mobitTabBarController.didAppearCallBack = mainScreenShownCallBack
 	mobitTabBarController.onProductSelected = { [weak self] product in
@@ -111,8 +123,10 @@ class AppTabBarCoordinator: BaseCoordinator {
 	let mainNavigation = UINavigationController()
 	let mainCoordinator = MainCoordinator(
 	  navigationController: mainNavigation,
-	  dataManager: AppDataManager.shared
+	  dataManager: AppDataManager.shared,
+      mainUseCase: launchMarkets?.exchange == ExchangeSelectionStore.currentExchange ? launchMarkets?.useCase : nil
 	)
+    launchMarkets = nil
 	mainCoordinator.delegate = self
 	self.mainCoordinator = mainCoordinator
 	if ExchangeSelectionStore.currentProduct == .perpetual {

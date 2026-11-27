@@ -19,8 +19,10 @@ class AppCoordinator: BaseCoordinator {
     self.navigationController = navigationController
   }
   
+  // 인트로에서 준비한 목록을 같은 Scene의 첫 탭 구성에 전달한다.
+  lazy var appTabBarCoordinator = AppTabBarCoordinator(navigationController: navigationController)
+
   func start() {
-    let appTabBarCoordinator = AppTabBarCoordinator(navigationController: self.navigationController)
     appTabBarCoordinator.mainScreenShownCallBack = mainScreenShownCallBack
     appTabBarCoordinator.tradingSelectionChangedCallBack = tradingSelectionChangedCallBack
     self.childCoordinators.append(appTabBarCoordinator)

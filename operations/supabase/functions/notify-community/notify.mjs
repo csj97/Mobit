@@ -1,3 +1,5 @@
+import { usageReport } from "./usage.mjs";
+
 const board = "https://csj97.github.io/Mobit/";
 
 export async function notifyCommunity(request, env, send = fetch) {
@@ -5,7 +7,7 @@ export async function notifyCommunity(request, env, send = fetch) {
   const secret = env.get("MOBIT_COMMUNITY_CRON_TOKEN");
   if (!secret || request.headers.get("Authorization") !== "Bearer " + secret) return new Response(null, { status: 401 });
   const mode = (await request.json().catch(() => null))?.mode;
-  if (!["initialize", "poll", "test"].includes(mode)) return new Response(null, { status: 400 });
+  if (!["initialize", "poll", "test", "usage", "usage-preview", "usage-now"].includes(mode)) return new Response(null, { status: 400 });
 
   let stage = "configuration";
   try {
@@ -14,9 +16,9 @@ export async function notifyCommunity(request, env, send = fetch) {
     const chat = env.get("MOBIT_TELEGRAM_CHAT_ID");
     const key = env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!token || !/^[1-9]\d*$/.test(chat ?? "")) throw new Error();
-    async function call(url, options) {
-      const response = await send(url, { ...options, redirect: "error", signal: AbortSignal.timeout(7000) });
-      if (!response.ok) throw new Error();
+    async function call(url, options, timeout = 7000) {
+      const response = await send(url, { ...options, redirect: "error", signal: AbortSignal.timeout(timeout) });
+      if (!response.ok) throw Object.assign(new Error(), { upstreamStatus: response.status });
       return response;
     }
     async function sendTelegram(text) {
@@ -28,12 +30,13 @@ export async function notifyCommunity(request, env, send = fetch) {
       if (result.ok !== true) throw new Error();
       return result.result;
     }
-    if (mode === "test") {
-      const message = await sendTelegram("[테스트] 모의비트 커뮤니티 관리자 알림입니다.");
+    async function sendWithReceipt(text) {
+      const message = await sendTelegram(text);
       if (!Number.isSafeInteger(message?.message_id) || message.message_id <= 0 ||
           message.chat?.type !== "private" || String(message.chat.id) !== chat) throw new Error();
       return Response.json({ mode, message_id: message.message_id });
     }
+    if (mode === "test") return await sendWithReceipt("[테스트] 모의비트 커뮤니티 관리자 알림입니다.");
     if (!key) throw new Error();
     async function rpc(name, payload) {
       stage = name;
@@ -41,6 +44,13 @@ export async function notifyCommunity(request, env, send = fetch) {
         method: "POST", headers: { apikey: key, Authorization: "Bearer " + key, "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+    }
+    if (mode === "usage" || mode === "usage-preview" || mode === "usage-now") {
+      stage = "usage-logs";
+      const text = await usageReport(env, call, rpc, mode !== "usage");
+      if (mode === "usage-now") return await sendWithReceipt(text);
+      if (mode === "usage") await sendTelegram(text);
+      return Response.json({ mode });
     }
     stage = "firebase-list";
     const listing = await (await call(new URL("/mobit_community.json?shallow=true", database))).json();
@@ -70,9 +80,15 @@ export async function notifyCommunity(request, env, send = fetch) {
     }
     await rpc("mobit_finish_community_digest", { p_run: run });
     return Response.json({ mode, delivered: count });
-  } catch {
+  } catch (error) {
     // 텔레그램 요청 URL에는 토큰이 포함되므로 원본 예외를 기록하지 않는다.
-    console.error("커뮤니티 알림 실패", { stage });
-    return Response.json({ stage }, { status: 502 });
+    const details = { stage };
+    if (mode === "usage-preview" || mode === "usage-now") {
+      if (Number.isInteger(error?.upstreamStatus)) details.upstream_status = error.upstreamStatus;
+      if (["missing-log-token", "logs-query", "logs-response"].includes(error?.reason)) details.reason = error.reason;
+      if (error?.name === "TimeoutError") details.reason = "timeout";
+    }
+    console.error("커뮤니티 알림 실패", details);
+    return Response.json(details, { status: 502 });
   }
 }

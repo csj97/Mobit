@@ -649,28 +649,6 @@ extension InvestmentViewController: View {
 	  })
 	  .disposed(by: self.disposeBag)
 
-	// 보유코인 선택 → 티커 조회 완료 후 상세 화면으로 이동
-	reactor.state.map { $0.detailCrypto }
-	  .distinctUntilChanged()
-	  .compactMap { $0 }
-	  .observe(on: MainScheduler.instance)
-	  .subscribe(onNext: { [weak self] info in
-		guard let self else { return }
-		let symbol = info.market.replacingOccurrences(
-		  of: "/(KRW|BTC)",
-		  with: "",
-		  options: .regularExpression
-		)
-		self.coordinator?.pushCryptoTradeVC(
-		  selectCrypto: info,
-		  cmcSymbol: symbol,
-		  completion: { [weak self] errorMsg in
-			guard let self = self, let errorMsg = errorMsg else { return }
-			self.show(alertType: .onlyConfirm, title: "안내", content: errorMsg, callBack: nil)
-		  }
-		)
-	  })
-	  .disposed(by: self.disposeBag)
   }
 }
 
@@ -683,10 +661,13 @@ extension InvestmentViewController: UITableViewDelegate {
 
 	guard let selectedCryptoName = selectedCrypto.staticData.cryptoName else { return }
 
-	// 티커 조회 후 상세로 이동 (정보 탭 데이터까지 채우기 위함). 이동은 bind의 detailCrypto 구독에서 처리
-	self.reactor.action.onNext(
-	  .prepareDetailCrypto(marketName: selectedCryptoMarketName, cryptoName: selectedCryptoName)
-	)
+    guard navigationController?.topViewController === self else { return }
+    coordinator?.pushCryptoTradeVC(
+      selectCrypto: CryptoCellInfo(cryptoName: selectedCryptoName, market: selectedCryptoMarketName),
+      cmcSymbol: selectedCryptoMarketName.components(separatedBy: "/").first ?? selectedCryptoMarketName
+    ) { [weak self] message in
+      if let message { self?.show(alertType: .onlyConfirm, title: "안내", content: message, callBack: nil) }
+    }
   }
 }
 

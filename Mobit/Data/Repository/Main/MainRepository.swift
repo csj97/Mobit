@@ -164,9 +164,7 @@ class MainRepository: MainRepositoryProtocol {
             observer.onError(NetworkResponseValidator.mapRequestError(error))
           }
         }
-      return Disposables.create {
-        disposable.disposed(by: self.disposeBag)
-      }
+      return disposable
     }
   }
   

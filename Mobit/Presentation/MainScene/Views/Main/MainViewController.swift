@@ -75,6 +75,8 @@ class MainViewController: MobitBaseViewController {
   private var lastPresentedDataError: String?
   // 자동 복구 때 이 화면이 띄운 오류 알럿만 닫는다.
   private weak var dataErrorAlert: MobitAlertViewController?
+  // 셀을 누르는 동안 건너뛴 화면 갱신은 터치가 끝나면 최신 상태로 한 번 반영한다.
+  private var needsRefreshAfterHighlight = false
   var isSocketUpdating = false
   var prevSortedButton: UIButton?
   let defaultTitles = ["현재가 ↑↓", "전일대비 ↑↓", "거래대금 ↑↓"]
@@ -1677,6 +1679,11 @@ extension MainViewController: View {
 	  
 	  self.updateMarketListSkeleton()
 	  guard !self.tableView.sk.isSkeletonActive else { return }
+      // 가격이 바뀌면 Diffable이 행을 교체하므로 터치 중인 셀은 선택 처리가 끝날 때까지 유지한다.
+      if self.tableView.visibleCells.contains(where: \.isHighlighted) {
+        self.needsRefreshAfterHighlight = true
+        return
+      }
 	  var snapshot = NSDiffableDataSourceSnapshot<TableViewSection, CryptoCellInfo>()
 	  snapshot.appendSections([.main])
 	  snapshot.appendItems(cellInfos, toSection: .main)
@@ -1774,16 +1781,16 @@ extension MainViewController: View {
 // MARK: - TableView Delegate
 extension MainViewController: UITableViewDelegate {
   
+  func tableView(_ tableView: UITableView, didUnhighlightRowAt indexPath: IndexPath) {
+    guard needsRefreshAfterHighlight else { return }
+    needsRefreshAfterHighlight = false
+    // applySnapshot은 다음 메인 큐 차례에 실행되어 현재 행 선택을 먼저 완료한다.
+    refreshDisplayedList()
+  }
+
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-	
-	// 현재 화면에 표시 중인 리스트 가져오기
-	let displayedList = self.filterListForCurrentTab(
-	  totalList: reactor.currentState.totalCryptoList
-	)
-	
-	guard indexPath.row < displayedList.count else { return }
-	
-	let selectedCrypto = displayedList[indexPath.row]
+    // 검색·정렬 갱신이 예약돼 있어도 사용자가 실제로 누른 종목을 연다.
+    guard let selectedCrypto = dataSource?.itemIdentifier(for: indexPath) else { return }
 	guard !selectedCrypto.isUpcomingListing else {
 	  self.show(
 		alertType: .onlyConfirm,

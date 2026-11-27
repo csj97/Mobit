@@ -52,6 +52,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 	  .subscribe(onNext: { [weak self] positions in self?.liquidationNotices.receive(positions) })
 	  .disposed(by: disposeBag)
 
+    // 화면 전환은 기존 준비 조건을 따르고 마켓 목록 REST만 먼저 시작한다.
+    let coordinator = AppCoordinator(navigationController: navigationController)
+    self.appCoordinator = coordinator
+    coordinator.appTabBarCoordinator.prefetchLaunchMarketList()
 	AppDataManager.shared.refreshCMCData()
 
     Observable.combineLatest(
@@ -62,7 +66,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 		guard let self else { return }
 		self.window?.rootViewController = navigationController
 
-		self.appCoordinator = AppCoordinator(navigationController: navigationController)
 		self.appCoordinator?.mainScreenShownCallBack = { [weak self] in
 		  self?.mainScreenShown = true
 		  self?.updatePushNotificationHandling()

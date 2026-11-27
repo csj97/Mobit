@@ -3,7 +3,8 @@ import { test } from "node:test";
 import { notifyCommunity } from "../supabase/functions/notify-community/notify.mjs";
 
 const env = new Map(Object.entries({ MOBIT_COMMUNITY_CRON_TOKEN: "cron-fixture", MOBIT_TELEGRAM_BOT_TOKEN: "bot-fixture",
-  MOBIT_TELEGRAM_CHAT_ID: "123", SUPABASE_SERVICE_ROLE_KEY: "service-fixture", SUPABASE_URL: "https://db.example" }));
+  MOBIT_TELEGRAM_CHAT_ID: "123", MOBIT_USAGE_LOG_TOKEN: "logs-fixture",
+  SUPABASE_SERVICE_ROLE_KEY: "service-fixture", SUPABASE_URL: "https://db.example" }));
 const request = (mode, token = "cron-fixture") => new Request("https://example.test", {
   method: "POST", headers: { Authorization: "Bearer " + token }, body: JSON.stringify({ mode }),
 });
@@ -114,4 +115,107 @@ test("관리자 테스트는 저장된 개인 채팅에 한 번만 보내고 텔
     assert.equal(response.status, status);
     if (status === 200) assert.deepEqual(await response.json(), { mode: "test", message_id: 37 });
   }
+});
+
+test("사용량 보고는 기존 개인 채팅에만 발송하고 미리보기에서는 기록하거나 발송하지 않는다", async () => {
+  for (const preview of [false, true]) {
+    const sent = [];
+    const mode = preview ? "usage-preview" : "usage";
+    const response = await notifyCommunity(request(mode), env, async (url, options) => {
+      const address = new URL(url);
+      if (address.hostname === "api.supabase.com") {
+        assert.match(address.searchParams.get("sql"), /WHERE source = 'function_edge_logs'/);
+        assert.equal(Date.parse(address.searchParams.get("iso_timestamp_end")) -
+          Date.parse(address.searchParams.get("iso_timestamp_start")), 86400000);
+        if (!preview) assert.match(address.searchParams.get("iso_timestamp_end"), /T09:30:00.000Z$/);
+        return Response.json({ result: [{ calls: "12000" }] });
+      }
+      if (address.pathname.endsWith("/mobit_usage_report")) {
+        const params = JSON.parse(options.body);
+        assert.equal(params.p_calls, 12000);
+        assert.equal(params.p_preview, preview);
+        return Response.json({ database_bytes: 350000000, days: 2, calls: 24000 });
+      }
+      assert.match(address.pathname, /sendMessage$/);
+      assert.equal(JSON.parse(options.body).chat_id, "123");
+      sent.push(JSON.parse(options.body).text);
+      return Response.json({ ok: true });
+    });
+    assert.equal(response.status, 200);
+    assert.equal(sent.length, preview ? 0 : 1);
+    if (!preview) {
+      assert.match(sent[0], /DB 용량이 무료 한도의 70%/);
+      assert.match(sent[0], /360,000 \/ 500,000회 \(72.0%\)/);
+      assert.match(sent[0], /⚠️ 현재 속도/);
+    }
+  }
+});
+
+test("로그가 없거나 잘못되면 0회와 조회 실패를 구분하고 실제 누적 경고를 보낸다", async () => {
+  for (const raw of [0, null, ""]) {
+    let text;
+    const response = await notifyCommunity(request("usage"), env, async (url, options) => {
+      const address = new URL(url);
+      if (address.hostname === "api.supabase.com") return Response.json({ result: [{ calls: raw }] });
+      if (address.pathname.endsWith("/mobit_usage_report")) {
+        assert.equal(JSON.parse(options.body).p_calls, raw === 0 ? 0 : null);
+        return Response.json({ database_bytes: 1234, days: 28, calls: 350000 });
+      }
+      text = JSON.parse(options.body).text;
+      return Response.json({ ok: true });
+    });
+    assert.equal(response.status, 200);
+    assert.match(text, raw === 0 ? /Edge 호출  0회/ : /Edge 호출 조회 실패/);
+    assert.match(text, /⚠️ 관측 합계/);
+  }
+});
+
+test("사용량 배포 검증은 토큰·쿼리·DB 실패를 구분하고 응답 원문을 노출하지 않는다", async () => {
+  const missingToken = new Map(env);
+  missingToken.delete("MOBIT_USAGE_LOG_TOKEN");
+  const cases = [
+    [missingToken, [], { stage: "usage-logs", reason: "missing-log-token" }],
+    [env, [new Response("logs-fixture", { status: 403 })], { stage: "usage-logs", upstream_status: 403 }],
+    [env, [Response.json({ error: "logs-fixture" })], { stage: "usage-logs", reason: "logs-query" }],
+    [env, [Response.json({ result: [] })], { stage: "usage-logs", reason: "logs-response" }],
+    [env, [Response.json({ result: [{ calls: 0 }] }), new Response(null, { status: 404 })],
+      { stage: "mobit_usage_report", upstream_status: 404 }],
+  ];
+  for (const [settings, replies, expected] of cases) {
+    const response = await notifyCommunity(request("usage-preview"), settings, async () => {
+      assert.ok(replies.length);
+      return replies.shift();
+    });
+    assert.equal(response.status, 502);
+    assert.deepEqual(await response.json(), expected);
+    assert.equal(replies.length, 0);
+  }
+});
+
+test("즉시 보고는 현재 KST와 직전 24시간을 표시하고 읽기 전용 집계 후 한 건의 접수 번호를 반환한다", async () => {
+  const paths = [];
+  let time;
+  const response = await notifyCommunity(request("usage-now"), env, async (url, options) => {
+    const address = new URL(url);
+    paths.push(address.pathname.split("/").pop());
+    if (address.hostname === "api.supabase.com") {
+      const end = Date.parse(address.searchParams.get("iso_timestamp_end"));
+      assert.ok(Math.abs(Date.now() - end) < 61000);
+      assert.equal(end - Date.parse(address.searchParams.get("iso_timestamp_start")), 86400000);
+      time = new Date(end + 9 * 3600000).toISOString().slice(0, 16).replace("T", " ");
+      return Response.json({ result: [{ calls: 321 }] });
+    }
+    const body = JSON.parse(options.body);
+    if (address.pathname.endsWith("/mobit_usage_report")) {
+      assert.deepEqual(body, { p_calls: 321, p_day: time.slice(0, 10), p_preview: true });
+      return Response.json({ database_bytes: 10000000, days: 0, calls: 0 });
+    }
+    assert.equal(body.chat_id, "123");
+    assert.ok(body.text.includes(time + " KST"));
+    assert.match(body.text, /최근 24시간 Edge 호출  321회/);
+    return Response.json({ ok: true, result: { message_id: 17, chat: { type: "private", id: 123 } } });
+  });
+  assert.deepEqual(paths, ["logs", "mobit_usage_report", "sendMessage"]);
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { mode: "usage-now", message_id: 17 });
 });

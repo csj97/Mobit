@@ -373,10 +373,16 @@ final class FuturesAccountReactor: Reactor {
 	  guard let self else { return .empty() }
 	  return useCase.accountSnapshot(for: account).asObservable().flatMap { [self] snapshot -> Observable<Mutation> in
 		let active = snapshot.positions.filter { $0.order.account == self.account && snapshot.isActive($0) }
-		let valuation = Observable.from(active).concatMap { [self] position in
-		  self.provider.markQuote(position.order.instrument).timeout(.seconds(15), scheduler: MainScheduler.instance)
-			.map { Optional($0) }.catch { _ in .just(nil) }.asObservable()
-		}.toArray().flatMap { [self] quotes in
+        // 계좌 상태는 기존처럼 한 번에 반영하고 독립적인 가격 조회만 겹친다.
+        let valuation = Observable.from(active).map { [self] position in
+          Observable.deferred {
+            self.provider.markQuote(position.order.instrument)
+              .timeout(.seconds(15), scheduler: MainScheduler.instance)
+              .map(Optional.some).catch { _ in .just(nil) }.asObservable()
+          }
+        }
+        .merge(maxConcurrent: DomesticFuturesRequestQueue.maxConcurrentRequests)
+        .toArray().flatMap { [self] quotes in
 		  // 조회 중 청산/광고/주문이 저장됐을 수 있으므로 최신 스냅샷으로 함께 표시한다.
 		  self.useCase.accountSnapshot(for: self.account).map { latest in
 			Mutation.snapshot(

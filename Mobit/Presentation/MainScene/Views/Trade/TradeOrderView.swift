@@ -27,7 +27,10 @@ class TradeOrderView: UIView, ViewRule {
     
   var disposeBag = DisposeBag()
   var dataSource: UITableViewDiffableDataSource<TableViewSection, OrderUnit>?
-  var prevClosingPrice: Double? = nil
+  // 상세 진입 이후 조회한 전일 종가도 호가 등락률에 반영한다.
+  private var prevClosingPrice: Double? {
+    reactor?.displayedCrypto.prevPrice
+  }
   var isFirstInput: Bool = false
   var reactor: TradeReactor? = nil
   // 주문 결과나 계산기 요청을 상위 화면에 전달한다.
@@ -323,7 +326,6 @@ class TradeOrderView: UIView, ViewRule {
     guard let reactor = self.reactor else { return }
     self.bind(reactor: reactor)
     reactor.action.onNext(.loadTransactions)
-    self.prevClosingPrice = self.reactor?.selectCrypto.prevPrice
     
 	self.orderbookTableView.register(
 	  OrderBookCell.self,

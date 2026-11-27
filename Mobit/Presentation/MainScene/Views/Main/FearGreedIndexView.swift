@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import SkeletonView
 import Then
 
 /// 거래소 화면 하단에 고정 노출되는 시장 공포·탐욕 지수 카드.
@@ -40,6 +41,7 @@ final class FearGreedIndexView: UIView {
   }
 
   private let track = UIView().then {
+    $0.isSkeletonable = true
     $0.backgroundColor = .mobitColors(.chartGrid)
     $0.clipsToBounds = true
   }
@@ -132,6 +134,29 @@ final class FearGreedIndexView: UIView {
   // 설명 시트 안에서 재사용할 때는 (i) 버튼이 필요 없다.
   func setInfoButtonHidden(_ hidden: Bool) {
     infoButton.isHidden = hidden
+  }
+
+  func setLoading(_ loading: Bool) {
+    badgeContainer.isHidden = loading
+    fillView.isHidden = loading
+    if loading {
+      accessibilityLabel = titleLabel.text
+      accessibilityValue = FuturesText.text("futures_loading")
+      guard !track.sk.isSkeletonActive else { return }
+      if UIAccessibility.isReduceMotionEnabled {
+        track.showSkeleton(transition: .none)
+      } else {
+        track.showAnimatedGradientSkeleton(transition: .none)
+      }
+    } else {
+      accessibilityValue = nil
+      if track.sk.isSkeletonActive {
+        track.hideSkeleton(
+          reloadDataAfter: false,
+          transition: window != nil && !isHidden && !UIAccessibility.isReduceMotionEnabled ? .crossDissolve(0.2) : .none
+        )
+      }
+    }
   }
 
   func configure(with index: FearGreedIndex) {

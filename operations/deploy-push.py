@@ -61,6 +61,11 @@ def deploy(ref, path):
     project.sql("do $setup$ begin\n" + (BASE / "price-alerts.sql").read_text() + "\nend $setup$;")
     holding_setup = "\n".join((BASE / name).read_text() for name in ("holding-alerts.sql", "holding-cron.sql"))
     project.sql("do $setup$ begin\n" + holding_setup + "\nend $setup$;")
+    project.sql((BASE / "holding-cleanup-schedule.sql").read_text())
+    holding_cleanup = project.sql("select active from cron.job where jobname='mobit-cleanup-closed-holdings' and username=current_user")
+    if not holding_cleanup:
+        raise RuntimeError("종료 보유 건 정리 예약을 확인할 수 없습니다.")
+    print("mobit-cleanup-closed-holdings 등록 완료 · 매일 04:00 한국 시간 · " + ("활성" if holding_cleanup[0]["active"] else "일시 중지"))
     for job, function in (("mobit-price-alerts", "check_price_alerts"), ("mobit-holding-alerts", "check_holdings")):
         project.sql("""with task as (select format('select mobit_ops.%I(%L)', $2::text, $3::text) as cmd),
             existing as (select jobid from cron.job where jobname=$1 and username=current_user)

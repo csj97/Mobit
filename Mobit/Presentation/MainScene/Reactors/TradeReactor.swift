@@ -140,13 +140,7 @@ class TradeReactor: Reactor {
           )
         }
 
-        var updatedCryptoCellInfo = self.selectCrypto
-        updatedCryptoCellInfo.tradePrice = ticker.tradePrice
-        updatedCryptoCellInfo.change = ticker.change
-        updatedCryptoCellInfo.changePrice = ticker.changePrice
-        updatedCryptoCellInfo.signedChangeRate = ticker.signedChangeRate
-
-        return .setCryptoInfo(cryptoInfo: updatedCryptoCellInfo)
+        return .setSocketTicker(ticker)
       }
       .compactMap { $0 }
       .bind(to: mutationSubject)
@@ -168,18 +162,26 @@ class TradeReactor: Reactor {
       .disposed(by: disposeBag)
   }
 
+  // 화면은 소켓 시세 도착 전에도 REST로 확인한 종목 정보를 표시한다.
+  var displayedCrypto: CryptoCellInfo {
+    currentState.cryptoCellInfo ?? currentState.initialTickerInfo ?? selectCrypto
+  }
+
   var hasInformationTabData: Bool {
 	guard self.cmcInformation != nil else { return false }
-	return self.selectCrypto.accTradePrice24h != nil &&
-	  self.selectCrypto.accTradeVolume24h != nil &&
-	  self.selectCrypto.prevPrice != nil &&
-	  self.selectCrypto.highest52WeekPrice != nil &&
-	  self.selectCrypto.lowest52WeekPrice != nil
+	// 보유 코인 상세는 화면 진입 이후에 REST 정보가 도착한다.
+    let info = displayedCrypto
+	return info.accTradePrice24h != nil &&
+	  info.accTradeVolume24h != nil &&
+	  info.prevPrice != nil &&
+	  info.highest52WeekPrice != nil &&
+	  info.lowest52WeekPrice != nil
   }
 }
 
 extension TradeReactor {
   enum TradeAction {
+    case loadInitialTicker
     case connectSockets
     case disconnectSockets(userInitiated: Bool)
     case pauseSocket
@@ -197,7 +199,8 @@ extension TradeReactor {
   }
   
   enum TradeMutation {
-    case setCryptoInfo(cryptoInfo: CryptoCellInfo)
+    case setInitialTicker(CryptoTicker)
+    case setSocketTicker(CryptoSocketTicker)
     case setOrderBookInfo(obTicker: Orderbook)
 	case setCryptoInformation(cryptoQuoteResponse: CryptoQuoteResponse)
 	case setCandleListMinutes(minuteResponseModelList: [MinuteResponseModel])
@@ -208,6 +211,8 @@ extension TradeReactor {
   }
 
   struct TradeState {
+    // 주문에 사용하는 소켓 시세와 분리해 첫 REST 응답은 표시용으로만 쓴다.
+    var initialTickerInfo: CryptoCellInfo?
     var cryptoCellInfo: CryptoCellInfo? = nil
     var obTicker: Orderbook?
 	var cryptoQuotesInfo: CryptoQuoteResponse? = nil
@@ -223,6 +228,14 @@ extension TradeReactor {
 extension TradeReactor {
   func mutate(action: TradeAction) -> Observable<TradeMutation> {
     switch action {
+    case .loadInitialTicker:
+      guard selectCrypto.tradePrice == nil else { return .empty() }
+      return mainUseCase.fetchCryptoTicker(markets: [selectedMarketCode])
+        .compactMap { [selectedMarketCode] in $0.first { $0.market == selectedMarketCode } }
+        .map(TradeMutation.setInitialTicker)
+        .observe(on: MainScheduler.instance)
+        .catch { _ in .empty() }
+
     case .connectSockets:
       return self.connectSockets(crypto: self.selectCrypto)
 
@@ -265,8 +278,33 @@ extension TradeReactor {
     self.isOrderBookConnected = orderBookSocketService.isConnected
     
     switch mutation {
-    case .setCryptoInfo(let cryptoCellInfo):
-      newState.cryptoCellInfo = cryptoCellInfo
+    case .setInitialTicker(let ticker):
+      // 소켓으로 표시한 현재가는 유지하고 REST에서 상세 통계만 보충한다.
+      var info = newState.cryptoCellInfo ?? selectCrypto
+      if newState.cryptoCellInfo == nil {
+        info.tradePrice = ticker.tradePrice
+        info.change = ticker.change
+        info.changePrice = ticker.changePrice
+        info.signedChangeRate = ticker.signedChangeRate
+      }
+      info.prevPrice = ticker.prevClosingPrice
+      info.accTradePrice24h = ticker.accTradePrice24h
+      info.accTradeVolume24h = ticker.accTradeVolume24h
+      info.highest52WeekPrice = ticker.highest52WeekPrice
+      info.lowest52WeekPrice = ticker.lowest52WeekPrice
+      if newState.cryptoCellInfo == nil {
+        newState.initialTickerInfo = info
+      } else {
+        newState.cryptoCellInfo = info
+      }
+    case .setSocketTicker(let ticker):
+      // 응답 순서와 무관하게 소켓의 현재가와 REST의 상세 통계를 함께 보존한다.
+      var info = state.cryptoCellInfo ?? state.initialTickerInfo ?? selectCrypto
+      info.tradePrice = ticker.tradePrice
+      info.change = ticker.change
+      info.changePrice = ticker.changePrice
+      info.signedChangeRate = ticker.signedChangeRate
+      newState.cryptoCellInfo = info
     case .setOrderBookInfo(let obTicker):
       newState.obTicker = obTicker
 	case .setCryptoInformation(let cryptoQuotesResponse):

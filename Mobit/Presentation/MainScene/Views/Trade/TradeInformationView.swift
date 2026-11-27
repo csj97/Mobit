@@ -112,8 +112,14 @@ class TradeInformationView: UIView, ViewRule {
 	self.updatedAtStringLabel.text = cmcInformation.updatedAtString
 	self.circulatingSupplyLabel.text = cmcInformation.circulatingSupply.formatTradingValue()
 	
-	guard let selectedCrypto = self.reactor?.selectCrypto,
-		  let accTradePrice24h = selectedCrypto.accTradePrice24h,
+	updatePriceInfo()
+  }
+
+  func updatePriceInfo() {
+    guard let reactor else { return }
+    // 정보 탭을 여는 시점에 준비된 통계를 사용한다.
+    let selectedCrypto = reactor.displayedCrypto
+    guard let accTradePrice24h = selectedCrypto.accTradePrice24h,
 		  let accTradeVolume24h = selectedCrypto.accTradeVolume24h,
 		  let prevPrice = selectedCrypto.prevPrice,
 		  let highest52WeekPrice = selectedCrypto.highest52WeekPrice,

@@ -37,4 +37,17 @@ begin
   if (select array_agg(runid order by runid) from cron.job_run_details) is distinct from array[3,4,5,6,7]
     then raise exception 'cleanup scope'; end if;
 end $qa$;
+set local cron.timezone = 'UTC';
+\ir ../holding-cleanup-schedule.sql
+do $$begin
+  if not exists(select from cron.job where jobname='mobit-cleanup-closed-holdings' and active
+      and schedule='0 19 * * *' and command='select mobit_ops.cleanup_closed_holdings()') then raise exception 'cleanup UTC'; end if;
+end$$;
+update cron.job set active=false where jobname='mobit-cleanup-closed-holdings';
+set local cron.timezone = 'Asia/Seoul';
+\ir ../holding-cleanup-schedule.sql
+do $$begin
+  if not exists(select from cron.job where jobname='mobit-cleanup-closed-holdings' and not active
+      and schedule='0 4 * * *') then raise exception 'cleanup KST redeploy'; end if;
+end$$;
 rollback;

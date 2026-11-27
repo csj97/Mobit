@@ -26,13 +26,17 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
   var childCoordinators = [BaseCoordinator]()
   var navigationController: UINavigationController
   var dataManager: AppDataManager
+  // 인트로와 메인의 마켓 목록 요청을 공유한다.
+  private let mainUseCase: MainUseCase
   weak var delegate: MainCoordinatorDelegate?
   var futuresReactor: FuturesAccountReactor?
   
   init(
 	navigationController: UINavigationController,
-	dataManager: AppDataManager
+	dataManager: AppDataManager,
+    mainUseCase: MainUseCase? = nil
   ) {
+    self.mainUseCase = mainUseCase ?? MainUseCase(mainRepository: MainRepository())
 	self.navigationController = navigationController
 	self.navigationController.isNavigationBarHidden = true
 	self.dataManager = dataManager
@@ -40,12 +44,7 @@ class MainCoordinator: NSObject, BaseCoordinator, UINavigationControllerDelegate
   
   func start() {
 	self.navigationController.delegate = self
-    let exchangeProvider = ExchangeAdapterRegistry.default
-    let reactor = MainReactor(
-      mainUseCase: MainUseCase(
-        mainRepository: MainRepository(exchangeProvider: exchangeProvider)
-      )
-    )
+    let reactor = MainReactor(mainUseCase: mainUseCase)
 	let mainVC = MainViewController(
 	  reactor: reactor,
 	  futuresReactor: futuresReactor

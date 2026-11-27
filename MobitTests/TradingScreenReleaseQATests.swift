@@ -6,6 +6,55 @@ import SkeletonView
 @testable import Mobit
 
 final class TradingScreenReleaseQATests: XCTestCase {
+  func testLaunchMarketListIsReusedOnceIncludingAnEarlyCompletion() {
+    for completeBeforeOpening in [true, false] {
+      // 요청 횟수와 인트로 종료 시점을 독립적으로 제어한다.
+      let repository = LaunchMarketListRepository()
+      // 동일 인스턴스를 메인 화면이 이어받는다.
+      let useCase = MainUseCase(mainRepository: repository)
+      useCase.prefetchLaunchMarketList()
+      useCase.prefetchLaunchMarketList()
+      if completeBeforeOpening {
+        repository.response.onNext([])
+        repository.response.onCompleted()
+      }
+      // 네트워크가 먼저 끝난 경우도 화면에 빈 정상 목록을 전달해야 한다.
+      var received = false
+      // 첫 구독은 이미 진행한 HTTP 요청만 사용한다.
+      let subscription = useCase.fetchCryptoList().subscribe(onNext: { _ in received = true })
+      if !completeBeforeOpening {
+        repository.response.onNext([])
+        repository.response.onCompleted()
+      }
+      subscription.dispose()
+      XCTAssertTrue(received)
+      XCTAssertEqual(repository.requests, 1)
+      useCase.fetchCryptoList().subscribe().dispose()
+      XCTAssertEqual(repository.requests, 2)
+    }
+  }
+
+  @MainActor
+  func testHoldingDetailRestFillsStatisticsWithoutEnablingOrdersOrReplacingLivePrice() throws {
+    // 최초 REST가 소켓보다 빠르거나 늦은 두 순서를 같은 응답으로 검증한다.
+    let ticker = try XCTUnwrap(JSONDecoder().decode(
+      CryptoTickerListDTO.self,
+      from: Data(#"[{"market":"KRW-BTC","change":"EVEN","trade_price":100,"prev_closing_price":90,"timestamp":1}]"#.utf8)
+    ).toDomain().first)
+    // 가격이 없는 보유 종목을 선택한 진입 상태다.
+    let reactor = makeTradeReactor()
+    // 주문용 시세가 아직 없어도 화면 표시용 REST 결과는 사용할 수 있다.
+    let early = reactor.reduce(state: reactor.initialState, mutation: .setInitialTicker(ticker))
+    XCTAssertNil(early.cryptoCellInfo)
+    XCTAssertEqual(early.initialTickerInfo?.tradePrice, 100)
+    // 늦은 응답은 이미 받은 소켓 가격에 통계만 보완한다.
+    var live = reactor.initialState
+    live.cryptoCellInfo = coin(price: 120)
+    let late = reactor.reduce(state: live, mutation: .setInitialTicker(ticker))
+    XCTAssertEqual(late.cryptoCellInfo?.tradePrice, 120)
+    XCTAssertEqual(late.cryptoCellInfo?.prevPrice, 90)
+  }
+
   @MainActor
   func testPushRoutesCloseCurrentAndTargetDetailsWithoutChangingAccount() throws {
     // 푸시 이동이 실제 사용자의 거래소 선택을 변경하지 않도록 원본을 보존한다.
@@ -1203,5 +1252,18 @@ private final class ReleaseQAIndicatorDelegate: MainCoordinatorDelegate {
   func mainCoordinatorDidRequestFinishForegroundIndicator() {
     finishCount += 1
     tabs?.finishForegroundIndicator()
+  }
+}
+
+
+private final class LaunchMarketListRepository: MainRepository {
+  // 메인 진입 전후의 목록 완료 시점을 재현한다.
+  let response = PublishSubject<CryptoList>()
+  // 미리 읽은 목록이 첫 진입에서 중복 요청되는지 검사한다.
+  private(set) var requests = 0
+
+  override func fetchCryptoList() -> Observable<CryptoList> {
+    requests += 1
+    return response.asObservable()
   }
 }

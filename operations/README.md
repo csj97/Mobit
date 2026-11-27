@@ -92,6 +92,8 @@ where market = 'KRW-BTC';
 
 **앱이 호출할 RPC**는 `/rest/v1/rpc/` 아래에 있다. 요청의 소유자는 인증된 세션에서 결정한다. 날짜는 시간대가 있는 ISO 8601, 금액과 비율 계수는 정밀도를 보존하는 십진 문자열로 전달한다.
 
+`mobit-cleanup-closed-holdings`는 매일 한국 시간 04:00에 서버로 종료가 동기화된 보유 건과 남은 발송 대기 이벤트를 삭제한다. 종료된 건마다 익명 사용자 ID와 보유 건 UUID 한 쌍을 별도로 보관해 지연된 요청을 무시한다. 같은 종목을 다시 매수하면 새 UUID로 감시한다. 이전 설치 해제 시 해당 설치의 종료 식별자도 삭제한다.
+
 | RPC | 값과 동작 |
 | --- | --- |
 | `mobit_set_push_device` | `p_revision`, `p_token`. 개인 알림 허용·FCM 토큰 교체 시 등록하고, 해제 시 토큰에 null을 보낸다. 기기 등록용 순번과 보유 건별 순번을 따로 증가시킨다. |
@@ -132,3 +134,15 @@ limit 10;
 `mobit-community-alerts`는 매일 한국 시간 오전 9시에 Firebase 게시판의 글 ID 목록을 한 번 확인한다. 첫 배포는 기존 글을 기준점으로 기록한다. 이후 새 글이 있으면 총 건수, 최근 글 최대 5건의 미리보기, 게시판 링크를 텔레그램 메시지 한 건으로 보낸다. 새 글이 없거나 기존 글에만 답변·수정이 있으면 보내지 않는다. 발송에 실패한 글은 다음 날 다시 확인하며, 텔레그램 수신 직후 성공 기록이 유실되면 중복될 수 있다. Supabase Cron에서 중지·재개하며 재배포 시 기존 활성 상태를 유지한다.
 
 관리자 채팅 수신을 확인하려면 첫 테스트 때 `python3 operations/deploy-community.py --deploy-and-test`로 배포하고, 이후에는 `python3 operations/deploy-community.py --test-only`를 실행한다. 테스트는 지정된 개인 채팅에 고정 문구 한 건을 보내고 텔레그램의 메시지 번호를 표시한다. 게시글 조회와 처리 기록은 건드리지 않는다. 휴대폰에서의 실제 수신은 봇 대화방에서 확인한다.
+
+### 매일 18:30 KST Supabase 사용량 보고
+
+기존 커뮤니티 봇을 연결한 프로젝트에서 아래 명령을 실행한다. [Supabase Access Tokens](https://supabase.com/dashboard/account/tokens)에서 모의비트 프로젝트의 **Logs → Read**만 허용한 조회용 토큰을 준비한다. 첫 번째 입력은 평소 쓰는 배포용 토큰이고, 두 번째 입력이 조회용 토큰이다. 조회용 토큰만 Edge Function의 Secrets에 저장된다. 조회용 토큰을 교체할 때도 같은 명령을 사용한다.
+
+```bash
+python3 operations/deploy-community.py --usage-report
+```
+
+배포 중 실제 로그와 DB를 조회해 검증한 뒤 별도 Cron 작업 `mobit-usage-report`를 등록한다. 매일 관리자 개인 채팅에 DB 용량(십진 MB), 직전 24시간 Edge 호출 로그 수, 최근 30일 중 관측한 일수와 합계, 그 일평균을 30일로 환산한 예상치를 보낸다. DB 용량, 관측 합계 또는 예상치가 각각 무료 한도의 70%에 이르면 해당 보고서에 경고를 표시한다. 호출은 이 프로젝트의 로그 추정치로, 조직 전체의 청구 주기별 합계와 차이가 있을 수 있다. 누락된 날은 평균에서 제외한다. 보고를 중지하려면 Supabase Cron에서 `mobit-usage-report`를 비활성화한다.
+
+배포 직후 현재 사용량 보고서 한 건도 받으려면 `python3 operations/deploy-community.py --usage-report --usage-now`를 실행한다. 이후에는 `python3 operations/deploy-community.py --usage-now`만 실행하면 된다. 즉시 보고는 실행 시각 기준 직전 24시간을 조회하고, 정기 집계 기록은 읽기만 한다. 터미널에 텔레그램 메시지 번호가 표시되면 발송 접수가 완료된 것이다.

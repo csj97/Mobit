@@ -96,6 +96,7 @@ class TradeViewController: MobitBaseViewController {
 	loadBannerADView()
 	
 	self.bind(reactor: self.reactor)
+    reactor.action.onNext(.loadInitialTicker)
   }
   
   override func viewWillDisappear(_ animated: Bool) {
@@ -221,6 +222,7 @@ class TradeViewController: MobitBaseViewController {
         )
 		orderView.isHidden = true
 		chartView.isHidden = true
+		informationView.updatePriceInfo()
 		informationView.isHidden = false
 		self.reactor.action.onNext(.setSelectedWholeTab(selectedWholeTab: .info))
 		
@@ -294,13 +296,18 @@ class TradeViewController: MobitBaseViewController {
   func setCrypto(crypto: CryptoCellInfo? = nil) {
 	self.prevClosingPrice = crypto?.prevPrice
 	
-	let selectCrypto = crypto ?? self.reactor.selectCrypto
+	let selectCrypto = crypto ?? reactor.displayedCrypto
+	self.cryptoMarketName.text = "\(selectCrypto.cryptoName)(\(selectCrypto.market))"
 	guard let tradePrice = selectCrypto.tradePrice,
 		  let signedChangeRate = selectCrypto.signedChangeRate,
-		  let changePrice = selectCrypto.changePrice else { return }
-	
-	self.cryptoMarketName.text = "\(selectCrypto.cryptoName)(\(selectCrypto.market))"
-	
+		  let changePrice = selectCrypto.changePrice else {
+      cryptoPrice.text = nil
+      cryptoChangedRate.text = nil
+      cryptoChangedPrice.text = nil
+      cryptoUpDownArrowImageView.image = nil
+      return
+    }
+
 	self.cryptoPrice.text = tradePrice.formatTradingValue()
 	
 	self.cryptoChangedRate.text = String(
@@ -566,7 +573,7 @@ extension TradeViewController {
   
   func bind(reactor: TradeReactor) {
 	
-	reactor.state.map { $0.cryptoCellInfo }
+	reactor.state.map { $0.cryptoCellInfo ?? $0.initialTickerInfo }
 	  .distinctUntilChanged()
 	  .observe(on: MainScheduler.instance)
 	  .subscribe(onNext: { [weak self] cellInfo in

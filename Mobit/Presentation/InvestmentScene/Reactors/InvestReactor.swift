@@ -43,7 +43,6 @@ extension InvestReactor {
 	case loadTransactions
 	case invalidateSupportedMarkets
 //	case updateUserAvailableBalance
-	case prepareDetailCrypto(marketName: String, cryptoName: String)
   }
 
   /// 상태 변경 단위, 작업 단위
@@ -53,7 +52,6 @@ extension InvestReactor {
 	case beginSupportedMarketsRequest(UUID, Exchange)
 	case setSupportedMarketPairIDs(UUID, Exchange, Set<ExchangePairID>?)
 	case invalidateSupportedMarkets
-	case setDetailCrypto(CryptoCellInfo?)
   }
 
   struct InvestReactorState {
@@ -64,7 +62,6 @@ extension InvestReactor {
     var supportedMarketsRequestID: UUID?
     // 조회 오류는 이전 목록이 아닌 재시도 안내에만 사용한다.
     var supportedMarketsFailed = false
-	var detailCrypto: CryptoCellInfo?
   }
 }
 
@@ -100,24 +97,6 @@ extension InvestReactor {
     case .invalidateSupportedMarkets:
       return .just(.invalidateSupportedMarkets)
 
-	case let .prepareDetailCrypto(marketName, cryptoName):
-	  // 보유코인 상세 진입: 티커를 조회해 정보 탭에 필요한 필드까지 채운다.
-	  // 실패해도 이동은 하되(정보 탭만 비활성) 기존 동작을 유지한다.
-	  let apiMarket = MarketFormat.apiMarket(fromDisplayMarket: marketName)
-	  let fallback = CryptoCellInfo(cryptoName: cryptoName, market: marketName)
-	  return self.mainUseCase.fetchCryptoTicker(markets: [apiMarket])
-		.map { tickers -> InvestMutation in
-		  guard let ticker = tickers.first else { return .setDetailCrypto(fallback) }
-		  var info = fallback
-		  info.prevPrice = ticker.prevClosingPrice
-		  info.tradePrice = ticker.tradePrice
-		  info.accTradePrice24h = ticker.accTradePrice24h
-		  info.accTradeVolume24h = ticker.accTradeVolume24h
-		  info.highest52WeekPrice = ticker.highest52WeekPrice
-		  info.lowest52WeekPrice = ticker.lowest52WeekPrice
-		  return .setDetailCrypto(info)
-		}
-		.catch { _ in .just(.setDetailCrypto(fallback)) }
 	}
   }
   
@@ -145,8 +124,6 @@ extension InvestReactor {
       newState.supportedMarketPairIDs = nil
       newState.supportedMarketsRequestID = nil
       newState.supportedMarketsFailed = false
-	case .setDetailCrypto(let detailCrypto):
-	  newState.detailCrypto = detailCrypto
 	}
 	return newState
   }

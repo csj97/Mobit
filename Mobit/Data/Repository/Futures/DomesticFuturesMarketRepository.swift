@@ -3,17 +3,86 @@ import Moya
 import Alamofire
 import RxSwift
 
+// 계좌 시세와 검증이 별도 Repository를 사용해도 같은 거래소의 요청 예산을 공유한다.
+final class DomesticFuturesRequestQueue {
+  // 시세와 과거 구간을 겹쳐 읽을 때 동시에 실행할 HTTP 요청 수다.
+  static let maxConcurrentRequests = 2
+  // 각 거래소의 기존 150ms 요청 간격을 독립적으로 지킨다.
+  private static let upbit = DomesticFuturesRequestQueue()
+  // 빗썸 지연이 업비트 큐에 전파되지 않게 한다.
+  private static let bithumb = DomesticFuturesRequestQueue()
+
+  static func queue(for exchange: Exchange) -> DomesticFuturesRequestQueue {
+    exchange == .bithumb ? bithumb : upbit
+  }
+
+  // 대기열과 실행 개수는 이 큐에서만 변경한다.
+  private let queue = DispatchQueue(label: "com.mobit.domesticFutures.requests", qos: .utility)
+  // 이전 요청을 실제 시작한 뒤 다음 요청까지 기다리는 간격이다.
+  private let interval: DispatchTimeInterval
+  // 구독이 취소된 작업은 네트워크를 시작하기 전에 건너뛴다.
+  private var pending: [(subscription: SingleAssignmentDisposable, start: () -> Void)] = []
+  // 네트워크 응답 또는 구독 취소 전까지 실행 중으로 센다.
+  private var running = 0
+  // 동시에 깨어난 타이머들이 연속으로 요청을 보내지 않게 한다.
+  private var waitingForInterval = false
+
+  init(interval: DispatchTimeInterval = .milliseconds(150)) {
+    self.interval = interval
+  }
+
+  func perform<T>(_ request: @escaping () -> Single<T>) -> Single<T> {
+    Single.create { observer in
+      // 요청 시작 전 취소와 실행 중 취소를 같은 구독으로 처리한다.
+      let subscription = SingleAssignmentDisposable()
+      self.queue.async {
+        self.pending.append((subscription, {
+          subscription.setDisposable(request().do(onDispose: {
+            self.queue.async {
+              self.running -= 1
+              self.startNext()
+            }
+          }).subscribe(observer))
+        }))
+        self.startNext()
+      }
+      return subscription
+    }
+  }
+
+  private func startNext() {
+    guard !waitingForInterval, running < Self.maxConcurrentRequests else { return }
+    while !pending.isEmpty {
+      // 오래 기다린 작업부터 시작해 계좌 갱신이 검증 요청을 밀어내지 않게 한다.
+      let job = pending.removeFirst()
+      guard !job.subscription.isDisposed else { continue }
+      running += 1
+      waitingForInterval = true
+      job.start()
+      queue.asyncAfter(deadline: .now() + interval) {
+        self.waitingForInterval = false
+        self.startNext()
+      }
+      return
+    }
+  }
+}
+
 final class DomesticFuturesMarketRepository: FuturesDetailedMarketDataProviding {
   private let provider: MoyaProvider<DomesticFuturesNetworkService>
   private let now: () -> Date
-  private let delay: RxTimeInterval
+  // 계좌 화면과 과거 검증 요청에 같은 거래소 큐를 적용한다.
+  private let requestQueue: (Exchange) -> DomesticFuturesRequestQueue
   private let scheduler = SerialDispatchQueueScheduler(qos: .utility)
 
-  init(provider: MoyaProvider<DomesticFuturesNetworkService> = MoyaProvider<DomesticFuturesNetworkService>(),
-       now: @escaping () -> Date = Date.init, requestDelay: RxTimeInterval = .milliseconds(150)) {
+  init(
+    provider: MoyaProvider<DomesticFuturesNetworkService> = MoyaProvider<DomesticFuturesNetworkService>(),
+    now: @escaping () -> Date = Date.init,
+    requestQueue: @escaping (Exchange) -> DomesticFuturesRequestQueue = DomesticFuturesRequestQueue.queue(for:)
+  ) {
     self.provider = provider
     self.now = now
-    self.delay = requestDelay
+    self.requestQueue = requestQueue
   }
 
   func markQuote(_ instrument: TradingInstrumentID) -> Single<FuturesMarkQuote> {
@@ -47,17 +116,34 @@ final class DomesticFuturesMarketRepository: FuturesDetailedMarketDataProviding 
   func markCandles(_ instrument: TradingInstrumentID, start: Int64, endExclusive: Int64) -> Single<FuturesHistoryPage<FuturesMarkCandle>> {
     guard Self.validRange(start, endExclusive), start % 60_000 == 0, endExclusive % 60_000 == 0,
           endExclusive - start <= 499 * 60_000 else { return .error(FuturesMarketDataError.invalidRequest) }
-    return minuteChunks(instrument, start: start, end: endExclusive).map {
+    // 200개 중 한 봉은 각 구간 시작 전 종가를 확인하는 데 사용한다.
+    let width = Int64(199 * 60_000)
+    return loadChunks(start: start, end: endExclusive, width: width, firstEnd: start + width) { lower, upper in
+      self.candles(instrument, seconds: false, start: lower, end: upper)
+    }.map {
       .init(instrument: instrument, values: $0, nextStartTime: nil)
     }
   }
 
-  private func minuteChunks(_ instrument: TradingInstrumentID, start: Int64, end: Int64) -> Single<[FuturesMarkCandle]> {
-    let pageEnd = min(end, start + 199 * 60_000)
-    return candles(instrument, seconds: false, start: start, end: pageEnd).flatMap { [self] values in
-      if pageEnd == end { return .just(values) }
-      return minuteChunks(instrument, start: pageEnd, end: end).map { values + $0 }
-    }
+  private func loadChunks(
+    start: Int64,
+    end: Int64,
+    width: Int64,
+    firstEnd: Int64,
+    fetch: @escaping (Int64, Int64) -> Single<[FuturesMarkCandle]>
+  ) -> Single<[FuturesMarkCandle]> {
+    // 첫 빗썸 체결 구간은 진입 밀리초를 보존하면서 다음 초 경계에서 끝낸다.
+    let starts = [start] + stride(from: min(firstEnd, end), to: end, by: Int(width))
+    return Observable.from(starts)
+      .map { lower in
+        Observable.deferred {
+          fetch(lower, min(lower == start ? firstEnd : lower + width, end))
+            .map { (lower, $0) }.asObservable()
+        }
+      }
+      .merge(maxConcurrent: DomesticFuturesRequestQueue.maxConcurrentRequests)
+      .toArray()
+      .map { chunks in chunks.sorted { $0.0 < $1.0 }.flatMap { $0.1 } }
   }
 
   func secondCandles(_ instrument: TradingInstrumentID, start: Int64, endExclusive: Int64) -> Single<FuturesHistoryPage<FuturesMarkCandle>> {
@@ -200,9 +286,8 @@ final class DomesticFuturesMarketRepository: FuturesDetailedMarketDataProviding 
   private func tickHistory(_ instrument: TradingInstrumentID, start: Int64, end: Int64,
                            calendar: Calendar, attempts: Int) -> Single<[FuturesMarkCandle]> {
     if instrument.exchange == .bithumb, end - start > 5_000 {
-      let middle = min(end, (start / 1000) * 1000 + 5_000)
-      return tickHistory(instrument, start: start, end: middle, calendar: calendar, attempts: attempts).flatMap { [self] first in
-        tickHistory(instrument, start: middle, end: end, calendar: calendar, attempts: attempts).map { first + $0 }
+      return loadChunks(start: start, end: end, width: 5_000, firstEnd: start / 1000 * 1000 + 5_000) { lower, upper in
+        self.tickHistory(instrument, start: lower, end: upper, calendar: calendar, attempts: attempts)
       }
     }
     let upper = ((end + 999) / 1000) * 1000
@@ -288,8 +373,8 @@ final class DomesticFuturesMarketRepository: FuturesDetailedMarketDataProviding 
   private func request(_ query: DomesticFuturesNetworkService.Query, instrument: TradingInstrumentID) -> Single<Response> {
     guard Self.supports(instrument) else { return .error(FuturesMarketDataError.unsupportedInstrument) }
     let target = DomesticFuturesNetworkService(exchange: instrument.exchange, market: instrument.rawSymbol, query: query)
-    return Single.deferred { [provider] in provider.rx.request(target) }
-      .delaySubscription(delay, scheduler: scheduler).observe(on: scheduler).map { response in
+    return requestQueue(instrument.exchange).perform { [provider] in provider.rx.request(target) }
+      .observe(on: scheduler).map { response in
         guard (200..<300).contains(response.statusCode) else { throw FuturesMarketDataError.httpStatus(response.statusCode) }
         return response
       }.do(onError: { error in

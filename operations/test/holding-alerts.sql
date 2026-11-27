@@ -158,4 +158,40 @@ begin
   if exists(select from mobit_ops.push_device where owner=new_id and token is not null)
     then raise exception 'invalid token retained'; end if;
 end $reinstall$;
+do $cleanup$
+declare
+  person uuid:=gen_random_uuid(); other_person uuid:=gen_random_uuid();
+  sold uuid:=gen_random_uuid(); rebought uuid:=gen_random_uuid(); pending_event uuid:=gen_random_uuid();
+begin
+  if has_function_privilege('authenticated','mobit_ops.cleanup_closed_holdings()','execute') then
+    raise exception 'client cleanup permission';
+  end if;
+  insert into auth.users values(person),(other_person);
+  perform set_config('test.uid',person::text,true);
+  perform public.mobit_sync_holding(sold,2,true,now());
+  insert into mobit_ops.holding_event(id,owner,holding,revision,device_revision,level,observed_at)
+    values(pending_event,person,sold,1,1,5,now());
+  perform set_config('test.uid',other_person::text,true);
+  perform public.mobit_sync_holding(sold,1,false,now(),'upbit','KRW-BTC','spot',100,100);
+  update mobit_ops.holding_watch set paused=true where owner=other_person;
+  perform mobit_ops.cleanup_closed_holdings();
+  perform mobit_ops.cleanup_closed_holdings();
+  if exists(select from mobit_ops.holding_watch where closed)
+    or exists(select from mobit_ops.holding_event where id=pending_event)
+    or not exists(select from mobit_ops.closed_holding where owner=person and holding=sold)
+    or not exists(select from mobit_ops.holding_watch where owner=other_person and holding=sold and paused)
+    then raise exception 'cleanup scope or pending event'; end if;
+  perform set_config('test.uid',person::text,true);
+  perform public.mobit_sync_holding(sold,1,false,now(),'upbit','KRW-BTC','spot',100,100);
+  perform public.mobit_sync_holding(sold,2,true,now());
+  perform public.mobit_sync_holding(sold,10,false,now(),'upbit','KRW-BTC','spot',100,100);
+  perform public.mobit_sync_holding(rebought,11,false,now(),'upbit','KRW-BTC','spot',100,100);
+  if exists(select from mobit_ops.holding_watch where owner=person and holding=sold)
+    or not exists(select from mobit_ops.holding_watch where owner=person and holding=rebought and not closed)
+    then raise exception 'replay or repurchase'; end if;
+  perform public.mobit_retire_holding_installation();
+  perform public.mobit_sync_holding(sold,12,false,now(),'upbit','KRW-BTC','spot',100,100);
+  if exists(select from mobit_ops.closed_holding where owner=person)
+    or exists(select from mobit_ops.holding_watch where owner=person) then raise exception 'retired marker'; end if;
+end $cleanup$;
 rollback;

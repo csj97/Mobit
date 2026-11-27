@@ -14,6 +14,11 @@ create table if not exists mobit_ops.holding_watch (
 -- 이전 설치의 지연 요청이 보유 건이나 토큰을 되살리지 못하게 한다.
 alter table mobit_ops.push_device add column if not exists retired boolean not null default false;
 create index if not exists holding_watch_market on mobit_ops.holding_watch(exchange,market) where not closed and not paused;
+-- 종료된 보유 UUID는 재사용하지 않으므로 지연 요청 차단에는 두 식별자만 필요하다.
+create table if not exists mobit_ops.closed_holding (
+  owner uuid not null references auth.users(id) on delete cascade,
+  holding uuid not null, primary key(owner,holding)
+);
 create table if not exists mobit_ops.holding_event (
   id uuid primary key default gen_random_uuid(), owner uuid not null, holding uuid not null,
   revision bigint not null, device_revision bigint not null, level numeric not null,
@@ -39,6 +44,7 @@ begin
   insert into mobit_ops.push_device(owner,revision,token,retired) values(auth.uid(),0,null,true)
     on conflict(owner) do update set token=null,retired=true;
   delete from mobit_ops.holding_watch where owner=auth.uid();
+  delete from mobit_ops.closed_holding where owner=auth.uid();
 end $retire$;
 
 create or replace function public.mobit_sync_holding(
@@ -66,6 +72,7 @@ begin
   -- 토큰 등록 전에도 같은 소유자의 설치 해제와 보유 건 갱신 순서를 보장한다.
   insert into mobit_ops.push_device(owner,revision) values(auth.uid(),0) on conflict(owner) do nothing;
   if (select retired from mobit_ops.push_device where owner=auth.uid() for share) then return; end if;
+  if exists(select from mobit_ops.closed_holding where owner=auth.uid() and holding=p_holding) then return; end if;
   insert into mobit_ops.holding_watch as h(owner,holding,revision,closed,exchange,market,side,units,cost,margin,
     effective_at,checked_until,up_level,down_level)
     values(auth.uid(),p_holding,p_revision,p_closed,p_exchange,p_market,p_side,p_units,p_cost,p_margin,
@@ -77,6 +84,24 @@ begin
     where not h.closed and excluded.revision>h.revision and (excluded.closed or
       (excluded.effective_at>=h.effective_at and excluded.exchange=h.exchange and excluded.market=h.market and excluded.side=h.side));
 end $sync$;
+
+create or replace function mobit_ops.cleanup_closed_holdings() returns void
+language plpgsql security invoker set search_path='' as $cleanup$
+declare
+  device_owner uuid;
+begin
+  -- 동기화가 같은 기기 행을 FOR SHARE로 잠그므로 정리 도중 이전 요청이 보유 건을 다시 삽입할 수 없다.
+  for device_owner in select d.owner from mobit_ops.push_device d
+    where exists(select from mobit_ops.holding_watch h where h.owner=d.owner and h.closed)
+    order by d.owner for update of d
+  loop
+    with removed as (
+      delete from mobit_ops.holding_watch where owner=device_owner and closed returning owner,holding
+    )
+    insert into mobit_ops.closed_holding(owner,holding) select owner,holding from removed;
+  end loop;
+end $cleanup$;
+revoke all on function mobit_ops.cleanup_closed_holdings() from public,anon,authenticated;
 
 -- 큐에 넣은 이후 매도·설정 변경·토큰 교체가 일어나면 실제 발송 직전에 폐기한다.
 create or replace function public.mobit_claim_holding_event(p_event uuid) returns jsonb
